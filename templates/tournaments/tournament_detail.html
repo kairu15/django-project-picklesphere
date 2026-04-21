@@ -1,10 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}{{ tournament.name }} - PickleSphere{% endblock %}
 
-{% block body %}
-<div class="container py-4">
+{% block content %}
+<div class="container-fluid py-4">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
@@ -28,19 +28,31 @@
                     <p class="text-muted">{{ tournament.description }}</p>
                 </div>
                 <div class="text-md-end">
-                    {% if tournament.is_registration_open %}
-                        {% if user_registration %}
-                            {% if user_registration.status == 'pending' %}
-                                <div class="badge bg-warning p-2">Your registration is pending approval</div>
-                            {% elif user_registration.status == 'approved' %}
-                                <div class="badge bg-success p-2">You are registered!</div>
-                            {% elif user_registration.status == 'rejected' %}
-                                <div class="badge bg-danger p-2">Your registration was rejected</div>
-                            {% endif %}
+                    {% if user_registration %}
+                        {% if user_registration.status == 'pending' %}
+                            <div class="badge bg-warning p-2">Your registration is pending approval</div>
+                        {% elif user_registration.status == 'approved' %}
+                            <div class="badge bg-success p-2">You are registered!</div>
+                        {% elif user_registration.status == 'rejected' %}
+                            <div class="badge bg-danger p-2">Your registration was rejected</div>
+                        {% endif %}
+                    {% elif tournament.is_registration_open %}
+                        <a href="{% url 'tournament_register' tournament.pk %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-edit me-2"></i>Register Now
+                        </a>
+                    {% else %}
+                        {% if tournament.status == 'registration_open' %}
+                            <div class="badge bg-info p-2">Opens: {{ tournament.registration_start|date:"M d, Y H:i" }}</div>
+                        {% elif tournament.status == 'draft' %}
+                            <div class="badge bg-secondary p-2">Registration not yet open</div>
+                        {% elif tournament.status == 'registration_closed' %}
+                            <div class="badge bg-danger p-2">Registration closed</div>
+                        {% elif tournament.status == 'in_progress' %}
+                            <div class="badge bg-primary p-2">Tournament in progress</div>
+                        {% elif tournament.status == 'completed' %}
+                            <div class="badge bg-dark p-2">Tournament completed</div>
                         {% else %}
-                            <a href="{% url 'tournament_register' tournament.pk %}" class="btn btn-success btn-lg">
-                                <i class="fas fa-edit me-2"></i>Register Now
-                            </a>
+                            <div class="badge bg-secondary p-2">Registration currently unavailable</div>
                         {% endif %}
                     {% endif %}
                 </div>

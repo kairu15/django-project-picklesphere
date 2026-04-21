@@ -79,9 +79,7 @@ class Tournament(models.Model):
     
     @property
     def is_registration_open(self):
-        now = timezone.now()
-        return (self.status == 'registration_open' and 
-                self.registration_start <= now <= self.registration_end)
+        return self.status == 'registration_open'
     
     @property
     def registration_count(self):

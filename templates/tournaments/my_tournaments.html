@@ -4,7 +4,7 @@
 
 {% block page_title %}My Tournaments{% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="container-fluid">
     <!-- Summary Cards -->
     <div class="row mb-4">
@@ -27,7 +27,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">Pending</h6>
-                            <h3>{{ registrations.filter.status='pending'.count|default:0 }}</h3>
+                            <h3>-</h3>
                         </div>
                         <i class="fas fa-clock fa-2x opacity-50"></i>
                     </div>
@@ -40,7 +40,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">Approved</h6>
-                            <h3>{% with approved=registrations|dictsort:"status" %}{% for r in approved %}{% if r.status == 'approved' %}1{% endif %}{% endfor %}{% endwith %}</h3>
+                            <h3>-</h3>
                         </div>
                         <i class="fas fa-check-circle fa-2x opacity-50"></i>
                     </div>
