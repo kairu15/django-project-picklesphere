@@ -1,0 +1,199 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Staff Dashboard{% endblock %}
+{% block page_title %}Staff Dashboard{% endblock %}
+
+{% block content %}
+<!-- Quick Actions -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'staff_reservations' %}" class="btn btn-primary">
+                <i class="fas fa-calendar-check me-2"></i>View Reservations
+            </a>
+            <a href="{% url 'staff_payments' %}" class="btn btn-success">
+                <i class="fas fa-money-bill-wave me-2"></i>Verify Payments
+            </a>
+            <a href="{% url 'match_list' %}" class="btn btn-warning">
+                <i class="fas fa-trophy me-2"></i>Manage Matches
+            </a>
+            <a href="{% url 'staff_equipment' %}" class="btn btn-info text-white">
+                <i class="fas fa-tools me-2"></i>Equipment
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ today_reservations|length }}</h3>
+                <p>Today's Reservations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ pending_reservations }}</h3>
+                <p>Pending Approval</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ pending_payments }}</h3>
+                <p>Pending Payments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-play-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ active_matches }}</h3>
+                <p>Active Matches</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Stats -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Equipment Overview</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1">{{ equipment_stats.total }}</h4>
+                        <p class="text-muted mb-0">Total Equipment Items</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1">{{ equipment_stats.low_stock }}</h4>
+                        <p class="text-muted mb-0">Low Stock Items</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon success">
+                        <i class="fas fa-hand-holding"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1">{{ equipment_stats.active_rentals }}</h4>
+                        <p class="text-muted mb-0">Active Rentals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Today's Reservations -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Today's Schedule</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Court</th>
+                                <th>User</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in today_reservations %}
+                            <tr>
+                                <td>{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</td>
+                                <td>{{ reservation.court.name }}</td>
+                                <td>{{ reservation.user.username }}</td>
+                                <td>
+                                    <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    {% if reservation.status == 'confirmed' and not reservation.match %}
+                                    <a href="{% url 'start_match' reservation.id %}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-play"></i> Start
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No reservations for today</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for activity in recent_activities %}
+                    <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                        <div class="flex-shrink-0">
+                            <div class="bg-light rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-history text-secondary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <p class="mb-1 fw-semibold">{{ activity.user.username }}</p>
+                            <p class="mb-0 small text-muted">{{ activity.action }}</p>
+                            <small class="text-muted">{{ activity.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-4">No recent activity</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

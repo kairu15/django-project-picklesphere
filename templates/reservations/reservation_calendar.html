@@ -1,0 +1,73 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Reservation Calendar{% endblock %}
+{% block page_title %}Reservation Calendar{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small">Select Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">Court</label>
+                <select name="court" class="form-select">
+                    <option value="">All Courts</option>
+                    {% for court in courts %}
+                    <option value="{{ court.id }}" {% if court_filter == court.id %}selected{% endif %}>{{ court.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-calendar-day me-2"></i>View Schedule
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ selected_date|date:"F d, Y" }}</h5>
+        <span class="badge bg-primary">{{ reservations|length }} reservations</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Court</th>
+                        <th>User</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr>
+                        <td>{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</td>
+                        <td>{{ reservation.court.name }}</td>
+                        <td>{{ reservation.user.username }}</td>
+                        <td>{{ reservation.duration_hours }} hrs</td>
+                        <td>
+                            <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                            <p>No reservations for this date</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

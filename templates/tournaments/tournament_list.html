@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tournaments - PickleSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold text-primary">Tournaments</h1>
+            <p class="text-muted">Join beginner-friendly pickleball competitions</p>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'my_tournaments' %}" class="btn btn-outline-primary">
+            <i class="fas fa-user me-2"></i>My Tournaments
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="registration_open" {% if status_filter == 'registration_open' %}selected{% endif %}>Registration Open</option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All Categories</option>
+                        <option value="singles" {% if category_filter == 'singles' %}selected{% endif %}>Singles</option>
+                        <option value="doubles" {% if category_filter == 'doubles' %}selected{% endif %}>Doubles</option>
+                        <option value="mixed_doubles" {% if category_filter == 'mixed_doubles' %}selected{% endif %}>Mixed Doubles</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <a href="{% url 'tournament_list' %}" class="btn btn-secondary w-100">Clear Filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registration Open -->
+    {% if open_tournaments %}
+    <h3 class="mb-3"><i class="fas fa-door-open text-success me-2"></i>Open for Registration</h3>
+    <div class="row g-4 mb-5">
+        {% for tournament in open_tournaments %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-success shadow-sm hover-shadow">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-white text-success">{{ tournament.get_category_display }}</span>
+                        <small>{{ tournament.registration_count }}/{{ tournament.max_participants }} registered</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ tournament.name }}</h5>
+                    <p class="card-text text-muted small">{{ tournament.description|truncatechars:100 }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-info">{{ tournament.get_format_display }}</span>
+                        <span class="badge bg-warning text-dark">{{ tournament.get_skill_level_display }}</span>
+                    </div>
+                    <ul class="list-unstyled small text-muted">
+                        <li><i class="fas fa-calendar me-2"></i>Starts: {{ tournament.tournament_start|date:"M d, Y" }}</li>
+                        <li><i class="fas fa-clock me-2"></i>Registration closes: {{ tournament.registration_end|date:"M d, Y" }}</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-success w-100">
+                        <i class="fas fa-edit me-2"></i>Register Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Active Tournaments -->
+    {% if active_tournaments %}
+    <h3 class="mb-3"><i class="fas fa-play-circle text-primary me-2"></i>In Progress</h3>
+    <div class="row g-4 mb-5">
+        {% for tournament in active_tournaments %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-primary shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-white text-primary">{{ tournament.get_category_display }}</span>
+                        <span class="badge bg-warning">LIVE</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ tournament.name }}</h5>
+                    <p class="card-text text-muted small">{{ tournament.description|truncatechars:100 }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-info">{{ tournament.get_format_display }}</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-primary w-100">
+                        <i class="fas fa-eye me-2"></i>View Matches
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upcoming -->
+    {% if upcoming_tournaments %}
+    <h3 class="mb-3"><i class="fas fa-calendar-alt text-info me-2"></i>Coming Soon</h3>
+    <div class="row g-4 mb-5">
+        {% for tournament in upcoming_tournaments %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-info shadow-sm opacity-75">
+                <div class="card-header bg-info text-white">
+                    <span class="badge bg-white text-info">{{ tournament.get_category_display }}</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ tournament.name }}</h5>
+                    <p class="card-text text-muted small">{{ tournament.description|truncatechars:100 }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-secondary">{{ tournament.get_format_display }}</span>
+                    </div>
+                    <ul class="list-unstyled small text-muted">
+                        <li><i class="fas fa-calendar me-2"></i>Registration opens: {{ tournament.registration_start|date:"M d, Y" }}</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-outline-secondary w-100" disabled>
+                        <i class="fas fa-clock me-2"></i>Registration Closed
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Completed -->
+    {% if completed_tournaments %}
+    <h3 class="mb-3"><i class="fas fa-trophy text-secondary me-2"></i>Past Tournaments</h3>
+    <div class="row g-4">
+        {% for tournament in completed_tournaments %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-secondary shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <span class="badge bg-white text-secondary">{{ tournament.get_category_display }}</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ tournament.name }}</h5>
+                    <div class="mb-3">
+                        <span class="badge bg-success">Completed</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-list me-2"></i>View Results
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not open_tournaments and not active_tournaments and not upcoming_tournaments and not completed_tournaments %}
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No tournaments found</h4>
+        <p class="text-muted">Check back later for upcoming events!</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    transition: box-shadow 0.3s ease;
+}
+</style>
+{% endblock %}
+

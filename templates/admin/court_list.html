@@ -1,0 +1,101 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Court Management{% endblock %}
+{% block page_title %}Court Management{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small">Search</label>
+                <input type="text" name="search" class="form-control" value="{{ search_query }}" placeholder="Court or site">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'admin_court_create' %}" class="btn btn-success w-100">
+                    <i class="fas fa-plus me-2"></i>Add Court
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Courts</h5>
+        <span class="badge bg-primary">{{ courts|length }} total</span>
+    </div>
+    <div class="card-body p-0">
+        {% if courts %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Site</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Rate</th>
+                        <th>Availability</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for court in courts %}
+                    <tr>
+                        <td class="fw-semibold">{{ court.name }}</td>
+                        <td>{{ court.site.name }}</td>
+                        <td>{{ court.get_court_type_display }}</td>
+                        <td>{{ court.get_status_display }}</td>
+                        <td>₱{{ court.hourly_rate|floatformat:0 }}/hr</td>
+                        <td>
+                            <span class="badge bg-{% if court.is_active %}success{% else %}secondary{% endif %}">
+                                {% if court.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'court_detail' court.id %}" class="btn btn-sm btn-outline-secondary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'admin_court_edit' court.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if court.is_active %}
+                                <form method="post" action="{% url 'admin_court_delete' court.id %}" onsubmit="return confirm('Deactivate this court?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+            <h5>No courts found</h5>
+            <p class="text-muted">Try adjusting your filters or create a new court.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

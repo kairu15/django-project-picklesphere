@@ -1,0 +1,102 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Schedule Matches - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Schedule Matches{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back Button -->
+            <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Management
+            </a>
+
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Bulk Schedule Matches</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Stats -->
+                    <div class="alert alert-light mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Tournament:</strong> {{ tournament.name }}
+                                <br><strong>Unscheduled:</strong> {{ unscheduled_count }} matches
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Start Date:</strong> {{ tournament.tournament_start|date:"M d, Y" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if unscheduled_count == 0 %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            All matches are already scheduled!
+                        </div>
+                        <a href="{% url 'admin_match_list' tournament.pk %}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>View Matches
+                        </a>
+                    {% else %}
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Start Date <span class="text-danger">*</span></label>
+                                    {{ form.start_date }}
+                                    <div class="form-text">First day of matches</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Daily Start Time <span class="text-danger">*</span></label>
+                                    {{ form.start_time }}
+                                    <div class="form-text">Time for first match each day</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Matches per Day</label>
+                                    {{ form.matches_per_day }}
+                                    <div class="form-text">How many matches to schedule each day</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Match Duration (minutes)</label>
+                                    {{ form.match_duration }}
+                                    <div class="form-text">Time allocated for each match</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Court Assignment</label>
+                                {{ form.court_assignment }}
+                            </div>
+
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>Scheduling Preview</h6>
+                                <ul class="mb-0">
+                                    <li>{{ unscheduled_count }} matches will be scheduled</li>
+                                    <li>Matches will be distributed across available courts</li>
+                                    <li>Each match gets {{ form.match_duration.value|default:60 }} minutes</li>
+                                    <li>Scheduling will span multiple days if needed</li>
+                                </ul>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-info btn-lg">
+                                    <i class="fas fa-calendar-check me-2"></i>Schedule {{ unscheduled_count }} Matches
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

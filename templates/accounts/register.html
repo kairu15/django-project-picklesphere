@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="auth-container" style="max-width: 500px;">
+        <div class="auth-form-container" style="flex: 1; padding: 40px;">
+            <div class="auth-form-wrapper" style="max-width: 100%;">
+                <a href="{% url 'home' %}" class="text-decoration-none mb-3 d-inline-block">
+                    <i class="fas fa-arrow-left text-secondary"></i>
+                    <span class="text-secondary ms-2">Back to Home</span>
+                </a>
+                
+                <div class="auth-logo mb-3">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B7A8C, #1a3a42); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-table-tennis text-white"></i>
+                    </div>
+                    <h2 class="mt-2" style="color: var(--primary-color);">PickleSphere</h2>
+                </div>
+                
+                <h3 class="text-center mb-1">Create Your Account</h3>
+                <p class="text-center text-muted mb-4" style="font-size: 14px;">Join us for exclusive benefits and faster reservation</p>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">First Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user text-secondary"></i>
+                                </span>
+                                {{ form.first_name }}
+                            </div>
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Last Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user text-secondary"></i>
+                                </span>
+                                {{ form.last_name }}
+                            </div>
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Username <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-user-circle text-secondary"></i>
+                            </span>
+                            {{ form.username }}
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-envelope text-secondary"></i>
+                            </span>
+                            {{ form.email }}
+                        </div>
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-phone text-secondary"></i>
+                            </span>
+                            {{ form.phone_number }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-lock text-secondary"></i>
+                                </span>
+                                {{ form.password1 }}
+                                <button type="button" class="input-group-text bg-light border-start-0" onclick="togglePassword('id_password1', 'toggle-icon1')">
+                                    <i class="fas fa-eye text-secondary" id="toggle-icon1"></i>
+                                </button>
+                            </div>
+                            {% if form.password1.errors %}
+                                <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-lock text-secondary"></i>
+                                </span>
+                                {{ form.password2 }}
+                                <button type="button" class="input-group-text bg-light border-start-0" onclick="togglePassword('id_password2', 'toggle-icon2')">
+                                    <i class="fas fa-eye text-secondary" id="toggle-icon2"></i>
+                                </button>
+                            </div>
+                            {% if form.password2.errors %}
+                                <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="small text-muted mb-3">Min 8 characters with letters and numbers</p>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.agree_terms }}
+                            <label class="form-check-label small">
+                                I agree to the <a href="#" style="color: var(--primary-color);">Terms of Service</a> and <a href="#" style="color: var(--primary-color);">Privacy Policy</a>
+                            </label>
+                        </div>
+                        {% if form.agree_terms.errors %}
+                            <div class="text-danger small mt-1">{{ form.agree_terms.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3" style="background: var(--primary-color); border: none;">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </button>
+                </form>
+                
+                <p class="text-center mb-0 small">
+                    Already have an account? 
+                    <a href="{% url 'login' %}" style="color: var(--primary-color);">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(fieldId, iconId) {
+        const field = document.getElementById(fieldId);
+        const icon = document.getElementById(iconId);
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            field.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}

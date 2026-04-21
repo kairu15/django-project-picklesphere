@@ -1,0 +1,93 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="text-center mb-4">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
+                                <span class="text-white display-4">{{ user.first_name|first|default:user.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                        <div>
+                            {{ form.profile_picture }}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            {{ form.phone_number }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="{% url 'user_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Account Info Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Account Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Username</p>
+                        <p class="mb-0 fw-semibold">{{ user.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Role</p>
+                        <p class="mb-0 fw-semibold">{{ user.get_role_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Member Since</p>
+                        <p class="mb-0 fw-semibold">{{ user.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Account Status</p>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

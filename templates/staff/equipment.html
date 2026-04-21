@@ -1,0 +1,118 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Equipment Management{% endblock %}
+{% block page_title %}Equipment Management{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total }}</h3>
+                <p>Total Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.low_stock }}</h3>
+                <p>Low Stock</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.out_of_stock }}</h3>
+                <p>Out of Stock</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-hand-holding"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.active_rentals }}</h3>
+                <p>Active Rentals</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Equipment</h5>
+        <span class="badge bg-primary">{{ equipment|length }} items</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Available</th>
+                        <th>Total</th>
+                        <th>Price</th>
+                        <th>Condition</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in equipment %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="rounded" width="40" height="40" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-tools text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <span>{{ item.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ item.get_type_display }}</td>
+                        <td>{{ item.quantity_available }}</td>
+                        <td>{{ item.quantity_total }}</td>
+                        <td>₱{{ item.rental_price|floatformat:0 }}</td>
+                        <td>
+                            <span class="badge bg-{% if item.condition == 'new' %}success{% elif item.condition == 'good' %}info{% elif item.condition == 'fair' %}warning{% else %}danger{% endif %}">
+                                {{ item.get_condition_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if item.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if item.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3"></i>
+                            <p>No equipment found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Registrations - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Registrations: {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to Management
+            </a>
+            <h5 class="mb-0">Tournament Registrations</h5>
+        </div>
+        <div class="d-flex gap-2">
+            <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </form>
+            <form method="post" action="{% url 'admin_bulk_approve' tournament.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" onclick="return confirm('Approve all pending registrations?')">
+                    <i class="fas fa-check-double me-2"></i>Bulk Approve
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h4>{{ registrations|length }}</h4>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning">
+                <div class="card-body">
+                    <h4>{{ registrations|length }}</h4>
+                    <small>Pending</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h4>0</h4>
+                    <small>Approved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h4>0</h4>
+                    <small>Rejected</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registrations Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Player</th>
+                            <th>Skill Level</th>
+                            <th>Gender</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                            <th>Reviewed By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                        <tr class="{% if reg.status == 'pending' %}table-warning{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if reg.user.profile_picture %}
+                                        <img src="{{ reg.user.profile_picture.url }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                            {{ reg.user.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ reg.user.get_full_name|default:reg.user.username }}</strong>
+                                        <br><small class="text-muted">{{ reg.user.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ reg.get_skill_level_display|default:"-" }}</td>
+                            <td>{{ reg.get_gender_display|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-{% if reg.status == 'pending' %}warning text-dark{% elif reg.status == 'approved' %}success{% elif reg.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                    {{ reg.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ reg.registered_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if reg.reviewed_by %}
+                                    {{ reg.reviewed_by.username }}
+                                    <br><small>{{ reg.reviewed_at|date:"M d, Y" }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if reg.status == 'pending' %}
+                                    <a href="{% url 'admin_registration_review' tournament.pk reg.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-gavel"></i> Review
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">{{ reg.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No registrations found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

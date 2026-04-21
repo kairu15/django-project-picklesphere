@@ -1,0 +1,70 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Verify Payment{% endblock %}
+{% block page_title %}Verify Payment #{{ payment.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Payment ID:</strong> #{{ payment.id }}</p>
+                        <p><strong>Reservation:</strong> #{{ payment.reservation.id }}</p>
+                        <p><strong>User:</strong> {{ payment.reservation.user.get_full_name|default:payment.reservation.user.username }}</p>
+                        <p><strong>Court:</strong> {{ payment.reservation.court.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Amount:</strong> ${{ payment.amount|floatformat:2 }}</p>
+                        <p><strong>Method:</strong> {{ payment.get_method_display }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{% if payment.status == 'paid' %}success{% elif payment.status == 'pending' %}warning{% elif payment.status == 'refunded' %}info{% else %}secondary{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Date:</strong> {{ payment.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Update Payment Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Update Payment
+                        </button>
+                        <a href="{% url 'staff_payments' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Payments
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Reservation Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> {{ payment.reservation.date }}</p>
+                <p><strong>Time:</strong> {{ payment.reservation.start_time }} - {{ payment.reservation.end_time }}</p>
+                <p><strong>Duration:</strong> {{ payment.reservation.duration }} hours</p>
+                <p><strong>Court Fee:</strong> ${{ payment.reservation.total_amount|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

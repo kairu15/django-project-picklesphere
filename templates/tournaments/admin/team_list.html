@@ -1,0 +1,123 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Teams - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Teams: {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to Management
+            </a>
+            <h5 class="mb-0">Team Management</h5>
+        </div>
+        <a href="{% url 'admin_team_create' tournament.pk %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Create Team
+        </a>
+    </div>
+
+    {% if teams %}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Team Name</th>
+                            <th>Players</th>
+                            <th>Seed</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for team in teams %}
+                        <tr>
+                            <td>
+                                <strong>{{ team.name|default:"Unnamed Team" }}</strong>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center">
+                                        {% if team.player1.profile_picture %}
+                                            <img src="{{ team.player1.profile_picture.url }}" class="rounded-circle me-1" style="width: 25px; height: 25px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-1" style="width: 25px; height: 25px; font-size: 0.7rem;">
+                                                {{ team.player1.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <small>{{ team.player1.get_full_name|default:team.player1.username }}</small>
+                                    </div>
+                                    {% if team.player2 %}
+                                    <span class="text-muted">&</span>
+                                    <div class="d-flex align-items-center">
+                                        {% if team.player2.profile_picture %}
+                                            <img src="{{ team.player2.profile_picture.url }}" class="rounded-circle me-1" style="width: 25px; height: 25px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-1" style="width: 25px; height: 25px; font-size: 0.7rem;">
+                                                {{ team.player2.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <small>{{ team.player2.get_full_name|default:team.player2.username }}</small>
+                                    </div>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Need Partner</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if team.seed %}
+                                    <span class="badge bg-primary">#{{ team.seed }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if team.is_auto_assigned %}
+                                    <span class="badge bg-secondary">Auto</span>
+                                {% else %}
+                                    <span class="badge bg-info">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No teams yet</h5>
+            <p class="text-muted">
+                {% if tournament.auto_assign_teams %}
+                    Teams will be auto-generated when you generate matches.
+                {% else %}
+                    Create teams manually or enable auto-assignment in tournament settings.
+                {% endif %}
+            </p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{% url 'admin_generate_matches' tournament.pk %}" class="btn btn-success">
+                    <i class="fas fa-magic me-2"></i>Generate Matches
+                </a>
+                <a href="{% url 'admin_team_create' tournament.pk %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus me-2"></i>Create Team Manually
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

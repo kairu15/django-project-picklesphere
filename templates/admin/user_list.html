@@ -1,0 +1,114 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Users{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Role</label>
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="staff" {% if role_filter == 'staff' %}selected{% endif %}>Staff</option>
+                    <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Username or email" value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Users</h5>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'user_create' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Create User
+            </a>
+            <span class="badge bg-primary">{{ users|length }} total</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle" width="32" height="32" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 32px; height: 32px; font-size: 12px;">
+                                        {{ user.first_name|first|default:user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <span class="fw-semibold">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'staff' %}warning{% else %}info{% endif %}">
+                                {{ user.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if user.is_active %}success{% else %}secondary{% endif %}">
+                                {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ user.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'user_edit' user.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user != request.user %}
+                                <form method="post" action="{% url 'user_delete' user.id %}" onsubmit="return confirm('Deactivate this user account?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5>No users found</h5>
+            <p class="text-muted">Try adjusting your filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

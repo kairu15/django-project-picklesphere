@@ -1,0 +1,89 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Tournament Bracket - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Tournament Bracket{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to Management
+            </a>
+            <h5 class="mb-0">{{ tournament.name }} - Bracket View</h5>
+        </div>
+        <div class="badge bg-primary">{{ tournament.get_format_display }}</div>
+    </div>
+
+    {% if matches_by_round %}
+        <div class="bracket-container" style="overflow-x: auto;">
+            {% for round_name, matches in matches_by_round.items %}
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">{{ matches.0.get_round_name_display }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for match in matches %}
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <div class="card {% if match.status == 'completed' %}border-success{% elif match.status == 'in_progress' %}border-warning{% endif %}">
+                                <div class="card-header py-2 d-flex justify-content-between">
+                                    <small>Match #{{ match.match_number }}</small>
+                                    {% if match.status == 'completed' %}
+                                        <span class="badge bg-success">Done</span>
+                                    {% elif match.status == 'in_progress' %}
+                                        <span class="badge bg-warning">Live</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ match.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded {% if match.winner == match.player1 or match.winner_team == match.team1 %}bg-success text-white{% else %}bg-light{% endif %}">
+                                        <span class="{% if match.winner == match.player1 or match.winner_team == match.team1 %}fw-bold{% endif %}">
+                                            {{ match.get_player1_display|truncatechars:20 }}
+                                        </span>
+                                        {% if match.status == 'completed' %}
+                                            <span class="fw-bold">{{ match.score1 }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center p-2 rounded {% if match.winner == match.player2 or match.winner_team == match.team2 %}bg-success text-white{% else %}bg-light{% endif %}">
+                                        <span class="{% if match.winner == match.player2 or match.winner_team == match.team2 %}fw-bold{% endif %}">
+                                            {{ match.get_player2_display|truncatechars:20 }}
+                                        </span>
+                                        {% if match.status == 'completed' %}
+                                            <span class="fw-bold">{{ match.score2 }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if match.scheduled_date %}
+                                <div class="card-footer py-1 text-center">
+                                    <small class="text-muted">
+                                        {{ match.scheduled_date|date:"M d" }} @ {{ match.scheduled_time|time:"H:i" }}
+                                        {% if match.court %}- {{ match.court.name }}{% endif %}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-sitemap fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No bracket data available</h5>
+                <p class="text-muted">Generate matches to see the tournament bracket</p>
+                <a href="{% url 'admin_generate_matches' tournament.pk %}" class="btn btn-success">
+                    <i class="fas fa-magic me-2"></i>Generate Matches
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

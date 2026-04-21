@@ -1,0 +1,161 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Reservation Details{% endblock %}
+{% block page_title %}Reservation #{{ reservation.id }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Reservation Details</h5>
+                <span class="badge badge-{{ reservation.status }} fs-6">{{ reservation.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Court</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.court.name }}</p>
+                        <p class="text-muted small">{{ reservation.court.site.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Date & Time</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.date|date:"M d, Y" }}</p>
+                        <p class="text-muted small">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Duration</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.duration_hours }} hours</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Booked By</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.user.get_full_name|default:reservation.user.username }}</p>
+                        <p class="text-muted small">{{ reservation.user.email }}</p>
+                    </div>
+                </div>
+                
+                {% if reservation.notes %}
+                <hr class="my-4">
+                <h6 class="text-muted small mb-2">Notes</h6>
+                <p class="mb-0">{{ reservation.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Equipment Rented -->
+        {% if reservation.rented_equipment.all %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Rented Equipment</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Quantity</th>
+                                <th>Fee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in reservation.rented_equipment.all %}
+                            <tr>
+                                <td>{{ item.equipment.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₱{{ item.rental_fee|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Payment Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Court Fee</span>
+                    <span>₱{{ reservation.subtotal|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Equipment Fee</span>
+                    <span>₱{{ reservation.equipment_fee|floatformat:2 }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">Total</span>
+                    <span class="fw-bold text-primary fs-5">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Status -->
+        {% if reservation.payment %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Status</span>
+                    <span class="badge badge-{{ reservation.payment.status }}">{{ reservation.payment.get_status_display }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Method</span>
+                    <span>{{ reservation.payment.get_method_display|default:"N/A" }}</span>
+                </div>
+                {% if reservation.payment.method == 'gcash' and reservation.payment.gcash_reference %}
+                <div class="mb-0">
+                    <span class="text-muted">GCash Ref:</span>
+                    <span class="font-monospace">{{ reservation.payment.gcash_reference }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if reservation.status == 'pending' or reservation.status == 'confirmed' %}
+                        {% if reservation.payment and reservation.payment.status == 'pending' %}
+                        <a href="{% url 'payment_checkout' reservation.id %}" class="btn btn-primary">
+                            <i class="fas fa-credit-card me-2"></i>Complete Payment
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-outline-danger">
+                            <i class="fas fa-times me-2"></i>Cancel Reservation
+                        </a>
+                    {% endif %}
+                    
+                    {% if user.is_staff_user or user.is_admin %}
+                        {% if reservation.status == 'pending' %}
+                        <a href="{% url 'approve_reservation' reservation.id %}" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Approve/Reject
+                        </a>
+                        {% endif %}
+                        {% if reservation.status == 'confirmed' and not reservation.match %}
+                        <a href="{% url 'start_match' reservation.id %}" class="btn btn-warning">
+                            <i class="fas fa-play me-2"></i>Start Match
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

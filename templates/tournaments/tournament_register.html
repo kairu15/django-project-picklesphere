@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Register for {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'tournament_list' %}">Tournaments</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'tournament_detail' tournament.pk %}">{{ tournament.name }}</a></li>
+                    <li class="breadcrumb-item active">Register</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Register for Tournament</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Tournament Summary -->
+                    <div class="alert alert-info mb-4">
+                        <h5>{{ tournament.name }}</h5>
+                        <div class="mb-2">
+                            <span class="badge bg-primary">{{ tournament.get_category_display }}</span>
+                            <span class="badge bg-info">{{ tournament.get_format_display }}</span>
+                            <span class="badge bg-warning text-dark">{{ tournament.get_skill_level_display }}</span>
+                        </div>
+                        <p class="mb-1 small"><i class="fas fa-calendar me-2"></i>Starts: {{ tournament.tournament_start|date:"M d, Y" }}</p>
+                        <p class="mb-0 small"><i class="fas fa-users me-2"></i>{{ tournament.registration_count }} / {{ tournament.max_participants }} registered</p>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Skill Level -->
+                        <div class="mb-3">
+                            <label for="{{ form.skill_level.id_for_label }}" class="form-label fw-bold">
+                                Your Skill Level
+                            </label>
+                            {{ form.skill_level }}
+                            {% if form.skill_level.errors %}
+                                <div class="invalid-feedback d-block">{{ form.skill_level.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                This helps organizers balance groups for fair competition.
+                            </div>
+                        </div>
+
+                        <!-- Gender (for Mixed Doubles) -->
+                        {% if tournament.category == 'mixed_doubles' %}
+                        <div class="mb-3">
+                            <label for="{{ form.gender.id_for_label }}" class="form-label fw-bold">
+                                Gender <span class="text-danger">*</span>
+                            </label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                                <div class="invalid-feedback d-block">{{ form.gender.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text text-info">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Required for Mixed Doubles - you'll be paired with a partner of the opposite gender.
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="mb-3">
+                            <label for="{{ form.gender.id_for_label }}" class="form-label fw-bold">
+                                Gender (Optional)
+                            </label>
+                            {{ form.gender }}
+                            <div class="form-text">
+                                Optional, but helps organizers with team assignments.
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Terms -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                <label class="form-check-label" for="termsCheck">
+                                    I agree to participate in this tournament and understand that my registration 
+                                    is subject to admin approval.
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>Submit Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

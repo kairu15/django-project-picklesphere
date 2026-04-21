@@ -1,0 +1,141 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Payment Management{% endblock %}
+{% block page_title %}Payment Management{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>₱{{ total_paid|floatformat:0 }}</h3>
+                <p>Total Paid</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3>₱{{ total_pending|floatformat:0 }}</h3>
+                <p>Pending Payments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-info">
+                <h3>₱{{ today_revenue|floatformat:0 }}</h3>
+                <p>Today's Revenue</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Method</label>
+                <select name="method" class="form-select">
+                    <option value="">All</option>
+                    <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                    <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
+                    <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">From Date</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">To Date</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Payments</h5>
+        <a href="{% url 'revenue_report' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-chart-bar me-1"></i>Reports
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Reservation</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>#{{ payment.id }}</td>
+                        <td>{{ payment.reservation.user.username }}</td>
+                        <td>#{{ payment.reservation.id }}</td>
+                        <td>₱{{ payment.amount|floatformat:2 }}</td>
+                        <td>{{ payment.get_method_display|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge bg-{% if payment.status == 'paid' %}success{% elif payment.status == 'pending' %}warning{% elif payment.status == 'refunded' %}info{% else %}secondary{% endif %}">{{ payment.get_status_display }}</span>
+                        </td>
+                        <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'payment_status' payment.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if payment.status == 'pending' %}
+                                <a href="{% url 'verify_payment' payment.id %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">No payments found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

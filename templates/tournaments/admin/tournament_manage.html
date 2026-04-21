@@ -1,0 +1,202 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Manage {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Manage: {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Tournament Header -->
+    <div class="card mb-4 border-primary">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4>{{ tournament.name }}</h4>
+                    <div class="mb-2">
+                        <span class="badge bg-primary">{{ tournament.get_category_display }}</span>
+                        <span class="badge bg-info">{{ tournament.get_format_display }}</span>
+                        <span class="badge bg-warning text-dark">{{ tournament.get_skill_level_display }}</span>
+                        <span class="badge bg-secondary">{{ tournament.get_status_display }}</span>
+                    </div>
+                    <p class="text-muted mb-0">{{ tournament.description|truncatechars:150 }}</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="btn-group mb-2">
+                        <a href="{% url 'admin_change_status' tournament.pk %}" class="btn btn-warning">
+                            <i class="fas fa-sync me-2"></i>Change Status
+                        </a>
+                        <a href="{% url 'admin_tournament_bracket' tournament.pk %}" class="btn btn-info">
+                            <i class="fas fa-sitemap me-2"></i>View Bracket
+                        </a>
+                    </div>
+                    <br>
+                    <small class="text-muted">Created: {{ tournament.created_at|date:"M d, Y" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ pending_count }}</h3>
+                    <small class="text-muted">Pending Registrations</small>
+                    <br>
+                    <a href="{% url 'admin_registration_list' tournament.pk %}" class="btn btn-sm btn-outline-primary mt-2">Review</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ approved_count }}</h3>
+                    <small class="text-muted">Approved Players</small>
+                    <br>
+                    <a href="{% url 'admin_registration_list' tournament.pk %}?status=approved" class="btn btn-sm btn-outline-success mt-2">View</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ matches|length }}</h3>
+                    <small class="text-muted">Total Matches</small>
+                    <br>
+                    <a href="{% url 'admin_match_list' tournament.pk %}" class="btn btn-sm btn-outline-info mt-2">Manage</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ teams|length }}</h3>
+                    <small class="text-muted">Teams</small>
+                    <br>
+                    <a href="{% url 'admin_team_list' tournament.pk %}" class="btn btn-sm btn-outline-warning mt-2">View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Grid -->
+    <div class="row g-4">
+        <!-- Registration Management -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-users me-2"></i>Registration Management</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Review and approve player registrations</p>
+                    {% if pending_count > 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ pending_count }} pending approval
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'admin_registration_list' tournament.pk %}" class="btn btn-primary w-100">
+                        <i class="fas fa-clipboard-check me-2"></i>Manage Registrations
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Matches -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-random me-2"></i>Match Generation</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Generate random match pairings using the tournament randomizer</p>
+                    {% if matches|length > 0 %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>{{ matches|length }} matches already generated
+                        </div>
+                    {% elif approved_count < tournament.min_participants %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>Need at least {{ tournament.min_participants }} approved players
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'admin_generate_matches' tournament.pk %}" class="btn btn-success w-100 {% if approved_count < tournament.min_participants %}disabled{% endif %}">
+                        <i class="fas fa-magic me-2"></i>Generate Matches
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Matches -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Scheduling</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Assign courts and times to matches</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'admin_schedule_matches' tournament.pk %}" class="btn btn-info w-100">
+                        <i class="fas fa-clock me-2"></i>Schedule Matches
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-trophy me-2"></i>Leaderboard</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">View and manage tournament standings</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'admin_leaderboard' tournament.pk %}" class="btn btn-warning w-100">
+                        <i class="fas fa-chart-bar me-2"></i>View Leaderboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teams -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-user-friends me-2"></i>Teams</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Manage doubles teams and player assignments</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'admin_team_list' tournament.pk %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-users-cog me-2"></i>Manage Teams
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Public Page -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>Public View</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">View the tournament as players see it</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-outline-primary w-100" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>View Public Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

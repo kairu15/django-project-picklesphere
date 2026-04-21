@@ -1,0 +1,122 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Generate Matches - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Generate Matches{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back Button -->
+            <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Management
+            </a>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-random me-2"></i>Match Randomizer</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Tournament Info -->
+                    <div class="alert alert-info mb-4">
+                        <h6><i class="fas fa-info-circle me-2"></i>{{ tournament.name }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li><strong>Category:</strong> {{ tournament.get_category_display }}</li>
+                                    <li><strong>Format:</strong> {{ tournament.get_format_display }}</li>
+                                    <li><strong>Auto-assign teams:</strong> {{ tournament.auto_assign_teams|yesno:"Yes,No" }}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li><strong>Approved players:</strong> {{ approved_count }}</li>
+                                    <li><strong>Minimum required:</strong> {{ tournament.min_participants }}</li>
+                                    <li><strong>Existing matches:</strong> {{ existing_matches }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Requirements Check -->
+                    {% if approved_count < tournament.min_participants %}
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Cannot Generate Matches</h6>
+                            <p>Need at least {{ tournament.min_participants }} approved players to generate matches.</p>
+                            <p>Current approved players: <strong>{{ approved_count }}</strong></p>
+                            <a href="{% url 'admin_registration_list' tournament.pk %}" class="btn btn-sm btn-primary">
+                                Review Registrations
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>Ready to Generate</h6>
+                            <p>The randomizer will create matches for:</p>
+                            <ul>
+                                <li><strong>{{ approved_count }}</strong> approved players</li>
+                                <li><strong>{{ tournament.get_format_display }}</strong> format</li>
+                                {% if tournament.category == 'doubles' %}
+                                    <li>Teams will be {% if tournament.auto_assign_teams %}auto-assigned randomly{% else %}manually assigned{% endif %}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        {% if existing_matches > 0 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Warning:</strong> {{ existing_matches }} match(es) already exist. 
+                                Regenerating will delete all existing matches and teams.
+                            </div>
+                        {% endif %}
+
+                        <form method="post" class="mt-4">
+                            {% csrf_token %}
+                            
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Randomization Preview</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">The system will:</p>
+                                    <ol>
+                                        <li>Shuffle all approved players randomly</li>
+                                        {% if tournament.category == 'doubles' %}
+                                            <li>{% if tournament.category == 'mixed_doubles' %}Pair male/female players randomly{% else %}Group players into teams of 2 randomly{% endif %}</li>
+                                        {% endif %}
+                                        {% if tournament.format == 'round_robin' %}
+                                            <li>Create groups of {{ tournament.players_per_group }} (where possible)</li>
+                                            <li>Generate matches so everyone plays everyone in their group</li>
+                                        {% elif tournament.format == 'single_elimination' %}
+                                            <li>Create single elimination bracket</li>
+                                            <li>Assign byes if player count isn't a power of 2</li>
+                                        {% elif tournament.format == 'double_elimination' %}
+                                            <li>Create winners and losers brackets</li>
+                                        {% endif %}
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                {% if existing_matches > 0 %}
+                                    <button type="submit" name="regenerate" class="btn btn-warning" 
+                                            onclick="return confirm('WARNING: This will DELETE all existing matches and regenerate them. Are you sure?')">
+                                        <i class="fas fa-redo me-2"></i>Regenerate All Matches
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-magic me-2"></i>Generate Matches
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

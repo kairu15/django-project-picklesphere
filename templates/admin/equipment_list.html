@@ -1,0 +1,114 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Equipment Management{% endblock %}
+{% block page_title %}Equipment Management{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Search</label>
+                <input type="text" name="search" class="form-control" value="{{ search_query }}" placeholder="Name or brand">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Type</label>
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="paddle" {% if type_filter == 'paddle' %}selected{% endif %}>Paddle</option>
+                    <option value="ball" {% if type_filter == 'ball' %}selected{% endif %}>Ball</option>
+                    <option value="net" {% if type_filter == 'net' %}selected{% endif %}>Net</option>
+                    <option value="shoes" {% if type_filter == 'shoes' %}selected{% endif %}>Shoes</option>
+                    <option value="other" {% if type_filter == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'admin_equipment_create' %}" class="btn btn-success w-100">
+                    <i class="fas fa-plus me-2"></i>Add Equipment
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Equipment</h5>
+        <span class="badge bg-primary">{{ equipment|length }} total</span>
+    </div>
+    <div class="card-body p-0">
+        {% if equipment %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Brand</th>
+                        <th>Stock</th>
+                        <th>Rental Price</th>
+                        <th>Condition</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in equipment %}
+                    <tr>
+                        <td class="fw-semibold">{{ item.name }}</td>
+                        <td>{{ item.get_type_display }}</td>
+                        <td>{{ item.brand|default:"-" }}</td>
+                        <td>{{ item.quantity_available }} / {{ item.quantity_total }}</td>
+                        <td>₱{{ item.rental_price|floatformat:0 }}</td>
+                        <td>{{ item.get_condition_display }}</td>
+                        <td>
+                            <span class="badge bg-{% if item.is_active %}success{% else %}secondary{% endif %}">
+                                {% if item.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'equipment_detail' item.id %}" class="btn btn-sm btn-outline-secondary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'admin_equipment_edit' item.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if item.is_active %}
+                                <form method="post" action="{% url 'admin_equipment_delete' item.id %}" onsubmit="return confirm('Deactivate this equipment?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-tools fa-3x text-muted mb-3"></i>
+            <h5>No equipment found</h5>
+            <p class="text-muted">Try adjusting your filters or create new equipment.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

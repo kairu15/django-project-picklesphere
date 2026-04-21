@@ -1,0 +1,194 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}My Dashboard{% endblock %}
+{% block page_title %}Welcome back, {{ user.first_name|default:user.username }}!{% endblock %}
+
+{% block content %}
+<!-- Quick Actions - Only show if profile is incomplete -->
+{% if not user.phone_number or not user.address %}
+<div class="card mb-4 border-primary" style="border-left: 4px solid var(--primary-color) !important;">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h5 class="mb-1">Complete Your Profile</h5>
+                <p class="text-muted mb-0">Add more details to your profile to unlock all features.</p>
+            </div>
+            <a href="{% url 'profile' %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Complete Profile
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_reservations }}</h3>
+                <p>Total Reservations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_matches }}</h3>
+                <p>Matches Played</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.win_rate|default:"0"|floatformat:0 }}%</h3>
+                <p>Win Rate</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-medal"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.wins|default:"0" }}</h3>
+                <p>Total Wins</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Upcoming Reservations -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-calendar-alt me-2"></i>Upcoming Reservations</h5>
+                <a href="{% url 'reservation_create' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Reserve
+                </a>
+            </div>
+            <div class="card-body">
+                {% if upcoming_reservations %}
+                    {% for reservation in upcoming_reservations %}
+                    <div class="d-flex align-items-center p-3 mb-3 bg-light rounded">
+                        <div class="flex-shrink-0">
+                            <div class="bg-white rounded p-2 text-center" style="min-width: 60px;">
+                                <div class="text-primary fw-bold">{{ reservation.date|date:"d" }}</div>
+                                <div class="small text-muted">{{ reservation.date|date:"M" }}</div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">{{ reservation.court.name }}</h6>
+                            <p class="text-muted mb-0 small">
+                                <i class="far fa-clock me-1"></i>{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}
+                            </p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No upcoming reservations</p>
+                        <a href="{% url 'court_list' %}" class="btn btn-primary">Reserve a Court</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Matches -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-trophy me-2"></i>Recent Matches</h5>
+                <a href="{% url 'match_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_matches %}
+                    {% for match in recent_matches %}
+                    <div class="d-flex align-items-center p-3 mb-3 bg-light rounded">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle p-2 {% if match.winner_team == 1 %}bg-success{% else %}bg-secondary{% endif %} text-white" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">{{ match.reservation.court.name }}</h6>
+                            <p class="text-muted mb-0 small">
+                                {{ match.get_format_display }} • {{ match.get_team1_score }} - {{ match.get_team2_score }}
+                            </p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="badge {% if match.status == 'completed' %}bg-success{% elif match.status == 'ongoing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ match.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-gamepad fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No matches played yet</p>
+                        <a href="{% url 'court_list' %}" class="btn btn-primary">Start Playing</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications -->
+{% if notifications %}
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="fas fa-bell me-2"></i>Recent Notifications</h5>
+        <a href="{% url 'notification_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        {% for notification in notifications %}
+        <div class="d-flex align-items-start p-3 mb-2 border rounded {% if not notification.is_read %}bg-light border-primary{% endif %}">
+            <div class="flex-shrink-0">
+                <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
+                    <i class="fas fa-{% if notification.notification_type == 'success' %}check-circle text-success{% elif notification.notification_type == 'warning' %}exclamation-circle text-warning{% elif notification.notification_type == 'error' %}times-circle text-danger{% else %}info-circle text-info{% endif %}"></i>
+                </a>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
+                    <p class="mb-1 text-dark">{{ notification.message }}</p>
+                </a>
+                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+            </div>
+            <div class="flex-shrink-0">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {% if not notification.is_read %}
+                        <li><a class="dropdown-item" href="{% url 'mark_notification_read' notification.id %}"><i class="fas fa-check me-2"></i>Mark as read</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item text-danger" href="{% url 'delete_notification' notification.id %}"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

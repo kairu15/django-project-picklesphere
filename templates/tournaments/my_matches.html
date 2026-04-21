@@ -1,0 +1,155 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}My Matches - PickleSphere{% endblock %}
+
+{% block page_title %}My Matches{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="matchesTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                <i class="fas fa-calendar me-2"></i>Upcoming
+                {% if upcoming_matches %}<span class="badge bg-primary ms-1">{{ upcoming_matches|length }}</span>{% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
+                <i class="fas fa-check-circle me-2"></i>Completed
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="matchesTabContent">
+        <!-- Upcoming Matches -->
+        <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+            {% if upcoming_matches %}
+                <div class="row g-4">
+                    {% for match in upcoming_matches %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-gamepad me-2"></i>{{ match.tournament.name }}</span>
+                                <span class="badge bg-warning">{{ match.get_status_display }}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <div class="d-flex justify-content-center align-items-center gap-3">
+                                        <div class="text-center">
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px;">
+                                                <i class="fas fa-user fa-2x text-primary"></i>
+                                            </div>
+                                            <small class="fw-bold">{{ match.get_player1_display }}</small>
+                                        </div>
+                                        <div class="text-muted">VS</div>
+                                        <div class="text-center">
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px;">
+                                                <i class="fas fa-user fa-2x text-primary"></i>
+                                            </div>
+                                            <small class="fw-bold">{{ match.get_player2_display }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if match.scheduled_date %}
+                                <div class="alert alert-light mb-0">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-day text-primary me-2"></i>
+                                        <strong>{{ match.scheduled_date|date:"l, M d, Y" }}</strong>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-clock text-primary me-2"></i>
+                                        {{ match.scheduled_time|time:"g:i A" }}
+                                    </div>
+                                    {% if match.court %}
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                        Court: {{ match.court.name }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning mb-0">
+                                    <i class="fas fa-clock me-2"></i>Schedule TBD
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'tournament_detail' match.tournament.pk %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-eye me-2"></i>View Tournament
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No upcoming matches</h5>
+                    <p class="text-muted">You're all caught up! Check back when tournaments start.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Completed Matches -->
+        <div class="tab-pane fade" id="completed" role="tabpanel">
+            {% if completed_matches %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tournament</th>
+                                <th>Matchup</th>
+                                <th>Score</th>
+                                <th>Result</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in completed_matches %}
+                            <tr>
+                                <td>
+                                    <strong>{{ match.tournament.name }}</strong>
+                                    <br><small class="text-muted">{{ match.get_round_name_display }}</small>
+                                </td>
+                                <td>
+                                    {{ match.get_player1_display }} vs {{ match.get_player2_display }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark">{{ match.score1 }} - {{ match.score2 }}</span>
+                                </td>
+                                <td>
+                                    {% if match.tournament.category == 'singles' %}
+                                        {% if match.winner == user %}
+                                            <span class="badge bg-success">Win</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Loss</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if match.winner_team.player1 == user or match.winner_team.player2 == user %}
+                                            <span class="badge bg-success">Win</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Loss</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ match.completed_at|date:"M d, Y"|default:"N/A" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No completed matches</h5>
+                    <p class="text-muted">Your match history will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

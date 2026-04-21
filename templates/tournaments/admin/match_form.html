@@ -1,0 +1,146 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Edit Match - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Edit Match #{{ match.match_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back Button -->
+            <a href="{% url 'admin_match_list' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Matches
+            </a>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Update Match</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Match Info -->
+                    <div class="alert alert-info mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Tournament:</strong> {{ tournament.name }}
+                                <br><strong>Round:</strong> {{ match.get_round_name_display }}
+                                {% if match.group_name %}
+                                    <br><strong>Group:</strong> {{ match.group_name }}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Match #:</strong> {{ match.match_number }}
+                                <br><strong>Current Status:</strong> {{ match.get_status_display }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matchup Display -->
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-3">Matchup</h6>
+                            <div class="d-flex justify-content-center align-items-center gap-4">
+                                <div class="text-center">
+                                    <div class="bg-light rounded p-3 mb-2">
+                                        <h5 class="mb-0">{{ match.get_player1_display }}</h5>
+                                    </div>
+                                    {% if tournament.category == 'singles' %}
+                                        <small class="text-muted">Player 1</small>
+                                    {% else %}
+                                        <small class="text-muted">Team 1</small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted">VS</div>
+                                <div class="text-center">
+                                    <div class="bg-light rounded p-3 mb-2">
+                                        <h5 class="mb-0">{{ match.get_player2_display }}</h5>
+                                    </div>
+                                    {% if tournament.category == 'singles' %}
+                                        <small class="text-muted">Player 2</small>
+                                    {% else %}
+                                        <small class="text-muted">Team 2</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Score Form -->
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="text-primary mb-3">Match Score</h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header text-center">
+                                        {{ match.get_player1_display|truncatechars:20 }}
+                                    </div>
+                                    <div class="card-body">
+                                        <label class="form-label">Score</label>
+                                        {{ form.score1 }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-center justify-content-center">
+                                <div class="text-center">
+                                    <h3 class="text-muted">-</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header text-center">
+                                        {{ match.get_player2_display|truncatechars:20 }}
+                                    </div>
+                                    <div class="card-body">
+                                        <label class="form-label">Score</label>
+                                        {{ form.score2 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Winner Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Winner</label>
+                            {% if tournament.category == 'singles' %}
+                                {{ form.winner }}
+                            {% else %}
+                                {{ form.winner_team }}
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Match Status</label>
+                            {{ form.status }}
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <label class="form-label">Notes</label>
+                            {{ form.notes }}
+                        </div>
+
+                        <!-- Info Alert -->
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            When you mark this match as <strong>Completed</strong> and save, the leaderboard will be automatically updated.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'admin_match_list' tournament.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>Update Match
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

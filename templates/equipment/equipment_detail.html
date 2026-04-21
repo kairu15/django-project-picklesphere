@@ -1,0 +1,115 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}{{ equipment.name }}{% endblock %}
+{% block page_title %}{{ equipment.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            {% if equipment.image %}
+                <img src="{{ equipment.image.url }}" class="card-img-top" alt="{{ equipment.name }}" style="height: 300px; object-fit: cover;">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <i class="fas fa-box fa-4x text-muted"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h3>{{ equipment.name }}</h3>
+                <p class="text-muted">{{ equipment.description }}</p>
+                
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <span class="text-muted small">Type</span>
+                        <p class="mb-0">{{ equipment.get_type_display }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted small">Available</span>
+                        <p class="mb-0">{{ equipment.quantity_available }} / {{ equipment.quantity_total }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted small">Price</span>
+                        <p class="mb-0">${{ equipment.rental_price|floatformat:2 }} / day</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if rental_history %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Rental History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Return Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rental in rental_history %}
+                            <tr>
+                                <td>{{ rental.user.get_full_name|default:rental.user.username }}</td>
+                                <td>{{ rental.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if rental.status == 'rented' %}warning{% elif rental.status == 'returned' %}success{% else %}secondary{% endif %}">
+                                        {{ rental.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ rental.return_date|date:"M d, Y"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Rent Equipment</h5>
+            </div>
+            <div class="card-body">
+                {% if equipment.quantity_available > 0 %}
+                    <form method="post" action="{% url 'equipment_rental_create' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="equipment_id" value="{{ equipment.id }}">
+                        <div class="mb-3">
+                            <label class="form-label">Rental Days</label>
+                            <input type="number" name="rental_days" class="form-control" value="1" min="1" max="30">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ equipment.quantity_available }}">
+                        </div>
+                        <div class="mb-3">
+                            <span class="text-muted">Total Price:</span>
+                            <h4 class="text-primary">${{ equipment.rental_price|floatformat:2 }}</h4>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-shopping-cart me-2"></i>Rent Now
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <p class="mb-0">This equipment is currently out of stock.</p>
+                    </div>
+                {% endif %}
+                
+                <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary w-100 mt-2">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Equipment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tournament_list' %}">Tournaments</a></li>
+            <li class="breadcrumb-item active">{{ tournament.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Tournament Header -->
+    <div class="card mb-4 border-primary">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h1 class="display-6 fw-bold">{{ tournament.name }}</h1>
+                    <div class="mb-2">
+                        <span class="badge bg-primary">{{ tournament.get_category_display }}</span>
+                        <span class="badge bg-info">{{ tournament.get_format_display }}</span>
+                        <span class="badge bg-warning text-dark">{{ tournament.get_skill_level_display }}</span>
+                        <span class="badge bg-secondary">{{ tournament.get_status_display }}</span>
+                    </div>
+                    <p class="text-muted">{{ tournament.description }}</p>
+                </div>
+                <div class="text-md-end">
+                    {% if tournament.is_registration_open %}
+                        {% if user_registration %}
+                            {% if user_registration.status == 'pending' %}
+                                <div class="badge bg-warning p-2">Your registration is pending approval</div>
+                            {% elif user_registration.status == 'approved' %}
+                                <div class="badge bg-success p-2">You are registered!</div>
+                            {% elif user_registration.status == 'rejected' %}
+                                <div class="badge bg-danger p-2">Your registration was rejected</div>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'tournament_register' tournament.pk %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-edit me-2"></i>Register Now
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Info & Participants -->
+        <div class="col-lg-4">
+            <!-- Tournament Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Tournament Info</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Registration Opens:</span>
+                            <strong>{{ tournament.registration_start|date:"M d, Y H:i" }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Registration Closes:</span>
+                            <strong>{{ tournament.registration_end|date:"M d, Y H:i" }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Tournament Starts:</span>
+                            <strong>{{ tournament.tournament_start|date:"M d, Y H:i" }}</strong>
+                        </li>
+                        {% if tournament.tournament_end %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Tournament Ends:</span>
+                            <strong>{{ tournament.tournament_end|date:"M d, Y H:i" }}</strong>
+                        </li>
+                        {% endif %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Max Participants:</span>
+                            <strong>{{ tournament.max_participants }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Points per Win:</span>
+                            <strong>{{ tournament.points_per_win }}</strong>
+                        </li>
+                        {% if tournament.prize_pool > 0 %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Prize Pool:</span>
+                            <strong class="text-success">${{ tournament.prize_pool }}</strong>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Registered Players -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Participants 
+                        <span class="badge bg-primary">{{ registration_count }}/{{ tournament.max_participants }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if registrations %}
+                        <div class="list-group list-group-flush">
+                            {% for reg in registrations %}
+                            <div class="list-group-item d-flex align-items-center py-2">
+                                <div class="flex-shrink-0">
+                                    {% if reg.user.profile_picture %}
+                                        <img src="{{ reg.user.profile_picture.url }}" alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            {{ reg.user.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ms-3">
+                                    <div class="fw-bold">{{ reg.user.get_full_name|default:reg.user.username }}</div>
+                                    <small class="text-muted">{{ reg.skill_level|title }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">No participants yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Matches & Leaderboard -->
+        <div class="col-lg-8">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" id="tournamentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab">
+                        <i class="fas fa-gamepad me-2"></i>Matches
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="leaderboard-tab" data-bs-toggle="tab" data-bs-target="#leaderboard" type="button" role="tab">
+                        <i class="fas fa-trophy me-2"></i>Leaderboard
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="tournamentTabsContent">
+                <!-- Matches Tab -->
+                <div class="tab-pane fade show active" id="matches" role="tabpanel">
+                    {% if matches %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Match</th>
+                                        <th>Players</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for match in matches %}
+                                    <tr>
+                                        <td>
+                                            <small class="text-muted">#{{ match.match_number }}</small><br>
+                                            <span class="badge bg-secondary">{{ match.get_round_name_display }}</span>
+                                            {% if match.group_name %}
+                                                <span class="badge bg-light text-dark">Group {{ match.group_name }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="{% if match.winner == match.player1 or match.winner_team == match.team1 %}fw-bold text-success{% endif %}">
+                                                    {{ match.get_player1_display }}
+                                                </span>
+                                                <span class="text-muted">vs</span>
+                                                <span class="{% if match.winner == match.player2 or match.winner_team == match.team2 %}fw-bold text-success{% endif %}">
+                                                    {{ match.get_player2_display }}
+                                                </span>
+                                            </div>
+                                            {% if match.scheduled_date %}
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ match.scheduled_date|date:"M d" }} {{ match.scheduled_time|time:"H:i" }}
+                                                    {% if match.court %}
+                                                        @ {{ match.court.name }}
+                                                    {% endif %}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if match.status == 'completed' %}
+                                                <span class="badge bg-dark">{{ match.score1 }} - {{ match.score2 }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if match.status == 'completed' %}success{% elif match.status == 'in_progress' %}warning{% else %}secondary{% endif %}">
+                                                {{ match.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-table-tennis fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Matches will be generated once registration closes</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Leaderboard Tab -->
+                <div class="tab-pane fade" id="leaderboard" role="tabpanel">
+                    {% if leaderboard %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Player/Team</th>
+                                        <th class="text-center">P</th>
+                                        <th class="text-center">W</th>
+                                        <th class="text-center">L</th>
+                                        <th class="text-center">Points</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in leaderboard %}
+                                    <tr {% if entry.rank == 1 %}class="table-warning"{% elif entry.rank == 2 %}class="table-secondary"{% elif entry.rank == 3 %}class="table-info"{% endif %}>
+                                        <td>
+                                            {% if entry.rank == 1 %}
+                                                <i class="fas fa-crown text-warning"></i>
+                                            {% elif entry.rank == 2 %}
+                                                <i class="fas fa-medal text-secondary"></i>
+                                            {% elif entry.rank == 3 %}
+                                                <i class="fas fa-medal text-info"></i>
+                                            {% else %}
+                                                {{ entry.rank }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if entry.player %}
+                                                {{ entry.player.get_full_name|default:entry.player.username }}
+                                            {% else %}
+                                                {{ entry.team.get_display_name }}
+                                            {% endif %}
+                                            {% if entry.group_name %}
+                                                <span class="badge bg-light text-dark ms-1">G{{ entry.group_name }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">{{ entry.matches_played }}</td>
+                                        <td class="text-center text-success fw-bold">{{ entry.wins }}</td>
+                                        <td class="text-center text-danger">{{ entry.losses }}</td>
+                                        <td class="text-center fw-bold">{{ entry.points }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Leaderboard will be available once matches start</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin quick link -->
+    {% if user.is_admin or user.is_staff_user %}
+    <div class="mt-4">
+        <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-outline-primary">
+            <i class="fas fa-cog me-2"></i>Manage Tournament
+        </a>
+        {% if pending_count > 0 %}
+            <span class="badge bg-danger ms-2">{{ pending_count }} pending registration{{ pending_count|pluralize }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

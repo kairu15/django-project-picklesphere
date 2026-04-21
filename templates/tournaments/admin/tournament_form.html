@@ -1,0 +1,163 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}{% if tournament %}Edit {{ tournament.name }}{% else %}Create Tournament{% endif %} - PickleSphere{% endblock %}
+
+{% block page_title %}{% if tournament %}Edit {{ tournament.name }}{% else %}Create Tournament{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if tournament %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if tournament %}Edit Tournament{% else %}Create New Tournament{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Basic Info -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">Basic Information</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Tournament Name <span class="text-danger">*</span></label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    {{ form.description }}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Category <span class="text-danger">*</span></label>
+                                        {{ form.category }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Format <span class="text-danger">*</span></label>
+                                        {{ form.format }}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Skill Level</label>
+                                    {{ form.skill_level }}
+                                </div>
+                            </div>
+                            
+                            <!-- Dates -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">Schedule</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Registration Start <span class="text-danger">*</span></label>
+                                    {{ form.registration_start }}
+                                    {% if form.registration_start.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.registration_start.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Registration End <span class="text-danger">*</span></label>
+                                    {{ form.registration_end }}
+                                    {% if form.registration_end.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.registration_end.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Tournament Start <span class="text-danger">*</span></label>
+                                    {{ form.tournament_start }}
+                                    {% if form.tournament_start.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.tournament_start.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Tournament End</label>
+                                    {{ form.tournament_end }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="row">
+                            <!-- Settings -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">Settings</h6>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Min Participants</label>
+                                        {{ form.min_participants }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Max Participants</label>
+                                        {{ form.max_participants }}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Players per Group (Round Robin)</label>
+                                    {{ form.players_per_group }}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Points per Win</label>
+                                        {{ form.points_per_win }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Points per Loss</label>
+                                        {{ form.points_per_loss }}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.auto_assign_teams }}
+                                        <label class="form-check-label" for="{{ form.auto_assign_teams.id_for_label }}">
+                                            Auto-assign teams for doubles
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Prize -->
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3">Prize</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Prize Pool ($)</label>
+                                    {{ form.prize_pool }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'admin_tournament_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>{% if tournament %}Save Changes{% else %}Create Tournament{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

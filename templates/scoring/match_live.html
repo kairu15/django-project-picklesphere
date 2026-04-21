@@ -1,0 +1,169 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Live Match{% endblock %}
+{% block page_title %}Live Scoring{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-display {
+        font-size: 5rem;
+        font-weight: 700;
+        text-align: center;
+    }
+    .team-box {
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+    }
+    .score-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">Match #{{ match.id }}</h5>
+            <small class="text-muted">{{ match.reservation.court.name }} • Game {{ current_game.game_number }} of {{ match.games_to_win }}</small>
+        </div>
+        <span class="badge {% if match.status == 'ongoing' %}bg-warning{% elif match.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %} fs-6">
+            {{ match.get_status_display }}
+        </span>
+    </div>
+    <div class="card-body">
+        <!-- Match Score -->
+        <div class="row g-4 mb-4">
+            <div class="col-12 text-center mb-3">
+                <h5 class="text-muted">Match Score</h5>
+                <div class="d-flex justify-content-center align-items-center gap-4">
+                    <div class="text-center">
+                        <div class="display-4 fw-bold text-primary">{{ match.get_team1_score }}</div>
+                        <small class="text-muted">Team 1</small>
+                    </div>
+                    <div class="fs-1 text-muted">-</div>
+                    <div class="text-center">
+                        <div class="display-4 fw-bold text-success">{{ match.get_team2_score }}</div>
+                        <small class="text-muted">Team 2</small>
+                    </div>
+                </div>
+                <div class="text-center mt-2">
+                    <small class="text-muted">Best of {{ match.games_to_win }} games</small>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+        
+        <!-- Current Game Score -->
+        {% if current_game and match.status == 'ongoing' %}
+        <div class="row g-4">
+            <div class="col-12 text-center mb-4">
+                <h4 class="text-primary mb-3">Current Game {{ current_game.game_number }}</h4>
+                <p class="text-muted">First to {{ match.points_per_game }} points{% if match.win_by_two %} (win by 2){% endif %}</p>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="team-box bg-light">
+                    <h5 class="mb-3">Team 1</h5>
+                    <div class="score-display text-primary mb-3" id="team1Score">{{ current_game.team1_score }}</div>
+                    {% if user.is_staff_user or user.is_admin %}
+                    <form method="post" action="{% url 'update_score' current_game.id %}" class="d-flex justify-content-center gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="team" value="1">
+                        <button type="submit" name="action" value="subtract" class="btn btn-outline-danger score-btn">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="submit" name="action" value="add" class="btn btn-primary score-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                <div class="fs-1 text-muted">VS</div>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="team-box bg-light">
+                    <h5 class="mb-3">Team 2</h5>
+                    <div class="score-display text-success mb-3" id="team2Score">{{ current_game.team2_score }}</div>
+                    {% if user.is_staff_user or user.is_admin %}
+                    <form method="post" action="{% url 'update_score' current_game.id %}" class="d-flex justify-content-center gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="team" value="2">
+                        <button type="submit" name="action" value="subtract" class="btn btn-outline-danger score-btn">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="submit" name="action" value="add" class="btn btn-success score-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if match.status == 'completed' %}
+        <div class="text-center py-5">
+            <i class="fas fa-trophy fa-5x text-warning mb-4"></i>
+            <h3 class="mb-3">Match Complete!</h3>
+            <h4 class="text-primary">Team {{ match.winner_team }} Wins!</h4>
+            <p class="text-muted">Final Score: {{ match.get_team1_score }} - {{ match.get_team2_score }}</p>
+            <a href="{% url 'match_list' %}" class="btn btn-primary mt-3">Back to Matches</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Game History -->
+{% if completed_games %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Game History</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for game in completed_games %}
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center">
+                        <h6 class="mb-3">Game {{ game.game_number }}</h6>
+                        <div class="d-flex justify-content-center align-items-center gap-3">
+                            <span class="badge {% if game.winner == 1 %}bg-success{% else %}bg-secondary{% endif %} fs-5 px-3">{{ game.team1_score }}</span>
+                            <span class="text-muted">-</span>
+                            <span class="badge {% if game.winner == 2 %}bg-success{% else %}bg-secondary{% endif %} fs-5 px-3">{{ game.team2_score }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if match.status == 'ongoing' %}
+<script>
+    // Auto-refresh every 5 seconds for live updates
+    setInterval(function() {
+        fetch('/scoring/api/score/{{ match.id }}/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.current_game) {
+                    document.getElementById('team1Score').textContent = data.current_game.team1_score;
+                    document.getElementById('team2Score').textContent = data.current_game.team2_score;
+                }
+            });
+    }, 5000);
+</script>
+{% endif %}
+{% endblock %}

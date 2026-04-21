@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ court.name }}{% endblock %}
+
+{% block body %}
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--sidebar-bg);">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+            <img src="/static/PickleSphereLogo.png" alt="PickleSphere" height="40" width="40" style="border-radius: 50%; object-fit: cover;">
+            <span>PickleSphere</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'all_courts' %}">Courts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'equipment_list' %}">Equipment</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="{% url 'register' %}">Get Started</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Court Info -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                {% if court.image %}
+                    <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 400px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-table-tennis fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3>{{ court.name }}</h3>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ court.site.name }}
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-cloud me-1"></i>{{ court.get_court_type_display }}
+                            </p>
+                        </div>
+                        <span class="badge {% if court.status == 'available' %}bg-success{% else %}bg-warning{% endif %} fs-6 px-3 py-2">
+                            {{ court.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    {% if court.description %}
+                    <p class="card-text">{{ court.description }}</p>
+                    {% endif %}
+                    
+                    {% if court.amenities %}
+                    <div class="mt-3">
+                        <h6 class="mb-2">Amenities:</h6>
+                        {% for amenity in court.amenities %}
+                        <span class="badge bg-light text-dark me-1">{{ amenity }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Upcoming Reservations -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Upcoming Reservations</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_reservations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in upcoming_reservations %}
+                                    <tr>
+                                        <td>{{ reservation.date }}</td>
+                                        <td>{{ reservation.start_time }} - {{ reservation.end_time }}</td>
+                                        <td>
+                                            <span class="badge {% if reservation.status == 'confirmed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ reservation.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3 mb-0">No upcoming reservations</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Court Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="text-muted small">Hourly Rate</span>
+                        <h4 class="text-primary mb-0">${{ court.hourly_rate|floatformat:0 }}</h4>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="text-muted small">Site</span>
+                        <p class="mb-0">{{ court.site.name }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="text-muted small">Type</span>
+                        <p class="mb-0">{{ court.get_court_type_display }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    {% if court.status == 'available' %}
+                        <a href="{% url 'reservation_create' %}?court={{ court.id }}" class="btn btn-primary w-100">
+                            <i class="fas fa-calendar-plus me-2"></i>Book This Court
+                        </a>
+                    {% else %}
+                        <button class="btn btn-secondary w-100" disabled>
+                            Currently Unavailable
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'all_courts' %}" class="btn btn-outline-secondary w-100 mt-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Courts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="py-4 mt-5" style="background: var(--sidebar-bg); color: white;">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2024 PickleSphere. All rights reserved.</p>
+    </div>
+</footer>
+
+{% endblock %}

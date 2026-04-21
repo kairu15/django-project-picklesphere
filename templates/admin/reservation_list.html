@@ -1,0 +1,116 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Reservation Management{% endblock %}
+{% block page_title %}Reservation Management{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Search</label>
+                <input type="text" name="search" class="form-control" value="{{ search_query }}" placeholder="User, court, or ID">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Date From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Date To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+            <div class="col-md-1">
+                <a href="{% url 'admin_reservation_create' %}" class="btn btn-success w-100" title="Add Reservation">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Reservations</h5>
+        <span class="badge bg-primary">{{ reservations|length }} total</span>
+    </div>
+    <div class="card-body p-0">
+        {% if reservations %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Court</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Duration</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in reservations %}
+                    <tr>
+                        <td class="fw-semibold">#{{ res.id }}</td>
+                        <td>{{ res.user.username }}</td>
+                        <td>{{ res.court.name }}</td>
+                        <td>{{ res.date|date:"M d, Y" }}</td>
+                        <td>{{ res.start_time|time:"H:i" }} - {{ res.end_time|time:"H:i" }}</td>
+                        <td>{{ res.duration_hours }} hrs</td>
+                        <td>₱{{ res.total_amount|floatformat:0 }}</td>
+                        <td>
+                            <span class="badge bg-{% if res.status == 'confirmed' %}success{% elif res.status == 'pending' %}warning{% elif res.status == 'cancelled' %}secondary{% elif res.status == 'rejected' %}danger{% else %}primary{% endif %}">
+                                {{ res.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'reservation_detail' res.id %}" class="btn btn-sm btn-outline-secondary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'admin_reservation_edit' res.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if res.status != 'cancelled' %}
+                                <form method="post" action="{% url 'admin_reservation_delete' res.id %}" onsubmit="return confirm('Cancel this reservation?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5>No reservations found</h5>
+            <p class="text-muted">Try adjusting your filters or create a new reservation.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

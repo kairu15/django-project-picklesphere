@@ -1,0 +1,98 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Matches{% endblock %}
+{% block page_title %}Matches & Scoring{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Matches</h5>
+        {% if user.is_staff_user or user.is_admin %}
+        <a href="{% url 'staff_reservations' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-play me-1"></i>Start New Match
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Court</th>
+                        <th>Format</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                    <tr>
+                        <td>#{{ match.id }}</td>
+                        <td>{{ match.reservation.court.name }}</td>
+                        <td>{{ match.get_format_display }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ match.get_team1_score }} - {{ match.get_team2_score }}</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if match.status == 'completed' %}bg-success{% elif match.status == 'ongoing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ match.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ match.reservation.date|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'match_detail' match.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if match.status == 'ongoing' and user.is_staff_user or user.is_admin %}
+                                <a href="{% url 'match_live' match.id %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-play"></i> Live
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-trophy fa-3x mb-3"></i>
+                            <p>No matches found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if not user.is_staff_user and not user.is_admin %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Quick Links</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{% url 'player_stats' %}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-chart-line me-2"></i>My Statistics
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'leaderboard' %}" class="btn btn-outline-success w-100">
+                    <i class="fas fa-trophy me-2"></i>Leaderboard
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'court_list' %}" class="btn btn-outline-info w-100">
+                    <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

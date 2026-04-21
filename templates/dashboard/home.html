@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--sidebar-bg);">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+            <img src="/static/PickleSphereLogo.png" alt="PickleSphere" height="40" width="40" style="border-radius: 50%; object-fit: cover;">
+            <span>PickleSphere</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'all_courts' %}">Courts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'equipment_list' %}">Equipment</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="{% url 'register' %}">Get Started</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); color: white;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Welcome to PickleSphere</h1>
+                <p class="lead mb-4">The ultimate pickleball facility and game management system. Reserve courts, track scores, manage equipment, and join the growing community of pickleball enthusiasts.</p>
+                <div class="d-flex gap-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-th-large me-2"></i>Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Join Now
+                        </a>
+                        <a href="{% url 'all_courts' %}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-search me-2"></i>Explore Courts
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div style="font-size: 10rem; opacity: 0.3;">
+                    <i class="fas fa-table-tennis"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                        <h3>{{ total_courts }}</h3>
+                        <p class="text-muted mb-0">Premium Courts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-3x text-success mb-3"></i>
+                        <h3>{{ total_users }}</h3>
+                        <p class="text-muted mb-0">Active Members</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-check fa-3x text-warning mb-3"></i>
+                        <h3>24/7</h3>
+                        <p class="text-muted mb-0">Online Reservation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courts -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Courts</h2>
+        <div class="row g-4">
+            {% for court in featured_courts %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    {% if court.image %}
+                        <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-table-tennis fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ court.name }}</h5>
+                        <p class="text-muted small">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ court.site.name }}
+                        </p>
+                        <p class="card-text">{{ court.description|truncatewords:20|default:"Premium pickleball court with professional amenities." }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-primary fw-bold">₱{{ court.hourly_rate|floatformat:0 }}/hour</span>
+                            <a href="{% url 'court_detail' court.id %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">No courts available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'all_courts' %}" class="btn btn-primary">
+                <i class="fas fa-search me-2"></i>View All Courts
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose PickleSphere?</h2>
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="p-4">
+                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                    <h5>Easy Reservation</h5>
+                    <p class="text-muted small">Reserve your court anytime, anywhere with our online reservation system.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="p-4">
+                    <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                    <h5>Score Tracking</h5>
+                    <p class="text-muted small">Track your matches and analyze your performance with detailed stats.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="p-4">
+                    <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                    <h5>Equipment Rental</h5>
+                    <p class="text-muted small">Rent premium paddles and balls if you don't have your own.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="p-4">
+                    <i class="fas fa-credit-card fa-3x text-info mb-3"></i>
+                    <h5>Easy Payments</h5>
+                    <p class="text-muted small">Pay securely with GCash, credit card, or cash at the counter.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: var(--primary-color); color: white;">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Start Playing?</h2>
+        <p class="lead mb-4">Join our community of pickleball enthusiasts today!</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Create Free Account
+            </a>
+        {% else %}
+            <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-4" style="background: var(--sidebar-bg); color: white;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-table-tennis me-2"></i>PickleSphere</h5>
+                <p class="small text-white-50">Pickleball Facility & Game Management System</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="small text-white-50 mb-0">&copy; {% now "Y" %} PickleSphere. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}

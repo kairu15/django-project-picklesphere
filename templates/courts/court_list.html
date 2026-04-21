@@ -1,0 +1,104 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Courts{% endblock %}
+{% block page_title %}Browse Courts{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small">Site</label>
+                <select name="site" class="form-select">
+                    <option value="">All Sites</option>
+                    {% for site in sites %}
+                    <option value="{{ site.id }}" {% if selected_site == site.id|stringformat:"s" %}selected{% endif %}>{{ site.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Court Type</label>
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="indoor" {% if selected_type == 'indoor' %}selected{% endif %}>Indoor</option>
+                    <option value="outdoor" {% if selected_type == 'outdoor' %}selected{% endif %}>Outdoor</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Available Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Courts Grid -->
+<div class="row g-4">
+    {% for court in courts %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            {% if court.image %}
+                <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-table-tennis fa-3x text-muted"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ court.name }}</h5>
+                    <span class="badge {% if court.status == 'available' %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ court.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-muted small mb-2">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ court.site.name }}
+                    <span class="mx-2">|</span>
+                    <i class="fas fa-cloud me-1"></i>{{ court.get_court_type_display }}
+                </p>
+                <p class="card-text small">{{ court.description|truncatewords:15|default:"Premium pickleball court with professional amenities." }}</p>
+                
+                {% if court.amenities %}
+                <div class="mb-3">
+                    {% for amenity in court.amenities %}
+                    <span class="badge bg-light text-dark me-1">{{ amenity }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-primary fw-bold">₱{{ court.hourly_rate|floatformat:0 }}/hour</span>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'court_detail' court.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        {% if court.status == 'available' %}
+                        <a href="{% url 'reservation_create' %}?court={{ court.id }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-calendar-plus"></i> Reserve
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5>No courts found</h5>
+                <p class="text-muted">Try adjusting your filters to see more results.</p>
+                <a href="{% url 'court_list' %}" class="btn btn-primary">Clear Filters</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Reserve a Court{% endblock %}
+{% block page_title %}Reserve a Court{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Reservation Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'reservation_create' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select Court <span class="text-danger">*</span></label>
+                        {{ form.court }}
+                        {% if form.court.errors %}
+                            <div class="text-danger small mt-1">{{ form.court.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Date <span class="text-danger">*</span></label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Time <span class="text-danger">*</span></label>
+                            {{ form.start_time }}
+                            {% if form.start_time.errors %}
+                                <div class="text-danger small mt-1">{{ form.start_time.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Time <span class="text-danger">*</span></label>
+                            {{ form.end_time }}
+                            {% if form.end_time.errors %}
+                                <div class="text-danger small mt-1">{{ form.end_time.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Equipment (Optional)</label>
+                        <div class="row g-2">
+                            {% for equipment in equipment_list %}
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3">
+                                    <input type="checkbox" name="equipment" value="{{ equipment.id }}" 
+                                           class="form-check-input" id="eq{{ equipment.id }}">
+                                    <label class="form-check-label w-100" for="eq{{ equipment.id }}">
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ equipment.name }}</span>
+                                            <span class="text-primary">₱{{ equipment.rental_price|floatformat:0 }}</span>
+                                        </div>
+                                        <small class="text-muted">{{ equipment.type }}</small>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Notes (Optional)</label>
+                        {{ form.notes }}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors.0 }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calendar-check me-2"></i>Continue to Payment
+                        </button>
+                        <a href="{% url 'court_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
