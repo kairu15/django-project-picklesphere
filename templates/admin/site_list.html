@@ -1,0 +1,61 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Sites - PickleSphere{% endblock %}
+{% block page_title %}Site Management{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Sites</h5>
+        <a href="{% url 'admin_site_create' %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus me-2"></i>Add Site
+        </a>
+    </div>
+    <div class="card-body">
+        {% if sites %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for site in sites %}
+                    <tr>
+                        <td><strong>{{ site.name }}</strong></td>
+                        <td>{{ site.description|truncatewords:20 }}</td>
+                        <td>
+                            {% if site.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ site.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'admin_site_edit' site.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" action="{% url 'admin_site_delete' site.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this site?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No sites found. <a href="{% url 'admin_site_create' %}">Create one</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -124,7 +124,7 @@ def staff_reservations_view(request):
         messages.error(request, 'You do not have permission to view this page.')
         return redirect('dashboard')
     
-    reservations = Reservation.objects.all().order_by('-created_at')
+    reservations = Reservation.objects.select_related('user', 'court', 'court__site', 'payment').all().order_by('-created_at')
     
     # Filter by status
     status_filter = request.GET.get('status', '')

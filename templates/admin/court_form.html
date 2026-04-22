@@ -23,6 +23,7 @@
                 </div>
             {% endif %}
 
+            <h6 class="mb-3 text-muted border-bottom pb-2">Court Information</h6>
             <div class="row g-3">
                 {% for field in form %}
                     <div class="{% if field.name == 'description' or field.name == 'amenities_text' or field.name == 'image' or field.name == 'is_active' %}col-12{% else %}col-md-6{% endif %}">
@@ -46,6 +47,7 @@
                     </div>
                 {% endfor %}
             </div>
+
 
             <div class="mt-4 d-flex justify-content-end gap-2">
                 <a href="{% url 'admin_court_list' %}" class="btn btn-outline-secondary">Cancel</a>

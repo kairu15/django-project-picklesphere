@@ -6,28 +6,63 @@ from courts.models import Court
 from equipment.models import Equipment
 
 
+MATCH_FORMAT_CHOICES = (
+    ('singles', 'Singles'),
+    ('doubles', 'Doubles'),
+    ('mixed_doubles', 'Mixed Doubles'),
+)
+
+GAME_TYPE_CHOICES = (
+    ('friendly', 'Friendly'),
+    ('ranked', 'Ranked'),
+    ('practice', 'Practice'),
+)
+
+SCORING_FORMAT_CHOICES = (
+    ('11', '11 Points (Standard)'),
+    ('15', '15 Points (Extended)'),
+    ('21', '21 Points (Extended)'),
+    ('best_of_3', 'Best of 3 Games'),
+)
+
+
 class ReservationForm(forms.ModelForm):
     equipment_items = forms.ModelMultipleChoiceField(
         queryset=Equipment.objects.filter(quantity_available__gt=0, is_active=True),
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
-    
+
     class Meta:
         model = Reservation
-        fields = ['court', 'date', 'start_time', 'end_time', 'notes']
+        fields = [
+            'court', 'date', 'start_time', 'end_time', 'notes',
+            'match_name', 'match_format', 'game_type', 'scoring_format',
+            'points_per_game', 'games_to_win', 'win_by_two'
+        ]
         widgets = {
             'court': forms.Select(attrs={'class': 'form-select'}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'end_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'match_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Friendly Match'}),
+            'match_format': forms.Select(attrs={'class': 'form-select'}, choices=MATCH_FORMAT_CHOICES),
+            'game_type': forms.Select(attrs={'class': 'form-select'}, choices=GAME_TYPE_CHOICES),
+            'scoring_format': forms.Select(attrs={'class': 'form-select'}, choices=SCORING_FORMAT_CHOICES),
+            'points_per_game': forms.NumberInput(attrs={'class': 'form-control', 'min': 7, 'max': 21}),
+            'games_to_win': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
+            'win_by_two': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['court'].queryset = Court.objects.filter(is_active=True)
+        self.fields['match_name'].required = False
+        self.fields['points_per_game'].initial = 11
+        self.fields['games_to_win'].initial = 2
+        self.fields['win_by_two'].initial = True
     
     def clean(self):
         cleaned_data = super().clean()

@@ -41,6 +41,45 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Match Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Match Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Match Name</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.match_name|default:"—" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Format</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.get_match_format_display|default:reservation.match_format|title }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Game Type</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.get_game_type_display|default:reservation.game_type|title }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small mb-2">Scoring Format</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.get_scoring_format_display|default:reservation.scoring_format }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted small mb-2">Points per Game</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.points_per_game }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted small mb-2">Games to Win</h6>
+                        <p class="mb-0 fw-semibold">{{ reservation.games_to_win }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted small mb-2">Win by Two</h6>
+                        <p class="mb-0 fw-semibold">{% if reservation.win_by_two %}Yes{% else %}No{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- Equipment Rented -->
         {% if reservation.rented_equipment.all %}
@@ -106,11 +145,11 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">Status</span>
-                    <span class="badge badge-{{ reservation.payment.status }}">{{ reservation.payment.get_status_display }}</span>
+                    <span class="badge bg-{% if reservation.payment.status == 'paid' %}success{% elif reservation.payment.status == 'pending' %}warning{% elif reservation.payment.status == 'refunded' %}info{% else %}secondary{% endif %} fs-6">{{ reservation.payment.get_status_display }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">Method</span>
-                    <span>{{ reservation.payment.get_method_display|default:"N/A" }}</span>
+                    <span class="fw-semibold">{{ reservation.payment.get_method_display|default:"N/A" }}</span>
                 </div>
                 {% if reservation.payment.method == 'gcash' and reservation.payment.gcash_reference %}
                 <div class="mb-0">
@@ -127,14 +166,11 @@
             <div class="card-body">
                 <div class="d-grid gap-2">
                     {% if reservation.status == 'pending' or reservation.status == 'confirmed' %}
-                        {% if reservation.payment and reservation.payment.status == 'pending' %}
-                        <a href="{% url 'payment_checkout' reservation.id %}" class="btn btn-primary">
-                            <i class="fas fa-credit-card me-2"></i>Complete Payment
-                        </a>
-                        {% endif %}
+                        {% if not user.is_staff_user and not user.is_admin %}
                         <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-outline-danger">
                             <i class="fas fa-times me-2"></i>Cancel Reservation
                         </a>
+                        {% endif %}
                     {% endif %}
                     
                     {% if user.is_staff_user or user.is_admin %}
@@ -150,9 +186,15 @@
                         {% endif %}
                     {% endif %}
                     
-                    <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to List
-                    </a>
+                    {% if user.is_staff_user or user.is_admin %}
+                        <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Reservations
+                        </a>
+                    {% else %}
+                        <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

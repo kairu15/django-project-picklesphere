@@ -126,3 +126,42 @@ class PlayerStats(models.Model):
             self.win_rate = (self.wins / self.total_matches) * 100
         else:
             self.win_rate = 0
+
+
+class MatchSettings(models.Model):
+    FORMAT_CHOICES = (
+        ('singles', 'Singles'),
+        ('doubles', 'Doubles'),
+        ('mixed_doubles', 'Mixed Doubles'),
+    )
+
+    GAME_TYPE_CHOICES = (
+        ('friendly', 'Friendly'),
+        ('ranked', 'Ranked'),
+        ('practice', 'Practice'),
+    )
+
+    SCORING_FORMAT_CHOICES = (
+        ('11', '11 Points (Standard)'),
+        ('15', '15 Points (Extended)'),
+        ('21', '21 Points (Extended)'),
+        ('best_of_3', 'Best of 3 Games'),
+    )
+
+    name = models.CharField(max_length=100, default="Default Match Settings")
+    format = models.CharField(max_length=20, choices=FORMAT_CHOICES, default='singles')
+    game_type = models.CharField(max_length=20, choices=GAME_TYPE_CHOICES, default='friendly')
+    scoring_format = models.CharField(max_length=20, choices=SCORING_FORMAT_CHOICES, default='11')
+    games_to_win = models.IntegerField(default=2)
+    points_per_game = models.IntegerField(default=11)
+    win_by_two = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'match_settings'
+    
+    def __str__(self):
+        return self.name

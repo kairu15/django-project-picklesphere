@@ -2,6 +2,7 @@ import random
 from typing import List, Tuple, Optional
 from django.db import transaction
 from django.utils import timezone
+from accounts.models import User
 from .models import Tournament, Registration, Team, Match, Leaderboard
 
 

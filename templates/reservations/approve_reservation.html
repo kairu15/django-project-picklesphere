@@ -1,0 +1,64 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Approve Reservation - PickleSphere{% endblock %}
+{% block page_title %}Approve Reservation #{{ reservation.id }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Reservation Details</h5>
+        <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Reservations
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>User:</strong> {{ reservation.user.username }}</p>
+                <p><strong>Court:</strong> {{ reservation.court.name }}</p>
+                <p><strong>Date:</strong> {{ reservation.date }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Time:</strong> {{ reservation.start_time }} - {{ reservation.end_time }}</p>
+                <p><strong>Status:</strong> <span class="badge bg-{{ reservation.status|default:'secondary' }}">{{ reservation.get_status_display }}</span></p>
+                <p><strong>Created:</strong> {{ reservation.created_at }}</p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="id_status" class="form-label">Status</label>
+                {{ form.status }}
+                {% for error in form.status.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_notes" class="form-label">Notes</label>
+                {{ form.notes }}
+                {% for error in form.notes.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>Submit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

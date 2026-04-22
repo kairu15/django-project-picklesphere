@@ -13,7 +13,11 @@ from notifications.models import Notification
 
 @login_required
 def payment_checkout_view(request, reservation_id):
-    reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
+    # Staff/admin can view any reservation, regular users only their own
+    if request.user.is_staff_user() or request.user.is_admin():
+        reservation = get_object_or_404(Reservation, id=reservation_id)
+    else:
+        reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
     
     # Check if payment already exists
     try:

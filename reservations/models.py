@@ -30,10 +30,19 @@ class Reservation(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(blank=True, null=True)
     
+    # Match settings
+    match_name = models.CharField(max_length=100, blank=True, null=True)
+    match_format = models.CharField(max_length=20, default='singles')
+    game_type = models.CharField(max_length=20, default='friendly')
+    scoring_format = models.CharField(max_length=20, default='11')
+    points_per_game = models.IntegerField(default=11)
+    games_to_win = models.IntegerField(default=2)
+    win_by_two = models.BooleanField(default=True)
+
     # Staff approval
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_reservations')
     approved_at = models.DateTimeField(null=True, blank=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

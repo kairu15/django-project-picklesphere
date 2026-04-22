@@ -1,7 +1,9 @@
-Django>=5.2,<6.0
+Django>=4.2,<5.0
 Pillow>=10.0.0
 python-decouple>=3.8
-psycopg2-binary>=2.9.9
+mysqlclient>=2.2.0
 channels>=4.0.0
 daphne>=4.0.0
 channels-redis>=4.1.0
+django-crispy-forms>=2.0,<3.0
+django-filter>=24.0,<25.0

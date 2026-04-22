@@ -43,12 +43,13 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>User</th>
-                        <th>Court</th>
+                        <th>Customer</th>
+                        <th>Court / Site</th>
                         <th>Date & Time</th>
                         <th>Duration</th>
                         <th>Amount</th>
-                        <th>Status</th>
+                        <th>Payment Status</th>
+                        <th>Reservation Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -57,22 +58,34 @@
                     <tr>
                         <td>#{{ reservation.id }}</td>
                         <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 32px; height: 32px; font-size: 12px;">
-                                    {{ reservation.user.first_name|first|default:reservation.user.username|first|upper }}
-                                </div>
-                                <span>{{ reservation.user.username }}</span>
-                            </div>
+                            <strong>{{ reservation.user.username }}</strong><br>
+                            <small class="text-muted">{{ reservation.user.email }}</small>
                         </td>
-                        <td>{{ reservation.court.name }}</td>
+                        <td>
+                            <strong>{{ reservation.court.name }}</strong><br>
+                            <small class="text-muted">{{ reservation.court.site.name }}</small>
+                        </td>
                         <td>
                             {{ reservation.date|date:"M d, Y" }}<br>
                             <small class="text-muted">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</small>
                         </td>
                         <td>{{ reservation.duration_hours }} hrs</td>
-                        <td>₱{{ reservation.total_amount|floatformat:2 }}</td>
+                        <td>Php{{ reservation.total_amount|floatformat:2 }}</td>
                         <td>
-                            <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                            {% with reservation.payment as payment %}
+                                {% if payment %}
+                                    <span class="badge bg-{% if payment.status == 'paid' %}success{% elif payment.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                        {{ payment.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No Payment</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if reservation.status == 'confirmed' %}success{% elif reservation.status == 'pending' %}warning{% elif reservation.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                {{ reservation.get_status_display }}
+                            </span>
                         </td>
                         <td>
                             <div class="d-flex gap-1">
@@ -94,7 +107,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="9" class="text-center py-5 text-muted">
                             <i class="fas fa-calendar-times fa-3x mb-3"></i>
                             <p>No reservations found</p>
                         </td>

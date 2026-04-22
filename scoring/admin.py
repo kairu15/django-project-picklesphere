@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Match, Game, ScorePoint, PlayerStats
+from .models import Match, Game, ScorePoint, PlayerStats, MatchSettings
 
 
 class GameInline(admin.TabularInline):
@@ -19,3 +19,9 @@ class MatchAdmin(admin.ModelAdmin):
 class PlayerStatsAdmin(admin.ModelAdmin):
     list_display = ['player', 'total_matches', 'wins', 'losses', 'win_rate']
     search_fields = ['player__username']
+
+
+@admin.register(MatchSettings)
+class MatchSettingsAdmin(admin.ModelAdmin):
+    list_display = ['name', 'format', 'games_to_win', 'points_per_game', 'win_by_two', 'is_active']
+    list_editable = ['is_active']

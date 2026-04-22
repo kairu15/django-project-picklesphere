@@ -1,0 +1,76 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Start Match{% endblock %}
+{% block page_title %}Start Match - Reservation #{{ reservation.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Match Setup</h5>
+                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <h6 class="alert-heading">Reservation Details</h6>
+                    <p class="mb-0">
+                        <strong>Court:</strong> {{ reservation.court.name }}<br>
+                        <strong>Date:</strong> {{ reservation.date|date:"M d, Y" }}<br>
+                        <strong>Time:</strong> {{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}
+                    </p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading">Reservation Match Settings</h6>
+                        <p class="mb-0">
+                            <strong>Name:</strong> {{ reservation.match_name|default:"—" }}<br>
+                            <strong>Format:</strong> {{ reservation.get_match_format_display|default:reservation.match_format|title }}<br>
+                            <strong>Game Type:</strong> {{ reservation.get_game_type_display|default:reservation.game_type|title }}<br>
+                            <strong>Scoring:</strong> {{ reservation.get_scoring_format_display|default:reservation.scoring_format }}<br>
+                            <strong>Points per Game:</strong> {{ reservation.points_per_game }}<br>
+                            <strong>Games to Win:</strong> {{ reservation.games_to_win }}<br>
+                            <strong>Win by Two:</strong> {% if reservation.win_by_two %}Yes{% else %}No{% endif %}
+                        </p>
+                    </div>
+
+                    <p class="text-muted small">You can adjust the match format, points, and win conditions below before starting.</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Format</label>
+                            {{ form.format }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Games to Win</label>
+                            {{ form.games_to_win }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Points per Game</label>
+                            {{ form.points_per_game }}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                {{ form.win_by_two }}
+                                <label class="form-check-label" for="{{ form.win_by_two.id_for_label }}">Win by Two Points</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play me-2"></i>Start Match
+                        </button>
+                        <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

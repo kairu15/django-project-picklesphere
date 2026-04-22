@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
-from .models import Match, Game, ScorePoint, PlayerStats
-from .forms import MatchSetupForm, ScoreUpdateForm
+from .models import Match, Game, ScorePoint, PlayerStats, MatchSettings
+from .forms import MatchSetupForm, ScoreUpdateForm, MatchSettingsForm
 from reservations.models import Reservation
 from notifications.models import Notification
 
@@ -57,32 +57,38 @@ def start_match_view(request, reservation_id):
             match.status = 'ongoing'
             match.started_at = timezone.now()
             match.save()
-            
+
             # Create first game
             Game.objects.create(
                 match=match,
                 game_number=1,
                 started_at=timezone.now()
             )
-            
+
             # Update reservation status
             reservation.status = 'completed'
             reservation.save()
-            
+
             # Notify players
             Notification.objects.create(
                 user=reservation.user,
                 message=f"Your match has started on {reservation.court.name}!"
             )
-            
+
             messages.success(request, 'Match started successfully!')
             return redirect('match_live', match_id=match.id)
     else:
-        form = MatchSetupForm()
-    
+        initial = {
+            'format': reservation.match_format,
+            'games_to_win': reservation.games_to_win,
+            'points_per_game': reservation.points_per_game,
+            'win_by_two': reservation.win_by_two,
+        }
+        form = MatchSetupForm(initial=initial)
+
     return render(request, 'scoring/start_match.html', {
         'form': form,
-        'reservation': reservation
+        'reservation': reservation,
     })
 
 
@@ -285,3 +291,67 @@ def match_score_api(request, match_id):
     }
     
     return JsonResponse(data)
+
+
+@login_required
+def match_settings_list_view(request):
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    settings = MatchSettings.objects.all().order_by('-is_active', '-created_at')
+    return render(request, 'admin/match_settings_list.html', {'settings': settings})
+
+
+@login_required
+def match_settings_create_view(request):
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = MatchSettingsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Match settings created successfully.')
+            return redirect('match_settings_list')
+    else:
+        form = MatchSettingsForm()
+    
+    return render(request, 'admin/match_settings_form.html', {'form': form, 'edit_mode': False})
+
+
+@login_required
+def match_settings_edit_view(request, settings_id):
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    settings = get_object_or_404(MatchSettings, id=settings_id)
+    
+    if request.method == 'POST':
+        form = MatchSettingsForm(request.POST, instance=settings)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Match settings updated successfully.')
+            return redirect('match_settings_list')
+    else:
+        form = MatchSettingsForm(instance=settings)
+    
+    return render(request, 'admin/match_settings_form.html', {'form': form, 'settings': settings, 'edit_mode': True})
+
+
+@login_required
+def match_settings_delete_view(request, settings_id):
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('match_settings_list')
+    
+    settings = get_object_or_404(MatchSettings, id=settings_id)
+    settings.delete()
+    messages.success(request, 'Match settings deleted successfully.')
+    return redirect('match_settings_list')

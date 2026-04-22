@@ -10,4 +10,8 @@ urlpatterns = [
     path('stats/', views.player_stats_view, name='player_stats'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
     path('api/score/<int:match_id>/', views.match_score_api, name='match_score_api'),
+    path('settings/', views.match_settings_list_view, name='match_settings_list'),
+    path('settings/create/', views.match_settings_create_view, name='match_settings_create'),
+    path('settings/<int:settings_id>/edit/', views.match_settings_edit_view, name='match_settings_edit'),
+    path('settings/<int:settings_id>/delete/', views.match_settings_delete_view, name='match_settings_delete'),
 ]
