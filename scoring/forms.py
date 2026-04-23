@@ -3,11 +3,18 @@ from .models import Match, Game, MatchSettings
 
 
 class MatchSetupForm(forms.ModelForm):
+    FORMAT_CHOICES = (
+        ('singles', 'Singles'),
+        ('doubles', 'Doubles'),
+        ('mixed_doubles', 'Mixed Doubles'),
+    )
+
+    format = forms.ChoiceField(choices=FORMAT_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
+
     class Meta:
         model = Match
         fields = ['format', 'games_to_win', 'points_per_game', 'win_by_two']
         widgets = {
-            'format': forms.Select(attrs={'class': 'form-select'}),
             'games_to_win': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
             'points_per_game': forms.NumberInput(attrs={'class': 'form-control', 'min': 7, 'max': 21}),
             'win_by_two': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

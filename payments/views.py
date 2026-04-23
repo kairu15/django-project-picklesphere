@@ -232,6 +232,27 @@ def payment_history_view(request):
 
 
 @login_required
+def view_payment_proof_view(request, payment_id):
+    """View the GCash payment proof image"""
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    # Check permissions - user can view their own, staff/admin can view all
+    if payment.reservation.user != request.user and not request.user.is_staff_user() and not request.user.is_admin():
+        messages.error(request, 'You do not have permission to view this payment proof.')
+        return redirect('dashboard')
+
+    # Check if image exists
+    if not payment.gcash_proof_image:
+        messages.error(request, 'No payment proof image available for this payment.')
+        return redirect('payment_status', payment_id=payment.id)
+
+    return render(request, 'payments/view_proof.html', {
+        'payment': payment,
+        'proof_image': payment.gcash_proof_image
+    })
+
+
+@login_required
 def revenue_report_view(request):
     if not request.user.is_admin():
         messages.error(request, 'You do not have permission to view this page.')
