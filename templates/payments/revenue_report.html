@@ -1,4 +1,5 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Revenue Report{% endblock %}
 {% block page_title %}Revenue Reports{% endblock %}
@@ -6,42 +7,50 @@
 {% block content %}
 <div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-money-bill-wave"></i>
-            </div>
-            <div class="stat-info">
-                <h3>₱{{ total_revenue|floatformat:2 }}</h3>
-                <p>Total Revenue</p>
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-money-bill-wave fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="text-white mb-0 fw-bold">₱{{ total_revenue|floatformat:2 }}</h3>
+                        <p class="text-white mb-0 opacity-75">Total Revenue</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-receipt"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ total_transactions }}</h3>
-                <p>Total Transactions</p>
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-receipt fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="text-white mb-0 fw-bold">{{ total_transactions }}</h3>
+                        <p class="text-white mb-0 opacity-75">Total Transactions</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-body p-4">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="form-label small">From Date</label>
-                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>From Date</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}" style="border-radius: 10px;">
             </div>
             <div class="col-md-4">
-                <label class="form-label small">To Date</label>
-                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>To Date</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}" style="border-radius: 10px;">
             </div>
             <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
                     <i class="fas fa-filter me-2"></i>Generate Report
                 </button>
             </div>
@@ -51,26 +60,30 @@
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Revenue by Payment Method</h5>
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Revenue by Payment Method</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th>Method</th>
-                                <th>Transactions</th>
-                                <th>Revenue</th>
+                                <th style="padding: 15px 20px;">Method</th>
+                                <th style="padding: 15px 20px;">Transactions</th>
+                                <th style="padding: 15px 20px;">Revenue</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in revenue_by_method %}
-                            <tr>
-                                <td>{{ item.method|default:"N/A"|title }}</td>
-                                <td>{{ item.count }}</td>
-                                <td>₱{{ item.total|floatformat:2 }}</td>
+                            <tr class="hover-row" style="transition: all 0.3s ease;">
+                                <td style="padding: 15px 20px;">
+                                    <span class="badge bg-light text-dark border">{{ item.method|default:"N/A"|title }}</span>
+                                </td>
+                                <td style="padding: 15px 20px;">{{ item.count }}</td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="fw-bold">₱{{ item.total|floatformat:2 }}</span>
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -84,26 +97,28 @@
         </div>
     </div>
     <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Daily Revenue</h5>
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-calendar-day me-2 text-primary"></i>Daily Revenue</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th>Date</th>
-                                <th>Transactions</th>
-                                <th>Revenue</th>
+                                <th style="padding: 15px 20px;">Date</th>
+                                <th style="padding: 15px 20px;">Transactions</th>
+                                <th style="padding: 15px 20px;">Revenue</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in daily_revenue %}
-                            <tr>
-                                <td>{{ item.date|date:"M d, Y" }}</td>
-                                <td>{{ item.count }}</td>
-                                <td>₱{{ item.total|floatformat:2 }}</td>
+                            <tr class="hover-row" style="transition: all 0.3s ease;">
+                                <td style="padding: 15px 20px;">{{ item.date|date:"M d, Y" }}</td>
+                                <td style="padding: 15px 20px;">{{ item.count }}</td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="fw-bold">₱{{ item.total|floatformat:2 }}</span>
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -117,4 +132,10 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}

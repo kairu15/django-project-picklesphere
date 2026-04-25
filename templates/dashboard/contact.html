@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block body %}
+{% include 'components/header.html' %}
+
+<!-- Hero Section -->
+<section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.85), rgba(59, 122, 140, 0.95)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920') center/cover; padding: 100px 0 80px; position: relative;">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <span class="badge bg-white text-primary mb-3 px-3 py-2"><i class="fas fa-headset me-2"></i>WE'RE HERE TO HELP</span>
+                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Get in Touch</h1>
+                <p class="lead mb-0 text-white-50" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">We'd love to hear from you. Reach out for any questions, inquiries, or just to say hello!</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Info Cards -->
+<section class="py-5" style="background: white; position: relative; z-index: 10; margin-top: -40px;">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-phone fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Phone</h5>
+                        <p class="text-muted mb-0">{{ contact_info.phone|default:"+63 2 8123 4567" }}</p>
+                        <p class="text-muted small mb-0">Mon-Sat, 6AM - 10PM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden; border: 2px solid #3B7A8C !important;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-envelope fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Email</h5>
+                        <p class="text-muted mb-0">{{ contact_info.email|default:"info@picklesphere.com" }}</p>
+                        <p class="text-muted small mb-0">We reply within 24 hours</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-map-marker-alt fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Visit Us</h5>
+                        <p class="text-muted mb-0">{{ contact_info.address|default:"123 Sports Avenue, Makati City" }}</p>
+                        <p class="text-muted small mb-0">Metro Manila, Philippines</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form & Info Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Contact Form -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-primary text-white p-4">
+                        <h4 class="fw-bold mb-0"><i class="fas fa-paper-plane me-2"></i>Send us a Message</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <form method="post" action="{% url 'contact' %}">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-user me-2"></i>Your Name</label>
+                                    <input type="text" name="name" class="form-control form-control-lg" placeholder="John Doe" required style="border-radius: 10px;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-envelope me-2"></i>Email Address</label>
+                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="john@example.com" required style="border-radius: 10px;">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-tag me-2"></i>Subject</label>
+                                    <select name="subject" class="form-select form-select-lg" required style="border-radius: 10px;">
+                                        <option value="">Select a topic...</option>
+                                        <option value="general">General Inquiry</option>
+                                        <option value="booking">Court Booking</option>
+                                        <option value="membership">Membership</option>
+                                        <option value="tournament">Tournament</option>
+                                        <option value="feedback">Feedback</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-comment me-2"></i>Message</label>
+                                    <textarea name="message" class="form-control form-control-lg" rows="5" placeholder="Tell us how we can help you..." required style="border-radius: 10px;"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100" style="border-radius: 10px;">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Message
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Hours & Info -->
+            <div class="col-lg-5">
+                <!-- Business Hours -->
+                <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>Business Hours</h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr class="border-bottom">
+                                        <td><i class="fas fa-calendar-day me-2 text-primary"></i>Monday - Friday</td>
+                                        <td class="text-end fw-bold">6:00 AM - 10:00 PM</td>
+                                    </tr>
+                                    <tr class="border-bottom">
+                                        <td><i class="fas fa-calendar-day me-2 text-success"></i>Saturday</td>
+                                        <td class="text-end fw-bold">6:00 AM - 10:00 PM</td>
+                                    </tr>
+                                    <tr class="border-bottom">
+                                        <td><i class="fas fa-calendar-day me-2 text-warning"></i>Sunday</td>
+                                        <td class="text-end fw-bold">7:00 AM - 9:00 PM</td>
+                                    </tr>
+                                    <tr>
+                                        <td><i class="fas fa-gift me-2 text-danger"></i>Holidays</td>
+                                        <td class="text-end fw-bold">8:00 AM - 8:00 PM</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-link me-2 text-primary"></i>Quick Links</h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <i class="fas fa-calendar-check me-3 text-primary fa-lg"></i>
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'all_courts' %}" class="text-decoration-none fw-bold">Book a Court</a>
+                                    <p class="text-muted small mb-0">Reserve your spot online</p>
+                                </div>
+                                <i class="fas fa-arrow-right text-muted"></i>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <i class="fas fa-trophy me-3 text-success fa-lg"></i>
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'tournament_list' %}" class="text-decoration-none fw-bold">Tournaments</a>
+                                    <p class="text-muted small mb-0">Join our competitions</p>
+                                </div>
+                                <i class="fas fa-arrow-right text-muted"></i>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <i class="fas fa-tags me-3 text-warning fa-lg"></i>
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'pricing' %}" class="text-decoration-none fw-bold">Pricing</a>
+                                    <p class="text-muted small mb-0">View our rates</p>
+                                </div>
+                                <i class="fas fa-arrow-right text-muted"></i>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <i class="fas fa-info-circle me-3 text-info fa-lg"></i>
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'about' %}" class="text-decoration-none fw-bold">About Us</a>
+                                    <p class="text-muted small mb-0">Learn our story</p>
+                                </div>
+                                <i class="fas fa-arrow-right text-muted"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Social Media -->
+                <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-share-alt me-2 text-primary"></i>Follow Us</h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="d-flex gap-2">
+                            <a href="#" class="btn btn-outline-primary flex-fill" style="border-radius: 10px;">
+                                <i class="fab fa-facebook-f fa-lg"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-info flex-fill" style="border-radius: 10px;">
+                                <i class="fab fa-twitter fa-lg"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-danger flex-fill" style="border-radius: 10px;">
+                                <i class="fab fa-instagram fa-lg"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-success flex-fill" style="border-radius: 10px;">
+                                <i class="fab fa-whatsapp fa-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-info mb-3 px-3 py-2">FIND US</span>
+            <h2 class="display-5 fw-bold">Our Location</h2>
+            <p class="lead text-muted">Visit us and experience pickleball excellence</p>
+        </div>
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="row g-0">
+                <div class="col-lg-8">
+                    <div class="bg-light d-flex align-items-center justify-content-center h-100" style="min-height: 450px;">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-map-marked-alt fa-5x text-primary mb-4"></i>
+                            <h4 class="mb-2">PickleSphere Facility</h4>
+                            <p class="mb-3">123 Sports Avenue, Makati City<br>Metro Manila, Philippines</p>
+                            <a href="https://maps.google.com/?q=14.5547,121.0244" target="_blank" class="btn btn-primary btn-lg">
+                                <i class="fas fa-directions me-2"></i>Get Directions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 bg-light">
+                    <div class="p-4 h-100 d-flex flex-column justify-content-center">
+                        <h5 class="fw-bold mb-4"><i class="fas fa-info-circle me-2 text-primary"></i>Getting Here</h5>
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-1"><i class="fas fa-car me-2 text-primary"></i>By Car</h6>
+                            <p class="text-muted small mb-0">Free parking available. Accessible via EDSA and SLEX.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-1"><i class="fas fa-train me-2 text-success"></i>By Public Transit</h6>
+                            <p class="text-muted small mb-0">10-min walk from MRT Magallanes Station.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-1"><i class="fas fa-motorcycle me-2 text-warning"></i>By Ride-Sharing</h6>
+                            <p class="text-muted small mb-0">Search for "PickleSphere Makati" on Grab or Angkas.</p>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <small><i class="fas fa-parking me-2"></i><strong>100+ parking spots available</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary mb-3 px-3 py-2">FAQ</span>
+            <h2 class="display-5 fw-bold">Frequently Asked Questions</h2>
+            <p class="lead text-muted">Quick answers to common questions</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(59,122,140,0.1);">
+                                    <i class="fas fa-question text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="fw-bold mb-2 text-primary">How do I book a court?</h6>
+                                <p class="text-muted small mb-0">You can easily book a court through our online booking system. Create an account, select your preferred date and time, and complete the payment.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(40,167,69,0.1);">
+                                    <i class="fas fa-question text-success"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="fw-bold mb-2 text-success">Can I rent equipment?</h6>
+                                <p class="text-muted small mb-0">Yes! We offer paddle and ball rentals at affordable rates. Members enjoy free equipment rental as part of their membership benefits.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(255,193,7,0.1);">
+                                    <i class="fas fa-question text-warning"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="fw-bold mb-2 text-warning">Do you offer coaching?</h6>
+                                <p class="text-muted small mb-0">Absolutely! We have certified pickleball coaches available for private and group lessons. Contact us to schedule a session.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(23,162,184,0.1);">
+                                    <i class="fas fa-question text-info"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="fw-bold mb-2 text-info">How do I join tournaments?</h6>
+                                <p class="text-muted small mb-0">Tournament registration is done through our website. Navigate to the Tournaments page, select an event, and click Register to join.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold text-white mb-3">Ready to Start Playing?</h2>
+                <p class="lead text-white-50 mb-0">Don't wait! Book your court today and join our growing pickleball community.</p>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end">
+                <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-calendar-plus me-2"></i>Book Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hover Effects */
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+
+/* Form Styling */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color, #3B7A8C);
+    box-shadow: 0 0 0 0.2rem rgba(59,122,140,0.25);
+}
+</style>
+
+{% include 'components/footer.html' %}
+{% endblock %}

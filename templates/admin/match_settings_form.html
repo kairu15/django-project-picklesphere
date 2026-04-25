@@ -1,4 +1,5 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}{% if edit_mode %}Edit{% else %}Create{% endif %} Match Settings{% endblock %}
 {% block page_title %}{% if edit_mode %}Edit{% else %}Create{% endif %} Match Settings{% endblock %}
@@ -6,29 +7,29 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">{% if edit_mode %}Edit{% else %}Create{% endif %} Match Settings</h5>
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-cog me-2 text-primary"></i>{% if edit_mode %}Edit{% else %}Create{% endif %} Match Settings</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="post">
                     {% csrf_token %}
                     
-                    <h6 class="mb-3 text-muted border-bottom pb-2">Basic Settings</h6>
+                    <h6 class="fw-bold mb-3 pb-2" style="border-bottom: 2px solid #e9ecef;"><i class="fas fa-info-circle me-2 text-primary"></i>Basic Settings</h6>
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
+                        <label class="form-label fw-bold">Name</label>
                         {{ form.name }}
                         {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
                     </div>
                     <div class="mb-3 form-check">
                         {{ form.is_active }}
-                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                        <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">Active</label>
                     </div>
 
-                    <h6 class="mb-3 text-muted border-bottom pb-2 mt-4">Match Format</h6>
+                    <h6 class="fw-bold mb-3 pb-2 mt-4" style="border-bottom: 2px solid #e9ecef;"><i class="fas fa-gamepad me-2 text-primary"></i>Match Format</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Format (Number of Players)</label>
+                            <label class="form-label fw-bold">Format (Number of Players)</label>
                             {{ form.format }}
                             {% if form.format.errors %}<div class="text-danger small">{{ form.format.errors }}</div>{% endif %}
                             <div class="form-text">
@@ -36,7 +37,7 @@
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Game Type</label>
+                            <label class="form-label fw-bold">Game Type</label>
                             {{ form.game_type }}
                             {% if form.game_type.errors %}<div class="text-danger small">{{ form.game_type.errors }}</div>{% endif %}
                             <div class="form-text">
@@ -45,20 +46,20 @@
                         </div>
                     </div>
 
-                    <h6 class="mb-3 text-muted border-bottom pb-2 mt-4">Scoring</h6>
+                    <h6 class="fw-bold mb-3 pb-2 mt-4" style="border-bottom: 2px solid #e9ecef;"><i class="fas fa-trophy me-2 text-primary"></i>Scoring</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Scoring Format</label>
+                            <label class="form-label fw-bold">Scoring Format</label>
                             {{ form.scoring_format }}
                             {% if form.scoring_format.errors %}<div class="text-danger small">{{ form.scoring_format.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label class="form-label">Points per Game</label>
+                            <label class="form-label fw-bold">Points per Game</label>
                             {{ form.points_per_game }}
                             {% if form.points_per_game.errors %}<div class="text-danger small">{{ form.points_per_game.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label class="form-label">Games to Win</label>
+                            <label class="form-label fw-bold">Games to Win</label>
                             {{ form.games_to_win }}
                             {% if form.games_to_win.errors %}<div class="text-danger small">{{ form.games_to_win.errors }}</div>{% endif %}
                         </div>
@@ -66,19 +67,25 @@
                     <div class="mb-4">
                         <div class="form-check">
                             {{ form.win_by_two }}
-                            <label class="form-check-label" for="{{ form.win_by_two.id_for_label }}">Win by 2 points</label>
+                            <label class="form-check-label fw-bold" for="{{ form.win_by_two.id_for_label }}">Win by 2 points</label>
                         </div>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" style="border-radius: 10px;">
                             <i class="fas fa-save me-2"></i>Save Settings
                         </button>
-                        <a href="{% url 'match_settings_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <a href="{% url 'match_settings_list' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">Cancel</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('input, select, textarea').forEach(function(input) {
+    input.style.borderRadius = '10px';
+});
+</script>
 {% endblock %}

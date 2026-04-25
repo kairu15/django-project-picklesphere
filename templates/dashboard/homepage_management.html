@@ -1,0 +1,285 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Homepage Management - PickleSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .section-header {
+        background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 15px 15px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .item-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s;
+    }
+    .item-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .item-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .rating-star {
+        color: #ffc107;
+    }
+    .gallery-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .badge-section {
+        background: #3B7A8C;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Homepage Management</h1>
+            <p class="text-muted mb-0">Manage content displayed on the public homepage</p>
+        </div>
+        <div>
+            <a href="/" target="_blank" class="btn btn-outline-primary">
+                <i class="fas fa-external-link-alt me-2"></i>View Live Site
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Testimonials Section -->
+    <div class="card section-card">
+        <div class="section-header">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-quote-left me-3"></i>
+                <h5 class="mb-0">Testimonials</h5>
+                <span class="badge bg-white text-dark ms-3">{{ testimonials.count }} items</span>
+            </div>
+            <a href="{% url 'homepage_add_testimonial' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-2"></i>Add Testimonial
+            </a>
+        </div>
+        <div class="card-body p-3">
+            {% if testimonials %}
+                <div class="row">
+                    {% for item in testimonials %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="item-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="item-icon bg-primary text-white me-3">
+                                        {{ item.name|first }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ item.name }}</h6>
+                                        <small class="text-muted">{{ item.role }}</small>
+                                    </div>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="{% url 'homepage_edit_testimonial' item.id %}">
+                                            <i class="fas fa-edit me-2"></i>Edit
+                                        </a></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'homepage_delete_testimonial' item.id %}" onclick="return confirm('Are you sure?')">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="mb-2 small">{{ item.text|truncatechars:100 }}</p>
+                            <div class="rating-star">
+                                {% for i in "12345" %}{% if forloop.counter <= item.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}{% endfor %}
+                            </div>
+                            <small class="text-muted">Order: {{ item.display_order }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-quote-left fa-3x mb-3 opacity-25"></i>
+                    <p>No testimonials yet. Add some to showcase customer feedback!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Amenities Section -->
+    <div class="card section-card">
+        <div class="section-header">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-concierge-bell me-3"></i>
+                <h5 class="mb-0">Amenities</h5>
+                <span class="badge bg-white text-dark ms-3">{{ amenities.count }} items</span>
+            </div>
+            <a href="{% url 'homepage_add_amenity' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-2"></i>Add Amenity
+            </a>
+        </div>
+        <div class="card-body p-3">
+            {% if amenities %}
+                <div class="row">
+                    {% for item in amenities %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="item-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex align-items-center">
+                                    <div class="item-icon bg-success text-white me-3">
+                                        <i class="fas {{ item.icon }}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ item.title }}</h6>
+                                        <small class="text-muted">{{ item.description }}</small>
+                                    </div>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="{% url 'homepage_edit_amenity' item.id %}">
+                                            <i class="fas fa-edit me-2"></i>Edit
+                                        </a></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'homepage_delete_amenity' item.id %}" onclick="return confirm('Are you sure?')">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2">Order: {{ item.display_order }} | Icon: {{ item.icon }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-concierge-bell fa-3x mb-3 opacity-25"></i>
+                    <p>No amenities yet. Add facility features to display!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Gallery Section -->
+    <div class="card section-card">
+        <div class="section-header">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-images me-3"></i>
+                <h5 class="mb-0">Gallery Images</h5>
+                <span class="badge bg-white text-dark ms-3">{{ gallery_images.count }} items</span>
+            </div>
+            <a href="{% url 'homepage_add_gallery' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-2"></i>Add Image
+            </a>
+        </div>
+        <div class="card-body p-3">
+            {% if gallery_images %}
+                <div class="row">
+                    {% for item in gallery_images %}
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="item-card text-center">
+                            <img src="{{ item.image.url }}" alt="{{ item.alt_text }}" class="gallery-thumb mb-2">
+                            <h6 class="mb-1">{{ item.title|default:"Untitled" }}</h6>
+                            <small class="text-muted d-block">{{ item.alt_text|truncatechars:30 }}</small>
+                            <div class="mt-2">
+                                <a href="{% url 'homepage_edit_gallery' item.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'homepage_delete_gallery' item.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-images fa-3x mb-3 opacity-25"></i>
+                    <p>No gallery images yet. Add photos to showcase your facility!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Homepage Content Section -->
+    <div class="card section-card">
+        <div class="section-header">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-file-alt me-3"></i>
+                <h5 class="mb-0">Homepage Text Content</h5>
+                <span class="badge bg-white text-dark ms-3">{{ homepage_content.count }} items</span>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            {% if homepage_content %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Section</th>
+                                <th>Content Preview</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in homepage_content %}
+                            <tr>
+                                <td><span class="badge-section">{{ item.get_section_display }}</span></td>
+                                <td>{{ item.content|truncatechars:80 }}</td>
+                                <td><small class="text-muted">{{ item.updated_at|date:"M d, Y H:i" }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-file-alt fa-3x mb-3 opacity-25"></i>
+                    <p>No content configured. Run populate_homepage command to add default content.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

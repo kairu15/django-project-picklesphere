@@ -1,51 +1,136 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Cancel Reservation{% endblock %}
-{% block page_title %}Cancel Reservation #{{ reservation.id }}{% endblock %}
+{% block page_title %}Cancel Reservation{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Request Cancellation</h5>
-    </div>
-    <div class="card-body">
-        <div class="alert alert-warning mb-4">
-            <h6 class="alert-heading">Reservation Details</h6>
-            <p class="mb-1"><strong>Court:</strong> {{ reservation.court.name }}</p>
-            <p class="mb-1"><strong>Date:</strong> {{ reservation.date|date:"F d, Y" }}</p>
-            <p class="mb-1"><strong>Time:</strong> {{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</p>
-            <p class="mb-0"><strong>Status:</strong> {{ reservation.status|title }}</p>
-        </div>
-
-        <form method="post">
-            {% csrf_token %}
-
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {% for error in form.non_field_errors %}
-                        <div>{{ error }}</div>
-                    {% endfor %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-bottom p-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-times-circle fa-lg text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h4 class="fw-bold mb-0">Request Cancellation</h4>
+                        <p class="text-muted mb-0 small">Reservation #{{ reservation.id }}</p>
+                    </div>
                 </div>
-            {% endif %}
-
-            <div class="mb-3">
-                <label for="{{ form.reason.id_for_label }}" class="form-label">Reason for Cancellation</label>
-                {{ form.reason }}
-                {% if form.reason.errors %}
-                    <div class="text-danger small mt-1">{{ form.reason.errors.0 }}</div>
-                {% endif %}
             </div>
+            <div class="card-body p-4">
+                <!-- Reservation Details Card -->
+                <div class="card mb-4 border-0" style="background: #f8f9fa; border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Reservation Details</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-map-marker-alt text-primary"></i>
+                                    </div>
+                                    <div class="ms-2">
+                                        <small class="text-muted d-block">Court</small>
+                                        <span class="fw-semibold">{{ reservation.court.name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 35px; height: 35px; background: rgba(40,167,69,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-calendar text-success"></i>
+                                    </div>
+                                    <div class="ms-2">
+                                        <small class="text-muted d-block">Date</small>
+                                        <span class="fw-semibold">{{ reservation.date|date:"F d, Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 35px; height: 35px; background: rgba(255,193,7,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-clock text-warning"></i>
+                                    </div>
+                                    <div class="ms-2">
+                                        <small class="text-muted d-block">Time</small>
+                                        <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 35px; height: 35px; background: rgba(111,66,193,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-tag text-info"></i>
+                                    </div>
+                                    <div class="ms-2">
+                                        <small class="text-muted d-block">Status</small>
+                                        <span class="badge bg-{{ reservation.status|default:'primary' }}">{{ reservation.get_status_display }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                Your cancellation request will be reviewed by staff. Refund eligibility depends on cancellation timing and policies.
-            </div>
+                <form method="post">
+                    {% csrf_token %}
 
-            <div class="d-flex justify-content-between">
-                <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-outline-secondary">Back</a>
-                <button type="submit" class="btn btn-danger">Submit Cancellation Request</button>
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger rounded-3" style="border-radius: 12px;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label for="{{ form.reason.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-comment-alt me-2 text-primary"></i>Reason for Cancellation
+                        </label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                            <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.reason.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-info border-0 mb-4" style="background: rgba(23,162,184,0.1); border-radius: 12px;">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-info fa-lg"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="alert-heading fw-bold mb-1">Cancellation Policy</h6>
+                                <p class="mb-0 text-muted">Your cancellation request will be reviewed by staff. Refund eligibility depends on cancellation timing and our policies. Cancellations made at least 24 hours in advance are eligible for full refund.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-2">
+                        <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
+                            <i class="fas fa-times-circle me-2"></i>Submit Cancellation Request
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<script>
+    // Style the form textarea
+    document.querySelectorAll('textarea').forEach(function(textarea) {
+        textarea.classList.add('form-control');
+        textarea.style.borderRadius = '10px';
+        textarea.style.padding = '12px 15px';
+        textarea.style.minHeight = '120px';
+        textarea.style.resize = 'vertical';
+    });
+</script>
 {% endblock %}

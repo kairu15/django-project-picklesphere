@@ -257,7 +257,7 @@ def calendar_view(request):
     
     month_name = calendar.month_name[month]
     
-    return render(request, 'reservations/calendar.html', {
+    return render(request, 'reservations/reservation_calendar.html', {
         'month_days': month_days,
         'month_name': month_name,
         'year': year,

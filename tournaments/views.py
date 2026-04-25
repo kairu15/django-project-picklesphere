@@ -47,7 +47,12 @@ def tournament_list(request):
         'category_filter': category_filter,
         'page_title': 'Tournaments'
     }
-    return render(request, 'tournaments/tournament_list.html', context)
+    
+    # Use public template for non-authenticated users, dashboard template for authenticated
+    if request.user.is_authenticated:
+        return render(request, 'tournaments/tournament_list.html', context)
+    else:
+        return render(request, 'tournaments/tournament_list_public.html', context)
 
 
 def tournament_detail(request, pk):
@@ -84,7 +89,12 @@ def tournament_detail(request, pk):
         'leaderboard': leaderboard,
         'page_title': tournament.name
     }
-    return render(request, 'tournaments/tournament_detail.html', context)
+    
+    # Use public template for non-authenticated users, dashboard template for authenticated
+    if request.user.is_authenticated:
+        return render(request, 'tournaments/tournament_detail.html', context)
+    else:
+        return render(request, 'tournaments/tournament_view_public.html', context)
 
 
 @login_required

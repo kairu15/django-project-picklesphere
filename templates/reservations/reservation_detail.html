@@ -1,4 +1,5 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Reservation Details{% endblock %}
 {% block page_title %}Reservation #{{ reservation.id }}{% endblock %}
@@ -6,76 +7,162 @@
 {% block content %}
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Reservation Details</h5>
-                <span class="badge badge-{{ reservation.status }} fs-6">{{ reservation.get_status_display }}</span>
+        <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Reservation Details</h5>
+                <span class="badge px-3 py-2 {% if reservation.status == 'confirmed' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'completed' %}bg-secondary{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %} fs-6">
+                    {{ reservation.get_status_display }}
+                </span>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Court</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.court.name }}</p>
-                        <p class="text-muted small">{{ reservation.court.site.name }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Court</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.court.name }}</p>
+                                <p class="text-muted small mb-0">{{ reservation.court.site.name }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Date & Time</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.date|date:"M d, Y" }}</p>
-                        <p class="text-muted small">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Date & Time</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.date|date:"M d, Y" }}</p>
+                                <p class="text-muted small mb-0">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Duration</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.duration_hours }} hours</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-clock text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Duration</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.duration_hours }} hours</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Booked By</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.user.get_full_name|default:reservation.user.username }}</p>
-                        <p class="text-muted small">{{ reservation.user.email }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Booked By</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.user.get_full_name|default:reservation.user.username }}</p>
+                                <p class="text-muted small mb-0">{{ reservation.user.email }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 {% if reservation.notes %}
                 <hr class="my-4">
-                <h6 class="text-muted small mb-2">Notes</h6>
-                <p class="mb-0">{{ reservation.notes }}</p>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-sticky-note text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted small mb-0">Notes</h6>
+                        <p class="mb-0">{{ reservation.notes }}</p>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
 
         <!-- Match Settings -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Match Settings</h5>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-gamepad me-2 text-primary"></i>Match Settings</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Match Name</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.match_name|default:"—" }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-tag text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Match Name</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.match_name|default:"—" }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Format</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.get_match_format_display|default:reservation.match_format|title }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-users text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Format</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.get_match_format_display|default:reservation.match_format|title }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Game Type</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.get_game_type_display|default:reservation.game_type|title }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-gamepad text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Game Type</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.get_game_type_display|default:reservation.game_type|title }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted small mb-2">Scoring Format</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.get_scoring_format_display|default:reservation.scoring_format }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-star text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Scoring Format</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.get_scoring_format_display|default:reservation.scoring_format }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <h6 class="text-muted small mb-2">Points per Game</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.points_per_game }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-hashtag text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Points per Game</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.points_per_game }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <h6 class="text-muted small mb-2">Games to Win</h6>
-                        <p class="mb-0 fw-semibold">{{ reservation.games_to_win }}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-trophy text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Games to Win</h6>
+                                <p class="mb-0 fw-semibold">{{ reservation.games_to_win }}</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4">
-                        <h6 class="text-muted small mb-2">Win by Two</h6>
-                        <p class="mb-0 fw-semibold">{% if reservation.win_by_two %}Yes{% else %}No{% endif %}</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-check-double text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Win by Two</h6>
+                                <p class="mb-0 fw-semibold">{% if reservation.win_by_two %}Yes{% else %}No{% endif %}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,26 +170,30 @@
         
         <!-- Equipment Rented -->
         {% if reservation.rented_equipment.all %}
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Rented Equipment</h5>
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-tools me-2 text-primary"></i>Rented Equipment</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th>Equipment</th>
-                                <th>Quantity</th>
-                                <th>Fee</th>
+                                <th style="padding: 15px 20px;">Equipment</th>
+                                <th style="padding: 15px 20px;">Quantity</th>
+                                <th style="padding: 15px 20px;">Fee</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in reservation.rented_equipment.all %}
-                            <tr>
-                                <td>{{ item.equipment.name }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>₱{{ item.rental_fee|floatformat:2 }}</td>
+                            <tr class="hover-row" style="transition: all 0.3s ease;">
+                                <td style="padding: 15px 20px;">{{ item.equipment.name }}</td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="badge bg-light text-dark border">{{ item.quantity }}</span>
+                                </td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="fw-bold">₱{{ item.rental_fee|floatformat:2 }}</span>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -115,11 +206,11 @@
     
     <div class="col-lg-4">
         <!-- Payment Summary -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Payment Summary</h5>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-receipt me-2 text-primary"></i>Payment Summary</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Court Fee</span>
                     <span>₱{{ reservation.subtotal|floatformat:2 }}</span>
@@ -131,21 +222,23 @@
                 <hr>
                 <div class="d-flex justify-content-between">
                     <span class="fw-semibold">Total</span>
-                    <span class="fw-bold text-primary fs-5">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                    <span class="fw-bold fs-5" style="color: #3B7A8C;">₱{{ reservation.total_amount|floatformat:2 }}</span>
                 </div>
             </div>
         </div>
         
         <!-- Payment Status -->
         {% if reservation.payment %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Payment Status</h5>
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Status</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">Status</span>
-                    <span class="badge bg-{% if reservation.payment.status == 'paid' %}success{% elif reservation.payment.status == 'pending' %}warning{% elif reservation.payment.status == 'refunded' %}info{% else %}secondary{% endif %} fs-6">{{ reservation.payment.get_status_display }}</span>
+                    <span class="badge px-3 py-2 {% if reservation.payment.status == 'paid' %}bg-success{% elif reservation.payment.status == 'pending' %}bg-warning text-dark{% elif reservation.payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %} fs-6">
+                        {{ reservation.payment.get_status_display }}
+                    </span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">Method</span>
@@ -162,12 +255,12 @@
         {% endif %}
         
         <!-- Actions -->
-        <div class="card">
-            <div class="card-body">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-body p-4">
                 <div class="d-grid gap-2">
                     {% if reservation.status == 'pending' or reservation.status == 'confirmed' %}
                         {% if not user.is_staff_user and not user.is_admin %}
-                        <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-outline-danger">
+                        <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-outline-danger" style="border-radius: 10px;">
                             <i class="fas fa-times me-2"></i>Cancel Reservation
                         </a>
                         {% endif %}
@@ -175,23 +268,23 @@
                     
                     {% if user.is_staff_user or user.is_admin %}
                         {% if reservation.status == 'pending' %}
-                        <a href="{% url 'approve_reservation' reservation.id %}" class="btn btn-success">
+                        <a href="{% url 'approve_reservation' reservation.id %}" class="btn btn-success" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none;">
                             <i class="fas fa-check me-2"></i>Approve/Reject
                         </a>
                         {% endif %}
                         {% if reservation.status == 'confirmed' and not reservation.match %}
-                        <a href="{% url 'start_match' reservation.id %}" class="btn btn-warning">
+                        <a href="{% url 'start_match' reservation.id %}" class="btn btn-warning" style="border-radius: 10px;">
                             <i class="fas fa-play me-2"></i>Start Match
                         </a>
                         {% endif %}
                     {% endif %}
                     
                     {% if user.is_staff_user or user.is_admin %}
-                        <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
                             <i class="fas fa-arrow-left me-2"></i>Back to Reservations
                         </a>
                     {% else %}
-                        <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
                             <i class="fas fa-arrow-left me-2"></i>Back to List
                         </a>
                     {% endif %}
@@ -200,4 +293,10 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}

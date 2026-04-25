@@ -1,19 +1,20 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Reservation Calendar{% endblock %}
 {% block page_title %}Reservation Calendar{% endblock %}
 
 {% block content %}
-<div class="card mb-4">
-    <div class="card-body">
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-body p-4">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="form-label small">Select Date</label>
-                <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
+                <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Select Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" style="border-radius: 10px;">
             </div>
             <div class="col-md-4">
-                <label class="form-label small">Court</label>
-                <select name="court" class="form-select">
+                <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Court</label>
+                <select name="court" class="form-select" style="border-radius: 10px;">
                     <option value="">All Courts</option>
                     {% for court in courts %}
                     <option value="{{ court.id }}" {% if court_filter == court.id %}selected{% endif %}>{{ court.name }}</option>
@@ -21,7 +22,7 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
                     <i class="fas fa-calendar-day me-2"></i>View Schedule
                 </button>
             </div>
@@ -29,39 +30,47 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">{{ selected_date|date:"F d, Y" }}</h5>
-        <span class="badge bg-primary">{{ reservations|length }} reservations</span>
+<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>{{ selected_date|date:"F d, Y" }}</h5>
+        <span class="badge bg-primary px-3 py-2"><i class="fas fa-list me-1"></i>{{ reservations|length }} reservations</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead>
+                <thead class="table-light">
                     <tr>
-                        <th>Time</th>
-                        <th>Court</th>
-                        <th>User</th>
-                        <th>Duration</th>
-                        <th>Status</th>
+                        <th style="padding: 15px 20px;">Time</th>
+                        <th style="padding: 15px 20px;">Court</th>
+                        <th style="padding: 15px 20px;">User</th>
+                        <th style="padding: 15px 20px;">Duration</th>
+                        <th style="padding: 15px 20px;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for reservation in reservations %}
-                    <tr>
-                        <td>{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</td>
-                        <td>{{ reservation.court.name }}</td>
-                        <td>{{ reservation.user.username }}</td>
-                        <td>{{ reservation.duration_hours }} hrs</td>
-                        <td>
-                            <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                    <tr class="hover-row" style="transition: all 0.3s ease;">
+                        <td style="padding: 15px 20px;">
+                            <span class="fw-bold">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</span>
+                        </td>
+                        <td style="padding: 15px 20px;">{{ reservation.court.name }}</td>
+                        <td style="padding: 15px 20px;">{{ reservation.user.username }}</td>
+                        <td style="padding: 15px 20px;">
+                            <span class="badge bg-light text-dark border">{{ reservation.duration_hours }} hrs</span>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            <span class="badge px-3 py-2 {% if reservation.status == 'confirmed' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'completed' %}bg-secondary{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ reservation.get_status_display }}
+                            </span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="fas fa-calendar-times fa-3x mb-3"></i>
-                            <p>No reservations for this date</p>
+                        <td colspan="5" class="text-center py-5">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                                <i class="fas fa-calendar-times fa-2x text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-0">No reservations for this date</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -70,4 +79,10 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}

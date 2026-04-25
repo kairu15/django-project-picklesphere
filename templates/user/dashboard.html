@@ -1,4 +1,5 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}My Dashboard{% endblock %}
 {% block page_title %}Welcome back, {{ user.first_name|default:user.username }}!{% endblock %}
@@ -6,14 +7,21 @@
 {% block content %}
 <!-- Quick Actions - Only show if profile is incomplete -->
 {% if not user.phone_number or not user.address %}
-<div class="card mb-4 border-primary" style="border-left: 4px solid var(--primary-color) !important;">
-    <div class="card-body">
+<div class="card mb-4 border-0 shadow-lg" style="border-radius: 15px; border-left: 4px solid var(--primary-color, #3B7A8C) !important; overflow: hidden;">
+    <div class="card-body p-4">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div>
-                <h5 class="mb-1">Complete Your Profile</h5>
-                <p class="text-muted mb-0">Add more details to your profile to unlock all features.</p>
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user-edit fa-lg text-white"></i>
+                    </div>
+                </div>
+                <div class="ms-3">
+                    <h5 class="mb-1 fw-bold">Complete Your Profile</h5>
+                    <p class="text-muted mb-0">Add more details to unlock all features and personalize your experience.</p>
+                </div>
             </div>
-            <a href="{% url 'profile' %}" class="btn btn-primary">
+            <a href="{% url 'profile' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
                 <i class="fas fa-edit me-2"></i>Complete Profile
             </a>
         </div>
@@ -23,47 +31,71 @@
 
 <!-- Quick Stats -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ total_reservations }}</h3>
-                <p>Total Reservations</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ total_matches }}</h3>
-                <p>Matches Played</p>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-calendar-check fa-lg text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0 fw-bold">{{ total_reservations|default:"0" }}</h3>
+                        <p class="text-muted mb-0 small">Total Reservations</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="fas fa-star"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ stats.win_rate|default:"0"|floatformat:0 }}%</h3>
-                <p>Win Rate</p>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-trophy fa-lg text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0 fw-bold">{{ total_matches|default:"0" }}</h3>
+                        <p class="text-muted mb-0 small">Matches Played</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon danger">
-                <i class="fas fa-medal"></i>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-star fa-lg text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0 fw-bold">{{ stats.win_rate|default:"0"|floatformat:0 }}%</h3>
+                        <p class="text-muted mb-0 small">Win Rate</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-info">
-                <h3>{{ stats.wins|default:"0" }}</h3>
-                <p>Total Wins</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-medal fa-lg text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="mb-0 fw-bold">{{ stats.wins|default:"0" }}</h3>
+                        <p class="text-muted mb-0 small">Total Wins</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -72,39 +104,43 @@
 <div class="row g-4">
     <!-- Upcoming Reservations -->
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="fas fa-calendar-alt me-2"></i>Upcoming Reservations</h5>
-                <a href="{% url 'reservation_create' %}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-plus"></i> Reserve
+        <div class="card border-0 shadow-lg h-100" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center p-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Upcoming Reservations</h5>
+                <a href="{% url 'reservation_create' %}" class="btn btn-sm btn-primary" style="border-radius: 8px;">
+                    <i class="fas fa-plus me-1"></i> Reserve
                 </a>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 {% if upcoming_reservations %}
                     {% for reservation in upcoming_reservations %}
-                    <div class="d-flex align-items-center p-3 mb-3 bg-light rounded">
+                    <div class="d-flex align-items-center p-3 mb-3 border rounded-3 hover-card" style="background: #f8f9fa; transition: all 0.3s ease;">
                         <div class="flex-shrink-0">
-                            <div class="bg-white rounded p-2 text-center" style="min-width: 60px;">
-                                <div class="text-primary fw-bold">{{ reservation.date|date:"d" }}</div>
-                                <div class="small text-muted">{{ reservation.date|date:"M" }}</div>
+                            <div class="bg-white rounded-3 p-2 text-center shadow-sm" style="min-width: 60px;">
+                                <div class="text-primary fw-bold fs-4">{{ reservation.date|date:"d" }}</div>
+                                <div class="small text-muted text-uppercase">{{ reservation.date|date:"M" }}</div>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">{{ reservation.court.name }}</h6>
+                            <h6 class="mb-1 fw-bold">{{ reservation.court.name }}</h6>
                             <p class="text-muted mb-0 small">
-                                <i class="far fa-clock me-1"></i>{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}
+                                <i class="far fa-clock me-1 text-primary"></i>{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}
                             </p>
                         </div>
                         <div class="flex-shrink-0">
-                            <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                            <span class="badge bg-{{ reservation.status|default:'primary' }} px-3 py-2">{{ reservation.get_status_display }}</span>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-5">
-                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No upcoming reservations</p>
-                        <a href="{% url 'court_list' %}" class="btn btn-primary">Reserve a Court</a>
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                            <i class="fas fa-calendar-times fa-2x text-muted"></i>
+                        </div>
+                        <p class="text-muted mb-3">No upcoming reservations</p>
+                        <a href="{% url 'court_list' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
+                            <i class="fas fa-plus me-2"></i>Reserve a Court
+                        </a>
                     </div>
                 {% endif %}
             </div>
@@ -113,28 +149,28 @@
     
     <!-- Recent Matches -->
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="fas fa-trophy me-2"></i>Recent Matches</h5>
-                <a href="{% url 'match_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="card border-0 shadow-lg h-100" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center p-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-trophy me-2 text-success"></i>Recent Matches</h5>
+                <a href="{% url 'match_list' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">View All</a>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 {% if recent_matches %}
                     {% for match in recent_matches %}
-                    <div class="d-flex align-items-center p-3 mb-3 bg-light rounded">
+                    <div class="d-flex align-items-center p-3 mb-3 border rounded-3 hover-card" style="background: #f8f9fa; transition: all 0.3s ease;">
                         <div class="flex-shrink-0">
-                            <div class="rounded-circle p-2 {% if match.winner_team == 1 %}bg-success{% else %}bg-secondary{% endif %} text-white" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-trophy"></i>
+                            <div class="match-result-icon" data-winner="{{ match.winner_team }}" style="width: 50px; height: 50px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-trophy text-white"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">{{ match.reservation.court.name }}</h6>
+                            <h6 class="mb-1 fw-bold">{{ match.reservation.court.name }}</h6>
                             <p class="text-muted mb-0 small">
-                                {{ match.get_format_display }} • {{ match.get_team1_score }} - {{ match.get_team2_score }}
+                                {{ match.get_format_display }} • <span class="fw-bold">{{ match.get_team1_score }} - {{ match.get_team2_score }}</span>
                             </p>
                         </div>
                         <div class="flex-shrink-0">
-                            <span class="badge {% if match.status == 'completed' %}bg-success{% elif match.status == 'ongoing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                            <span class="badge {% if match.status == 'completed' %}bg-success{% elif match.status == 'ongoing' %}bg-warning text-dark{% else %}bg-secondary{% endif %} px-3 py-2">
                                 {{ match.get_status_display }}
                             </span>
                         </div>
@@ -142,9 +178,13 @@
                     {% endfor %}
                 {% else %}
                     <div class="text-center py-5">
-                        <i class="fas fa-gamepad fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No matches played yet</p>
-                        <a href="{% url 'court_list' %}" class="btn btn-primary">Start Playing</a>
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                            <i class="fas fa-gamepad fa-2x text-muted"></i>
+                        </div>
+                        <p class="text-muted mb-3">No matches played yet</p>
+                        <a href="{% url 'court_list' %}" class="btn btn-success px-4" style="border-radius: 10px;">
+                            <i class="fas fa-play me-2"></i>Start Playing
+                        </a>
                     </div>
                 {% endif %}
             </div>
@@ -154,33 +194,35 @@
 
 <!-- Notifications -->
 {% if notifications %}
-<div class="card mt-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5><i class="fas fa-bell me-2"></i>Recent Notifications</h5>
-        <a href="{% url 'notification_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+<div class="card border-0 shadow-lg mt-4" style="border-radius: 15px; overflow: hidden;">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center p-4">
+        <h5 class="fw-bold mb-0"><i class="fas fa-bell me-2 text-warning"></i>Recent Notifications</h5>
+        <a href="{% url 'notification_list' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">View All</a>
     </div>
-    <div class="card-body">
+    <div class="card-body p-4">
         {% for notification in notifications %}
-        <div class="d-flex align-items-start p-3 mb-2 border rounded {% if not notification.is_read %}bg-light border-primary{% endif %}">
+        <div class="d-flex align-items-start p-3 mb-2 border rounded-3 {% if not notification.is_read %}bg-light border-primary{% endif %}" style="transition: all 0.3s ease;">
             <div class="flex-shrink-0">
                 <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
-                    <i class="fas fa-{% if notification.notification_type == 'success' %}check-circle text-success{% elif notification.notification_type == 'warning' %}exclamation-circle text-warning{% elif notification.notification_type == 'error' %}times-circle text-danger{% else %}info-circle text-info{% endif %}"></i>
+                    <div class="notification-icon" data-type="{{ notification.notification_type }}" style="width: 40px; height: 40px; background: rgba(23,162,184,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-info-circle text-info"></i>
+                    </div>
                 </a>
             </div>
             <div class="flex-grow-1 ms-3">
                 <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
-                    <p class="mb-1 text-dark">{{ notification.message }}</p>
+                    <p class="mb-1 text-dark {% if not notification.is_read %}fw-semibold{% endif %}">{{ notification.message }}</p>
                 </a>
-                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                <small class="text-muted"><i class="far fa-clock me-1"></i>{{ notification.created_at|timesince }} ago</small>
             </div>
             <div class="flex-shrink-0">
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown">
+                    <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown" style="text-decoration: none;">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
+                    <ul class="dropdown-menu dropdown-menu-end" style="border-radius: 10px;">
                         {% if not notification.is_read %}
-                        <li><a class="dropdown-item" href="{% url 'mark_notification_read' notification.id %}"><i class="fas fa-check me-2"></i>Mark as read</a></li>
+                        <li><a class="dropdown-item" href="{% url 'mark_notification_read' notification.id %}"><i class="fas fa-check me-2 text-success"></i>Mark as read</a></li>
                         {% endif %}
                         <li><a class="dropdown-item text-danger" href="{% url 'delete_notification' notification.id %}"><i class="fas fa-trash me-2"></i>Delete</a></li>
                     </ul>
@@ -191,4 +233,79 @@
     </div>
 </div>
 {% endif %}
+
+<style>
+/* Hover Effects */
+.hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1) !important;
+}
+
+/* Smooth transitions */
+.card, .hover-card {
+    transition: all 0.3s ease;
+}
+
+/* Match result winner styling */
+.match-result-icon.winner {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+}
+
+/* Notification type styling */
+.notification-icon.success {
+    background: rgba(40,167,69,0.1) !important;
+}
+.notification-icon.success i {
+    color: #28a745 !important;
+}
+.notification-icon.warning {
+    background: rgba(255,193,7,0.1) !important;
+}
+.notification-icon.warning i {
+    color: #ffc107 !important;
+}
+.notification-icon.error {
+    background: rgba(220,53,69,0.1) !important;
+}
+.notification-icon.error i {
+    color: #dc3545 !important;
+}
+.notification-icon.info {
+    background: rgba(23,162,184,0.1) !important;
+}
+.notification-icon.info i {
+    color: #17a2b8 !important;
+}
+</style>
+
+<script>
+// Update match result icons based on winner status
+document.querySelectorAll('.match-result-icon').forEach(function(icon) {
+    var winner = icon.getAttribute('data-winner');
+    if (winner === '1') {
+        icon.classList.add('winner');
+    }
+});
+
+// Update notification icons based on type
+document.querySelectorAll('.notification-icon').forEach(function(icon) {
+    var type = icon.getAttribute('data-type');
+    if (type) {
+        icon.classList.add(type);
+        var i = icon.querySelector('i');
+        if (i) {
+            i.className = 'fas ';
+            if (type === 'success') {
+                i.classList.add('fa-check-circle');
+            } else if (type === 'warning') {
+                i.classList.add('fa-exclamation-circle');
+            } else if (type === 'error') {
+                i.classList.add('fa-times-circle');
+            } else {
+                i.classList.add('fa-info-circle');
+            }
+        }
+    }
+});
+</script>
 {% endblock %}

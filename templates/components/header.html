@@ -1,0 +1,239 @@
+{% load static %}
+<!-- Top Bar -->
+<div class="top-bar" style="background: linear-gradient(135deg, #1a3a42 0%, #0f172a 100%); padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Contact Info -->
+            <div class="col-md-8">
+                <div class="d-flex align-items-center flex-wrap" style="gap: 20px;">
+                    <a href="tel:+639123456789" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;">
+                        <i class="fas fa-phone-alt me-2" style="color: #3B7A8C;"></i>+63 912 345 6789
+                    </a>
+                    <a href="mailto:info@picklesphere.com" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;">
+                        <i class="fas fa-envelope me-2" style="color: #3B7A8C;"></i>info@picklesphere.com
+                    </a>
+                </div>
+            </div>
+            <!-- Social & Language -->
+            <div class="col-md-4">
+                <div class="d-flex align-items-center justify-content-md-end" style="gap: 15px;">
+                    <!-- Social Icons -->
+                    <div class="d-flex align-items-center" style="gap: 12px; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 15px;">
+                        <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                    <!-- Language Selector -->
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;">
+                            <i class="fas fa-globe me-2" style="color: #3B7A8C;"></i>English
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.85rem; min-width: 120px;">
+                            <li><a class="dropdown-item py-1" href="#"><i class="fas fa-check me-2 text-primary"></i>English</a></li>
+                            <li><a class="dropdown-item py-1" href="#">Filipino</a></li>
+                            <li><a class="dropdown-item py-1" href="#">Spanish</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation -->
+<style>
+nav.navbar .navbar-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    nav.navbar .navbar-nav .nav-item {
+        flex: 0 0 auto;
+    }
+    nav.navbar .navbar-nav .nav-link {
+        position: relative;
+        transition: color 0.3s ease;
+        border-left: none !important;
+        border-left-color: transparent !important;
+        border-right: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+    nav.navbar .navbar-nav .nav-link::before,
+    nav.navbar .navbar-nav .nav-link::after {
+        border-left: none !important;
+        border-right: none !important;
+    }
+    nav.navbar .navbar-nav .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: #3B7A8C;
+        transition: width 0.3s ease;
+    }
+    nav.navbar .navbar-nav .nav-link.active,
+    nav.navbar .navbar-nav .nav-link:hover {
+        background: transparent !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-left-color: transparent !important;
+    }
+    nav.navbar .navbar-nav .nav-link:hover::after,
+    nav.navbar .navbar-nav .nav-link.active::after {
+        width: 100%;
+    }
+    nav.navbar .navbar-nav .nav-link:hover,
+    nav.navbar .navbar-nav .nav-link.active,
+    nav.navbar .navbar-nav .nav-link:focus {
+        color: white !important;
+        border-left: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+</style>
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background: var(--sidebar-bg, #0f172a); padding: 0.5rem 0;">
+    <div class="container">
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}" style="font-size: 1.1rem;">
+            <img src="/static/PickleSphereLogo.png" alt="PickleSphere" height="32" width="32" style="border-radius: 50%; object-fit: cover;">
+            <span class="fw-semibold">PickleSphere</span>
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="padding: 0.25rem 0.5rem;">
+            <span class="navbar-toggler-icon" style="width: 1.2em; height: 1.2em;"></span>
+        </button>
+
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Main Navigation -->
+            <ul class="navbar-nav mx-auto" style="gap: 1.5rem;">
+                <!-- Home -->
+                <li class="nav-item">
+                    <a class="nav-link px-0 {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Home</a>
+                </li>
+
+                <!-- Courts -->
+                <li class="nav-item">
+                    <a class="nav-link px-0 {% if '/all_courts/' in request.path or '/court/' in request.path %}active{% endif %}" href="{% url 'all_courts' %}">Courts</a>
+                </li>
+
+                <!-- Tournaments -->
+                <li class="nav-item">
+                    <a class="nav-link px-0 {% if '/tournaments/' in request.path %}active{% endif %}" href="{% url 'tournament_list' %}">Tournaments</a>
+                </li>
+
+                {% if user.is_authenticated %}
+                    <!-- Equipment (Authenticated Only) -->
+                    <li class="nav-item">
+                        <a class="nav-link px-0 {% if '/equipment/' in request.path %}active{% endif %}" href="{% url 'equipment_list' %}">Equipment</a>
+                    </li>
+                {% endif %}
+
+                <!-- Pricing -->
+                <li class="nav-item">
+                    <a class="nav-link px-0 {% if '/pricing/' in request.path %}active{% endif %}" href="{% url 'pricing' %}">Pricing</a>
+                </li>
+
+                <!-- About -->
+                <li class="nav-item">
+                    <a class="nav-link px-0 {% if '/about/' in request.path %}active{% endif %}" href="{% url 'about' %}">About</a>
+                </li>
+
+                <!-- Contact -->
+                <li class="nav-item">
+                    <a class="nav-link px-0 {% if '/contact/' in request.path %}active{% endif %}" href="{% url 'contact' %}">Contact</a>
+                </li>
+            </ul>
+
+            <!-- Right Side Navigation -->
+            <ul class="navbar-nav ms-auto align-items-center" style="gap: 0.3rem;">
+                {% if user.is_authenticated %}
+                    <!-- Staff/Admin Quick Links -->
+                    {% if user.is_staff_user or user.is_admin %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle py-2 px-2" style="font-size: 0.875rem; white-space: nowrap;" href="#" id="manageDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog" style="font-size: 0.85rem;"></i>
+                                <span class="ms-1">Manage</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.875rem;">
+                                <li><h6 class="dropdown-header" style="font-size: 0.75rem;">Staff Actions</h6></li>
+                                <li><a class="dropdown-item py-1" href="{% url 'staff_reservations' %}">
+                                    <i class="fas fa-clipboard-list me-2" style="width: 1rem;"></i>Reservations
+                                </a></li>
+                                <li><a class="dropdown-item py-1" href="{% url 'staff_equipment' %}">
+                                    <i class="fas fa-tools me-2" style="width: 1rem;"></i>Equipment
+                                </a></li>
+
+                                {% if user.is_admin %}
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li><h6 class="dropdown-header" style="font-size: 0.75rem;">Admin Actions</h6></li>
+                                    <li><a class="dropdown-item py-1" href="{% url 'admin_court_list' %}">
+                                        <i class="fas fa-th-large me-2" style="width: 1rem;"></i>Manage Courts
+                                    </a></li>
+                                    <li><a class="dropdown-item py-1" href="{% url 'user_list' %}">
+                                        <i class="fas fa-users me-2" style="width: 1rem;"></i>Manage Users
+                                    </a></li>
+                                    <li><a class="dropdown-item py-1" href="{% url 'admin_tournament_list' %}">
+                                        <i class="fas fa-trophy me-2" style="width: 1rem;"></i>Manage Tournaments
+                                    </a></li>
+                                    <li><a class="dropdown-item py-1" href="{% url 'admin_equipment_list' %}">
+                                        <i class="fas fa-box me-2" style="width: 1rem;"></i>Manage Equipment
+                                    </a></li>
+                                    <li><a class="dropdown-item py-1" href="{% url 'admin_reservation_list' %}">
+                                        <i class="fas fa-chart-bar me-2" style="width: 1rem;"></i>Reports
+                                    </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    {% endif %}
+
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center py-1 px-2" style="font-size: 0.875rem; white-space: nowrap; gap: 0.4rem;" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 28px; height: 28px; font-size: 12px;">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <span class="d-none d-lg-inline">{{ user.get_full_name|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.875rem;">
+                            <li><h6 class="dropdown-header" style="font-size: 0.75rem;">My Account</h6></li>
+                            <li><a class="dropdown-item py-1" href="{% url 'dashboard' %}">
+                                <i class="fas fa-th-large me-2" style="width: 1rem;"></i>Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item py-1" href="{% url 'profile' %}">
+                                <i class="fas fa-user me-2" style="width: 1rem;"></i>Profile
+                            </a></li>
+                            <li><a class="dropdown-item py-1" href="{% url 'my_tournaments' %}">
+                                <i class="fas fa-trophy me-2" style="width: 1rem;"></i>My Tournaments
+                            </a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item py-1 text-danger" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-2" style="width: 1rem;"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <!-- Guest User Buttons -->
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-2" style="font-size: 0.875rem; white-space: nowrap;" href="{% url 'login' %}">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary py-1 px-3 ms-1" style="font-size: 0.8rem; border-radius: 4px;" href="{% url 'register' %}">Get Started</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

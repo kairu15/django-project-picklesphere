@@ -1,19 +1,20 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Notifications{% endblock %}
 {% block page_title %}Notifications{% endblock %}
 
 {% block content %}
 <!-- Filters -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex gap-2">
-                <a href="{% url 'notification_list' %}?filter=all" class="btn btn-{% if filter_type != 'unread' and filter_type != 'read' %}primary{% else %}outline-secondary{% endif %}">All</a>
-                <a href="{% url 'notification_list' %}?filter=unread" class="btn btn-{% if filter_type == 'unread' %}primary{% else %}outline-secondary{% endif %}">Unread</a>
-                <a href="{% url 'notification_list' %}?filter=read" class="btn btn-{% if filter_type == 'read' %}primary{% else %}outline-secondary{% endif %}">Read</a>
+                <a href="{% url 'notification_list' %}?filter=all" class="btn {% if filter_type != 'unread' and filter_type != 'read' %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="border-radius: 10px;">All</a>
+                <a href="{% url 'notification_list' %}?filter=unread" class="btn {% if filter_type == 'unread' %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="border-radius: 10px;">Unread</a>
+                <a href="{% url 'notification_list' %}?filter=read" class="btn {% if filter_type == 'read' %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="border-radius: 10px;">Read</a>
             </div>
-            <a href="{% url 'mark_all_read' %}" class="btn btn-outline-primary">
+            <a href="{% url 'mark_all_read' %}" class="btn btn-outline-primary" style="border-radius: 10px;">
                 <i class="fas fa-check-double me-2"></i>Mark All Read
             </a>
         </div>
@@ -21,28 +22,24 @@
 </div>
 
 <!-- Notifications List -->
-<div class="card">
+<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
     <div class="card-body p-0">
         {% if notifications %}
             <div class="list-group list-group-flush">
                 {% for notification in notifications %}
-                <div class="list-group-item p-4 {% if not notification.is_read %}bg-light{% endif %}"
-                     {% if not notification.is_read %}style="border-left: 4px solid var(--primary-color);"{% endif %}>
+                <div class="list-group-item p-4 {% if not notification.is_read %}bg-light{% endif %} hover-row"
+                     {% if not notification.is_read %}style="border-left: 4px solid #3B7A8C;"{% endif %} style="transition: all 0.3s ease;">
                     <div class="d-flex">
                         <div class="flex-shrink-0">
                             <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
-                                <div class="bg-{% if notification.notification_type == 'success' %}success{% elif notification.notification_type == 'warning' %}warning{% elif notification.notification_type == 'error' %}danger{% else %}info{% endif %} 
-                                            bg-opacity-10 rounded-circle p-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-{% if notification.notification_type == 'success' %}check{% elif notification.notification_type == 'warning' %}exclamation{% elif notification.notification_type == 'error' %}times{% else %}info{% endif %}
-                                       text-{% if notification.notification_type == 'success' %}success{% elif notification.notification_type == 'warning' %}warning{% elif notification.notification_type == 'error' %}danger{% else %}info{% endif %}"></i>
-                                </div>
+                                <div class="notification-icon" data-type="{{ notification.notification_type }}"></div>
                             </a>
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
-                                        <p class="mb-1 text-dark">{{ notification.message }}</p>
+                                        <p class="mb-1 text-dark fw-semibold">{{ notification.message }}</p>
                                     </a>
                                     <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
                                 </div>
@@ -65,11 +62,63 @@
             </div>
         {% else %}
             <div class="text-center py-5">
-                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                <h5>No notifications</h5>
-                <p class="text-muted">You're all caught up!</p>
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <i class="fas fa-bell-slash fa-2x text-muted"></i>
+                </div>
+                <h5 class="fw-bold mb-2">No notifications</h5>
+                <p class="text-muted mb-0">You're all caught up!</p>
             </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+.notification-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.notification-icon[data-type="success"] {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+.notification-icon[data-type="success"] i {
+    color: white;
+}
+.notification-icon[data-type="warning"] {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+.notification-icon[data-type="warning"] i {
+    color: white;
+}
+.notification-icon[data-type="error"] {
+    background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
+}
+.notification-icon[data-type="error"] i {
+    color: white;
+}
+.notification-icon[data-type="info"] {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+.notification-icon[data-type="info"] i {
+    color: white;
+}
+</style>
+
+<script>
+document.querySelectorAll('.notification-icon').forEach(function(icon) {
+    const type = icon.getAttribute('data-type');
+    let iconClass = 'info';
+    if (type === 'success') iconClass = 'check';
+    else if (type === 'warning') iconClass = 'exclamation';
+    else if (type === 'error') iconClass = 'times';
+    else iconClass = 'info';
+    icon.innerHTML = '<i class="fas fa-' + iconClass + ' fa-lg"></i>';
+});
+</script>
 {% endblock %}

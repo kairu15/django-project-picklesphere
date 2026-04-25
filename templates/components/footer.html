@@ -1,0 +1,121 @@
+{% load static %}
+<!-- Footer -->
+<footer style="background: linear-gradient(135deg, #1a3a42 0%, #0d1f23 100%); color: white; padding: 60px 0 0;">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Brand Column -->
+            <div class="col-lg-3 col-md-6">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="/static/PickleSphereLogo.png" alt="PickleSphere" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 12px;">
+                    <h5 class="mb-0" style="font-weight: 600; font-size: 1.3rem;">PickleSphere</h5>
+                </div>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; line-height: 1.6;">
+                    Experience the thrill of pickleball at our world-class facilities. Your perfect game awaits with professional courts and seamless booking.
+                </p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" style="width: 38px; height: 38px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" style="width: 38px; height: 38px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" style="width: 38px; height: 38px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6">
+                <h6 style="font-weight: 600; font-size: 1rem; margin-bottom: 20px; color: white;">Quick Links</h6>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li class="mb-2"><a href="{% url 'court_list' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">Book a Court</a></li>
+                    <li class="mb-2"><a href="{% url 'tournament_list' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">Tournaments</a></li>
+                    <li class="mb-2"><a href="{% url 'equipment_list' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">Equipment</a></li>
+                    <li class="mb-2"><a href="{% url 'leaderboard' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">Leaderboard</a></li>
+                    <li class="mb-2"><a href="{% url 'about' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">About Us</a></li>
+                    <li><a href="{% url 'contact' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="col-lg-3 col-md-6">
+                <h6 style="font-weight: 600; font-size: 1rem; margin-bottom: 20px; color: white;">Contact Us</h6>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li class="mb-3 d-flex align-items-start">
+                        <i class="fas fa-map-marker-alt mt-1 me-3" style="color: #3B7A8C; width: 16px;"></i>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">123 Sports Complex Ave<br>Metro City, Philippines 1234</span>
+                    </li>
+                    <li class="mb-3 d-flex align-items-center">
+                        <i class="fas fa-phone me-3" style="color: #3B7A8C; width: 16px;"></i>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">+63 912 345 6789</span>
+                    </li>
+                    <li class="mb-3 d-flex align-items-center">
+                        <i class="fas fa-envelope me-3" style="color: #3B7A8C; width: 16px;"></i>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">info@picklesphere.com</span>
+                    </li>
+                    <li class="d-flex align-items-center">
+                        <i class="fas fa-clock me-3" style="color: #3B7A8C; width: 16px;"></i>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Open Daily: 6AM - 10PM</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Newsletter -->
+            <div class="col-lg-4 col-md-6">
+                <h6 style="font-weight: 600; font-size: 1rem; margin-bottom: 20px; color: white;">Newsletter</h6>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 15px;">
+                    Subscribe to receive special offers and updates.
+                </p>
+                <form class="d-flex mb-4">
+                    <input type="email" class="form-control" placeholder="Your email address" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px 0 0 6px; border-right: none;">
+                    <button type="submit" class="btn" style="background: #3B7A8C; color: white; border-radius: 0 6px 6px 0; padding: 0 20px;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px; padding: 20px 0;">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">
+                        &copy; {% now "Y" %} PickleSphere. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="{% url 'privacy_policy' %}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; margin-right: 20px; transition: all 0.3s;">Privacy Policy</a>
+                    <a href="{% url 'terms_of_service' %}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; margin-right: 20px; transition: all 0.3s;">Terms of Service</a>
+                    <a href="{% url 'faq' %}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; transition: all 0.3s;">FAQ</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Credit -->
+        <div class="text-center" style="padding-bottom: 20px;">
+            <p style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin: 0;">
+                Developed by <strong>Kylle Ian D. Acibron</strong> &bull; Contact: kylleacibron@gmail.com &bull; Version: 1.0.0
+            </p>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" 
+            style="position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background: #3B7A8C; color: white; border: none; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 999; transition: all 0.3s;">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+</footer>
+
+<style>
+footer a:hover {
+    color: white !important;
+}
+footer .btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+footer button:hover {
+    background: #2a5a66 !important;
+}
+</style>

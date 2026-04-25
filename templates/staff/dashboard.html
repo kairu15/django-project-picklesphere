@@ -1,23 +1,24 @@
 {% extends 'dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Staff Dashboard{% endblock %}
 {% block page_title %}Staff Dashboard{% endblock %}
 
 {% block content %}
 <!-- Quick Actions -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-body p-4">
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'staff_reservations' %}" class="btn btn-primary">
+            <a href="{% url 'staff_reservations' %}" class="btn btn-primary" style="border-radius: 10px;">
                 <i class="fas fa-calendar-check me-2"></i>View Reservations
             </a>
-            <a href="{% url 'staff_payments' %}" class="btn btn-success">
+            <a href="{% url 'staff_payments' %}" class="btn btn-success" style="border-radius: 10px;">
                 <i class="fas fa-money-bill-wave me-2"></i>Verify Payments
             </a>
-            <a href="{% url 'match_list' %}" class="btn btn-warning">
+            <a href="{% url 'match_list' %}" class="btn btn-warning" style="border-radius: 10px;">
                 <i class="fas fa-trophy me-2"></i>Manage Matches
             </a>
-            <a href="{% url 'staff_equipment' %}" class="btn btn-info text-white">
+            <a href="{% url 'staff_equipment' %}" class="btn btn-info text-white" style="border-radius: 10px;">
                 <i class="fas fa-tools me-2"></i>Equipment
             </a>
         </div>
@@ -27,87 +28,103 @@
 <!-- Stats Cards -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-calendar-day"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ today_reservations|length }}</h3>
-                <p>Today's Reservations</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ pending_reservations }}</h3>
-                <p>Pending Approval</p>
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-day fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="text-white mb-0 fw-bold">{{ today_reservations|length }}</h3>
+                        <p class="text-white mb-0 opacity-75">Today's Reservations</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ pending_payments }}</h3>
-                <p>Pending Payments</p>
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-clock fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="text-white mb-0 fw-bold">{{ pending_reservations }}</h3>
+                        <p class="text-white mb-0 opacity-75">Pending Approval</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon danger">
-                <i class="fas fa-play-circle"></i>
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-wallet fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="text-white mb-0 fw-bold">{{ pending_payments }}</h3>
+                        <p class="text-white mb-0 opacity-75">Pending Payments</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-info">
-                <h3>{{ active_matches }}</h3>
-                <p>Active Matches</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-play-circle fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h3 class="text-white mb-0 fw-bold">{{ active_matches }}</h3>
+                        <p class="text-white mb-0 opacity-75">Active Matches</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Equipment Stats -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5>Equipment Overview</h5>
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-header bg-transparent border-0">
+        <h5 class="fw-bold mb-0"><i class="fas fa-boxes me-2 text-primary"></i>Equipment Overview</h5>
     </div>
-    <div class="card-body">
+    <div class="card-body p-4">
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon primary">
-                        <i class="fas fa-box"></i>
+                    <div style="width: 50px; height: 50px; background: rgba(59,122,140,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-box fa-lg text-primary"></i>
                     </div>
                     <div>
-                        <h4 class="mb-1">{{ equipment_stats.total }}</h4>
+                        <h4 class="mb-1 fw-bold">{{ equipment_stats.total }}</h4>
                         <p class="text-muted mb-0">Total Equipment Items</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon warning">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div style="width: 50px; height: 50px; background: rgba(255,193,7,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle fa-lg text-warning"></i>
                     </div>
                     <div>
-                        <h4 class="mb-1">{{ equipment_stats.low_stock }}</h4>
+                        <h4 class="mb-1 fw-bold">{{ equipment_stats.low_stock }}</h4>
                         <p class="text-muted mb-0">Low Stock Items</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon success">
-                        <i class="fas fa-hand-holding"></i>
+                    <div style="width: 50px; height: 50px; background: rgba(40,167,69,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-hand-holding fa-lg text-success"></i>
                     </div>
                     <div>
-                        <h4 class="mb-1">{{ equipment_stats.active_rentals }}</h4>
+                        <h4 class="mb-1 fw-bold">{{ equipment_stats.active_rentals }}</h4>
                         <p class="text-muted mb-0">Active Rentals</p>
                     </div>
                 </div>
@@ -119,45 +136,52 @@
 <div class="row g-4">
     <!-- Today's Reservations -->
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5>Today's Schedule</h5>
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Today's Schedule</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th>Time</th>
-                                <th>Court</th>
-                                <th>User</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th style="padding: 15px 20px;">Time</th>
+                                <th style="padding: 15px 20px;">Court</th>
+                                <th style="padding: 15px 20px;">User</th>
+                                <th style="padding: 15px 20px;">Status</th>
+                                <th style="padding: 15px 20px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for reservation in today_reservations %}
-                            <tr>
-                                <td>{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</td>
-                                <td>{{ reservation.court.name }}</td>
-                                <td>{{ reservation.user.username }}</td>
-                                <td>
-                                    <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                            <tr class="hover-row" style="transition: all 0.3s ease;">
+                                <td style="padding: 15px 20px;">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</td>
+                                <td style="padding: 15px 20px;">{{ reservation.court.name }}</td>
+                                <td style="padding: 15px 20px;">{{ reservation.user.username }}</td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="badge px-3 py-2 {% if reservation.status == 'confirmed' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'completed' %}bg-secondary{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ reservation.get_status_display }}
+                                    </span>
                                 </td>
-                                <td>
+                                <td style="padding: 15px 20px;">
                                     {% if reservation.status == 'confirmed' and not reservation.match %}
-                                    <a href="{% url 'start_match' reservation.id %}" class="btn btn-sm btn-success">
+                                    <a href="{% url 'start_match' reservation.id %}" class="btn btn-sm btn-success" style="border-radius: 8px;">
                                         <i class="fas fa-play"></i> Start
                                     </a>
                                     {% endif %}
-                                    <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No reservations for today</td>
+                                <td colspan="5" class="text-center py-5">
+                                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                        <i class="fas fa-calendar-times fa-lg text-muted"></i>
+                                    </div>
+                                    <p class="text-muted mb-0">No reservations for today</p>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -169,17 +193,17 @@
     
     <!-- Recent Activity -->
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5>Recent Activity</h5>
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Activity</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="timeline">
                     {% for activity in recent_activities %}
                     <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
                         <div class="flex-shrink-0">
-                            <div class="bg-light rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-history text-secondary"></i>
+                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-history text-primary"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1">
@@ -196,4 +220,10 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}
