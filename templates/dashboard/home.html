@@ -7,7 +7,7 @@
 {% include 'components/header.html' %}
 
 <!-- Hero Section with Background Image -->
-<section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.7), rgba(59, 122, 140, 0.8)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920') center/cover; min-height: 100vh; display: flex; align-items: center; position: relative;">
+<section class="hero-section">
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
@@ -55,7 +55,6 @@
                                     <option value="">All Types</option>
                                     <option value="indoor">Indoor</option>
                                     <option value="outdoor">Outdoor</option>
-                                    <option value="premium">Premium</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -118,7 +117,7 @@
         <div class="row align-items-center g-5">
             <div class="col-lg-6">
                 <div class="position-relative">
-                    <img src="https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=800" alt="Pickleball Court" class="img-fluid rounded-4 shadow-lg" style="width: 100%; height: 500px; object-fit: cover;">
+                    <img src="{% static 'images/about-court.jpg' %}" alt="Pickleball Court" class="img-fluid rounded-4 shadow-lg" style="width: 100%; height: 500px; object-fit: cover;" onerror="this.onerror=null; this.src='/static/PickleSphereLogo.png';">
                     <div class="position-absolute" style="bottom: -30px; right: -30px; background: var(--primary-color); padding: 20px; border-radius: 15px;">
                         <h3 class="text-white mb-0">8+</h3>
                         <p class="text-white-50 mb-0">Years Experience</p>
@@ -377,7 +376,7 @@
             {% for image in gallery_images|slice:":6" %}
             <div class="col-md-4 col-lg-2">
                 <div class="position-relative overflow-hidden rounded-3 shadow-sm hover-gallery" style="height: 200px;">
-                    <img src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" alt="{% if image.alt_text %}{{ image.alt_text }}{% else %}{{ image.alt }}{% endif %}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=400'; this.alt='Pickleball Court';">
+                    <img src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" alt="{% if image.alt_text %}{{ image.alt_text }}{% else %}{{ image.alt }}{% endif %}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" onerror="this.onerror=null; this.src='/static/PickleSphereLogo.png';">
                     <div class="gallery-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(59, 122, 140, 0.8); opacity: 0; transition: opacity 0.3s;">
                         <i class="fas fa-search-plus fa-2x text-white"></i>
                     </div>
@@ -465,6 +464,16 @@
 </section>
 
 <style>
+/* Hero Section */
+.hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(rgba(26, 58, 66, 0.7), rgba(59, 122, 140, 0.8)), url('/static/images/hero-bg.jpg') center/cover;
+}
+
 /* Hover Effects */
 .hover-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;

@@ -5,89 +5,372 @@
 {% block page_title %}Revenue Reports{% endblock %}
 
 {% block content %}
-<div class="row g-4 mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
-                <div class="d-flex align-items-center">
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-money-bill-wave fa-lg text-white"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="text-white mb-0 fw-bold">₱{{ total_revenue|floatformat:2 }}</h3>
-                        <p class="text-white mb-0 opacity-75">Total Revenue</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
-                <div class="d-flex align-items-center">
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-receipt fa-lg text-white"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="text-white mb-0 fw-bold">{{ total_transactions }}</h3>
-                        <p class="text-white mb-0 opacity-75">Total Transactions</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- FILTERS AND EXPORT -->
 <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
     <div class="card-body p-4">
         <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>From Date</label>
                 <input type="date" name="date_from" class="form-control" value="{{ date_from }}" style="border-radius: 10px;">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>To Date</label>
                 <input type="date" name="date_to" class="form-control" value="{{ date_to }}" style="border-radius: 10px;">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
+                <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Court</label>
+                <select name="court" class="form-select" style="border-radius: 10px;">
+                    <option value="">All Courts</option>
+                    {% for court in courts %}
+                    <option value="{{ court.id }}" {% if court_filter == court.id|stringformat:"s" %}selected{% endif %}>{{ court.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Method</label>
+                <select name="method" class="form-select" style="border-radius: 10px;">
+                    <option value="">All Methods</option>
+                    <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                    <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
+                    <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Credit/Debit Card</option>
+                </select>
+            </div>
+            <div class="col-md-2">
                 <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
-                    <i class="fas fa-filter me-2"></i>Generate Report
+                    <i class="fas fa-filter me-2"></i>Filter
                 </button>
             </div>
         </form>
+        <hr class="my-3">
+        <div class="d-flex gap-2">
+            <a href="{% url 'revenue_report_export' %}?{{ request.GET.urlencode }}&format=csv" class="btn btn-outline-success" style="border-radius: 10px;">
+                <i class="fas fa-file-csv me-2"></i>Export CSV
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                <i class="fas fa-print me-2"></i>Print Report
+            </button>
+        </div>
     </div>
 </div>
 
-<div class="row g-4">
+<!-- 1. SUMMARY METRICS -->
+<h5 class="fw-bold mb-3"><i class="fas fa-chart-line me-2 text-primary"></i>Summary Metrics</h5>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-money-bill-wave fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h4 class="text-white mb-0 fw-bold">₱{{ summary_metrics.total_revenue|floatformat:2 }}</h4>
+                        <p class="text-white mb-0 opacity-75 small">Total Revenue (Period)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-receipt fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h4 class="text-white mb-0 fw-bold">{{ summary_metrics.total_paid_bookings }}</h4>
+                        <p class="text-white mb-0 opacity-75 small">Paid Bookings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #6f42c1 0%, #4a2c7a 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calculator fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h4 class="text-white mb-0 fw-bold">₱{{ summary_metrics.avg_revenue_per_booking|floatformat:2 }}</h4>
+                        <p class="text-white mb-0 opacity-75 small">Avg Revenue/Booking</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, #fd7e14 0%, #c55a08 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-bar fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h4 class="text-white mb-0 fw-bold">₱{{ summary_metrics.avg_revenue_per_day|floatformat:2 }}</h4>
+                        <p class="text-white mb-0 opacity-75 small">Avg Revenue/Day</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PERIOD REVENUE CARDS -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-2">
+                    <span class="badge bg-info">Today</span>
+                </div>
+                <h5 class="fw-bold mb-1">₱{{ summary_metrics.daily_revenue|floatformat:2 }}</h5>
+                <p class="text-muted small mb-0">Daily Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-2">
+                    <span class="badge bg-primary">This Week</span>
+                </div>
+                <h5 class="fw-bold mb-1">₱{{ summary_metrics.weekly_revenue|floatformat:2 }}</h5>
+                <p class="text-muted small mb-0">Weekly Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-2">
+                    <span class="badge bg-success">This Month</span>
+                </div>
+                <h5 class="fw-bold mb-1">₱{{ summary_metrics.monthly_revenue|floatformat:2 }}</h5>
+                <p class="text-muted small mb-0">Monthly Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-2">
+                    <span class="badge bg-warning text-dark">This Year</span>
+                </div>
+                <h5 class="fw-bold mb-1">₱{{ summary_metrics.yearly_revenue|floatformat:2 }}</h5>
+                <p class="text-muted small mb-0">Yearly Revenue</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GROWTH COMPARISON -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-header bg-transparent border-0 py-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Revenue Growth (vs Previous Period)</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                    <div>
+                        <p class="text-muted mb-1">Previous Period Revenue</p>
+                        <h5 class="fw-bold mb-0">₱{{ summary_metrics.prev_revenue|floatformat:2 }}</h5>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1">Current Period Revenue</p>
+                        <h5 class="fw-bold mb-0">₱{{ summary_metrics.total_revenue|floatformat:2 }}</h5>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <span class="badge {% if summary_metrics.revenue_growth > 0 %}bg-success{% elif summary_metrics.revenue_growth < 0 %}bg-danger{% else %}bg-secondary{% endif %} fs-6">
+                        <i class="fas fa-{% if summary_metrics.revenue_growth > 0 %}arrow-up{% elif summary_metrics.revenue_growth < 0 %}arrow-down{% else %}minus{% endif %} me-1"></i>
+                        {{ summary_metrics.revenue_growth|floatformat:1 }}%
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                    <div>
+                        <p class="text-muted mb-1">Previous Bookings</p>
+                        <h5 class="fw-bold mb-0">{{ summary_metrics.prev_bookings }}</h5>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1">Current Bookings</p>
+                        <h5 class="fw-bold mb-0">{{ summary_metrics.total_paid_bookings }}</h5>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <span class="badge {% if summary_metrics.booking_growth > 0 %}bg-success{% elif summary_metrics.booking_growth < 0 %}bg-danger{% else %}bg-secondary{% endif %} fs-6">
+                        <i class="fas fa-{% if summary_metrics.booking_growth > 0 %}arrow-up{% elif summary_metrics.booking_growth < 0 %}arrow-down{% else %}minus{% endif %} me-1"></i>
+                        {{ summary_metrics.booking_growth|floatformat:1 }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. REVENUE BY SOURCE -->
+<h5 class="fw-bold mb-3"><i class="fas fa-pie-chart me-2 text-primary"></i>Revenue by Source</h5>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #17a2b8, #0c6a76); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-building text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 ms-2">Court Rentals</h6>
+                </div>
+                <h4 class="fw-bold text-primary">₱{{ revenue_by_source.court_reservations|floatformat:2 }}</h4>
+                <p class="text-muted small mb-0">Hourly court bookings</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #dc3545, #a71d2a); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-trophy text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 ms-2">Game/Match Fees</h6>
+                </div>
+                <h4 class="fw-bold text-danger">₱{{ revenue_by_source.game_fees|floatformat:2 }}</h4>
+                <p class="text-muted small mb-0">Organized play & tournaments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #6c757d, #495057); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-table-tennis text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 ms-2">Equipment Rentals</h6>
+                </div>
+                <h4 class="fw-bold text-secondary">₱{{ revenue_by_source.equipment_rentals|floatformat:2 }}</h4>
+                <p class="text-muted small mb-0">Paddles, balls & gear</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #20c997, #168a68); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chalkboard-teacher text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 ms-2">Add-ons</h6>
+                </div>
+                <h4 class="fw-bold text-success">--</h4>
+                <p class="text-muted small mb-0">Coaching & clinics (future)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. BOOKING DETAILS -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-header bg-transparent border-0 py-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-list-alt me-2 text-primary"></i>Booking Details</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="padding: 12px 15px;">Booking ID</th>
+                        <th style="padding: 12px 15px;">Date & Time</th>
+                        <th style="padding: 12px 15px;">Court</th>
+                        <th style="padding: 12px 15px;">Duration</th>
+                        <th style="padding: 12px 15px;">Player</th>
+                        <th style="padding: 12px 15px;">Equipment</th>
+                        <th style="padding: 12px 15px;">Amount</th>
+                        <th style="padding: 12px 15px;">Method</th>
+                        <th style="padding: 12px 15px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in booking_details %}
+                    <tr class="hover-row">
+                        <td style="padding: 12px 15px;">#{{ payment.reservation.id }}</td>
+                        <td style="padding: 12px 15px;">
+                            <small>{{ payment.reservation.date|date:"M d, Y" }}</small><br>
+                            <small class="text-muted">{{ payment.reservation.start_time|time:"g:i A" }} - {{ payment.reservation.end_time|time:"g:i A" }}</small>
+                        </td>
+                        <td style="padding: 12px 15px;">{{ payment.reservation.court.name }}</td>
+                        <td style="padding: 12px 15px;">{{ payment.reservation.duration_hours }} hrs</td>
+                        <td style="padding: 12px 15px;">{{ payment.reservation.user.get_full_name|default:payment.reservation.user.username }}</td>
+                        <td style="padding: 12px 15px;">
+                            {% if payment.reservation.equipment_fee > 0 %}
+                            <span class="badge bg-info">₱{{ payment.reservation.equipment_fee|floatformat:2 }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 15px;">
+                            <span class="fw-bold">₱{{ payment.amount|floatformat:2 }}</span>
+                        </td>
+                        <td style="padding: 12px 15px;">
+                            <span class="badge bg-light text-dark border">{{ payment.method|default:"N/A"|title }}</span>
+                        </td>
+                        <td style="padding: 12px 15px;">
+                            <span class="badge {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ payment.status|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">No bookings for selected range</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 4. PAYMENT INFORMATION & 5. CHARTS -->
+<div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Revenue by Payment Method</h5>
+            <div class="card-header bg-transparent border-0 py-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Methods</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th style="padding: 15px 20px;">Method</th>
-                                <th style="padding: 15px 20px;">Transactions</th>
-                                <th style="padding: 15px 20px;">Revenue</th>
+                                <th style="padding: 12px 15px;">Method</th>
+                                <th style="padding: 12px 15px;">Transactions</th>
+                                <th style="padding: 12px 15px;">Revenue</th>
+                                <th style="padding: 12px 15px;">%</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in revenue_by_method %}
-                            <tr class="hover-row" style="transition: all 0.3s ease;">
-                                <td style="padding: 15px 20px;">
+                            {% for item in payment_info.revenue_by_method %}
+                            <tr class="hover-row">
+                                <td style="padding: 12px 15px;">
                                     <span class="badge bg-light text-dark border">{{ item.method|default:"N/A"|title }}</span>
                                 </td>
-                                <td style="padding: 15px 20px;">{{ item.count }}</td>
-                                <td style="padding: 15px 20px;">
+                                <td style="padding: 12px 15px;">{{ item.count }}</td>
+                                <td style="padding: 12px 15px;">
                                     <span class="fw-bold">₱{{ item.total|floatformat:2 }}</span>
+                                </td>
+                                <td style="padding: 12px 15px;">
+                                    {{ item.percentage|floatformat:1 }}%
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center py-4 text-muted">No data for selected range</td>
+                                <td colspan="4" class="text-center py-4 text-muted">No data</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -98,31 +381,35 @@
     </div>
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-calendar-day me-2 text-primary"></i>Daily Revenue</h5>
+            <div class="card-header bg-transparent border-0 py-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Payment Status Breakdown</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th style="padding: 15px 20px;">Date</th>
-                                <th style="padding: 15px 20px;">Transactions</th>
-                                <th style="padding: 15px 20px;">Revenue</th>
+                                <th style="padding: 12px 15px;">Status</th>
+                                <th style="padding: 12px 15px;">Count</th>
+                                <th style="padding: 12px 15px;">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in daily_revenue %}
-                            <tr class="hover-row" style="transition: all 0.3s ease;">
-                                <td style="padding: 15px 20px;">{{ item.date|date:"M d, Y" }}</td>
-                                <td style="padding: 15px 20px;">{{ item.count }}</td>
-                                <td style="padding: 15px 20px;">
+                            {% for item in payment_info.status_breakdown %}
+                            <tr class="hover-row">
+                                <td style="padding: 12px 15px;">
+                                    <span class="badge {% if item.status == 'paid' %}bg-success{% elif item.status == 'pending' %}bg-warning{% elif item.status == 'refunded' %}bg-info{% else %}bg-danger{% endif %}">
+                                        {{ item.status|title }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 15px;">{{ item.count }}</td>
+                                <td style="padding: 12px 15px;">
                                     <span class="fw-bold">₱{{ item.total|floatformat:2 }}</span>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center py-4 text-muted">No data for selected range</td>
+                                <td colspan="3" class="text-center py-4 text-muted">No data</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -132,6 +419,214 @@
         </div>
     </div>
 </div>
+
+<!-- 5. DISCOUNTS AND PROMOTIONS -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-header bg-transparent border-0 py-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-tags me-2 text-primary"></i>Discounts & Special Rates</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-moon fa-2x text-primary mb-2"></i>
+                    <h5 class="fw-bold">{{ discounts_data.off_peak_bookings }}</h5>
+                    <p class="text-muted small mb-0">Off-Peak Bookings<br><small class="text-muted">(Before 8AM, After 6PM)</small></p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-percent fa-2x text-success mb-2"></i>
+                    <h5 class="fw-bold">--</h5>
+                    <p class="text-muted small mb-0">Promo Codes Used<br><small class="text-muted">(Future feature)</small></p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-users fa-2x text-info mb-2"></i>
+                    <h5 class="fw-bold">--</h5>
+                    <p class="text-muted small mb-0">Membership Discounts<br><small class="text-muted">(Future feature)</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. REFUNDS AND CANCELLATIONS -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-header bg-transparent border-0 py-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-undo me-2 text-danger"></i>Refunds & Cancellations</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-undo-alt fa-2x text-danger mb-2"></i>
+                    <h5 class="fw-bold text-danger">₱{{ refunds_data.total_refunds|floatformat:2 }}</h5>
+                    <p class="text-muted small mb-0">Total Refunds</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-file-invoice fa-2x text-warning mb-2"></i>
+                    <h5 class="fw-bold">{{ refunds_data.refund_count }}</h5>
+                    <p class="text-muted small mb-0">Refund Transactions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-times-circle fa-2x text-secondary mb-2"></i>
+                    <h5 class="fw-bold text-secondary">{{ refunds_data.cancelled_count }}</h5>
+                    <p class="text-muted small mb-0">Cancelled Bookings</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded text-center">
+                    <i class="fas fa-wallet fa-2x text-success mb-2"></i>
+                    <h5 class="fw-bold text-success">₱{{ refunds_data.net_revenue|floatformat:2 }}</h5>
+                    <p class="text-muted small mb-0">Net Revenue</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. VISUAL CHARTS -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0 py-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Daily Revenue Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyRevenueChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0 py-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-building me-2 text-primary"></i>Revenue by Court</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="courtRevenueChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HOURLY DISTRIBUTION -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-header bg-transparent border-0 py-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>Peak Hours Distribution</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="hourlyChart" height="100"></canvas>
+    </div>
+</div>
+
+<!-- Chart Data (JSON) -->
+{{ chart_data|json_script:"chart-data" }}
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get chart data from JSON script
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+
+    // Daily Revenue Chart
+    const dailyCtx = document.getElementById('dailyRevenueChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: chartData.daily_labels,
+            datasets: [{
+                label: 'Revenue (₱)',
+                data: chartData.daily_revenue,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Bookings',
+                data: chartData.daily_bookings,
+                borderColor: '#3B7A8C',
+                backgroundColor: 'rgba(59, 122, 140, 0.1)',
+                fill: true,
+                tension: 0.4,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Revenue (₱)' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Bookings' },
+                    grid: { drawOnChartArea: false }
+                }
+            }
+        }
+    });
+
+    // Revenue by Court Chart
+    const courtCtx = document.getElementById('courtRevenueChart').getContext('2d');
+    new Chart(courtCtx, {
+        type: 'doughnut',
+        data: {
+            labels: chartData.court_labels,
+            datasets: [{
+                data: chartData.court_revenue,
+                backgroundColor: [
+                    '#28a745', '#3B7A8C', '#6f42c1', '#fd7e14', '#dc3545',
+                    '#17a2b8', '#20c997', '#ffc107', '#6c757d', '#343a40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Hourly Distribution Chart
+    const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+    new Chart(hourlyCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.hourly_labels,
+            datasets: [{
+                label: 'Bookings',
+                data: chartData.hourly_bookings,
+                backgroundColor: '#3B7A8C'
+            }, {
+                label: 'Revenue',
+                data: chartData.hourly_revenue,
+                backgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
 
 <style>
 .hover-row:hover {

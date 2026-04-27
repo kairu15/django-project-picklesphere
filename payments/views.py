@@ -2,7 +2,7 @@ import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Payment, Refund, PaymentLog
@@ -257,39 +257,367 @@ def revenue_report_view(request):
     if not request.user.is_admin():
         messages.error(request, 'You do not have permission to view this page.')
         return redirect('dashboard')
-    
+
     # Date range
     date_from = request.GET.get('date_from', (timezone.now() - timedelta(days=30)).strftime('%Y-%m-%d'))
     date_to = request.GET.get('date_to', timezone.now().strftime('%Y-%m-%d'))
-    
+    court_filter = request.GET.get('court', '')
+    method_filter = request.GET.get('method', '')
+
+    # Base payments queryset
     payments = Payment.objects.filter(
         status='paid',
         created_at__date__gte=date_from,
         created_at__date__lte=date_to
+    ).select_related('reservation', 'reservation__court', 'reservation__user')
+
+    if court_filter:
+        payments = payments.filter(reservation__court_id=court_filter)
+    if method_filter:
+        payments = payments.filter(method=method_filter)
+
+    today = timezone.now().date()
+    date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+    date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+    days_in_range = (date_to_obj - date_from_obj).days + 1
+
+    # ==================== 1. SUMMARY METRICS ====================
+
+    # Total revenue for selected period
+    total_revenue = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_paid_bookings = payments.count()
+    avg_revenue_per_booking = total_revenue / total_paid_bookings if total_paid_bookings > 0 else 0
+
+    # Daily revenue
+    daily_revenue = payments.count()
+    avg_revenue_per_day = total_revenue / days_in_range if days_in_range > 0 else 0
+
+    # Weekly revenue (current week)
+    week_start = today - timedelta(days=today.weekday())
+    weekly_revenue = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=week_start,
+        created_at__date__lte=today
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Monthly revenue (current month)
+    month_start = today.replace(day=1)
+    monthly_revenue = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=month_start,
+        created_at__date__lte=today
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Yearly revenue (current year)
+    year_start = today.replace(month=1, day=1)
+    yearly_revenue = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=year_start,
+        created_at__date__lte=today
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Revenue growth comparison (previous period)
+    prev_date_from = date_from_obj - timedelta(days=days_in_range)
+    prev_date_to = date_from_obj - timedelta(days=1)
+    prev_payments = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=prev_date_from,
+        created_at__date__lte=prev_date_to
     )
-    
-    # Revenue by method
-    revenue_by_method = payments.values('method').annotate(
+    prev_revenue = prev_payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    revenue_growth = ((total_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue > 0 else 0
+
+    # Booking growth
+    prev_bookings = prev_payments.count()
+    booking_growth = ((total_paid_bookings - prev_bookings) / prev_bookings * 100) if prev_bookings > 0 else 0
+
+    summary_metrics = {
+        'total_revenue': total_revenue,
+        'daily_revenue': daily_revenue,
+        'weekly_revenue': weekly_revenue,
+        'monthly_revenue': monthly_revenue,
+        'yearly_revenue': yearly_revenue,
+        'total_paid_bookings': total_paid_bookings,
+        'avg_revenue_per_booking': avg_revenue_per_booking,
+        'avg_revenue_per_day': avg_revenue_per_day,
+        'revenue_growth': revenue_growth,
+        'booking_growth': booking_growth,
+        'prev_revenue': prev_revenue,
+        'prev_bookings': prev_bookings,
+    }
+
+    # ==================== 2. REVENUE BY SOURCE ====================
+
+    # Court reservations (hourly rentals)
+    court_reservations = payments.filter(
+        reservation__match_name__isnull=True
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Game/match fees (organized play, tournaments)
+    game_fees = payments.filter(
+        reservation__match_name__isnull=False
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Equipment rentals
+    equipment_revenue = payments.filter(
+        reservation__equipment_fee__gt=0
+    ).aggregate(
+        total=Sum('reservation__equipment_fee')
+    )['total'] or 0
+
+    # Court fees only (subtotal)
+    court_fees_only = payments.aggregate(
+        total=Sum('reservation__subtotal')
+    )['total'] or 0
+
+    revenue_by_source = {
+        'court_reservations': court_reservations,
+        'game_fees': game_fees,
+        'equipment_rentals': equipment_revenue,
+        'court_fees_only': court_fees_only,
+    }
+
+    # ==================== 3. BOOKING DETAILS ====================
+
+    booking_details = payments.select_related('reservation', 'reservation__court').prefetch_related(
+        'reservation__rented_equipment', 'reservation__rented_equipment__equipment'
+    ).order_by('-created_at')
+
+    # ==================== 4. PAYMENT INFORMATION ====================
+
+    # Revenue by payment method
+    revenue_by_method_list = list(payments.values('method').annotate(
         total=Sum('amount'),
         count=Count('id')
+    ).order_by('-total'))
+
+    # Calculate percentages
+    total_rev = summary_metrics['total_revenue']
+    for item in revenue_by_method_list:
+        item['percentage'] = (float(item['total'] or 0) / float(total_rev) * 100) if total_rev > 0 else 0
+
+    # Payment status breakdown
+    payment_status_breakdown = Payment.objects.filter(
+        created_at__date__gte=date_from,
+        created_at__date__lte=date_to
+    ).values('status').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total')
+
+    # Pending payments
+    pending_payments = Payment.objects.filter(
+        status='pending',
+        created_at__date__gte=date_from,
+        created_at__date__lte=date_to
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    payment_info = {
+        'revenue_by_method': revenue_by_method_list,
+        'status_breakdown': payment_status_breakdown,
+        'pending_amount': pending_payments,
+    }
+
+    # ==================== 5. DISCOUNTS AND PROMOTIONS ====================
+
+    # Calculate potential discounts (difference between standard rate and actual)
+    from django.db.models import ExpressionWrapper, FloatField
+    standard_rate_revenue = payments.aggregate(
+        total=Sum(ExpressionWrapper(
+            F('reservation__court__hourly_rate') * F('reservation__duration_hours'),
+            output_field=FloatField()
+        ))
+    )['total'] or 0
+
+    # Off-peak analysis (early morning and late evening bookings)
+    off_peak_bookings = payments.filter(
+        Q(reservation__start_time__hour__lt=8) | Q(reservation__start_time__hour__gte=18)
+    ).count()
+
+    discounts_data = {
+        'off_peak_bookings': off_peak_bookings,
+    }
+
+    # ==================== 6. REFUNDS AND CANCELLATIONS ====================
+
+    # Refunds processed
+    refunds = Refund.objects.filter(
+        status='processed',
+        processed_at__date__gte=date_from,
+        processed_at__date__lte=date_to
     )
-    
-    # Daily revenue
-    daily_revenue = payments.extra(
-        select={'date': 'DATE(created_at)'}
+    total_refunds = refunds.aggregate(total=Sum('amount'))['total'] or 0
+    refund_count = refunds.count()
+
+    # Cancelled reservations (no-show or cancelled)
+    cancelled_reservations = Payment.objects.filter(
+        reservation__status__in=['cancelled', 'rejected'],
+        created_at__date__gte=date_from,
+        created_at__date__lte=date_to
+    )
+    cancelled_revenue = cancelled_reservations.aggregate(total=Sum('amount'))['total'] or 0
+    cancelled_count = cancelled_reservations.count()
+
+    refunds_data = {
+        'total_refunds': total_refunds,
+        'refund_count': refund_count,
+        'cancelled_revenue': cancelled_revenue,
+        'cancelled_count': cancelled_count,
+        'net_revenue': total_revenue - total_refunds,
+    }
+
+    # ==================== 7. CHARTS DATA ====================
+
+    # Daily revenue for chart
+    daily_revenue_chart = payments.extra(
+        select={'date': 'DATE(payments.created_at)'}
     ).values('date').annotate(
         total=Sum('amount'),
         count=Count('id')
     ).order_by('date')
-    
-    total_revenue = payments.aggregate(Sum('amount'))['amount__sum'] or 0
-    total_transactions = payments.count()
-    
+
+    # Revenue by court
+    revenue_by_court = payments.values('reservation__court__name').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total')
+
+    # Hourly distribution - use values from related reservation
+    from django.db.models.functions import ExtractHour
+    hourly_distribution = payments.annotate(
+        hour=ExtractHour('reservation__start_time')
+    ).values('hour').annotate(
+        count=Count('id'),
+        revenue=Sum('amount')
+    ).order_by('hour')
+
+    # Prepare chart data for JSON serialization
+    chart_data = {
+        'daily_labels': [item['date'].strftime('%b %d') if hasattr(item['date'], 'strftime') else str(item['date'])[:6] for item in daily_revenue_chart],
+        'daily_revenue': [float(item['total'] or 0) for item in daily_revenue_chart],
+        'daily_bookings': [item['count'] for item in daily_revenue_chart],
+        'court_labels': [item['reservation__court__name'] or 'Unknown' for item in revenue_by_court],
+        'court_revenue': [float(item['total'] or 0) for item in revenue_by_court],
+        'hourly_labels': [f"{int(item['hour'] or 0)}:00" for item in hourly_distribution],
+        'hourly_bookings': [item['count'] for item in hourly_distribution],
+        'hourly_revenue': [float(item['revenue'] or 0) for item in hourly_distribution],
+    }
+
+    # Court list for filter
+    from courts.models import Court
+    courts = Court.objects.filter(is_active=True)
+
     return render(request, 'payments/revenue_report.html', {
         'date_from': date_from,
         'date_to': date_to,
-        'total_revenue': total_revenue,
-        'total_transactions': total_transactions,
-        'revenue_by_method': revenue_by_method,
-        'daily_revenue': daily_revenue
+        'court_filter': court_filter,
+        'method_filter': method_filter,
+        'summary_metrics': summary_metrics,
+        'revenue_by_source': revenue_by_source,
+        'booking_details': booking_details,
+        'payment_info': payment_info,
+        'discounts_data': discounts_data,
+        'refunds_data': refunds_data,
+        'daily_revenue_chart': daily_revenue_chart,
+        'revenue_by_court': revenue_by_court,
+        'hourly_distribution': hourly_distribution,
+        'chart_data': chart_data,
+        'courts': courts,
     })
+
+
+@login_required
+def revenue_report_export_view(request):
+    """Export revenue report as CSV"""
+    import csv
+    from django.http import HttpResponse
+
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to export this report.')
+        return redirect('dashboard')
+
+    # Get filters
+    date_from = request.GET.get('date_from', (timezone.now() - timedelta(days=30)).strftime('%Y-%m-%d'))
+    date_to = request.GET.get('date_to', timezone.now().strftime('%Y-%m-%d'))
+    court_filter = request.GET.get('court', '')
+    method_filter = request.GET.get('method', '')
+    export_format = request.GET.get('format', 'csv')
+
+    # Base payments queryset
+    payments = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=date_from,
+        created_at__date__lte=date_to
+    ).select_related('reservation', 'reservation__court', 'reservation__user')
+
+    if court_filter:
+        payments = payments.filter(reservation__court_id=court_filter)
+    if method_filter:
+        payments = payments.filter(method=method_filter)
+
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="revenue_report_{date_from}_to_{date_to}.csv"'
+
+    writer = csv.writer(response)
+
+    # Write header
+    writer.writerow([
+        'Revenue Report',
+        f'From: {date_from}',
+        f'To: {date_to}',
+        ''
+    ])
+    writer.writerow([])
+
+    # Summary Section
+    total_revenue = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_bookings = payments.count()
+    writer.writerow(['SUMMARY METRICS'])
+    writer.writerow(['Total Revenue', f'₱{total_revenue:.2f}'])
+    writer.writerow(['Total Bookings', total_bookings])
+    writer.writerow([])
+
+    # Booking Details
+    writer.writerow(['BOOKING DETAILS'])
+    writer.writerow([
+        'Booking ID', 'Date', 'Start Time', 'End Time', 'Court',
+        'Player Name', 'Duration (hrs)', 'Equipment Fee',
+        'Court Fee', 'Total Amount', 'Payment Method', 'Transaction ID', 'Status'
+    ])
+
+    for payment in payments:
+        reservation = payment.reservation
+        writer.writerow([
+            reservation.id,
+            reservation.date,
+            reservation.start_time,
+            reservation.end_time,
+            reservation.court.name if reservation.court else 'N/A',
+            reservation.user.get_full_name() or reservation.user.username,
+            reservation.duration_hours,
+            reservation.equipment_fee,
+            reservation.subtotal,
+            payment.amount,
+            payment.method or 'N/A',
+            payment.transaction_id or 'N/A',
+            payment.status
+        ])
+
+    writer.writerow([])
+
+    # Revenue by Method
+    revenue_by_method = payments.values('method').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    )
+    writer.writerow(['REVENUE BY PAYMENT METHOD'])
+    writer.writerow(['Method', 'Transactions', 'Revenue'])
+    for item in revenue_by_method:
+        writer.writerow([
+            item['method'] or 'N/A',
+            item['count'],
+            f"₱{item['total']:.2f}"
+        ])
+
+    return response
