@@ -16,7 +16,7 @@ def notification_list_view(request):
     elif filter_type == 'read':
         notifications = notifications.filter(is_read=True)
 
-    return render(request, 'notifications/notification_list.html', {
+    return render(request, 'user/notifications/notification_list.html', {
         'notifications': notifications,
         'filter_type': filter_type
     })
@@ -29,7 +29,7 @@ def notification_detail_view(request, notification_id):
     if not notification.is_read:
         notification.mark_as_read()
 
-    return render(request, 'notifications/notification_detail.html', {
+    return render(request, 'user/notifications/notification_detail.html', {
         'notification': notification
     })
 
@@ -101,7 +101,7 @@ def broadcast_message_view(request):
         messages.success(request, f'Broadcast message sent to {users.count()} users.')
         return redirect('broadcast_list')
     
-    return render(request, 'notifications/broadcast_create.html')
+    return render(request, 'staff/notifications/broadcast_create.html')
 
 
 @login_required
@@ -111,6 +111,6 @@ def broadcast_list_view(request):
         return redirect('dashboard')
     
     broadcasts = BroadcastMessage.objects.all().order_by('-sent_at')
-    return render(request, 'notifications/broadcast_list.html', {
+    return render(request, 'staff/notifications/broadcast_list.html', {
         'broadcasts': broadcasts
     })

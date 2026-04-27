@@ -36,7 +36,7 @@ def court_list_view(request):
         except ValueError:
             pass
     
-    return render(request, 'courts/court_list.html', {
+    return render(request, 'public/courts/court_list.html', {
         'courts': courts,
         'sites': sites,
         'selected_site': site_id,
@@ -56,7 +56,7 @@ def court_detail_view(request, court_id):
         status__in=['confirmed', 'pending']
     ).order_by('date', 'start_time')[:10]
     
-    return render(request, 'courts/court_detail.html', {
+    return render(request, 'public/courts/court_detail.html', {
         'court': court,
         'upcoming_reservations': upcoming_reservations
     })
@@ -103,7 +103,7 @@ def court_availability_view(request, court_id):
             'is_available': not is_reserved
         })
     
-    return render(request, 'courts/availability.html', {
+    return render(request, 'public/courts/availability.html', {
         'court': court,
         'selected_date': selected_date,
         'time_slots': time_slots
@@ -132,7 +132,7 @@ def admin_court_list_view(request):
     elif status_filter == 'inactive':
         courts = courts.filter(is_active=False)
     
-    return render(request, 'admin/court_list.html', {
+    return render(request, 'admin/courts/court_list.html', {
         'courts': courts,
         'search_query': search_query,
         'status_filter': status_filter
@@ -154,7 +154,7 @@ def admin_court_create_view(request):
     else:
         form = CourtForm()
 
-    return render(request, 'admin/court_form.html', {
+    return render(request, 'admin/courts/court_form.html', {
         'form': form,
         'edit_mode': False,
     })
@@ -177,7 +177,7 @@ def admin_court_edit_view(request, court_id):
     else:
         form = CourtForm(instance=court)
 
-    return render(request, 'admin/court_form.html', {
+    return render(request, 'admin/courts/court_form.html', {
         'form': form,
         'edit_mode': True,
         'court': court,
@@ -212,7 +212,7 @@ def admin_site_list_view(request):
         return redirect('dashboard')
     
     sites = Site.objects.all().order_by('-created_at')
-    return render(request, 'admin/site_list.html', {'sites': sites})
+    return render(request, 'admin/sites/site_list.html', {'sites': sites})
 
 
 @login_required
@@ -230,7 +230,7 @@ def admin_site_create_view(request):
     else:
         form = SiteForm()
     
-    return render(request, 'admin/site_form.html', {'form': form, 'edit_mode': False})
+    return render(request, 'admin/sites/site_form.html', {'form': form, 'edit_mode': False})
 
 
 @login_required
@@ -249,7 +249,7 @@ def admin_site_edit_view(request, site_id):
     else:
         form = SiteForm(instance=site)
     
-    return render(request, 'admin/site_form.html', {'form': form, 'edit_mode': True, 'site': site})
+    return render(request, 'admin/sites/site_form.html', {'form': form, 'edit_mode': True, 'site': site})
 
 
 @login_required

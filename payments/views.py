@@ -106,7 +106,7 @@ def payment_checkout_view(request, reservation_id):
         gcash_form = GCashPaymentForm(instance=payment) if payment else GCashPaymentForm()
         cash_form = CashPaymentForm(instance=payment) if payment else CashPaymentForm()
     
-    return render(request, 'payments/checkout.html', {
+    return render(request, 'user/payments/checkout.html', {
         'reservation': reservation,
         'payment': payment,
         'gcash_form': gcash_form,
@@ -123,7 +123,7 @@ def payment_status_view(request, payment_id):
         messages.error(request, 'You do not have permission to view this payment.')
         return redirect('dashboard')
     
-    return render(request, 'payments/payment_status.html', {'payment': payment})
+    return render(request, 'user/payments/payment_status.html', {'payment': payment})
 
 
 @login_required
@@ -160,7 +160,7 @@ def staff_payments_view(request):
         created_at__date=timezone.now().date()
     ).aggregate(Sum('amount'))['amount__sum'] or 0
     
-    return render(request, 'payments/staff_payments.html', {
+    return render(request, 'staff/payments/staff_payments.html', {
         'payments': payments,
         'status_filter': status_filter,
         'method_filter': method_filter,
@@ -216,7 +216,7 @@ def verify_payment_view(request, payment_id):
     else:
         form = PaymentApprovalForm(instance=payment)
     
-    return render(request, 'payments/verify_payment.html', {
+    return render(request, 'staff/payments/verify_payment.html', {
         'form': form,
         'payment': payment
     })
@@ -226,7 +226,7 @@ def verify_payment_view(request, payment_id):
 def payment_history_view(request):
     payments = Payment.objects.filter(reservation__user=request.user).order_by('-created_at')
     
-    return render(request, 'payments/payment_history.html', {
+    return render(request, 'user/payments/payment_history.html', {
         'payments': payments
     })
 
@@ -246,7 +246,7 @@ def view_payment_proof_view(request, payment_id):
         messages.error(request, 'No payment proof image available for this payment.')
         return redirect('payment_status', payment_id=payment.id)
 
-    return render(request, 'payments/view_proof.html', {
+    return render(request, 'admin/payments/view_proof.html', {
         'payment': payment,
         'proof_image': payment.gcash_proof_image
     })
@@ -507,7 +507,7 @@ def revenue_report_view(request):
     from courts.models import Court
     courts = Court.objects.filter(is_active=True)
 
-    return render(request, 'payments/revenue_report.html', {
+    return render(request, 'admin/payments/revenue_report.html', {
         'date_from': date_from,
         'date_to': date_to,
         'court_filter': court_filter,

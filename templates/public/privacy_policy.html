@@ -1,0 +1,209 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy - PickleSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Back Button -->
+            <a href="javascript:history.back()" class="btn btn-outline-secondary mb-4" style="border-radius: 10px; padding: 10px 25px;">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </a>
+            
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <!-- Header -->
+                <div class="card-header bg-transparent border-0 text-center py-5" style="background: linear-gradient(135deg, rgba(59,122,140,0.08) 0%, rgba(26,58,66,0.08) 100%);">
+                    <div class="mb-4" style="width: 100px; height: 100px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(59,122,140,0.3);">
+                        <i class="fas fa-shield-alt fa-3x text-white"></i>
+                    </div>
+                    <h1 class="fw-bold mb-2">Privacy Policy</h1>
+                    <p class="text-muted mb-0">Last Updated: {% now "F j, Y" %}</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <div class="content-section">
+                        <!-- Introduction -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-info text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                1. Introduction
+                            </h4>
+                            <p class="text-muted mb-0" style="line-height: 1.8; padding-left: 47px;">
+                                Welcome to PickleSphere ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our pickleball facility management system and services.
+                            </p>
+                        </div>
+
+                        <!-- Information We Collect -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-database text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                2. Information We Collect
+                            </h4>
+                            <p class="text-muted mb-3" style="line-height: 1.8; padding-left: 47px;">We may collect the following types of information:</p>
+                            <ul class="text-muted mb-0" style="line-height: 1.8; padding-left: 67px;">
+                                <li class="mb-2"><span class="badge bg-primary me-2">Personal</span>Name, email address, phone number, date of birth, and profile photo</li>
+                                <li class="mb-2"><span class="badge bg-info me-2">Account</span>Username, password, and account preferences</li>
+                                <li class="mb-2"><span class="badge bg-success me-2">Payment</span>Credit card details, billing address, and transaction history</li>
+                                <li class="mb-2"><span class="badge bg-warning text-dark me-2">Usage</span>Reservation history, match statistics, tournament participation</li>
+                                <li class="mb-0"><span class="badge bg-secondary me-2">Technical</span>IP address, browser type, device information, and cookies</li>
+                            </ul>
+                        </div>
+
+                        <!-- How We Use Your Information -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-cogs text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                3. How We Use Your Information
+                            </h4>
+                            <p class="text-muted mb-3" style="line-height: 1.8; padding-left: 47px;">We use your information to:</p>
+                            <ul class="text-muted mb-0" style="line-height: 1.8; padding-left: 67px;">
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Process and manage court reservations and payments</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Provide customer support and respond to inquiries</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Send booking confirmations, reminders, and promotional offers</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Maintain and improve our services</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Comply with legal obligations and prevent fraud</li>
+                                <li class="mb-0"><i class="fas fa-check-circle text-success me-2"></i>Personalize your experience and recommend relevant services</li>
+                            </ul>
+                        </div>
+
+                        <!-- Information Sharing -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-share-alt text-dark" style="font-size: 0.9rem;"></i>
+                                </span>
+                                4. Information Sharing
+                            </h4>
+                            <p class="text-muted mb-3" style="line-height: 1.8; padding-left: 47px;">
+                                We do not sell, trade, or rent your personal information to third parties. We may share your information with:
+                            </p>
+                            <ul class="text-muted mb-0" style="line-height: 1.8; padding-left: 67px;">
+                                <li class="mb-2"><strong>Service Providers:</strong> Payment processors, email service providers, and hosting services</li>
+                                <li class="mb-2"><strong>Legal Requirements:</strong> When required by law, court order, or to protect our rights</li>
+                                <li class="mb-0"><strong>Business Transfers:</strong> In case of a merger, acquisition, or sale of assets</li>
+                            </ul>
+                        </div>
+
+                        <!-- Data Security -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-lock text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                5. Data Security
+                            </h4>
+                            <p class="text-muted mb-0" style="line-height: 1.8; padding-left: 47px;">
+                                We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes encryption, secure socket layer (SSL) technology, and regular security assessments.
+                            </p>
+                        </div>
+
+                        <!-- Your Rights -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-user-shield text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                6. Your Rights
+                            </h4>
+                            <p class="text-muted mb-3" style="line-height: 1.8; padding-left: 47px;">You have the right to:</p>
+                            <ul class="text-muted mb-0" style="line-height: 1.8; padding-left: 67px;">
+                                <li class="mb-2"><i class="fas fa-eye text-primary me-2"></i>Access and request a copy of your personal information</li>
+                                <li class="mb-2"><i class="fas fa-edit text-info me-2"></i>Correct or update your personal information</li>
+                                <li class="mb-2"><i class="fas fa-trash-alt text-danger me-2"></i>Request deletion of your personal information</li>
+                                <li class="mb-2"><i class="fas fa-ban text-warning me-2"></i>Opt-out of marketing communications</li>
+                                <li class="mb-2"><i class="fas fa-hand-paper text-secondary me-2"></i>Withdraw consent for data processing</li>
+                                <li class="mb-0"><i class="fas fa-gavel text-dark me-2"></i>File a complaint with a data protection authority</li>
+                            </ul>
+                        </div>
+
+                        <!-- Cookies and Tracking -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #fd7e14 0%, #e56b0a 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-cookie-bite text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                7. Cookies and Tracking
+                            </h4>
+                            <p class="text-muted mb-0" style="line-height: 1.8; padding-left: 47px;">
+                                We use cookies and similar tracking technologies to enhance your browsing experience, analyze site traffic, and understand user behavior. You can control cookie preferences through your browser settings.
+                            </p>
+                        </div>
+
+                        <!-- Children's Privacy -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #20c997 0%, #1ba87e 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-child text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                8. Children's Privacy
+                            </h4>
+                            <p class="text-muted mb-0" style="line-height: 1.8; padding-left: 47px;">
+                                Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately.
+                            </p>
+                        </div>
+
+                        <!-- Changes to This Policy -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-sync-alt text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                9. Changes to This Policy
+                            </h4>
+                            <p class="text-muted mb-0" style="line-height: 1.8; padding-left: 47px;">
+                                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last Updated" date. We encourage you to review this policy periodically.
+                            </p>
+                        </div>
+
+                        <!-- Contact Us -->
+                        <div class="mb-0">
+                            <h4 class="fw-bold mb-3 d-flex align-items-center">
+                                <span style="width: 35px; height: 35px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="fas fa-envelope text-white" style="font-size: 0.9rem;"></i>
+                                </span>
+                                10. Contact Us
+                            </h4>
+                            <p class="text-muted mb-4" style="line-height: 1.8; padding-left: 47px;">
+                                If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:
+                            </p>
+                            <div class="p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; margin-left: 47px;">
+                                <div class="d-flex align-items-center mb-3 pb-3" style="border-bottom: 1px solid #dee2e6;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                        <i class="fas fa-building text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 fw-bold" style="font-size: 1.1rem;">PickleSphere</p>
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <p class="mb-1 text-muted small"><i class="fas fa-envelope text-primary me-2"></i>Email</p>
+                                        <p class="mb-0 fw-semibold">privacy@picklesphere.com</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p class="mb-1 text-muted small"><i class="fas fa-phone text-primary me-2"></i>Phone</p>
+                                        <p class="mb-0 fw-semibold">+63 912 345 6789</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p class="mb-1 text-muted small"><i class="fas fa-map-marker-alt text-primary me-2"></i>Address</p>
+                                        <p class="mb-0 fw-semibold">123 Sports Complex Ave, Metro City</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
+

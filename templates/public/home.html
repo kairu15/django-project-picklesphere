@@ -1,0 +1,578 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+{% include 'components/header.html' %}
+
+<!-- Hero Section with Background Image -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="display-2 fw-bold mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Welcome to PickleSphere</h1>
+                <p class="lead mb-5 text-white fs-4" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">The ultimate pickleball facility and game management system. Reserve courts, join tournaments, and become part of our growing community.</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg px-5">
+                            <i class="fas fa-th-large me-2"></i>Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5">
+                            <i class="fas fa-user-plus me-2"></i>Join Now
+                        </a>
+                        <a href="{% url 'all_courts' %}" class="btn btn-outline-light btn-lg px-5">
+                            <i class="fas fa-search me-2"></i>Explore Courts
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Widget -->
+        <div class="row mt-5">
+            <div class="col-lg-10 mx-auto">
+                <div class="card shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-body p-4">
+                        <form action="{% url 'all_courts' %}" method="get" class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-primary"><i class="fas fa-map-marker-alt me-2"></i>Location</label>
+                                <select name="site" class="form-select form-select-lg">
+                                    <option value="">All Locations</option>
+                                    {% for site in sites %}
+                                    <option value="{{ site.id }}">{{ site.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-primary"><i class="fas fa-calendar me-2"></i>Date</label>
+                                <input type="date" name="date" class="form-control form-control-lg" min="{% now 'Y-m-d' %}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-primary"><i class="fas fa-cloud me-2"></i>Court Type</label>
+                                <select name="type" class="form-select form-select-lg">
+                                    <option value="">All Types</option>
+                                    <option value="indoor">Indoor</option>
+                                    <option value="outdoor">Outdoor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-search me-2"></i>Find Courts
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scroll Down Indicator -->
+    <div class="scroll-indicator" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: white; text-align: center;">
+        <p class="mb-2 small">Scroll to explore</p>
+        <i class="fas fa-chevron-down fa-2x animate-bounce"></i>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                    <div class="card-body py-5">
+                        <i class="fas fa-map-marker-alt fa-3x text-white mb-3"></i>
+                        <h2 class="display-4 fw-bold text-white mb-2">{{ total_courts }}+</h2>
+                        <p class="text-white-50 mb-0 fs-5">Premium Courts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                    <div class="card-body py-5">
+                        <i class="fas fa-users fa-3x text-white mb-3"></i>
+                        <h2 class="display-4 fw-bold text-white mb-2">{{ total_users }}+</h2>
+                        <p class="text-white-50 mb-0 fs-5">Active Members</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                    <div class="card-body py-5">
+                        <i class="fas fa-trophy fa-3x text-white mb-3"></i>
+                        <h2 class="display-4 fw-bold text-white mb-2">50+</h2>
+                        <p class="text-white-50 mb-0 fs-5">Tournaments Hosted</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About / Experience Section -->
+<section class="py-5 bg-light">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <img src="{% static 'images/about-court.jpg' %}" alt="Pickleball Court" class="img-fluid rounded-4 shadow-lg" style="width: 100%; height: 500px; object-fit: cover;" onerror="this.onerror=null; this.src='/static/PickleSphereLogo.png';">
+                    <div class="position-absolute" style="bottom: -30px; right: -30px; background: var(--primary-color); padding: 20px; border-radius: 15px;">
+                        <h3 class="text-white mb-0">8+</h3>
+                        <p class="text-white-50 mb-0">Years Experience</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <span class="badge bg-primary mb-3 px-3 py-2">ABOUT PICKLESPHERE</span>
+                <h2 class="display-5 fw-bold mb-4">Experience the Best Pickleball Facility</h2>
+                <p class="lead text-muted mb-4">Discover our state-of-the-art pickleball courts designed for players of all skill levels. Whether you're a beginner or a seasoned pro, we have everything you need to enjoy the game.</p>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-primary fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Premium Courts</h6>
+                                <small class="text-muted">Professional grade</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-primary fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">24/7 Booking</h6>
+                                <small class="text-muted">Anytime access</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-primary fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Tournaments</h6>
+                                <small class="text-muted">Competitive play</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-primary fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Coaching</h6>
+                                <small class="text-muted">Expert training</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{% url 'about' %}" class="btn btn-primary btn-lg px-5">
+                    Learn More About Us <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courts -->
+<section class="py-5" style="background: white;">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary mb-3 px-3 py-2">PREMIUM FACILITIES</span>
+            <h2 class="display-5 fw-bold">Our Courts & Facilities</h2>
+            <p class="lead text-muted">Experience world-class pickleball courts designed for champions</p>
+        </div>
+        <div class="row g-4">
+            {% for court in featured_courts|slice:":3" %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="position-relative">
+                        {% if court.image %}
+                            <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="fas fa-table-tennis fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-success px-3 py-2">Premium</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold mb-2">{{ court.name }}</h5>
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ court.site.name }}
+                        </p>
+                        <p class="card-text text-muted">{{ court.description|truncatewords:15|default:"Premium pickleball court with professional amenities." }}</p>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted small">From</span>
+                                <h5 class="text-primary fw-bold mb-0">₱{{ court.hourly_rate|floatformat:0 }}<small class="text-muted fw-normal">/hour</small></h5>
+                            </div>
+                            <a href="{% url 'court_view' court.id %}" class="btn btn-primary px-4">
+                                Book Now <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-table-tennis fa-4x text-muted mb-3"></i>
+                <p class="text-muted">No courts available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{% url 'all_courts' %}" class="btn btn-outline-primary btn-lg px-5">
+                <i class="fas fa-th-large me-2"></i>View All Courts
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Amenities Section -->
+<section class="py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-success mb-3 px-3 py-2">FACILITY AMENITIES</span>
+            <h2 class="display-5 fw-bold">What We Offer</h2>
+            <p class="lead text-muted">Everything you need for the perfect pickleball experience</p>
+        </div>
+        <div class="row g-4">
+            {% for amenity in amenities %}
+            <div class="col-md-4 col-lg-2">
+                <div class="card h-100 border-0 shadow-sm text-center hover-card" style="border-radius: 15px;">
+                    <div class="card-body p-4">
+                        <div class="mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <i class="fas {{ amenity.icon }} fa-2x text-white"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">{{ amenity.title }}</h6>
+                        <p class="text-muted small mb-0">{{ amenity.description }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Tournaments Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning mb-3 px-3 py-2 text-dark">COMPETITIVE PLAY</span>
+            <h2 class="display-5 fw-bold">Upcoming Tournaments</h2>
+            <p class="lead text-muted">Join exciting competitions and showcase your skills</p>
+        </div>
+        <div class="row g-4">
+            {% for tournament in upcoming_tournaments %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header border-0 py-3 {% if tournament.status == 'registration_open' %}bg-success text-white{% elif tournament.status == 'in_progress' %}bg-primary text-white{% else %}bg-info text-white{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-white text-dark">{{ tournament.get_category_display }}</span>
+                            {% if tournament.status == 'registration_open' %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-door-open me-1"></i>Open</span>
+                            {% elif tournament.status == 'in_progress' %}
+                                <span class="badge bg-danger"><i class="fas fa-play me-1"></i>Live</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold mb-2">{{ tournament.name }}</h5>
+                        <span class="badge bg-light text-dark mb-3">{{ tournament.get_format_display }}</span>
+                        <p class="card-text text-muted">{{ tournament.description|truncatewords:12|default:"Join our exciting tournament and compete with other players!" }}</p>
+                        
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li class="mb-2"><i class="fas fa-calendar text-primary me-2"></i><strong>Starts:</strong> {{ tournament.tournament_start|date:"M d, Y" }}</li>
+                            <li class="mb-2"><i class="fas fa-users text-primary me-2"></i><strong>Players:</strong> {{ tournament.registrations.count }}/{{ tournament.max_participants }}</li>
+                            <li><i class="fas fa-signal text-primary me-2"></i><strong>Level:</strong> {{ tournament.get_skill_level_display }}</li>
+                        </ul>
+                        
+                        <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-outline-primary w-100">
+                            {% if tournament.status == 'registration_open' %}
+                                <i class="fas fa-edit me-2"></i>Register Now
+                            {% else %}
+                                <i class="fas fa-eye me-2"></i>View Details
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-trophy fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No upcoming tournaments</h4>
+                <p class="text-muted">Check back soon for exciting competitions!</p>
+                <a href="{% url 'tournament_list' %}" class="btn btn-primary btn-lg mt-3">
+                    <i class="fas fa-trophy me-2"></i>Browse All Tournaments
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% if upcoming_tournaments %}
+        <div class="text-center mt-5">
+            <a href="{% url 'tournament_list' %}" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-medal me-2"></i>View All Tournaments
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-white text-primary mb-3 px-3 py-2">TESTIMONIALS</span>
+            <h2 class="display-5 fw-bold text-white">What Our Players Say</h2>
+            <p class="lead text-white-50">Hear from our community of pickleball enthusiasts</p>
+        </div>
+        <div class="row g-4">
+            {% for testimonial in testimonials %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg" style="border-radius: 15px;">
+                    <div class="card-body p-4">
+                        <div class="mb-3 text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= testimonial.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p class="card-text fst-italic mb-4">"{{ testimonial.text }}"</p>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">{{ testimonial.name|first }}</span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ testimonial.name }}</h6>
+                                <small class="text-muted">{{ testimonial.role }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Gallery Section -->
+<section class="py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-info mb-3 px-3 py-2">GALLERY</span>
+            <h2 class="display-5 fw-bold">Explore Our Facility</h2>
+            <p class="lead text-muted">Take a virtual tour of our world-class pickleball courts</p>
+        </div>
+        <div class="row g-3">
+            {% for image in gallery_images|slice:":6" %}
+            <div class="col-md-4 col-lg-2">
+                <div class="position-relative overflow-hidden rounded-3 shadow-sm hover-gallery" style="height: 200px;">
+                    <img src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" alt="{% if image.alt_text %}{{ image.alt_text }}{% else %}{{ image.alt }}{% endif %}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" onerror="this.onerror=null; this.src='/static/PickleSphereLogo.png';">
+                    <div class="gallery-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(59, 122, 140, 0.8); opacity: 0; transition: opacity 0.3s;">
+                        <i class="fas fa-search-plus fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="py-5 bg-white">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary mb-3 px-3 py-2">WHY PICKLESPHERE</span>
+            <h2 class="display-5 fw-bold">Why Choose PickleSphere?</h2>
+            <p class="lead text-muted">We provide the best pickleball experience in the country</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 shadow-sm p-4 hover-card" style="border-radius: 15px;">
+                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, #3B7A8C 0%, #5A9AA8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-mobile-alt fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Easy Reservation</h5>
+                    <p class="text-muted small mb-0">Reserve your court anytime, anywhere with our online booking system.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 shadow-sm p-4 hover-card" style="border-radius: 15px;">
+                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-line fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Score Tracking</h5>
+                    <p class="text-muted small mb-0">Track your matches and analyze performance with detailed statistics.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 shadow-sm p-4 hover-card" style="border-radius: 15px;">
+                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffc107 0%, #ffdb70 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-tools fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Equipment Rental</h5>
+                    <p class="text-muted small mb-0">Premium paddles and balls available for rent if you don't have your own.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 shadow-sm p-4 hover-card" style="border-radius: 15px;">
+                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, #17a2b8 0%, #5bc0de 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-credit-card fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Easy Payments</h5>
+                    <p class="text-muted small mb-0">Pay securely with multiple options including GCash and credit cards.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold text-white mb-3">Ready to Start Playing?</h2>
+                <p class="lead text-white-50 mb-0">Join our community of {{ total_users }}+ pickleball enthusiasts today! Book your first court and experience the PickleSphere difference.</p>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 mb-2">
+                        <i class="fas fa-user-plus me-2"></i>Create Free Account
+                    </a>
+                {% else %}
+                    <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5 mb-2">
+                        <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
+                    </a>
+                {% endif %}
+                <br>
+                <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg px-5">
+                    <i class="fas fa-phone me-2"></i>Contact Us
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hero Section */
+.hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(rgba(26, 58, 66, 0.7), rgba(59, 122, 140, 0.8)), url('/static/images/hero-bg.jpg') center/cover;
+}
+
+/* Hover Effects */
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.15) !important;
+}
+
+.hover-gallery {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+.hover-gallery:hover {
+    transform: scale(1.05);
+}
+.hover-gallery:hover .gallery-overlay {
+    opacity: 1 !important;
+}
+
+/* Scroll Indicator Animation */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+.animate-bounce {
+    animation: bounce 2s infinite;
+}
+
+/* Smooth Scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Hero Section Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: auto !important;
+        padding: 100px 0 50px !important;
+    }
+    .hero-section h1 {
+        font-size: 2.5rem !important;
+    }
+}
+
+/* Card Image Overlay */
+.card-img-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #3B7A8C;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #2D5F6E;
+}
+</style>
+
+<!-- Gallery Modal -->
+<div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="galleryModalLabel">Gallery</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="galleryModalImage" src="" alt="Gallery Image" class="w-100" style="object-fit: contain; max-height: 70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gallery Modal Functionality
+document.querySelectorAll('.hover-gallery').forEach(function(element, index) {
+    element.addEventListener('click', function() {
+        const img = this.querySelector('img');
+        document.getElementById('galleryModalImage').src = img.src;
+        new bootstrap.Modal(document.getElementById('galleryModal')).show();
+    });
+});
+</script>
+
+{% include 'components/footer.html' %}
+{% endblock %}
+

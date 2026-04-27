@@ -1,0 +1,80 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Payment History{% endblock %}
+{% block page_title %}Payment History{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="fas fa-receipt me-2 text-primary"></i>All Payments</h5>
+        <span class="badge bg-primary px-3 py-2"><i class="fas fa-list me-1"></i>{{ payments|length }} total</span>
+    </div>
+    <div class="card-body p-0">
+        {% if payments %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="padding: 15px 20px;">ID</th>
+                        <th style="padding: 15px 20px;">Reservation</th>
+                        <th style="padding: 15px 20px;">Date</th>
+                        <th style="padding: 15px 20px;">Amount</th>
+                        <th style="padding: 15px 20px;">Method</th>
+                        <th style="padding: 15px 20px;">Status</th>
+                        <th style="padding: 15px 20px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr class="hover-row" style="transition: all 0.3s ease;">
+                        <td style="padding: 15px 20px;">
+                            <span class="badge bg-light text-dark border">#{{ payment.id }}</span>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            <span class="fw-bold">Court #{{ payment.reservation.court.id }}</span>
+                        </td>
+                        <td style="padding: 15px 20px;">{{ payment.created_at|date:"M d, Y" }}</td>
+                        <td style="padding: 15px 20px;">
+                            <span class="fw-bold">₱{{ payment.amount|floatformat:2 }}</span>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            <span class="badge bg-light text-dark border">{{ payment.get_method_display|default:"N/A" }}</span>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            <span class="badge px-3 py-2 {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            <a href="{% url 'payment_status' payment.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                <i class="fas fa-receipt fa-2x text-muted"></i>
+            </div>
+            <h5 class="fw-bold mb-2">No payment history</h5>
+            <p class="text-muted mb-3">You haven't made any payments yet.</p>
+            <a href="{% url 'court_list' %}" class="btn btn-primary" style="border-radius: 10px;">
+                <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+

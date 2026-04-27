@@ -91,7 +91,7 @@ def home_view(request):
             {'icon': 'fa-medal', 'title': 'Training', 'description': 'Professional coaching available'},
         ]
 
-    return render(request, 'dashboard/home.html', {
+    return render(request, 'public/home.html', {
         'featured_courts': featured_courts,
         'total_courts': total_courts,
         'total_users': total_users,
@@ -239,7 +239,7 @@ def all_courts_view(request):
         except ValueError:
             pass
 
-    return render(request, 'courts/all_courts.html', {
+    return render(request, 'public/courts/all_courts.html', {
         'courts': courts,
         'sites': sites,
         'selected_site': site_id,
@@ -263,7 +263,7 @@ def court_view_view(request, court_id):
         status__in=['confirmed', 'pending']
     ).order_by('date', 'start_time')[:10]
 
-    return render(request, 'courts/court_view.html', {
+    return render(request, 'public/courts/court_view.html', {
         'court': court,
         'upcoming_reservations': upcoming_reservations
     })
@@ -383,7 +383,7 @@ def pricing_view(request):
         ]
     }
 
-    return render(request, 'dashboard/pricing.html', {
+    return render(request, 'public/pricing.html', {
         'pricing': pricing_data,
         'courts': courts
     })
@@ -410,7 +410,7 @@ def about_view(request):
         {'icon': 'fa-tools', 'title': 'Pro Shop', 'description': 'Equipment sales, rentals, and professional stringing'},
     ]
 
-    return render(request, 'dashboard/about.html', {
+    return render(request, 'public/about.html', {
         'stats': stats,
         'facilities': facilities
     })
@@ -456,7 +456,7 @@ def contact_view(request):
         ]
     }
 
-    return render(request, 'dashboard/contact.html', {
+    return render(request, 'public/contact.html', {
         'contact_info': contact_info
     })
 
@@ -482,7 +482,7 @@ def homepage_management(request):
         'homepage_content': homepage_content,
         'page_title': 'Homepage Management'
     }
-    return render(request, 'dashboard/homepage_management.html', context)
+    return render(request, 'admin/homepage/homepage_management.html', context)
 
 
 @login_required
@@ -530,7 +530,7 @@ def homepage_edit_testimonial(request, testimonial_id=None):
         'testimonial': testimonial,
         'page_title': 'Edit Testimonial' if testimonial else 'New Testimonial'
     }
-    return render(request, 'dashboard/homepage_edit_testimonial.html', context)
+    return render(request, 'admin/homepage/homepage_edit_testimonial.html', context)
 
 
 @login_required
@@ -575,7 +575,7 @@ def homepage_edit_amenity(request, amenity_id=None):
         'amenity': amenity,
         'page_title': 'Edit Amenity' if amenity else 'New Amenity'
     }
-    return render(request, 'dashboard/homepage_edit_amenity.html', context)
+    return render(request, 'admin/homepage/homepage_edit_amenity.html', context)
 
 
 @login_required
@@ -675,12 +675,12 @@ def homepage_delete_gallery(request, gallery_id):
 
 def privacy_policy_view(request):
     """Privacy Policy page - accessible to all users"""
-    return render(request, 'dashboard/privacy_policy.html')
+    return render(request, 'public/privacy_policy.html')
 
 
 def terms_of_service_view(request):
     """Terms of Service page - accessible to all users"""
-    return render(request, 'dashboard/terms_of_service.html')
+    return render(request, 'public/terms_of_service.html')
 
 
 def faq_view(request):
@@ -798,4 +798,4 @@ def faq_view(request):
         }
     ]
     
-    return render(request, 'dashboard/faq.html', {'faq_categories': faq_categories})
+    return render(request, 'public/faq.html', {'faq_categories': faq_categories})

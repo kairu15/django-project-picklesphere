@@ -1,0 +1,148 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ equipment.name }}{% endblock %}
+{% block page_title %}{{ equipment.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+            {% if equipment.image %}
+                <img src="{{ equipment.image.url }}" class="card-img-top" alt="{{ equipment.name }}" style="height: 300px; object-fit: cover;">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-box fa-3x text-muted"></i>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="card-body p-4">
+                <h3 class="fw-bold mb-3">{{ equipment.name }}</h3>
+                <p class="text-muted mb-4">{{ equipment.description }}</p>
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-tag text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Type</h6>
+                                <p class="mb-0 fw-semibold">{{ equipment.get_type_display }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-boxes text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Available</h6>
+                                <p class="mb-0 fw-semibold">{{ equipment.quantity_available }} / {{ equipment.quantity_total }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-peso-sign text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-0">Price</h6>
+                                <p class="mb-0 fw-semibold">₱{{ equipment.rental_price|floatformat:2 }} / day</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if rental_history %}
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Rental History</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="padding: 15px 20px;">User</th>
+                                <th style="padding: 15px 20px;">Date</th>
+                                <th style="padding: 15px 20px;">Status</th>
+                                <th style="padding: 15px 20px;">Return Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rental in rental_history %}
+                            <tr class="hover-row" style="transition: all 0.3s ease;">
+                                <td style="padding: 15px 20px;">{{ rental.user.get_full_name|default:rental.user.username }}</td>
+                                <td style="padding: 15px 20px;">{{ rental.created_at|date:"M d, Y" }}</td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="badge px-3 py-2 {% if rental.status == 'rented' %}bg-warning text-dark{% elif rental.status == 'returned' %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ rental.get_status_display }}
+                                    </span>
+                                </td>
+                                <td style="padding: 15px 20px;">{{ rental.return_date|date:"M d, Y"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-shopping-cart me-2 text-primary"></i>Rent Equipment</h5>
+            </div>
+            <div class="card-body p-4">
+                {% if equipment.quantity_available > 0 %}
+                    <form method="post" action="{% url 'equipment_rental_create' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="equipment_id" value="{{ equipment.id }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Rental Days</label>
+                            <input type="number" name="rental_days" class="form-control" value="1" min="1" max="30" style="border-radius: 10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-boxes me-2 text-primary"></i>Quantity</label>
+                            <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ equipment.quantity_available }}" style="border-radius: 10px;">
+                        </div>
+                        <div class="mb-3">
+                            <span class="text-muted">Total Price:</span>
+                            <h4 class="fw-bold mb-0" style="color: #3B7A8C;">₱{{ equipment.rental_price|floatformat:2 }}</h4>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
+                            <i class="fas fa-shopping-cart me-2"></i>Rent Now
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                        </div>
+                        <p class="mb-0 fw-bold">This equipment is currently out of stock.</p>
+                    </div>
+                {% endif %}
+                
+                <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 10px;">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Equipment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+

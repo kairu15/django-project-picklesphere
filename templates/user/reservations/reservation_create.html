@@ -1,0 +1,176 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Reserve a Court{% endblock %}
+{% block page_title %}Reserve a Court{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+                <div class="d-flex align-items-center">
+                    <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-check fa-lg text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="mb-0 fw-bold">Reservation Details</h5>
+                        <p class="mb-0 opacity-75">Select your court and time slot</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'reservation_create' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Select Court <span class="text-danger">*</span></label>
+                        {{ form.court }}
+                        {% if form.court.errors %}
+                            <div class="text-danger small mt-1">{{ form.court.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Date <span class="text-danger">*</span></label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold"><i class="fas fa-clock me-2 text-primary"></i>Start Time <span class="text-danger">*</span></label>
+                            {{ form.start_time }}
+                            {% if form.start_time.errors %}
+                                <div class="text-danger small mt-1">{{ form.start_time.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold"><i class="fas fa-clock me-2 text-primary"></i>End Time <span class="text-danger">*</span></label>
+                            {{ form.end_time }}
+                            {% if form.end_time.errors %}
+                                <div class="text-danger small mt-1">{{ form.end_time.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold"><i class="fas fa-tools me-2 text-primary"></i>Equipment (Optional)</label>
+                        <div class="row g-2">
+                            {% for equipment in equipment_list %}
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3" style="border-radius: 10px; transition: all 0.3s ease;">
+                                    <input type="checkbox" name="equipment" value="{{ equipment.id }}" 
+                                           class="form-check-input" id="eq{{ equipment.id }}">
+                                    <label class="form-check-label w-100" for="eq{{ equipment.id }}">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="fw-bold">{{ equipment.name }}</span>
+                                            <span class="text-primary fw-bold">₱{{ equipment.rental_price|floatformat:0 }}</span>
+                                        </div>
+                                        <small class="text-muted">{{ equipment.type }}</small>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h6 class="fw-bold mb-3" style="color: #3B7A8C;"><i class="fas fa-gamepad me-2"></i>Match Settings</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><i class="fas fa-tag me-2 text-primary"></i>Match Name (Optional)</label>
+                        {{ form.match_name }}
+                        {% if form.match_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.match_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold"><i class="fas fa-users me-2 text-primary"></i>Format <span class="text-danger">*</span></label>
+                            {{ form.match_format }}
+                            {% if form.match_format.errors %}
+                                <div class="text-danger small mt-1">{{ form.match_format.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold"><i class="fas fa-gamepad me-2 text-primary"></i>Game Type <span class="text-danger">*</span></label>
+                            {{ form.game_type }}
+                            {% if form.game_type.errors %}
+                                <div class="text-danger small mt-1">{{ form.game_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold"><i class="fas fa-star me-2 text-primary"></i>Scoring Format <span class="text-danger">*</span></label>
+                            {{ form.scoring_format }}
+                            {% if form.scoring_format.errors %}
+                                <div class="text-danger small mt-1">{{ form.scoring_format.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold"><i class="fas fa-hashtag me-2 text-primary"></i>Points per Game <span class="text-danger">*</span></label>
+                            {{ form.points_per_game }}
+                            {% if form.points_per_game.errors %}
+                                <div class="text-danger small mt-1">{{ form.points_per_game.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold"><i class="fas fa-trophy me-2 text-primary"></i>Games to Win <span class="text-danger">*</span></label>
+                            {{ form.games_to_win }}
+                            {% if form.games_to_win.errors %}
+                                <div class="text-danger small mt-1">{{ form.games_to_win.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                {{ form.win_by_two }}
+                                <label class="form-check-label fw-bold" for="{{ form.win_by_two.id_for_label }}"><i class="fas fa-check-double me-2 text-primary"></i>Win by Two Points</label>
+                            </div>
+                            {% if form.win_by_two.errors %}
+                                <div class="text-danger small mt-1">{{ form.win_by_two.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold"><i class="fas fa-sticky-note me-2 text-primary"></i>Notes (Optional)</label>
+                        {{ form.notes }}
+                    </div>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors.0 }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between pt-2">
+                        <a href="{% url 'court_list' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success px-5" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none;">
+                            <i class="fas fa-calendar-check me-2"></i>Continue to Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('select').forEach(function(select) {
+    select.classList.add('form-select');
+    select.style.borderRadius = '10px';
+});
+document.querySelectorAll('input[type="date"], input[type="time"], input[type="text"], input[type="number"], textarea').forEach(function(input) {
+    input.style.borderRadius = '10px';
+});
+</script>
+{% endblock %}
+

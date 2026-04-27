@@ -1,0 +1,154 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ court.name }}{% endblock %}
+{% block page_title %}{{ court.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Court Info -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+            {% if court.image %}
+                <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 400px; object-fit: cover;">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-table-tennis fa-4x text-muted"></i>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h3 class="fw-bold mb-2">{{ court.name }}</h3>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ court.site.name }}
+                            <span class="mx-2">|</span>
+                            <i class="fas fa-cloud me-1"></i>{{ court.get_court_type_display }}
+                        </p>
+                    </div>
+                    <span class="badge px-3 py-2 {% if court.status == 'available' %}bg-success{% else %}bg-warning text-dark{% endif %} fs-6">
+                        {{ court.get_status_display }}
+                    </span>
+                </div>
+                
+                <hr class="my-4">
+                
+                <h5 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Description</h5>
+                <p class="text-muted">{{ court.description|default:"No description available." }}</p>
+                
+                {% if court.amenities %}
+                <h5 class="fw-bold mb-3 mt-4"><i class="fas fa-check-circle me-2 text-primary"></i>Amenities</h5>
+                <div class="row g-2">
+                    {% for amenity in court.amenities %}
+                    <div class="col-auto">
+                        <span class="badge bg-light text-dark border p-2" style="border-radius: 8px;">
+                            <i class="fas fa-check-circle text-success me-1"></i>{{ amenity }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Upcoming Reservations -->
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Upcoming Bookings</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="padding: 15px 20px;">Date</th>
+                                <th style="padding: 15px 20px;">Time</th>
+                                <th style="padding: 15px 20px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in upcoming_reservations %}
+                            <tr class="hover-row" style="transition: all 0.3s ease;">
+                                <td style="padding: 15px 20px;">{{ reservation.date|date:"M d, Y" }}</td>
+                                <td style="padding: 15px 20px;">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</td>
+                                <td style="padding: 15px 20px;">
+                                    <span class="badge px-3 py-2 {% if reservation.status == 'approved' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ reservation.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No upcoming bookings</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reservation Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 100px; z-index: 10; border-radius: 12px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="fas fa-calendar-plus me-2 text-primary"></i>Reserve This Court</h5>
+                <div class="mb-4">
+                    <span class="text-muted">Hourly Rate</span>
+                    <h3 class="fw-bold mb-0" style="color: #3B7A8C;">₱{{ court.hourly_rate|floatformat:2 }}</h3>
+                </div>
+                
+                {% if court.status == 'available' %}
+                    <a href="{% url 'reservation_create' %}?court={{ court.id }}" class="btn btn-primary w-100 mb-3" style="border-radius: 10px;">
+                        <i class="fas fa-calendar-plus me-2"></i>Reserve Now
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary w-100 mb-3" disabled style="border-radius: 10px;">
+                        <i class="fas fa-ban me-2"></i>Currently Unavailable
+                    </button>
+                {% endif %}
+                
+                <hr class="my-4">
+                
+                <h6 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Court Details</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-building text-primary"></i>
+                            </div>
+                            <span>{{ court.site.name }}</span>
+                        </div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-cloud text-primary"></i>
+                            </div>
+                            <span>{{ court.get_court_type_display }}</span>
+                        </div>
+                    </li>
+                    <li class="mb-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-info-circle text-primary"></i>
+                            </div>
+                            <span>{{ court.get_status_display }}</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+

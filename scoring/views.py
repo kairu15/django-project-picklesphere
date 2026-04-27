@@ -300,7 +300,7 @@ def match_settings_list_view(request):
         return redirect('dashboard')
     
     settings = MatchSettings.objects.all().order_by('-is_active', '-created_at')
-    return render(request, 'admin/match_settings_list.html', {'settings': settings})
+    return render(request, 'admin/match_settings/match_settings_list.html', {'settings': settings})
 
 
 @login_required
@@ -318,7 +318,7 @@ def match_settings_create_view(request):
     else:
         form = MatchSettingsForm()
     
-    return render(request, 'admin/match_settings_form.html', {'form': form, 'edit_mode': False})
+    return render(request, 'admin/match_settings/match_settings_form.html', {'form': form, 'edit_mode': False})
 
 
 @login_required
@@ -338,7 +338,7 @@ def match_settings_edit_view(request, settings_id):
     else:
         form = MatchSettingsForm(instance=settings)
     
-    return render(request, 'admin/match_settings_form.html', {'form': form, 'settings': settings, 'edit_mode': True})
+    return render(request, 'admin/match_settings/match_settings_form.html', {'form': form, 'settings': settings, 'edit_mode': True})
 
 
 @login_required

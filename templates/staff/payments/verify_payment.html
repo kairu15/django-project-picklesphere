@@ -1,0 +1,163 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Verify Payment{% endblock %}
+{% block page_title %}Verify Payment #{{ payment.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Details</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-hashtag text-primary"></i>
+                            </div>
+                            <strong>Payment ID:</strong> #{{ payment.id }}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-check text-primary"></i>
+                            </div>
+                            <strong>Reservation:</strong> #{{ payment.reservation.id }}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user text-primary"></i>
+                            </div>
+                            <strong>User:</strong> {{ payment.reservation.user.get_full_name|default:payment.reservation.user.username }}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-0">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                            </div>
+                            <strong>Court:</strong> {{ payment.reservation.court.name }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-peso-sign text-primary"></i>
+                            </div>
+                            <strong>Amount:</strong> ₱{{ payment.amount|floatformat:2 }}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-credit-card text-primary"></i>
+                            </div>
+                            <strong>Method:</strong> {{ payment.get_method_display }}
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-tag text-primary"></i>
+                            </div>
+                            <strong>Status:</strong>
+                            <span class="badge px-3 py-2 {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-0">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-clock text-primary"></i>
+                            </div>
+                            <strong>Date:</strong> {{ payment.created_at|date:"M d, Y H:i" }}
+                        </div>
+                        {% if payment.gcash_reference %}
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-hashtag text-primary"></i>
+                            </div>
+                            <strong>GCash Ref:</strong> {{ payment.gcash_reference }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if payment.gcash_proof_image %}
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fas fa-image me-2 text-primary"></i>GCash Payment Proof</h5>
+                <a href="{% url 'view_payment_proof' payment.id %}" class="btn btn-primary" style="border-radius: 10px;">
+                    <i class="fas fa-image me-2"></i>View Full Image
+                </a>
+            </div>
+            <div class="card-body text-center p-4">
+                <a href="{% url 'view_payment_proof' payment.id %}">
+                    <img src="{{ payment.gcash_proof_image.url }}" alt="GCash Proof" class="img-fluid rounded border" style="max-height: 300px; cursor: pointer; border-radius: 12px;">
+                </a>
+                <p class="text-muted small mt-2 mb-0">Click image to view full size</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-edit me-2 text-primary"></i>Update Payment Status</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-flex justify-content-between pt-2">
+                        <a href="{% url 'staff_payments' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Payments
+                        </a>
+                        <button type="submit" class="btn btn-success px-5" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none;">
+                            <i class="fas fa-check me-2"></i>Update Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-calendar me-2 text-primary"></i>Reservation Details</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar text-primary"></i>
+                    </div>
+                    <strong>Date:</strong> {{ payment.reservation.date }}
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-clock text-primary"></i>
+                    </div>
+                    <strong>Time:</strong> {{ payment.reservation.start_time }} - {{ payment.reservation.end_time }}
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-hourglass-half text-primary"></i>
+                    </div>
+                    <strong>Duration:</strong> {{ payment.reservation.duration }} hours
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-0">
+                    <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-peso-sign text-primary"></i>
+                    </div>
+                    <strong>Court Fee:</strong> ₱{{ payment.reservation.total_amount|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('select').forEach(function(select) {
+    select.classList.add('form-select');
+    select.style.borderRadius = '10px';
+});
+</script>
+{% endblock %}
+

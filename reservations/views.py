@@ -29,7 +29,7 @@ def reservation_list_view(request):
     if date_to:
         reservations = reservations.filter(date__lte=date_to)
     
-    return render(request, 'reservations/reservation_list.html', {
+    return render(request, 'user/reservations/reservation_list.html', {
         'reservations': reservations,
         'status_filter': status_filter,
         'date_from': date_from,
@@ -100,7 +100,7 @@ def reservation_create_view(request):
     
     equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
     
-    return render(request, 'reservations/reservation_create.html', {
+    return render(request, 'user/reservations/reservation_create.html', {
         'form': form,
         'equipment_list': equipment_list
     })
@@ -115,7 +115,7 @@ def reservation_detail_view(request, reservation_id):
         messages.error(request, 'You do not have permission to view this reservation.')
         return redirect('reservation_list')
     
-    return render(request, 'reservations/reservation_detail.html', {'reservation': reservation})
+    return render(request, 'user/reservations/reservation_detail.html', {'reservation': reservation})
 
 
 @login_required
@@ -170,7 +170,7 @@ def approve_reservation_view(request, reservation_id):
     else:
         form = ReservationApprovalForm(instance=reservation)
     
-    return render(request, 'reservations/approve_reservation.html', {
+    return render(request, 'admin/reservations/approve_reservation.html', {
         'form': form,
         'reservation': reservation
     })
@@ -257,7 +257,7 @@ def calendar_view(request):
     
     month_name = calendar.month_name[month]
     
-    return render(request, 'reservations/reservation_calendar.html', {
+    return render(request, 'admin/reservations/reservation_calendar.html', {
         'month_days': month_days,
         'month_name': month_name,
         'year': year,
@@ -300,7 +300,7 @@ def admin_reservation_list_view(request):
     if date_to:
         reservations = reservations.filter(date__lte=date_to)
 
-    return render(request, 'admin/reservation_list.html', {
+    return render(request, 'admin/reservations/reservation_list.html', {
         'reservations': reservations,
         'search_query': search_query,
         'status_filter': status_filter,
@@ -336,7 +336,7 @@ def admin_reservation_create_view(request):
     else:
         form = AdminReservationForm()
 
-    return render(request, 'admin/reservation_form.html', {
+    return render(request, 'admin/reservations/reservation_form.html', {
         'form': form,
         'edit_mode': False,
     })
@@ -363,7 +363,7 @@ def admin_reservation_edit_view(request, reservation_id):
     else:
         form = AdminReservationForm(instance=reservation)
 
-    return render(request, 'admin/reservation_form.html', {
+    return render(request, 'admin/reservations/reservation_form.html', {
         'form': form,
         'edit_mode': True,
         'reservation': reservation,

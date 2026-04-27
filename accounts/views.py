@@ -37,7 +37,7 @@ def register_view(request):
     else:
         form = UserRegistrationForm()
     
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'auth/register.html', {'form': form})
 
 
 def login_view(request):
@@ -69,7 +69,7 @@ def login_view(request):
     else:
         form = UserLoginForm()
     
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'auth/login.html', {'form': form})
 
 
 @login_required
@@ -97,7 +97,7 @@ def profile_view(request):
     else:
         form = UserProfileForm(instance=request.user)
     
-    return render(request, 'accounts/profile.html', {'form': form})
+    return render(request, 'auth/profile.html', {'form': form})
 
 
 @login_required
@@ -123,7 +123,7 @@ def user_list_view(request):
     if role_filter:
         users = users.filter(role=role_filter)
     
-    return render(request, 'admin/user_list.html', {
+    return render(request, 'admin/users/user_list.html', {
         'users': users,
         'search_query': search_query,
         'role_filter': role_filter
@@ -147,7 +147,7 @@ def user_edit_view(request, user_id):
     else:
         form = AdminUserUpdateForm(instance=user)
     
-    return render(request, 'admin/user_form.html', {
+    return render(request, 'admin/users/user_form.html', {
         'form': form,
         'edit_user': user
     })
@@ -168,7 +168,7 @@ def user_create_view(request):
     else:
         form = AdminUserCreateForm()
     
-    return render(request, 'admin/user_form.html', {'form': form})
+    return render(request, 'admin/users/user_form.html', {'form': form})
 
 
 @login_required

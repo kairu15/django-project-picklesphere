@@ -1,0 +1,133 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Teams - {{ tournament.name }} - PickleSphere{% endblock %}
+
+{% block page_title %}Teams: {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="btn btn-sm btn-outline-secondary mb-2" style="border-radius: 8px;">
+                <i class="fas fa-arrow-left me-2"></i>Back to Management
+            </a>
+            <h5 class="fw-bold mb-0">Team Management</h5>
+        </div>
+        <a href="{% url 'admin_team_create' tournament.pk %}" class="btn btn-success" style="border-radius: 10px;">
+            <i class="fas fa-plus me-2"></i>Create Team
+        </a>
+    </div>
+
+    {% if teams %}
+    <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="padding: 15px 20px;">Team Name</th>
+                            <th style="padding: 15px 20px;">Players</th>
+                            <th style="padding: 15px 20px;">Seed</th>
+                            <th style="padding: 15px 20px;">Type</th>
+                            <th style="padding: 15px 20px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for team in teams %}
+                        <tr class="hover-row" style="transition: all 0.3s ease;">
+                            <td style="padding: 15px 20px;">
+                                <strong>{{ team.name|default:"Unnamed Team" }}</strong>
+                            </td>
+                            <td style="padding: 15px 20px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center">
+                                        {% if team.player1.profile_picture %}
+                                            <img src="{{ team.player1.profile_picture.url }}" class="rounded-circle me-2" style="width: 35px; height: 35px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                {{ team.player1.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <span class="fw-bold">{{ team.player1.get_full_name|default:team.player1.username }}</span>
+                                    </div>
+                                    {% if team.player2 %}
+                                    <span class="text-muted">&</span>
+                                    <div class="d-flex align-items-center">
+                                        {% if team.player2.profile_picture %}
+                                            <img src="{{ team.player2.profile_picture.url }}" class="rounded-circle me-2" style="width: 35px; height: 35px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                {{ team.player2.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <span class="fw-bold">{{ team.player2.get_full_name|default:team.player2.username }}</span>
+                                    </div>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark px-2 py-1"><i class="fas fa-user-plus me-1"></i>Need Partner</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td style="padding: 15px 20px;">
+                                {% if team.seed %}
+                                    <span class="badge bg-primary px-3 py-2"><i class="fas fa-hashtag me-1"></i>{{ team.seed }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 15px 20px;">
+                                {% if team.is_auto_assigned %}
+                                    <span class="badge bg-secondary px-3 py-2"><i class="fas fa-magic me-1"></i>Auto</span>
+                                {% else %}
+                                    <span class="badge bg-info px-3 py-2"><i class="fas fa-hand-paper me-1"></i>Manual</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 15px 20px;">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" style="border-radius: 8px;" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-lg" style="border-radius: 15px;">
+        <div class="card-body text-center py-5">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                <i class="fas fa-users fa-2x text-muted"></i>
+            </div>
+            <h5 class="text-muted">No teams yet</h5>
+            <p class="text-muted mb-3">
+                {% if tournament.auto_assign_teams %}
+                    Teams will be auto-generated when you generate matches.
+                {% else %}
+                    Create teams manually or enable auto-assignment in tournament settings.
+                {% endif %}
+            </p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{% url 'admin_generate_matches' tournament.pk %}" class="btn btn-success" style="border-radius: 10px;">
+                    <i class="fas fa-magic me-2"></i>Generate Matches
+                </a>
+                <a href="{% url 'admin_team_create' tournament.pk %}" class="btn btn-outline-primary" style="border-radius: 10px;">
+                    <i class="fas fa-plus me-2"></i>Create Team Manually
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
+

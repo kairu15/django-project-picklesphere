@@ -1,0 +1,459 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Pricing{% endblock %}
+
+{% block body %}
+{% include 'components/header.html' %}
+
+<!-- Hero Section -->
+<section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.85), rgba(59, 122, 140, 0.95)), url('https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=1920') center/cover; padding: 100px 0 80px; position: relative;">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <span class="badge bg-white text-primary mb-3 px-3 py-2"><i class="fas fa-tags me-2"></i>TRANSPARENT PRICING</span>
+                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Simple, Fair Pricing</h1>
+                <p class="lead mb-0 text-white-50" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Choose the perfect plan for your pickleball journey. No hidden fees, no surprises.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Court Rental Rates -->
+<section class="py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary mb-3 px-3 py-2">COURT RENTAL</span>
+            <h2 class="display-5 fw-bold">Hourly Court Rates</h2>
+            <p class="lead text-muted">Premium courts at competitive prices</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-transparent border-0 text-center pt-4">
+                        <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-th-large fa-2x text-primary"></i>
+                        </div>
+                        <h4 class="fw-bold">Standard Court</h4>
+                    </div>
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <span class="display-4 fw-bold text-primary">₱{{ pricing.standard_rate|default:"300" }}</span>
+                            <span class="text-muted">/hour</span>
+                        </div>
+                        <p class="text-muted">Perfect for casual play and practice sessions</p>
+                        <hr class="my-4">
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Professional-grade surface</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Standard lighting</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Basic amenities</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Outdoor courts</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4">
+                        <a href="{% url 'all_courts' %}?type=standard" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-2"></i>View Courts
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card position-relative" style="border-radius: 15px; overflow: hidden; border: 2px solid #3B7A8C !important;">
+                    <div class="position-absolute top-0 start-50 translate-middle-x">
+                        <span class="badge bg-primary px-4 py-2" style="border-radius: 0 0 8px 8px;"><i class="fas fa-star me-1"></i>MOST POPULAR</span>
+                    </div>
+                    <div class="card-header bg-transparent border-0 text-center pt-5">
+                        <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-crown fa-2x text-white"></i>
+                        </div>
+                        <h4 class="fw-bold">Premium Court</h4>
+                    </div>
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <span class="display-4 fw-bold text-primary">₱{{ pricing.premium_rate|default:"500" }}</span>
+                            <span class="text-muted">/hour</span>
+                        </div>
+                        <p class="text-muted">Enhanced features for serious players</p>
+                        <hr class="my-4">
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Premium cushioned surface</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Enhanced LED lighting</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Priority booking access</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Premium amenities nearby</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Climate controlled options</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4">
+                        <a href="{% url 'all_courts' %}?type=premium" class="btn btn-primary w-100">
+                            <i class="fas fa-calendar-plus me-2"></i>Book Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-transparent border-0 text-center pt-4">
+                        <div class="mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-home fa-2x text-white"></i>
+                        </div>
+                        <h4 class="fw-bold">Indoor Court</h4>
+                    </div>
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <span class="display-4 fw-bold text-info">₱{{ pricing.indoor_rate|default:"450" }}</span>
+                            <span class="text-muted">/hour</span>
+                        </div>
+                        <p class="text-muted">Play in comfort regardless of weather</p>
+                        <hr class="my-4">
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Fully climate controlled</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Professional lighting</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>All-weather play</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Sound dampening</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Air conditioned</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4">
+                        <a href="{% url 'all_courts' %}?type=indoor" class="btn btn-outline-info w-100">
+                            <i class="fas fa-search me-2"></i>View Courts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Membership Plans -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-success mb-3 px-3 py-2">MEMBERSHIP</span>
+            <h2 class="display-5 fw-bold">Membership Plans</h2>
+            <p class="lead text-muted">Save more with our exclusive membership options</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-light border-0 text-center p-4">
+                        <h4 class="fw-bold mb-0">Basic</h4>
+                        <p class="text-muted small mb-0">For occasional players</p>
+                    </div>
+                    <div class="card-body text-center p-4">
+                        <div class="mb-4">
+                            <span class="display-5 fw-bold text-primary">Free</span>
+                        </div>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Court booking access</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Online reservations</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-2"></i>Basic equipment rental</li>
+                            <li class="mb-3 text-muted"><i class="fas fa-times text-muted me-2"></i>Priority booking</li>
+                            <li class="mb-3 text-muted"><i class="fas fa-times text-muted me-2"></i>Member discounts</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4">
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Get Started</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card position-relative" style="border-radius: 15px; overflow: hidden; border: 2px solid #28a745 !important;">
+                    <div class="position-absolute top-0 start-50 translate-middle-x">
+                        <span class="badge bg-success px-4 py-2" style="border-radius: 0 0 8px 8px;"><i class="fas fa-fire me-1"></i>BEST VALUE</span>
+                    </div>
+                    <div class="card-header bg-success text-white border-0 text-center p-4 pt-5">
+                        <h4 class="fw-bold mb-0">Pro Member</h4>
+                        <p class="text-white-50 small mb-0">For regular players</p>
+                    </div>
+                    <div class="card-body text-center p-4">
+                        <div class="mb-4">
+                            <span class="display-5 fw-bold text-success">₱999</span>
+                            <span class="text-muted">/month</span>
+                        </div>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>All Basic features</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>10% off court rentals</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>Priority booking</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>Free paddle rental</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>Tournament discounts</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4">
+                        <a href="{% url 'register' %}" class="btn btn-success w-100">
+                            <i class="fas fa-crown me-2"></i>Join Pro
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-dark text-white border-0 text-center p-4">
+                        <h4 class="fw-bold mb-0">Elite</h4>
+                        <p class="text-white-50 small mb-0">For competitive players</p>
+                    </div>
+                    <div class="card-body text-center p-4">
+                        <div class="mb-4">
+                            <span class="display-5 fw-bold text-dark">₱1,999</span>
+                            <span class="text-muted">/month</span>
+                        </div>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>All Pro features</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>20% off court rentals</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>Unlimited bookings</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>Free equipment use</li>
+                            <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>Coaching sessions</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4">
+                        <a href="{% url 'register' %}" class="btn btn-dark w-100">
+                            <i class="fas fa-gem me-2"></i>Go Elite
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Comparison Table -->
+<section class="py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Compare Plans</h2>
+            <p class="text-muted">Find the perfect fit for your needs</p>
+        </div>
+        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 30%;">Features</th>
+                            <th class="text-center">Basic</th>
+                            <th class="text-center bg-success bg-opacity-10">Pro Member</th>
+                            <th class="text-center">Elite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-calendar-check me-2 text-primary"></i>Court Booking</td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center bg-success bg-opacity-10"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-star me-2 text-primary"></i>Priority Booking</td>
+                            <td class="text-center"><i class="fas fa-times text-muted"></i></td>
+                            <td class="text-center bg-success bg-opacity-10"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-percentage me-2 text-primary"></i>Court Discount</td>
+                            <td class="text-center">-</td>
+                            <td class="text-center bg-success bg-opacity-10"><span class="badge bg-success">10% OFF</span></td>
+                            <td class="text-center"><span class="badge bg-dark">20% OFF</span></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-table-tennis me-2 text-primary"></i>Equipment Rental</td>
+                            <td class="text-center">Basic</td>
+                            <td class="text-center bg-success bg-opacity-10">Paddle Free</td>
+                            <td class="text-center">Full Free</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-trophy me-2 text-primary"></i>Tournament Access</td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center bg-success bg-opacity-10"><span class="badge bg-success">Discounted</span></td>
+                            <td class="text-center"><span class="badge bg-dark">VIP</span></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Coaching</td>
+                            <td class="text-center"><i class="fas fa-times text-muted"></i></td>
+                            <td class="text-center bg-success bg-opacity-10"><i class="fas fa-times text-muted"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="fw-bold">Monthly Price</td>
+                            <td class="text-center fw-bold">Free</td>
+                            <td class="text-center fw-bold bg-success bg-opacity-10 text-success">₱999</td>
+                            <td class="text-center fw-bold">₱1,999</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Additional Services -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-info mb-3 px-3 py-2">ADDITIONAL SERVICES</span>
+            <h2 class="fw-bold">Equipment & Services</h2>
+            <p class="text-muted">Everything you need for the perfect game</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg h-100" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-tools me-2 text-primary"></i>Equipment Rental</h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr class="border-bottom">
+                                        <td><i class="fas fa-table-tennis me-2 text-muted"></i>Standard Paddle</td>
+                                        <td class="text-end fw-bold text-primary">₱100<span class="text-muted fw-normal">/session</span></td>
+                                    </tr>
+                                    <tr class="border-bottom">
+                                        <td><i class="fas fa-table-tennis me-2 text-muted"></i>Premium Paddle</td>
+                                        <td class="text-end fw-bold text-primary">₱200<span class="text-muted fw-normal">/session</span></td>
+                                    </tr>
+                                    <tr class="border-bottom">
+                                        <td><i class="fas fa-circle me-2 text-muted"></i>Ball (3-pack)</td>
+                                        <td class="text-end fw-bold text-primary">₱50</td>
+                                    </tr>
+                                    <tr>
+                                        <td><i class="fas fa-shoe-prints me-2 text-muted"></i>Court Shoes</td>
+                                        <td class="text-end fw-bold text-primary">₱150<span class="text-muted fw-normal">/session</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg h-100" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-percentage me-2 text-success"></i>Group Discounts</h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle bg-success d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                        <i class="fas fa-users text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3 flex-grow-1">
+                                    <h6 class="mb-0">Groups of 4+</h6>
+                                    <small class="text-muted">Perfect for friend gatherings</small>
+                                </div>
+                                <span class="badge bg-success">10% OFF</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                        <i class="fas fa-building text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3 flex-grow-1">
+                                    <h6 class="mb-0">Corporate Events</h6>
+                                    <small class="text-muted">Team building activities</small>
+                                </div>
+                                <span class="badge bg-primary">15% OFF</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center px-0 py-3">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                        <i class="fas fa-graduation-cap text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3 flex-grow-1">
+                                    <h6 class="mb-0">School Groups</h6>
+                                    <small class="text-muted">Students & faculty</small>
+                                </div>
+                                <span class="badge bg-info">20% OFF</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Frequently Asked Questions</h2>
+            <p class="text-muted">Got questions? We've got answers</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-2"><i class="fas fa-question-circle me-2"></i>Can I cancel my booking?</h6>
+                        <p class="text-muted small mb-0">Yes, you can cancel up to 24 hours before your scheduled time for a full refund. Cancellations within 24 hours may be subject to a fee.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-2"><i class="fas fa-question-circle me-2"></i>Do memberships auto-renew?</h6>
+                        <p class="text-muted small mb-0">Yes, monthly memberships auto-renew unless cancelled. You can cancel anytime from your account settings.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-2"><i class="fas fa-question-circle me-2"></i>Can I upgrade my membership?</h6>
+                        <p class="text-muted small mb-0">Absolutely! You can upgrade your membership at any time. The price difference will be prorated for the remaining period.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-2"><i class="fas fa-question-circle me-2"></i>Are there any hidden fees?</h6>
+                        <p class="text-muted small mb-0">No hidden fees! The prices shown are exactly what you'll pay. Equipment rental and other services are clearly priced.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold text-white mb-3">Ready to Start Playing?</h2>
+                <p class="lead text-white-50 mb-0">Book a court today and experience the best pickleball facility in town.</p>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end">
+                <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-calendar-plus me-2"></i>Book a Court Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hover Effects */
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.15) !important;
+}
+
+/* Custom table styling */
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+</style>
+
+{% include 'components/footer.html' %}
+{% endblock %}
+

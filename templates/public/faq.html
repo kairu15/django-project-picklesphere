@@ -1,0 +1,138 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}FAQ - PickleSphere{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Back Button -->
+            <a href="javascript:history.back()" class="btn btn-outline-secondary mb-4" style="border-radius: 10px; padding: 10px 25px;">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </a>
+            
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <div class="mb-4" style="width: 100px; height: 100px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(59,122,140,0.3);">
+                    <i class="fas fa-question-circle fa-3x text-white"></i>
+                </div>
+                <h1 class="fw-bold mb-2">Frequently Asked Questions</h1>
+                <p class="text-muted">Find answers to common questions about PickleSphere</p>
+            </div>
+
+            <!-- Search Box -->
+            <div class="card border-0 shadow-sm mb-5" style="border-radius: 15px; overflow: hidden;">
+                <div class="card-body p-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0" style="padding-left: 20px;">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="faqSearch" placeholder="Search for answers..." onkeyup="filterFAQ()" style="border-radius: 0 10px 10px 0;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Categories -->
+            <div id="faqContainer">
+                {% for category in faq_categories %}
+                <div class="card border-0 shadow-sm mb-4 faq-category" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header border-0 py-3" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+                        <h5 class="mb-0 text-white fw-semibold">
+                            <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="accordion" id="accordion{{ forloop.counter }}">
+                            {% for item in category.questions %}
+                            <div class="accordion-item border-0 border-bottom faq-item" style="border-radius: 0 !important;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button fw-semibold {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.parentloop.counter }}{{ forloop.counter }}" style="background: white; box-shadow: none;">
+                                        {{ item.question }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ forloop.parentloop.counter }}{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accordion{{ forloop.parentloop.counter }}">
+                                    <div class="accordion-body text-muted" style="padding: 20px 25px; line-height: 1.7;">
+                                        {{ item.answer }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- No Results Message -->
+            <div id="noResults" class="text-center py-5" style="display: none;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <i class="fas fa-search fa-2x text-muted"></i>
+                </div>
+                <h5 class="fw-bold mb-2">No results found</h5>
+                <p class="text-muted">Try searching with different keywords or browse the categories above.</p>
+            </div>
+
+            <!-- Still Need Help -->
+            <div class="card border-0 shadow-lg mt-5" style="border-radius: 15px; overflow: hidden; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4" style="width: 80px; height: 80px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59,122,140,0.3);">
+                        <i class="fas fa-headset fa-2x text-white"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Still Need Help?</h4>
+                    <p class="text-muted mb-4">Can't find what you're looking for? We're here to help!</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'contact' %}" class="btn btn-primary" style="border-radius: 10px; padding: 12px 30px;">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                        <a href="tel:+639123456789" class="btn btn-outline-primary" style="border-radius: 10px; padding: 12px 30px;">
+                            <i class="fas fa-phone me-2"></i>Call Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterFAQ() {
+    const input = document.getElementById('faqSearch');
+    const filter = input.value.toLowerCase();
+    const categories = document.querySelectorAll('.faq-category');
+    const noResults = document.getElementById('noResults');
+    let visibleCategories = 0;
+
+    categories.forEach(category => {
+        const items = category.querySelectorAll('.faq-item');
+        let visibleItems = 0;
+
+        items.forEach(item => {
+            const question = item.querySelector('.accordion-button').textContent.toLowerCase();
+            const answer = item.querySelector('.accordion-body').textContent.toLowerCase();
+
+            if (question.includes(filter) || answer.includes(filter)) {
+                item.style.display = '';
+                visibleItems++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if (visibleItems === 0) {
+            category.style.display = 'none';
+        } else {
+            category.style.display = '';
+            visibleCategories++;
+        }
+    });
+
+    if (visibleCategories === 0) {
+        noResults.style.display = '';
+    } else {
+        noResults.style.display = 'none';
+    }
+}
+</script>
+{% endblock body %}
+

@@ -50,9 +50,9 @@ def tournament_list(request):
     
     # Use public template for non-authenticated users, dashboard template for authenticated
     if request.user.is_authenticated:
-        return render(request, 'tournaments/tournament_list.html', context)
+        return render(request, 'tournaments_public/tournament_list.html', context)
     else:
-        return render(request, 'tournaments/tournament_list_public.html', context)
+        return render(request, 'tournaments_public/tournament_list_public.html', context)
 
 
 def tournament_detail(request, pk):
@@ -92,9 +92,9 @@ def tournament_detail(request, pk):
     
     # Use public template for non-authenticated users, dashboard template for authenticated
     if request.user.is_authenticated:
-        return render(request, 'tournaments/tournament_detail.html', context)
+        return render(request, 'tournaments_public/tournament_detail.html', context)
     else:
-        return render(request, 'tournaments/tournament_view_public.html', context)
+        return render(request, 'tournaments_public/tournament_view_public.html', context)
 
 
 @login_required
@@ -144,7 +144,7 @@ def tournament_register(request, pk):
         'tournament': tournament,
         'page_title': f'Register for {tournament.name}'
     }
-    return render(request, 'tournaments/tournament_register.html', context)
+    return render(request, 'tournaments_public/tournament_register.html', context)
 
 
 @login_required
@@ -158,7 +158,7 @@ def my_tournaments(request):
         'registrations': registrations,
         'page_title': 'My Tournaments'
     }
-    return render(request, 'tournaments/my_tournaments.html', context)
+    return render(request, 'user/tournaments/my_tournaments.html', context)
 
 
 @login_required
@@ -190,7 +190,7 @@ def my_matches(request):
         'completed_matches': completed,
         'page_title': 'My Matches'
     }
-    return render(request, 'tournaments/my_matches.html', context)
+    return render(request, 'user/tournaments/my_matches.html', context)
 
 
 # ==================== ADMIN / STAFF VIEWS ====================
@@ -218,7 +218,7 @@ def admin_tournament_list(request):
         'completed_count': completed_count,
         'page_title': 'Tournament Management'
     }
-    return render(request, 'tournaments/admin/tournament_list.html', context)
+    return render(request, 'admin/tournaments/tournament_list.html', context)
 
 
 @login_required
@@ -250,7 +250,7 @@ def admin_tournament_create(request):
         'form': form,
         'page_title': 'Create Tournament'
     }
-    return render(request, 'tournaments/admin/tournament_form.html', context)
+    return render(request, 'admin/tournaments/tournament_form.html', context)
 
 
 @login_required
@@ -276,7 +276,7 @@ def admin_tournament_edit(request, pk):
         'tournament': tournament,
         'page_title': f'Edit {tournament.name}'
     }
-    return render(request, 'tournaments/admin/tournament_form.html', context)
+    return render(request, 'admin/tournaments/tournament_form.html', context)
 
 
 @login_required
@@ -312,7 +312,7 @@ def admin_tournament_manage(request, pk):
         'leaderboard': leaderboard,
         'page_title': f'Manage: {tournament.name}'
     }
-    return render(request, 'tournaments/admin/tournament_manage.html', context)
+    return render(request, 'admin/tournaments/tournament_manage.html', context)
 
 
 @login_required
@@ -336,7 +336,7 @@ def admin_registration_list(request, pk):
         'status_filter': status_filter,
         'page_title': f'Registrations - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/registration_list.html', context)
+    return render(request, 'admin/tournaments/registration_list.html', context)
 
 
 @login_required
@@ -386,7 +386,7 @@ def admin_registration_review(request, pk, reg_id):
         'registration': registration,
         'page_title': f'Review Registration'
     }
-    return render(request, 'tournaments/admin/registration_review.html', context)
+    return render(request, 'admin/tournaments/registration_review.html', context)
 
 
 @login_required
@@ -455,7 +455,7 @@ def admin_generate_matches(request, pk):
         'existing_matches': existing_matches,
         'page_title': f'Generate Matches - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/generate_matches.html', context)
+    return render(request, 'admin/tournaments/generate_matches.html', context)
 
 
 @login_required
@@ -473,7 +473,7 @@ def admin_match_list(request, pk):
         'matches': matches,
         'page_title': f'Matches - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/match_list.html', context)
+    return render(request, 'admin/tournaments/match_list.html', context)
 
 
 @login_required
@@ -532,7 +532,7 @@ def admin_match_edit(request, pk, match_id):
         'match': match,
         'page_title': f'Edit Match #{match.match_number}'
     }
-    return render(request, 'tournaments/admin/match_form.html', context)
+    return render(request, 'admin/tournaments/match_form.html', context)
 
 
 @login_required
@@ -602,7 +602,7 @@ def admin_schedule_matches(request, pk):
         'unscheduled_count': unscheduled.count(),
         'page_title': f'Schedule Matches - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/schedule_matches.html', context)
+    return render(request, 'admin/tournaments/schedule_matches.html', context)
 
 
 @login_required
@@ -631,7 +631,7 @@ def admin_leaderboard(request, pk):
         'standings': standings,
         'page_title': f'Leaderboard - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/leaderboard.html', context)
+    return render(request, 'admin/tournaments/leaderboard.html', context)
 
 
 @login_required
@@ -649,7 +649,7 @@ def admin_team_list(request, pk):
         'teams': teams,
         'page_title': f'Teams - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/team_list.html', context)
+    return render(request, 'admin/tournaments/team_list.html', context)
 
 
 @login_required
@@ -678,7 +678,7 @@ def admin_team_create(request, pk):
         'tournament': tournament,
         'page_title': f'Create Team - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/team_form.html', context)
+    return render(request, 'admin/tournaments/team_form.html', context)
 
 
 @login_required
@@ -702,7 +702,7 @@ def admin_tournament_bracket(request, pk):
         'matches_by_round': matches_by_round,
         'page_title': f'Bracket - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/bracket.html', context)
+    return render(request, 'admin/tournaments/bracket.html', context)
 
 
 @login_required
@@ -740,7 +740,7 @@ def admin_change_status(request, pk):
         'tournament': tournament,
         'page_title': f'Change Status - {tournament.name}'
     }
-    return render(request, 'tournaments/admin/change_status.html', context)
+    return render(request, 'admin/tournaments/change_status.html', context)
 
 
 # ==================== API / AJAX VIEWS ====================

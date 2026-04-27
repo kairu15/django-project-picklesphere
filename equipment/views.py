@@ -22,7 +22,7 @@ def equipment_list_view(request):
     if available_only:
         equipment = equipment.filter(quantity_available__gt=0)
 
-    return render(request, 'equipment/equipment_list.html', {
+    return render(request, 'user/equipment/equipment_list.html', {
         'equipment': equipment,
         'type_filter': type_filter,
         'available_only': available_only
@@ -68,7 +68,7 @@ def equipment_detail_view(request, equipment_id):
     if request.user.is_staff_user() or request.user.is_admin():
         rental_history = EquipmentRental.objects.filter(equipment=equipment).order_by('-created_at')[:10]
     
-    return render(request, 'equipment/equipment_detail.html', {
+    return render(request, 'user/equipment/equipment_detail.html', {
         'equipment': equipment,
         'rental_history': rental_history
     })
@@ -122,7 +122,7 @@ def check_out_equipment_view(request, rental_id):
         messages.success(request, f'{rental.equipment.name} checked out successfully.')
         return redirect('staff_equipment')
     
-    return render(request, 'equipment/check_out.html', {'rental': rental})
+    return render(request, 'staff/equipment/check_out.html', {'rental': rental})
 
 
 @login_required
@@ -155,7 +155,7 @@ def check_in_equipment_view(request, rental_id):
         
         return redirect('staff_equipment')
     
-    return render(request, 'equipment/check_in.html', {'rental': rental})
+    return render(request, 'staff/equipment/check_in.html', {'rental': rental})
 
 
 from django.utils import timezone
@@ -189,7 +189,7 @@ def admin_equipment_list_view(request):
     elif status_filter == 'inactive':
         equipment = equipment.filter(is_active=False)
 
-    return render(request, 'admin/equipment_list.html', {
+    return render(request, 'admin/equipment/equipment_list.html', {
         'equipment': equipment,
         'search_query': search_query,
         'type_filter': type_filter,
@@ -212,7 +212,7 @@ def admin_equipment_create_view(request):
     else:
         form = EquipmentForm()
 
-    return render(request, 'admin/equipment_form.html', {
+    return render(request, 'admin/equipment/equipment_form.html', {
         'form': form,
         'edit_mode': False,
     })
@@ -234,7 +234,7 @@ def admin_equipment_edit_view(request, equipment_id):
     else:
         form = EquipmentForm(instance=equipment)
 
-    return render(request, 'admin/equipment_form.html', {
+    return render(request, 'admin/equipment/equipment_form.html', {
         'form': form,
         'edit_mode': True,
         'equipment': equipment,
