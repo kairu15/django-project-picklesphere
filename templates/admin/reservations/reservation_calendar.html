@@ -5,84 +5,202 @@
 {% block page_title %}Reservation Calendar{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
-    <div class="card-body p-4">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Select Date</label>
-                <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" style="border-radius: 10px;">
+<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+    <!-- Calendar Header -->
+    <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-light btn-sm px-3" style="border-radius: 8px;">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <div class="text-center">
+                <h4 class="mb-0 fw-bold">{{ month_name }} {{ year }}</h4>
+                <small class="opacity-75">{{ reservations|length }} days with reservations</small>
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Court</label>
-                <select name="court" class="form-select" style="border-radius: 10px;">
-                    <option value="">All Courts</option>
-                    {% for court in courts %}
-                    <option value="{{ court.id }}" {% if court_filter == court.id %}selected{% endif %}>{{ court.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
-                    <i class="fas fa-calendar-day me-2"></i>View Schedule
-                </button>
-            </div>
-        </form>
+            <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-light btn-sm px-3" style="border-radius: 8px;">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="card-body p-0">
+        <!-- Day Headers -->
+        <div class="calendar-grid bg-light border-bottom">
+            <div class="day-header">Sun</div>
+            <div class="day-header">Mon</div>
+            <div class="day-header">Tue</div>
+            <div class="day-header">Wed</div>
+            <div class="day-header">Thu</div>
+            <div class="day-header">Fri</div>
+            <div class="day-header">Sat</div>
+        </div>
+
+        <!-- Calendar Days -->
+        <div class="calendar-grid">
+            {% for week in month_days %}
+                {% for day in week %}
+                    <div class="calendar-day {% if day == 0 %}empty{% endif %}">
+                        {% if day != 0 %}
+                            <div class="day-number">{{ day }}</div>
+                            {% for res_day, res_list in reservations.items %}
+                                {% if res_day == day %}
+                                    <div class="day-reservations">
+                                        {% for res in res_list %}
+                                            <a href="{% url 'reservation_detail' res.id %}" class="reservation-badge
+                                                {% if res.status == 'confirmed' %}bg-success
+                                                {% elif res.status == 'pending' %}bg-warning text-dark
+                                                {% elif res.status == 'completed' %}bg-secondary
+                                                {% elif res.status == 'cancelled' %}bg-danger
+                                                {% else %}bg-secondary{% endif %}">
+                                                <small>{{ res.start_time|time:"H:i" }} - {{ res.court.name|truncatechars:10 }}</small>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="reservation-count">
+                                        <span class="badge bg-primary">{{ res_list|length }} reservation{{ res_list|length|pluralize }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>{{ selected_date|date:"F d, Y" }}</h5>
-        <span class="badge bg-primary px-3 py-2"><i class="fas fa-list me-1"></i>{{ reservations|length }} reservations</span>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="padding: 15px 20px;">Time</th>
-                        <th style="padding: 15px 20px;">Court</th>
-                        <th style="padding: 15px 20px;">User</th>
-                        <th style="padding: 15px 20px;">Duration</th>
-                        <th style="padding: 15px 20px;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for reservation in reservations %}
-                    <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">
-                            <span class="fw-bold">{{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}</span>
-                        </td>
-                        <td style="padding: 15px 20px;">{{ reservation.court.name }}</td>
-                        <td style="padding: 15px 20px;">{{ reservation.user.username }}</td>
-                        <td style="padding: 15px 20px;">
-                            <span class="badge bg-light text-dark border">{{ reservation.duration_hours }} hrs</span>
-                        </td>
-                        <td style="padding: 15px 20px;">
-                            <span class="badge px-3 py-2 {% if reservation.status == 'confirmed' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'completed' %}bg-secondary{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                {{ reservation.get_status_display }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5">
-                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                                <i class="fas fa-calendar-times fa-2x text-muted"></i>
-                            </div>
-                            <p class="text-muted mb-0">No reservations for this date</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!-- Legend -->
+<div class="card border-0 shadow-sm mt-3" style="border-radius: 12px;">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center gap-4">
+            <small class="fw-bold">Status:</small>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success">&nbsp;</span>
+                <small>Confirmed</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning text-dark">&nbsp;</span>
+                <small>Pending</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary">&nbsp;</span>
+                <small>Completed</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger">&nbsp;</span>
+                <small>Cancelled</small>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-.hover-row:hover {
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.day-header {
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    color: #3B7A8C;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-day {
+    min-height: 120px;
+    border-right: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px;
+    position: relative;
+    background: white;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-day:hover {
     background-color: #f8f9fa;
+}
+
+.calendar-day:nth-child(7n) {
+    border-right: none;
+}
+
+.calendar-day:nth-last-child(-n+7) {
+    border-bottom: none;
+}
+
+.calendar-day.empty {
+    background-color: #f8f9fa;
+}
+
+.day-number {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.day-reservations {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 5px;
+}
+
+.reservation-badge {
+    display: block;
+    padding: 3px 6px;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: opacity 0.2s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.reservation-badge:hover {
+    opacity: 0.85;
+    color: white;
+}
+
+.reservation-count {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+}
+
+.reservation-count .badge {
+    font-size: 0.7rem;
+}
+
+@media (max-width: 768px) {
+    .calendar-day {
+        min-height: 80px;
+        padding: 5px;
+    }
+
+    .day-number {
+        font-size: 0.9rem;
+    }
+
+    .reservation-badge {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+
+    .reservation-count .badge {
+        font-size: 0.6rem;
+    }
+
+    .day-header {
+        font-size: 0.75rem;
+        padding: 10px 5px;
+    }
 }
 </style>
 {% endblock %}

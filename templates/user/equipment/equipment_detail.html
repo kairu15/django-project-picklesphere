@@ -98,40 +98,8 @@
     
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-shopping-cart me-2 text-primary"></i>Rent Equipment</h5>
-            </div>
             <div class="card-body p-4">
-                {% if equipment.quantity_available > 0 %}
-                    <form method="post" action="{% url 'equipment_rental_create' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="equipment_id" value="{{ equipment.id }}">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Rental Days</label>
-                            <input type="number" name="rental_days" class="form-control" value="1" min="1" max="30" style="border-radius: 10px;">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-boxes me-2 text-primary"></i>Quantity</label>
-                            <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ equipment.quantity_available }}" style="border-radius: 10px;">
-                        </div>
-                        <div class="mb-3">
-                            <span class="text-muted">Total Price:</span>
-                            <h4 class="fw-bold mb-0" style="color: #3B7A8C;">₱{{ equipment.rental_price|floatformat:2 }}</h4>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
-                            <i class="fas fa-shopping-cart me-2"></i>Rent Now
-                        </button>
-                    </form>
-                {% else %}
-                    <div class="text-center py-4">
-                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
-                        </div>
-                        <p class="mb-0 fw-bold">This equipment is currently out of stock.</p>
-                    </div>
-                {% endif %}
-                
-                <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 10px;">
+                <a href="{% url 'equipment_list' %}" class="btn btn-outline-secondary w-100" style="border-radius: 10px;">
                     <i class="fas fa-arrow-left me-2"></i>Back to Equipment
                 </a>
             </div>

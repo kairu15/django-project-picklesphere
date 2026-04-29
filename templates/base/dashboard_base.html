@@ -376,21 +376,6 @@
                 </a>
             </div>
 
-            <div class="nav-section">
-                <div class="nav-section-title">Information</div>
-                <a href="{% url 'pricing' %}" class="nav-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
-                    <i class="fas fa-tag"></i>
-                    <span>Pricing</span>
-                </a>
-                <a href="{% url 'about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
-                    <i class="fas fa-info-circle"></i>
-                    <span>About Us</span>
-                </a>
-                <a href="{% url 'contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
-                    <i class="fas fa-envelope"></i>
-                    <span>Contact</span>
-                </a>
-            </div>
             {% endif %}
             
             <div class="nav-section">

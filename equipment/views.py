@@ -50,8 +50,14 @@ def equipment_rental_create_view(request):
             rented_by=request.user,
             reserved_date=reserved_date,
             rental_fee=rental_fee,
-            status='reserved'
+            status='reserved',
+            quantity=quantity
         )
+
+        # Deduct quantity from available stock
+        equipment.quantity_available -= quantity
+        equipment.quantity_reserved += quantity
+        equipment.save()
 
         messages.success(request, f'Successfully reserved {equipment.name}.')
         return redirect('equipment_list')
@@ -113,10 +119,9 @@ def check_out_equipment_view(request, rental_id):
         rental.condition_out = request.POST.get('condition_out', rental.equipment.condition)
         rental.save()
         
-        # Update equipment quantity
+        # Update equipment quantity (move from reserved to rented)
         equipment = rental.equipment
-        equipment.quantity_reserved -= 1
-        equipment.quantity_available -= 1
+        equipment.quantity_reserved -= rental.quantity
         equipment.save()
         
         messages.success(request, f'{rental.equipment.name} checked out successfully.')
@@ -126,11 +131,32 @@ def check_out_equipment_view(request, rental_id):
 
 
 @login_required
+def cancel_equipment_rental_view(request, rental_id):
+    """Cancel an equipment rental reservation and restore quantities."""
+    rental = get_object_or_404(EquipmentRental, id=rental_id, rented_by=request.user, status='reserved')
+
+    if request.method == 'POST':
+        # Restore equipment quantities
+        equipment = rental.equipment
+        equipment.quantity_available += rental.quantity
+        equipment.quantity_reserved -= rental.quantity
+        equipment.save()
+
+        # Delete the rental record
+        rental.delete()
+
+        messages.success(request, f'Reservation for {equipment.name} cancelled successfully.')
+        return redirect('equipment_list')
+
+    return render(request, 'user/equipment/cancel_rental.html', {'rental': rental})
+
+
+@login_required
 def check_in_equipment_view(request, rental_id):
     if not request.user.is_staff_user() and not request.user.is_admin():
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('dashboard')
-    
+
     rental = get_object_or_404(EquipmentRental, id=rental_id, status='rented')
     
     if request.method == 'POST':
@@ -142,9 +168,9 @@ def check_in_equipment_view(request, rental_id):
         rental.notes = request.POST.get('notes', '')
         rental.save()
         
-        # Update equipment quantity
+        # Update equipment quantity (return to available stock)
         equipment = rental.equipment
-        equipment.quantity_available += 1
+        equipment.quantity_available += rental.quantity
         equipment.save()
         
         # Check if equipment needs maintenance

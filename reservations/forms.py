@@ -32,6 +32,10 @@ class ReservationForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
+    time_slot = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput()
+    )
 
     class Meta:
         model = Reservation
@@ -43,8 +47,8 @@ class ReservationForm(forms.ModelForm):
         widgets = {
             'court': forms.Select(attrs={'class': 'form-select'}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'start_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'end_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'start_time': forms.HiddenInput(),
+            'end_time': forms.HiddenInput(),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'match_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Friendly Match'}),
             'match_format': forms.Select(attrs={'class': 'form-select'}, choices=MATCH_FORMAT_CHOICES),
@@ -67,29 +71,44 @@ class ReservationForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         date = cleaned_data.get('date')
+        court = cleaned_data.get('court')
+        time_slot = cleaned_data.get('time_slot')
+
+        # Parse time_slot and set start_time and end_time
+        if time_slot:
+            try:
+                from datetime import datetime, time as dt_time
+                start_str, end_str = time_slot.split('-')
+                start_hour, start_min = map(int, start_str.split(':'))
+                end_hour, end_min = map(int, end_str.split(':'))
+                start_time = dt_time(start_hour, start_min)
+                end_time = dt_time(end_hour, end_min)
+                cleaned_data['start_time'] = start_time
+                cleaned_data['end_time'] = end_time
+            except (ValueError, AttributeError):
+                raise ValidationError("Invalid time slot selected.")
+
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
-        court = cleaned_data.get('court')
-        
+
         if date and start_time and end_time:
             # Check if date is in the future
             from datetime import datetime
             selected_datetime = datetime.combine(date, start_time)
             if selected_datetime < datetime.now():
                 raise ValidationError("Reservation date and time must be in the future.")
-            
+
             # Check if end time is after start time
             if end_time <= start_time:
                 raise ValidationError("End time must be after start time.")
-            
+
             # Check minimum duration (30 minutes)
-            from datetime import datetime
             start = datetime.combine(date, start_time)
             end = datetime.combine(date, end_time)
             duration = (end - start).total_seconds() / 60
             if duration < 30:
                 raise ValidationError("Minimum reservation duration is 30 minutes.")
-        
+
         if court and date and start_time and end_time:
             # Check for overlapping reservations
             overlapping = Reservation.objects.filter(
@@ -103,10 +122,10 @@ class ReservationForm(forms.ModelForm):
             ).exclude(
                 end_time__lte=start_time
             )
-            
+
             if overlapping.exists():
                 raise ValidationError("This court is not available for the selected time slot.")
-        
+
         return cleaned_data
 
 

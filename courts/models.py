@@ -59,6 +59,52 @@ class Court(models.Model):
         )
         return not overlapping.exists()
 
+    def get_time_slots(self, date):
+        """
+        Get 1-hour time slots from 8:00 AM to 11:00 PM for a specific date.
+        Returns list of dicts with start_time, end_time, and available status.
+        """
+        from reservations.models import Reservation
+        from datetime import time, datetime, timedelta
+
+        slots = []
+        start_hour = 8
+        end_hour = 23
+
+        # Get existing reservations for this court and date
+        existing_reservations = Reservation.objects.filter(
+            court=self,
+            date=date,
+            status__in=['confirmed', 'pending']
+        )
+
+        for hour in range(start_hour, end_hour + 1):
+            slot_start = time(hour, 0)
+            slot_end = time(hour + 1, 0) if hour < 23 else time(23, 59)
+
+            # Check if slot overlaps with any existing reservation
+            is_available = True
+            for res in existing_reservations:
+                res_start = res.start_time
+                res_end = res.end_time
+
+                # Slot is occupied if it overlaps with reservation
+                # Overlap occurs when: slot_start < res_end AND slot_end > res_start
+                if slot_start < res_end and slot_end > res_start:
+                    is_available = False
+                    break
+
+            slots.append({
+                'start': slot_start.strftime('%H:%M'),
+                'end': slot_end.strftime('%H:%M'),
+                'start_time': slot_start,
+                'end_time': slot_end,
+                'available': is_available,
+                'label': f"{slot_start.strftime('%I:%M %p')} – {slot_end.strftime('%I:%M %p')}"
+            })
+
+        return slots
+
 
 class CourtAvailability(models.Model):
     court = models.ForeignKey(Court, on_delete=models.CASCADE, related_name='availability')

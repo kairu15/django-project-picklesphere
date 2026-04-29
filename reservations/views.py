@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
+from django.http import JsonResponse
 from datetime import datetime, timedelta
 from .models import Reservation, ReservationEquipment, CancellationRequest
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
@@ -10,6 +11,7 @@ from payments.models import Payment
 from notifications.models import Notification
 from equipment.models import Equipment
 from accounts.models import User
+from courts.models import Court
 
 
 @login_required
@@ -229,7 +231,7 @@ def calendar_view(request):
     
     # Calculate calendar data
     import calendar
-    cal = calendar.Calendar()
+    cal = calendar.Calendar(calendar.SUNDAY)
     month_days = cal.monthdayscalendar(year, month)
     
     # Get reservations for this month
@@ -254,15 +256,19 @@ def calendar_view(request):
         if day not in reservation_dict:
             reservation_dict[day] = []
         reservation_dict[day].append(res)
-    
+
+    # Create a list of days with reservations for easier template access
+    days_with_reservations = list(reservation_dict.keys())
+
     month_name = calendar.month_name[month]
-    
+
     return render(request, 'admin/reservations/reservation_calendar.html', {
         'month_days': month_days,
         'month_name': month_name,
         'year': year,
         'month': month,
         'reservations': reservation_dict,
+        'days_with_reservations': days_with_reservations,
         'prev_month': month - 1 if month > 1 else 12,
         'next_month': month + 1 if month < 12 else 1,
         'prev_year': year if month > 1 else year - 1,
@@ -400,3 +406,35 @@ def admin_reservation_delete_view(request, reservation_id):
 
     messages.success(request, f'Reservation #{reservation.id} cancelled successfully.')
     return redirect('admin_reservation_list')
+
+
+@login_required
+def get_time_slots_api(request):
+    """API endpoint to get available time slots for a court and date."""
+    court_id = request.GET.get('court_id')
+    date_str = request.GET.get('date')
+
+    if not court_id or not date_str:
+        return JsonResponse({'error': 'Court ID and date are required'}, status=400)
+
+    try:
+        court = Court.objects.get(id=court_id, is_active=True)
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except Court.DoesNotExist:
+        return JsonResponse({'error': 'Court not found'}, status=404)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+    slots = court.get_time_slots(date)
+
+    # Convert time objects to strings for JSON serialization
+    serializable_slots = []
+    for slot in slots:
+        serializable_slots.append({
+            'start': slot['start'],
+            'end': slot['end'],
+            'available': slot['available'],
+            'label': slot['label']
+        })
+
+    return JsonResponse({'slots': serializable_slots})

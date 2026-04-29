@@ -71,6 +71,27 @@
                     </div>
                 </div>
                 
+                <!-- Payment Summary -->
+                <hr class="my-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-receipt me-2 text-primary"></i>Payment Summary</h6>
+                <div class="bg-light p-3 rounded-3" style="border-radius: 12px;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Court Fee</span>
+                        <span class="fw-semibold">₱{{ payment.reservation.subtotal|floatformat:2 }}</span>
+                    </div>
+                    {% if payment.reservation.equipment_fee > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Equipment Fee</span>
+                        <span class="fw-semibold">₱{{ payment.reservation.equipment_fee|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold fs-5" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
                 {% if payment.method == 'gcash' %}
                 <hr class="my-4">
                 <h6 class="fw-bold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>GCash Payment Details</h6>

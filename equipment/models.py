@@ -61,16 +61,25 @@ class EquipmentRental(models.Model):
         ('returned', 'Returned'),
         ('damaged', 'Damaged/Lost'),
     )
-    
+
+    PAYMENT_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    )
+
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name='rentals')
     rented_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='equipment_rentals')
     reserved_date = models.DateField()
-    
+    quantity = models.PositiveIntegerField(default=1)
+
     # Rental period
     rented_at = models.DateTimeField(null=True, blank=True)
     returned_at = models.DateTimeField(null=True, blank=True)
-    
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='reserved')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     rental_fee = models.DecimalField(max_digits=8, decimal_places=2)
     
     # Condition check
@@ -80,7 +89,9 @@ class EquipmentRental(models.Model):
     # Staff
     checked_out_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checkouts')
     checked_in_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checkins')
-    
+    confirmed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='confirmed_rentals')
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
     notes = models.TextField(blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -93,6 +104,63 @@ class EquipmentRental(models.Model):
         return f"{self.equipment.name} rented by {self.rented_by.username}"
 
 
+class RentalPayment(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    )
+
+    METHOD_CHOICES = (
+        ('gcash', 'GCash'),
+        ('cash', 'Cash'),
+        ('card', 'Credit/Debit Card'),
+    )
+
+    rental = models.OneToOneField(EquipmentRental, on_delete=models.CASCADE, related_name='payment')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    method = models.CharField(max_length=20, choices=METHOD_CHOICES, blank=True, null=True)
+
+    # For GCash payments
+    gcash_reference = models.CharField(max_length=100, blank=True, null=True)
+    gcash_proof_image = models.ImageField(upload_to='payments/gcash/rentals/', blank=True, null=True)
+
+    # For cash payments
+    cash_received_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='rental_cash_payments_received')
+    cash_received_at = models.DateTimeField(null=True, blank=True)
+
+    # Transaction details
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    payment_notes = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'rental_payments'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Payment #{self.id} - {self.rental.equipment.name} - ₱{self.amount}"
+
+
+class RentalPaymentLog(models.Model):
+    payment = models.ForeignKey(RentalPayment, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=50)
+    details = models.TextField(blank=True, null=True)
+    performed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'rental_payment_logs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.payment.id} - {self.action}"
+
+
 class EquipmentMaintenance(models.Model):
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name='maintenance_records')
     maintenance_date = models.DateField()
@@ -100,12 +168,12 @@ class EquipmentMaintenance(models.Model):
     performed_by = models.CharField(max_length=100)
     cost = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     next_maintenance_date = models.DateField(blank=True, null=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = 'equipment_maintenance'
         ordering = ['-maintenance_date']
-    
+
     def __str__(self):
         return f"Maintenance for {self.equipment.name} on {self.maintenance_date}"

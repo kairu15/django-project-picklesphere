@@ -22,7 +22,7 @@
             <div class="card-body p-4">
                 <form method="post" action="{% url 'reservation_create' %}">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
                         <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Select Court <span class="text-danger">*</span></label>
                         {{ form.court }}
@@ -30,7 +30,7 @@
                             <div class="text-danger small mt-1">{{ form.court.errors.0 }}</div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="mb-3">
                         <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Date <span class="text-danger">*</span></label>
                         {{ form.date }}
@@ -38,31 +38,51 @@
                             <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
                         {% endif %}
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold"><i class="fas fa-clock me-2 text-primary"></i>Start Time <span class="text-danger">*</span></label>
-                            {{ form.start_time }}
-                            {% if form.start_time.errors %}
-                                <div class="text-danger small mt-1">{{ form.start_time.errors.0 }}</div>
-                            {% endif %}
+
+                    <!-- Hidden time fields -->
+                    {{ form.start_time }}
+                    {{ form.end_time }}
+                    {{ form.time_slot }}
+
+                    <!-- Time Slot Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold"><i class="fas fa-clock me-2 text-primary"></i>Select Time Slot <span class="text-danger">*</span></label>
+                        <div id="time-slots-container" class="row g-2">
+                            <div class="col-12">
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>Please select a court and date to view available time slots.
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold"><i class="fas fa-clock me-2 text-primary"></i>End Time <span class="text-danger">*</span></label>
-                            {{ form.end_time }}
-                            {% if form.end_time.errors %}
-                                <div class="text-danger small mt-1">{{ form.end_time.errors.0 }}</div>
-                            {% endif %}
+                        <div id="selected-slot-display" class="mt-2 d-none">
+                            <span class="badge bg-success p-2">
+                                <i class="fas fa-check me-1"></i>Selected: <span id="selected-slot-label"></span>
+                            </span>
+                        </div>
+                        {% if form.time_slot.errors %}
+                            <div class="text-danger small mt-1">{{ form.time_slot.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mb-3 d-flex gap-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-success me-2">&nbsp;&nbsp;</span>
+                            <small>Available</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-danger me-2">&nbsp;&nbsp;</span>
+                            <small>Occupied</small>
                         </div>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label fw-bold"><i class="fas fa-tools me-2 text-primary"></i>Equipment (Optional)</label>
                         <div class="row g-2">
                             {% for equipment in equipment_list %}
                             <div class="col-md-6">
                                 <div class="form-check border rounded p-3" style="border-radius: 10px; transition: all 0.3s ease;">
-                                    <input type="checkbox" name="equipment" value="{{ equipment.id }}" 
+                                    <input type="checkbox" name="equipment" value="{{ equipment.id }}"
                                            class="form-check-input" id="eq{{ equipment.id }}">
                                     <label class="form-check-label w-100" for="eq{{ equipment.id }}">
                                         <div class="d-flex justify-content-between">
@@ -76,7 +96,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    
+
                     <hr class="my-4">
                     <h6 class="fw-bold mb-3" style="color: #3B7A8C;"><i class="fas fa-gamepad me-2"></i>Match Settings</h6>
 
@@ -148,7 +168,7 @@
                         {{ form.non_field_errors.0 }}
                     </div>
                     {% endif %}
-                    
+
                     <div class="d-flex justify-content-between pt-2">
                         <a href="{% url 'court_list' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
                             <i class="fas fa-arrow-left me-2"></i>Cancel
@@ -171,6 +191,150 @@ document.querySelectorAll('select').forEach(function(select) {
 document.querySelectorAll('input[type="date"], input[type="time"], input[type="text"], input[type="number"], textarea').forEach(function(input) {
     input.style.borderRadius = '10px';
 });
+
+// Time slot selection functionality
+const courtSelect = document.getElementById('{{ form.court.id_for_label }}');
+const dateInput = document.getElementById('{{ form.date.id_for_label }}');
+const timeSlotInput = document.getElementById('{{ form.time_slot.id_for_label }}');
+const startTimeInput = document.getElementById('{{ form.start_time.id_for_label }}');
+const endTimeInput = document.getElementById('{{ form.end_time.id_for_label }}');
+const slotsContainer = document.getElementById('time-slots-container');
+const selectedSlotDisplay = document.getElementById('selected-slot-display');
+const selectedSlotLabel = document.getElementById('selected-slot-label');
+
+let selectedSlot = null;
+
+function fetchTimeSlots() {
+    const courtId = courtSelect.value;
+    const date = dateInput.value;
+
+    if (!courtId || !date) {
+        slotsContainer.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Please select a court and date to view available time slots.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    slotsContainer.innerHTML = `
+        <div class="col-12 text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Loading time slots...</p>
+        </div>
+    `;
+
+    fetch(`/reservations/api/time-slots/?court_id=${courtId}&date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                slotsContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger mb-0">
+                            <i class="fas fa-exclamation-circle me-2"></i>${data.error}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            renderTimeSlots(data.slots);
+        })
+        .catch(error => {
+            slotsContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>Failed to load time slots. Please try again.
+                    </div>
+                </div>
+            `;
+        });
+}
+
+function renderTimeSlots(slots) {
+    if (slots.length === 0) {
+        slotsContainer.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>No time slots available for this date.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    slotsContainer.innerHTML = '';
+    slots.forEach(slot => {
+        const slotDiv = document.createElement('div');
+        slotDiv.className = 'col-md-3 col-6';
+
+        const isAvailable = slot.available;
+        const btnClass = isAvailable ? 'btn-success' : 'btn-danger';
+        const disabledAttr = isAvailable ? '' : 'disabled';
+        const icon = isAvailable ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="fas fa-times-circle me-1"></i>';
+
+        slotDiv.innerHTML = `
+            <button type="button"
+                    class="btn ${btnClass} w-100 py-3 time-slot-btn"
+                    data-start="${slot.start}"
+                    data-end="${slot.end}"
+                    data-label="${slot.label}"
+                    data-available="${isAvailable}"
+                    ${disabledAttr}
+                    style="border-radius: 10px; font-size: 0.9rem;">
+                ${icon}
+                <div>${slot.label}</div>
+            </button>
+        `;
+
+        slotsContainer.appendChild(slotDiv);
+    });
+
+    // Add click handlers for available slots
+    document.querySelectorAll('.time-slot-btn[data-available="true"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectTimeSlot(this);
+        });
+    });
+}
+
+function selectTimeSlot(btn) {
+    // Remove selection from previous slot
+    document.querySelectorAll('.time-slot-btn').forEach(b => {
+        b.classList.remove('ring-3', 'ring-offset-2', 'ring-primary');
+        b.style.boxShadow = '';
+    });
+
+    // Highlight selected slot
+    btn.style.boxShadow = '0 0 0 3px #3B7A8C, 0 0 0 5px white';
+
+    // Update hidden fields
+    const start = btn.dataset.start;
+    const end = btn.dataset.end;
+    const label = btn.dataset.label;
+
+    timeSlotInput.value = `${start}-${end}`;
+    startTimeInput.value = start;
+    endTimeInput.value = end;
+
+    // Update display
+    selectedSlotLabel.textContent = label;
+    selectedSlotDisplay.classList.remove('d-none');
+    selectedSlot = { start, end, label };
+}
+
+// Event listeners
+courtSelect.addEventListener('change', fetchTimeSlots);
+dateInput.addEventListener('change', fetchTimeSlots);
+
+// Initialize on page load if values are pre-selected
+if (courtSelect.value && dateInput.value) {
+    fetchTimeSlots();
+}
 </script>
 {% endblock %}
 

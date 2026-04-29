@@ -10,18 +10,24 @@ class Match(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     )
-    
+
+    FORMAT_CHOICES = (
+        ('singles', 'Singles'),
+        ('doubles', 'Doubles'),
+        ('mixed_doubles', 'Mixed Doubles'),
+    )
+
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE, related_name='match')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
-    
+
     # Match details
     team1_player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team1_matches_as_p1', null=True, blank=True)
     team1_player2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team1_matches_as_p2', null=True, blank=True)
     team2_player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team2_matches_as_p1', null=True, blank=True)
     team2_player2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team2_matches_as_p2', null=True, blank=True)
-    
+
     # Match format
-    format = models.CharField(max_length=20, default='singles')  # singles, doubles
+    format = models.CharField(max_length=20, choices=FORMAT_CHOICES, default='singles')
     games_to_win = models.IntegerField(default=2)  # best of 3
     points_per_game = models.IntegerField(default=11)  # 11 points win
     win_by_two = models.BooleanField(default=True)

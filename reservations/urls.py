@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.reservation_list_view, name='reservation_list'),
     path('create/', views.reservation_create_view, name='reservation_create'),
+    path('api/time-slots/', views.get_time_slots_api, name='get_time_slots'),
     path('calendar/', views.calendar_view, name='calendar'),
     path('staff/', views.staff_reservations_view, name='staff_reservations'),
     path('staff/<int:reservation_id>/approve/', views.approve_reservation_view, name='approve_reservation'),
