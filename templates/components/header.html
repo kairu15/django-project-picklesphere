@@ -6,10 +6,10 @@
             <!-- Contact Info -->
             <div class="col-md-8">
                 <div class="d-flex align-items-center flex-wrap" style="gap: 20px;">
-                    <a href="tel:+639123456789" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;">
+                    <a href="tel:+639123456789" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; transition: color 0.3s;">
                         <i class="fas fa-phone-alt me-2" style="color: #3B7A8C;"></i>+63 912 345 6789
                     </a>
-                    <a href="mailto:info@picklesphere.com" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;">
+                    <a href="mailto:info@picklesphere.com" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; transition: color 0.3s;">
                         <i class="fas fa-envelope me-2" style="color: #3B7A8C;"></i>info@picklesphere.com
                     </a>
                 </div>
@@ -19,19 +19,19 @@
                 <div class="d-flex align-items-center justify-content-md-end" style="gap: 15px;">
                     <!-- Social Icons -->
                     <div class="d-flex align-items-center" style="gap: 12px; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 15px;">
-                        <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">
+                        <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">
                             <i class="fab fa-facebook-f"></i>
                         </a>
-                        <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: all 0.3s;">
+                        <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">
                             <i class="fab fa-instagram"></i>
                         </a>
                     </div>
                     <!-- Language Selector -->
                     <div class="dropdown">
-                        <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;">
+                        <a href="#" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" style="color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; transition: color 0.3s;">
                             <i class="fas fa-globe me-2" style="color: #3B7A8C;"></i>English
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.85rem; min-width: 120px;">
+                        <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.875rem; min-width: 120px;">
                             <li><a class="dropdown-item py-1" href="#"><i class="fas fa-check me-2 text-primary"></i>English</a></li>
                             <li><a class="dropdown-item py-1" href="#">Filipino</a></li>
                             <li><a class="dropdown-item py-1" href="#">Spanish</a></li>
@@ -101,7 +101,7 @@ nav.navbar .navbar-nav {
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background: var(--sidebar-bg, #0f172a); padding: 0.5rem 0;">
     <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}" style="font-size: 1.1rem;">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}" style="font-size: 1.125rem;">
             <img src="/static/PickleSphereLogo.png" alt="PickleSphere" height="32" width="32" style="border-radius: 50%; object-fit: cover;">
             <span class="fw-semibold">PickleSphere</span>
         </a>
@@ -160,11 +160,11 @@ nav.navbar .navbar-nav {
                     {% if user.is_staff_user or user.is_admin %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle py-2 px-2" style="font-size: 0.875rem; white-space: nowrap;" href="#" id="manageDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-cog" style="font-size: 0.85rem;"></i>
+                                <i class="fas fa-cog" style="font-size: 0.875rem;"></i>
                                 <span class="ms-1">Manage</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.875rem;">
-                                <li><h6 class="dropdown-header" style="font-size: 0.75rem;">Staff Actions</h6></li>
+                                <li><h6 class="dropdown-header" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Staff Actions</h6></li>
                                 <li><a class="dropdown-item py-1" href="{% url 'staff_reservations' %}">
                                     <i class="fas fa-clipboard-list me-2" style="width: 1rem;"></i>Reservations
                                 </a></li>
@@ -174,7 +174,7 @@ nav.navbar .navbar-nav {
 
                                 {% if user.is_admin %}
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><h6 class="dropdown-header" style="font-size: 0.75rem;">Admin Actions</h6></li>
+                                    <li><h6 class="dropdown-header" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Admin Actions</h6></li>
                                     <li><a class="dropdown-item py-1" href="{% url 'admin_court_list' %}">
                                         <i class="fas fa-th-large me-2" style="width: 1rem;"></i>Manage Courts
                                     </a></li>
@@ -201,14 +201,14 @@ nav.navbar .navbar-nav {
                             {% if user.profile_picture %}
                                 <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
                             {% else %}
-                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 28px; height: 28px; font-size: 12px;">
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 28px; height: 28px; font-size: 0.75rem;">
                                     {{ user.username|first|upper }}
                                 </div>
                             {% endif %}
                             <span class="d-none d-lg-inline">{{ user.get_full_name|default:user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" style="font-size: 0.875rem;">
-                            <li><h6 class="dropdown-header" style="font-size: 0.75rem;">My Account</h6></li>
+                            <li><h6 class="dropdown-header" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">My Account</h6></li>
                             <li><a class="dropdown-item py-1" href="{% url 'dashboard' %}">
                                 <i class="fas fa-th-large me-2" style="width: 1rem;"></i>Dashboard
                             </a></li>
@@ -230,7 +230,7 @@ nav.navbar .navbar-nav {
                         <a class="nav-link py-2 px-2" style="font-size: 0.875rem; white-space: nowrap;" href="{% url 'login' %}">Sign In</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary py-1 px-3 ms-1" style="font-size: 0.8rem; border-radius: 4px;" href="{% url 'register' %}">Get Started</a>
+                        <a class="btn btn-primary py-1 px-3 ms-1" style="font-size: 0.875rem; border-radius: 4px;" href="{% url 'register' %}">Get Started</a>
                     </li>
                 {% endif %}
             </ul>
