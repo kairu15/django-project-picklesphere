@@ -25,6 +25,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8001',
     'http://localhost:8001',
     'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev',
     'https://*.ngrok.io',
 ]
 

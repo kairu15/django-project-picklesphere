@@ -33,7 +33,7 @@
         <!-- Right Side - Form -->
         <div class="auth-form-container" style="flex: 1; padding: 50px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto;">
             <div class="auth-form-wrapper" style="max-width: 480px; width: 100%; margin: 0 auto;">
-                <a href="{% url 'home' %}" class="text-decoration-none mb-3 d-inline-flex align-items-center" style="color: #6c757d; transition: color 0.3s;">
+                <a href="{% url 'home' %}" class="text-decoration-none mb-4 d-inline-flex align-items-center">
                     <i class="fas fa-arrow-left me-2"></i>
                     <span>Back to Home</span>
                 </a>
@@ -256,20 +256,38 @@
     border: 1px solid #e0e0e0;
     font-size: 14px;
     padding: 12px 15px;
+    border-radius: 0 10px 10px 0;
 }
 .form-control:focus {
     border-color: var(--primary-color, #3B7A8C);
-    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
-    transform: translateY(-1px);
+    box-shadow: none;
+    transform: none;
 }
 .input-group {
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.input-group:focus-within {
+    box-shadow: 0 0 0 3px rgba(59,122,140,0.15);
 }
 .input-group-text {
     border: 1px solid #e0e0e0;
     border-right: none;
     background: #f8f9fa;
+    padding: 12px 15px;
+}
+.input-group-text i {
+    color: #007bff;
+    font-size: 16px;
+}
+.form-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+.form-label .text-danger {
+    color: #dc3545;
 }
 
 /* Enhanced Buttons */
@@ -306,10 +324,34 @@ a:hover {
 /* Enhanced Back Link */
 .auth-form-wrapper > a {
     transition: all 0.3s ease;
+    color: #6c757d;
+    font-size: 14px;
 }
 .auth-form-wrapper > a:hover {
     color: var(--primary-color, #3B7A8C) !important;
     transform: translateX(-4px);
+}
+
+/* Form spacing improvements */
+.mb-4 {
+    margin-bottom: 1.25rem !important;
+}
+
+/* Alert styling */
+.alert {
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+/* Checkbox styling */
+.form-check-input {
+    border-radius: 4px;
+}
+
+/* Social buttons */
+.btn-outline-secondary {
+    border-color: #e0e0e0;
+    font-size: 14px;
 }
 </style>
 {% endblock %}

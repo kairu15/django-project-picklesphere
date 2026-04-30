@@ -8,26 +8,27 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="display-5 fw-bold text-primary">Tournaments</h1>
-            <p class="text-muted">Join beginner-friendly pickleball competitions</p>
+            <span class="badge mb-2 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Competitive Play</span>
+            <h1 class="display-5 fw-bold mb-2" style="color: var(--primary-color);">Tournaments</h1>
+            <p style="color: var(--text-muted);">Join beginner-friendly pickleball competitions</p>
         </div>
         {% if user.is_authenticated %}
-        <a href="{% url 'my_tournaments' %}" class="btn btn-outline-primary px-4" style="border-radius: 10px;">
+        <a href="{% url 'my_tournaments' %}" class="btn btn-outline-primary px-4" style="border-radius: var(--border-radius-sm); font-weight: 500;">
             <i class="fas fa-user me-2"></i>My Tournaments
         </a>
         {% endif %}
     </div>
 
     <!-- Filters -->
-    <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
-        <div class="card-header bg-transparent border-bottom p-4">
-            <h5 class="fw-bold mb-0"><i class="fas fa-filter me-2 text-primary"></i>Filter Tournaments</h5>
+    <div class="card border-0 mb-4" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white);">
+        <div class="card-header border-bottom p-4" style="background: transparent; border-color: var(--border-color);">
+            <h5 class="fw-bold mb-0" style="color: var(--text-dark);"><i class="fas fa-filter me-2" style="color: var(--primary-color);"></i>Filter Tournaments</h5>
         </div>
         <div class="card-body p-4">
             <form method="get" class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label fw-bold text-muted"><i class="fas fa-tag me-2"></i>Status</label>
-                    <select name="status" class="form-select form-select-lg" onchange="this.form.submit()" style="border-radius: 10px;">
+                    <label class="form-label fw-bold" style="color: var(--text-muted);"><i class="fas fa-tag me-2"></i>Status</label>
+                    <select name="status" class="form-select form-select-lg" onchange="this.form.submit()" style="border-radius: var(--border-radius-sm); border-color: var(--border-color);">
                         <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
                         <option value="registration_open" {% if status_filter == 'registration_open' %}selected{% endif %}>Registration Open</option>
                         <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
@@ -36,8 +37,8 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold text-muted"><i class="fas fa-users me-2"></i>Category</label>
-                    <select name="category" class="form-select form-select-lg" onchange="this.form.submit()" style="border-radius: 10px;">
+                    <label class="form-label fw-bold" style="color: var(--text-muted);"><i class="fas fa-users me-2"></i>Category</label>
+                    <select name="category" class="form-select form-select-lg" onchange="this.form.submit()" style="border-radius: var(--border-radius-sm); border-color: var(--border-color);">
                         <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All Categories</option>
                         <option value="singles" {% if category_filter == 'singles' %}selected{% endif %}>Singles</option>
                         <option value="doubles" {% if category_filter == 'doubles' %}selected{% endif %}>Doubles</option>
@@ -45,7 +46,7 @@
                     </select>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
-                    <a href="{% url 'tournament_list' %}" class="btn btn-outline-secondary w-100 btn-lg" style="border-radius: 10px;">
+                    <a href="{% url 'tournament_list' %}" class="btn btn-outline-secondary w-100 btn-lg" style="border-radius: var(--border-radius-sm); border-color: var(--border-color); color: var(--text-muted);">
                         <i class="fas fa-undo me-2"></i>Clear Filters
                     </a>
                 </div>
@@ -57,40 +58,40 @@
     {% if open_tournaments %}
     <div class="mb-4">
         <div class="d-flex align-items-center mb-3">
-            <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
                 <i class="fas fa-door-open text-white"></i>
             </div>
-            <h3 class="fw-bold mb-0">Open for Registration</h3>
-            <span class="badge bg-success ms-3">{{ open_tournaments|length }}</span>
+            <h3 class="fw-bold mb-0" style="color: var(--text-dark);">Open for Registration</h3>
+            <span class="badge ms-3" style="background: var(--success-color);">{{ open_tournaments|length }}</span>
         </div>
         <div class="row g-4 mb-5">
             {% for tournament in open_tournaments %}
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
-                    <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white);">
+                    <div class="card-header text-white py-3" style="background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%);">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-white text-success fw-bold">{{ tournament.get_category_display }}</span>
-                            <span class="badge bg-warning text-dark"><i class="fas fa-door-open me-1"></i>Open</span>
+                            <span class="badge fw-bold" style="background: var(--bg-white); color: var(--success-color);">{{ tournament.get_category_display }}</span>
+                            <span class="badge" style="background: var(--warning-color); color: var(--text-dark);"><i class="fas fa-door-open me-1"></i>Open</span>
                         </div>
                     </div>
                     <div class="card-body p-4">
-                        <h5 class="card-title fw-bold mb-2">{{ tournament.name }}</h5>
-                        <p class="card-text text-muted small mb-3">{{ tournament.description|truncatewords:15|default:"Join this exciting tournament!" }}</p>
+                        <h5 class="card-title fw-bold mb-2" style="color: var(--text-dark);">{{ tournament.name }}</h5>
+                        <p class="card-text small mb-3" style="color: var(--text-muted);">{{ tournament.description|truncatewords:15|default:"Join this exciting tournament!" }}</p>
                         <div class="mb-3">
-                            <span class="badge bg-light text-dark border me-1"><i class="fas fa-sitemap me-1 text-primary"></i>{{ tournament.get_format_display }}</span>
-                            <span class="badge bg-light text-dark border"><i class="fas fa-signal me-1 text-success"></i>{{ tournament.get_skill_level_display }}</span>
+                            <span class="badge me-1" style="background: var(--bg-light); color: var(--text-body); border: 1px solid var(--border-color);"><i class="fas fa-sitemap me-1" style="color: var(--primary-color);"></i>{{ tournament.get_format_display }}</span>
+                            <span class="badge" style="background: var(--bg-light); color: var(--text-body); border: 1px solid var(--border-color);"><i class="fas fa-signal me-1" style="color: var(--success-color);"></i>{{ tournament.get_skill_level_display }}</span>
                         </div>
-                        <div class="progress mb-2" style="height: 6px;">
-                            <div class="progress-bar bg-success" role="progressbar" data-progress="{{ tournament.registration_count }}" data-max="{{ tournament.max_participants }}"></div>
+                        <div class="progress mb-2" style="height: 6px; background: var(--bg-light); border-radius: 3px;">
+                            <div class="progress-bar" role="progressbar" data-progress="{{ tournament.registration_count }}" data-max="{{ tournament.max_participants }}" style="background: var(--success-color); border-radius: 3px;"></div>
                         </div>
-                        <p class="text-muted small mb-3"><i class="fas fa-users me-1 text-primary"></i>{{ tournament.registration_count }}/{{ tournament.max_participants }} registered</p>
-                        <ul class="list-unstyled small text-muted mb-0">
-                            <li class="mb-1"><i class="fas fa-calendar text-primary me-2"></i>Starts: {{ tournament.tournament_start|date:"M d, Y" }}</li>
-                            <li><i class="fas fa-clock text-danger me-2"></i>Closes: {{ tournament.registration_end|date:"M d, Y" }}</li>
+                        <p class="small mb-3" style="color: var(--text-muted);"><i class="fas fa-users me-1" style="color: var(--primary-color);"></i>{{ tournament.registration_count }}/{{ tournament.max_participants }} registered</p>
+                        <ul class="list-unstyled small mb-0">
+                            <li class="mb-1" style="color: var(--text-body);"><i class="fas fa-calendar me-2" style="color: var(--primary-color);"></i>Starts: {{ tournament.tournament_start|date:"M d, Y" }}</li>
+                            <li style="color: var(--text-body);"><i class="fas fa-clock me-2" style="color: var(--danger-color);"></i>Closes: {{ tournament.registration_end|date:"M d, Y" }}</li>
                         </ul>
                     </div>
                     <div class="card-footer bg-transparent border-0 p-4 pt-0">
-                        <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-success w-100" style="border-radius: 10px;">
+                        <a href="{% url 'tournament_detail' tournament.pk %}" class="btn w-100" style="border-radius: var(--border-radius-sm); background: var(--success-color); color: white; font-weight: 500;">
                             <i class="fas fa-edit me-2"></i>Register Now
                         </a>
                     </div>
@@ -238,11 +239,11 @@
 <style>
 /* Hover Effects */
 .hover-card {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    transition: transform var(--transition-slow), box-shadow var(--transition-base);
 }
 .hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 2rem rgba(0,0,0,0.15) !important;
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover) !important;
 }
 
 /* Pulse animation for live indicator */
@@ -257,31 +258,31 @@
 
 /* Enhanced Cards */
 .card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition-slow);
 }
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-shadow: var(--card-shadow-hover);
 }
 
 /* Enhanced Buttons */
 .btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition-slow);
     font-weight: 500;
     letter-spacing: 0.3px;
 }
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: var(--btn-shadow);
 }
 
 /* Enhanced Form Controls */
 .form-select {
-    transition: all 0.2s ease;
-    border: 1px solid #e0e0e0;
+    transition: all var(--transition-fast);
+    border: 1px solid var(--border-color);
 }
 .form-select:focus {
-    border-color: var(--primary-color, #3B7A8C);
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
     transform: translateY(-1px);
 }
@@ -293,14 +294,14 @@
     text-transform: uppercase;
     font-size: 0.7rem;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: var(--border-radius-sm);
 }
 
 /* Enhanced Progress Bar */
 .progress {
     height: 6px;
     border-radius: 3px;
-    background: #e9ecef;
+    background: var(--bg-light);
 }
 .progress-bar {
     transition: width 0.6s ease;
@@ -317,11 +318,11 @@
 
 /* Enhanced Icon Circles */
 .icon-circle {
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
 }
 .icon-circle:hover {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: var(--btn-shadow);
 }
 </style>
 

@@ -11,21 +11,21 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <span class="badge bg-white text-primary mb-3 px-3 py-2"><i class="fas fa-tags me-2"></i>TRANSPARENT PRICING</span>
-                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Simple, Fair Pricing</h1>
-                <p class="lead mb-0 text-white-50" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Choose the perfect plan for your pickleball journey. No hidden fees, no surprises.</p>
+                <span class="badge mb-3 px-4 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;"><i class="fas fa-tags me-2"></i>Transparent Pricing</span>
+                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">Simple, Fair Pricing</h1>
+                <p class="lead mb-0" style="color: rgba(255,255,255,0.85); text-shadow: 1px 2px 4px rgba(0,0,0,0.3); max-width: 600px; margin: 0 auto;">Choose the perfect plan for your pickleball journey. No hidden fees, no surprises.</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Court Rental Rates -->
-<section class="py-5" style="background: #f8f9fa;">
+<section class="py-5" style="background: var(--bg-light);">
     <div class="container">
         <div class="text-center mb-5">
-            <span class="badge bg-primary mb-3 px-3 py-2">COURT RENTAL</span>
-            <h2 class="display-5 fw-bold">Hourly Court Rates</h2>
-            <p class="lead text-muted">Premium courts at competitive prices</p>
+            <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Court Rental</span>
+            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Hourly Court Rates</h2>
+            <p class="lead" style="color: var(--text-muted);">Premium courts at competitive prices</p>
         </div>
         <div class="row g-4">
             <div class="col-md-4">
@@ -125,12 +125,12 @@
 </section>
 
 <!-- Membership Plans -->
-<section class="py-5 bg-white">
+<section class="py-5" style="background: var(--bg-white);">
     <div class="container">
         <div class="text-center mb-5">
-            <span class="badge bg-success mb-3 px-3 py-2">MEMBERSHIP</span>
-            <h2 class="display-5 fw-bold">Membership Plans</h2>
-            <p class="lead text-muted">Save more with our exclusive membership options</p>
+            <span class="badge mb-3 px-3 py-2" style="background: var(--success-light); color: var(--success-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Membership</span>
+            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Membership Plans</h2>
+            <p class="lead" style="color: var(--text-muted);">Save more with our exclusive membership options</p>
         </div>
         <div class="row g-4 justify-content-center">
             <div class="col-md-4">
@@ -216,21 +216,21 @@
 </section>
 
 <!-- Comparison Table -->
-<section class="py-5" style="background: #f8f9fa;">
+<section class="py-5" style="background: var(--bg-light);">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">Compare Plans</h2>
-            <p class="text-muted">Find the perfect fit for your needs</p>
+            <h2 class="fw-bold" style="color: var(--text-dark);">Compare Plans</h2>
+            <p style="color: var(--text-muted);">Find the perfect fit for your needs</p>
         </div>
-        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+        <div class="card border-0" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white);">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                    <thead style="background: var(--bg-light);">
                         <tr>
-                            <th style="width: 30%;">Features</th>
-                            <th class="text-center">Basic</th>
-                            <th class="text-center bg-success bg-opacity-10">Pro Member</th>
-                            <th class="text-center">Elite</th>
+                            <th style="width: 30%; color: var(--text-dark);">Features</th>
+                            <th class="text-center" style="color: var(--text-dark);">Basic</th>
+                            <th class="text-center" style="background: var(--success-light); color: var(--success-color);">Pro Member</th>
+                            <th class="text-center" style="color: var(--text-dark);">Elite</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -438,11 +438,11 @@
 <style>
 /* Hover Effects */
 .hover-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 .hover-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 1rem 3rem rgba(0,0,0,0.15) !important;
+    box-shadow: var(--card-shadow-lg) !important;
 }
 
 /* Custom table styling */
@@ -451,6 +451,10 @@
     text-transform: uppercase;
     font-size: 0.875rem;
     letter-spacing: 0.5px;
+    color: var(--text-dark);
+}
+.table td {
+    color: var(--text-body);
 }
 </style>
 

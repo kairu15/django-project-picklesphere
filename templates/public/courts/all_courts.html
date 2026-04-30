@@ -11,20 +11,20 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <span class="badge bg-white text-primary mb-3 px-3 py-2">FIND YOUR PERFECT COURT</span>
-                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Our Premium Courts</h1>
-                <p class="lead mb-0 text-white-50" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Discover our state-of-the-art pickleball courts designed for players of all skill levels</p>
+                <span class="badge mb-3 px-4 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Find Your Perfect Court</span>
+                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">Our Premium Courts</h1>
+                <p class="lead mb-0" style="color: rgba(255,255,255,0.85); text-shadow: 1px 2px 4px rgba(0,0,0,0.3); max-width: 600px; margin: 0 auto;">Discover our state-of-the-art pickleball courts designed for players of all skill levels</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Search & Filter Section -->
-<section class="py-4" style="background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: relative; z-index: 10; margin-top: -40px;">
+<section class="py-4" style="background: var(--bg-white); box-shadow: var(--card-shadow); position: relative; z-index: 10; margin-top: -40px;">
     <div class="container">
-        <div class="card border-0 shadow-lg" style="border-radius: 15px;">
+        <div class="card border-0" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow-lg);">
             <div class="card-body p-4">
-                <form method="get" class="row g-3 align-items-end">
+                <form method="get" class="row g-3 align-items-end;">
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label fw-bold text-primary"><i class="fas fa-search me-2"></i>Search Courts</label>
                         <input type="text" name="search" class="form-control form-control-lg" placeholder="Search by name..." value="{{ search_query }}">
@@ -72,57 +72,57 @@
 </section>
 
 <!-- Court Categories -->
-<section class="py-4 bg-light">
+<section class="py-4" style="background: var(--bg-light);">
     <div class="container">
         <div class="row g-3">
             <div class="col-md-3 col-6">
                 <a href="?type=indoor" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm h-100 hover-card" style="border-radius: 12px;">
+                    <div class="card border-0 h-100 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                         <div class="card-body text-center p-3">
-                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 <i class="fas fa-home fa-lg text-white"></i>
                             </div>
-                            <h6 class="mb-0 fw-bold text-dark">Indoor Courts</h6>
-                            <small class="text-muted">Climate controlled</small>
+                            <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Indoor Courts</h6>
+                            <small style="color: var(--text-muted);">Climate controlled</small>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-md-3 col-6">
                 <a href="?type=outdoor" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm h-100 hover-card" style="border-radius: 12px;">
+                    <div class="card border-0 h-100 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                         <div class="card-body text-center p-3">
-                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 <i class="fas fa-sun fa-lg text-white"></i>
                             </div>
-                            <h6 class="mb-0 fw-bold text-dark">Outdoor Courts</h6>
-                            <small class="text-muted">Natural lighting</small>
+                            <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Outdoor Courts</h6>
+                            <small style="color: var(--text-muted);">Natural lighting</small>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-md-3 col-6">
                 <a href="?type=premium" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm h-100 hover-card" style="border-radius: 12px;">
+                    <div class="card border-0 h-100 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                         <div class="card-body text-center p-3">
-                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--warning-color) 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 <i class="fas fa-star fa-lg text-white"></i>
                             </div>
-                            <h6 class="mb-0 fw-bold text-dark">Premium Courts</h6>
-                            <small class="text-muted">Elite facilities</small>
+                            <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Premium Courts</h6>
+                            <small style="color: var(--text-muted);">Elite facilities</small>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-md-3 col-6">
                 <a href="{% url 'all_courts' %}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm h-100 hover-card" style="border-radius: 12px;">
+                    <div class="card border-0 h-100 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                         <div class="card-body text-center p-3">
-                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <div class="mb-2" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--info-color) 0%, #138496 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 <i class="fas fa-th-large fa-lg text-white"></i>
                             </div>
-                            <h6 class="mb-0 fw-bold text-dark">All Courts</h6>
-                            <small class="text-muted">View everything</small>
+                            <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">All Courts</h6>
+                            <small style="color: var(--text-muted);">View everything</small>
                         </div>
                     </div>
                 </a>
@@ -132,16 +132,16 @@
 </section>
 
 <!-- Courts Grid -->
-<section class="py-5">
+<section class="py-5" style="background: var(--bg-light);">
     <div class="container">
         <!-- Results Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="fw-bold mb-1">Available Courts</h2>
-                <p class="text-muted mb-0">Showing {{ courts|length }} court{{ courts|length|pluralize }}</p>
+                <h2 class="fw-bold mb-1" style="color: var(--text-dark);">Available Courts</h2>
+                <p class="mb-0" style="color: var(--text-muted);">Showing {{ courts|length }} court{{ courts|length|pluralize }}</p>
             </div>
             <div class="d-flex gap-2">
-                <select class="form-select" name="sort" onchange="this.form.submit()">
+                <select class="form-select" name="sort" onchange="this.form.submit()" style="border-color: var(--border-color); border-radius: var(--border-radius-sm);">
                     <option value="">Sort by</option>
                     <option value="price_low">Price: Low to High</option>
                     <option value="price_high">Price: High to Low</option>
@@ -153,23 +153,28 @@
         <div class="row g-4">
             {% for court in courts %}
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white); transition: all var(--transition-slow);">
                     <div class="position-relative">
                         {% if court.image %}
                             <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 240px; object-fit: cover;">
                         {% else %}
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 240px;">
-                                <i class="fas fa-table-tennis fa-4x text-muted"></i>
+                            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 240px; background: var(--bg-light);">
+                                <i class="fas fa-table-tennis fa-4x" style="color: var(--primary-light);"></i>
                             </div>
                         {% endif %}
                         <div class="position-absolute top-0 end-0 m-3">
-                            <span class="badge {% if court.status == 'available' %}bg-success{% else %}bg-warning{% endif %} px-3 py-2">
-                                <i class="fas {% if court.status == 'available' %}fa-check-circle{% else %}fa-clock{% endif %} me-1"></i>
+                            {% if court.status == 'available' %}
+                            <span class="badge px-3 py-2" style="border-radius: var(--border-radius-sm); font-weight: 500; background: var(--success-color); color: white;">
+                                <i class="fas fa-check-circle me-1"></i>
+                            {% else %}
+                            <span class="badge px-3 py-2" style="border-radius: var(--border-radius-sm); font-weight: 500; background: var(--warning-color); color: var(--text-dark);">
+                                <i class="fas fa-clock me-1"></i>
+                            {% endif %}
                                 {{ court.get_status_display }}
                             </span>
                         </div>
                         <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-primary px-3 py-2">
+                            <span class="badge px-3 py-2" style="background: var(--primary-color); border-radius: var(--border-radius-sm); font-weight: 500;">
                                 <i class="fas fa-cloud me-1"></i>{{ court.get_court_type_display }}
                             </span>
                         </div>
@@ -177,37 +182,37 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title fw-bold mb-0">{{ court.name }}</h5>
+                            <h5 class="card-title fw-bold mb-0" style="color: var(--text-dark);">{{ court.name }}</h5>
                         </div>
-                        <p class="text-muted small mb-3">
-                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ court.site.name }}
+                        <p class="small mb-3" style="color: var(--text-muted);">
+                            <i class="fas fa-map-marker-alt me-2" style="color: var(--primary-color);"></i>{{ court.site.name }}
                         </p>
-                        <p class="card-text text-muted">{{ court.description|truncatewords:12|default:"Premium pickleball court with professional amenities." }}</p>
+                        <p class="card-text" style="color: var(--text-body); font-size: 0.95rem;">{{ court.description|truncatewords:12|default:"Premium pickleball court with professional amenities." }}</p>
                         
                         {% if court.amenities %}
                         <div class="mb-3">
                             {% for amenity in court.amenities|slice:":3" %}
-                            <span class="badge bg-light text-dark me-1 border"><i class="fas fa-check text-success me-1"></i>{{ amenity }}</span>
+                            <span class="badge me-1" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color); font-weight: 400;"><i class="fas fa-check me-1" style="color: var(--success-color);"></i>{{ amenity }}</span>
                             {% endfor %}
                             {% if court.amenities|length > 3 %}
-                            <span class="badge bg-light text-muted border">+{{ court.amenities|length|add:"-3" }} more</span>
+                            <span class="badge" style="background: var(--bg-light); color: var(--text-muted); border: 1px solid var(--border-color);">+{{ court.amenities|length|add:"-3" }} more</span>
                             {% endif %}
                         </div>
                         {% endif %}
                         
-                        <hr class="my-3">
+                        <hr class="my-3" style="border-color: var(--border-color);">
                         
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="text-muted small">From</span>
-                                <h4 class="text-primary fw-bold mb-0">₱{{ court.hourly_rate|floatformat:0 }}<small class="text-muted fw-normal fs-6">/hour</small></h4>
+                                <span class="small" style="color: var(--text-muted);">From</span>
+                                <h4 class="fw-bold mb-0" style="color: var(--primary-color);">₱{{ court.hourly_rate|floatformat:0 }}<small style="color: var(--text-muted); font-weight: 400; font-size: 0.875rem;">/hour</small></h4>
                             </div>
                             <div class="d-flex gap-2">
-                                <a href="{% url 'court_view' court.id %}" class="btn btn-outline-primary">
+                                <a href="{% url 'court_view' court.id %}" class="btn btn-outline-primary" style="border-radius: var(--border-radius-sm); font-weight: 500;">
                                     <i class="fas fa-eye me-1"></i> View
                                 </a>
                                 {% if court.status == 'available' %}
-                                <a href="{% url 'reservation_create' %}?court={{ court.id }}" class="btn btn-primary">
+                                <a href="{% url 'reservation_create' %}?court={{ court.id }}" class="btn btn-primary" style="border-radius: var(--border-radius-sm); font-weight: 500;">
                                     <i class="fas fa-calendar-plus me-1"></i> Book
                                 </a>
                                 {% endif %}
@@ -218,14 +223,16 @@
             </div>
             {% empty %}
             <div class="col-12">
-                <div class="card border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="card border-0" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                     <div class="card-body text-center py-5">
                         <div class="mb-4">
-                            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                            <div style="width: 80px; height: 80px; background: var(--bg-light); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-search fa-3x" style="color: var(--primary-light);"></i>
+                            </div>
                         </div>
-                        <h3 class="fw-bold mb-2">No courts found</h3>
-                        <p class="text-muted mb-4">Try adjusting your filters or search criteria to find available courts.</p>
-                        <a href="{% url 'all_courts' %}" class="btn btn-primary btn-lg px-5">
+                        <h3 class="fw-bold mb-2" style="color: var(--text-dark);">No courts found</h3>
+                        <p class="mb-4" style="color: var(--text-muted);">Try adjusting your filters or search criteria to find available courts.</p>
+                        <a href="{% url 'all_courts' %}" class="btn btn-primary btn-lg px-5" style="border-radius: var(--border-radius-sm);">
                             <i class="fas fa-undo me-2"></i>Clear Filters
                         </a>
                     </div>
@@ -260,15 +267,15 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-5" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
+<section class="py-5" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
                 <h2 class="display-5 fw-bold text-white mb-3">Can't Find What You're Looking For?</h2>
-                <p class="lead text-white-50 mb-0">Contact us for special arrangements or group bookings</p>
+                <p class="lead mb-0" style="color: rgba(255,255,255,0.85);">Contact us for special arrangements or group bookings</p>
             </div>
             <div class="col-lg-4 text-center text-lg-end">
-                <a href="{% url 'contact' %}" class="btn btn-light btn-lg px-5">
+                <a href="{% url 'contact' %}" class="btn btn-light btn-lg px-5" style="border-radius: var(--border-radius-sm); font-weight: 600;">
                     <i class="fas fa-phone me-2"></i>Contact Us
                 </a>
             </div>
@@ -279,17 +286,17 @@
 <style>
 /* Hover Effects */
 .hover-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
     cursor: pointer;
 }
 .hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 3rem rgba(0,0,0,0.15) !important;
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover) !important;
 }
 
 /* Smooth transitions */
 .card {
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
 }
 
 /* Custom scrollbar for filters */
@@ -298,14 +305,14 @@
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--bg-light);
 }
 ::-webkit-scrollbar-thumb {
-    background: #3B7A8C;
+    background: var(--primary-color);
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #2D5F6E;
+    background: var(--primary-dark);
 }
 </style>
 

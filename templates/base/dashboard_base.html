@@ -6,6 +6,16 @@
 .dropdown-toggle-hide-arrow::after {
     display: none !important;
 }
+.table-responsive {
+    overflow: visible;
+}
+.table-responsive::-webkit-scrollbar {
+    display: none;
+}
+.table-responsive {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 .notification-dropdown {
     padding: 0 !important;
     overflow: hidden;
@@ -214,7 +224,6 @@
 .header-icon-btn {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    overflow: hidden;
 }
 .header-icon-btn::after {
     content: '';
@@ -286,26 +295,6 @@
     transform: scale(1.1) rotate(5deg);
 }
 
-/* Enhanced Footer */
-.footer {
-    background: white;
-    border-top: 1px solid #e0e0e0;
-    padding: 20px 30px;
-    text-align: center;
-    color: #666;
-    font-size: 0.875rem;
-    position: relative;
-    overflow: hidden;
-}
-.footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-}
 </style>
 <div class="dashboard-wrapper">
     <!-- Sidebar -->
@@ -684,10 +673,6 @@
             {% block content %}{% endblock %}
         </div>
         
-        <!-- Footer -->
-        <footer class="footer">
-            <p>&copy; {% now "Y" %} PickleSphere. All rights reserved. | Pickleball Facility & Game Management System</p>
-        </footer>
     </main>
 </div>
 

@@ -14,7 +14,7 @@
     </div>
     <div class="card-body p-0">
         {% if sites %}
-        <div class="table-responsive">
+        <div class="table-container">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
@@ -71,6 +71,16 @@
 <style>
 .hover-row:hover {
     background-color: #f8f9fa;
+}
+.table-container {
+    overflow: visible;
+}
+.table-container::-webkit-scrollbar {
+    display: none;
+}
+.table-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 </style>
 {% endblock %}

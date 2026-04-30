@@ -11,51 +11,51 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <span class="badge bg-white text-primary mb-3 px-3 py-2"><i class="fas fa-headset me-2"></i>WE'RE HERE TO HELP</span>
-                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Get in Touch</h1>
-                <p class="lead mb-0 text-white-50" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">We'd love to hear from you. Reach out for any questions, inquiries, or just to say hello!</p>
+                <span class="badge mb-3 px-4 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;"><i class="fas fa-headset me-2"></i>We're Here to Help</span>
+                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">Get in Touch</h1>
+                <p class="lead mb-0" style="color: rgba(255,255,255,0.85); text-shadow: 1px 2px 4px rgba(0,0,0,0.3); max-width: 600px; margin: 0 auto;">We'd love to hear from you. Reach out for any questions, inquiries, or just to say hello!</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Contact Info Cards -->
-<section class="py-5" style="background: white; position: relative; z-index: 10; margin-top: -40px;">
+<section class="py-5" style="background: var(--bg-white); position: relative; z-index: 10; margin-top: -40px;">
     <div class="container">
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white);">
                     <div class="card-body text-center p-4">
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-phone fa-2x text-white"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Phone</h5>
-                        <p class="text-muted mb-0">{{ contact_info.phone|default:"+63 2 8123 4567" }}</p>
-                        <p class="text-muted small mb-0">Mon-Sat, 6AM - 10PM</p>
+                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Phone</h5>
+                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.phone|default:"+63 2 8123 4567" }}</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">Mon-Sat, 6AM - 10PM</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden; border: 2px solid #3B7A8C !important;">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow-lg); border: 2px solid var(--primary-color) !important; background: var(--bg-white);">
                     <div class="card-body text-center p-4">
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-envelope fa-2x text-white"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Email</h5>
-                        <p class="text-muted mb-0">{{ contact_info.email|default:"info@picklesphere.com" }}</p>
-                        <p class="text-muted small mb-0">We reply within 24 hours</p>
+                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Email</h5>
+                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.email|default:"info@picklesphere.com" }}</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">We reply within 24 hours</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px; overflow: hidden;">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white);">
                     <div class="card-body text-center p-4">
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--warning-color) 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-map-marker-alt fa-2x text-white"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Visit Us</h5>
-                        <p class="text-muted mb-0">{{ contact_info.address|default:"123 Sports Avenue, Makati City" }}</p>
-                        <p class="text-muted small mb-0">Metro Manila, Philippines</p>
+                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Visit Us</h5>
+                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.address|default:"123 Sports Avenue, Makati City" }}</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">Metro Manila, Philippines</p>
                     </div>
                 </div>
             </div>
@@ -371,16 +371,16 @@
 <style>
 /* Hover Effects */
 .hover-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 .hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover) !important;
 }
 
 /* Form Styling */
 .form-control:focus, .form-select:focus {
-    border-color: var(--primary-color, #3B7A8C);
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(59,122,140,0.25);
 }
 </style>
