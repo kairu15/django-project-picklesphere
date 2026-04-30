@@ -63,32 +63,32 @@
                 <form method="post" action="{% url 'login' %}">
                     {% csrf_token %}
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-muted">Email Address / Username</label>
-                        <div class="input-group" style="border-radius: 12px; overflow: hidden;">
-                            <span class="input-group-text bg-light border-end-0" style="padding-left: 15px;">
-                                <i class="fas fa-envelope text-primary"></i>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark mb-2">Email Address / Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="padding: 12px 15px;">
+                                <i class="fas fa-envelope text-muted"></i>
                             </span>
                             {{ form.username }}
                         </div>
                         {% if form.username.errors %}
-                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ form.username.errors.0 }}</div>
+                            <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.username.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-muted">Password</label>
-                        <div class="input-group" style="border-radius: 12px; overflow: hidden;">
-                            <span class="input-group-text bg-light border-end-0" style="padding-left: 15px;">
-                                <i class="fas fa-lock text-primary"></i>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark mb-2">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="padding: 12px 15px;">
+                                <i class="fas fa-lock text-muted"></i>
                             </span>
                             {{ form.password }}
-                            <button type="button" class="input-group-text bg-light border-start-0" onclick="togglePassword('id_password')" style="cursor: pointer;">
+                            <button type="button" class="input-group-text bg-white border-start-0" onclick="togglePassword('id_password')" style="cursor: pointer; padding: 12px 15px;">
                                 <i class="fas fa-eye text-muted" id="toggle-icon"></i>
                             </button>
                         </div>
                         {% if form.password.errors %}
-                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ form.password.errors.0 }}</div>
+                            <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.password.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
@@ -157,7 +157,88 @@
         input.style.borderRadius = '0 12px 12px 0';
         input.style.borderLeft = 'none';
         input.style.padding = '12px 15px';
+        input.style.border = '1px solid #e0e0e0';
+        input.style.fontSize = '14px';
     });
 </script>
+
+<style>
+/* Enhanced Auth Container */
+.auth-container {
+    animation: fadeInUp 0.6s ease;
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced Form Controls */
+.form-control {
+    transition: all 0.2s ease;
+    border: 1px solid #e0e0e0;
+    font-size: 14px;
+    padding: 12px 15px;
+}
+.form-control:focus {
+    border-color: var(--primary-color, #3B7A8C);
+    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
+    transform: translateY(-1px);
+}
+.input-group {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.input-group-text {
+    border: 1px solid #e0e0e0;
+    border-right: none;
+    background: #f8f9fa;
+}
+
+/* Enhanced Buttons */
+.btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.btn:active {
+    transform: translateY(0);
+}
+
+
+/* Enhanced Links */
+a {
+    transition: all 0.2s ease;
+}
+a:hover {
+    transform: translateY(-1px);
+}
+
+/* Enhanced Icon Circle */
+.auth-image .rounded-circle {
+    transition: transform 0.3s ease;
+}
+.auth-image .rounded-circle:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Enhanced Back Link */
+.auth-form-wrapper > a {
+    transition: all 0.3s ease;
+}
+.auth-form-wrapper > a:hover {
+    color: var(--primary-color, #3B7A8C) !important;
+    transform: translateX(-4px);
+}
+</style>
 {% endblock %}
 
