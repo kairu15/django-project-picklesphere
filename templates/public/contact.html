@@ -6,6 +6,31 @@
 {% block body %}
 {% include 'components/header.html' %}
 
+<!-- Floating Toast Notifications -->
+<div class="floating-toast-container" id="toastContainer">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="floating-toast {{ message.tags }}" role="alert" data-auto-dismiss="5000">
+                <div class="floating-toast-icon">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="floating-toast-content">{{ message }}</div>
+                <button type="button" class="floating-toast-close" onclick="dismissToast(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
 <!-- Hero Section -->
 <section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.85), rgba(59, 122, 140, 0.95)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920') center/cover; padding: 100px 0 80px; position: relative;">
     <div class="container">
@@ -74,14 +99,6 @@
                         <h4 class="fw-bold mb-0"><i class="fas fa-paper-plane me-2"></i>Send us a Message</h4>
                     </div>
                     <div class="card-body p-4">
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
                         <form method="post" action="{% url 'contact' %}">
                             {% csrf_token %}
                             <div class="row g-3">

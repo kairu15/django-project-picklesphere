@@ -4,6 +4,31 @@
 {% block title %}Create Account{% endblock %}
 
 {% block body %}
+<!-- Floating Toast Notifications -->
+<div class="floating-toast-container" id="toastContainer">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="floating-toast {{ message.tags }}" role="alert" data-auto-dismiss="5000">
+                <div class="floating-toast-icon">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="floating-toast-content">{{ message }}</div>
+                <button type="button" class="floating-toast-close" onclick="dismissToast(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
 <div class="auth-page" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 50%, #2D5F6E 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
     <div class="auth-container" style="background: white; border-radius: 20px; box-shadow: 0 25px 80px rgba(0,0,0,0.4); overflow: hidden; width: 100%; max-width: 1100px; display: flex; min-height: 750px;">
         <!-- Left Side - Benefits -->
@@ -47,16 +72,7 @@
                 
                 <h3 class="fw-bold mb-2">Create Your Account</h3>
                 <p class="text-muted mb-4">Join us for exclusive benefits and faster reservations</p>
-                
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                
+
                 <form method="post" action="{% url 'register' %}">
                     {% csrf_token %}
                     
