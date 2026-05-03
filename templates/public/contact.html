@@ -36,9 +36,9 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <span class="badge mb-3 px-4 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;"><i class="fas fa-headset me-2"></i>We're Here to Help</span>
-                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">Get in Touch</h1>
-                <p class="lead mb-0" style="color: rgba(255,255,255,0.85); text-shadow: 1px 2px 4px rgba(0,0,0,0.3); max-width: 600px; margin: 0 auto;">We'd love to hear from you. Reach out for any questions, inquiries, or just to say hello!</p>
+                <span class="badge mb-3 px-4 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;"><i class="fas fa-headset me-2"></i>{{ content.hero_badge }}</span>
+                <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">{{ content.hero_title }}</h1>
+                <p class="lead mb-0" style="color: rgba(255,255,255,0.85); text-shadow: 1px 2px 4px rgba(0,0,0,0.3); max-width: 600px; margin: 0 auto;">{{ content.hero_subtitle }}</p>
             </div>
         </div>
     </div>
@@ -54,9 +54,9 @@
                         <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-phone fa-2x text-white"></i>
                         </div>
-                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Phone</h5>
+                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">{{ content.phone_label }}</h5>
                         <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.phone|default:"+63 2 8123 4567" }}</p>
-                        <p class="small mb-0" style="color: var(--text-muted);">Mon-Sat, 6AM - 10PM</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">{{ content.phone_hours }}</p>
                     </div>
                 </div>
             </div>
@@ -66,9 +66,9 @@
                         <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-envelope fa-2x text-white"></i>
                         </div>
-                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Email</h5>
+                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">{{ content.email_label }}</h5>
                         <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.email|default:"info@picklesphere.com" }}</p>
-                        <p class="small mb-0" style="color: var(--text-muted);">We reply within 24 hours</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">{{ content.email_response }}</p>
                     </div>
                 </div>
             </div>
@@ -78,9 +78,9 @@
                         <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--warning-color) 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-map-marker-alt fa-2x text-white"></i>
                         </div>
-                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Visit Us</h5>
+                        <h5 class="fw-bold mb-2" style="color: var(--text-dark);">{{ content.visit_label }}</h5>
                         <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.address|default:"123 Sports Avenue, Makati City" }}</p>
-                        <p class="small mb-0" style="color: var(--text-muted);">Metro Manila, Philippines</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">{{ content.visit_city }}</p>
                     </div>
                 </div>
             </div>
@@ -96,22 +96,22 @@
             <div class="col-lg-7">
                 <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
                     <div class="card-header bg-primary text-white p-4">
-                        <h4 class="fw-bold mb-0"><i class="fas fa-paper-plane me-2"></i>Send us a Message</h4>
+                        <h4 class="fw-bold mb-0"><i class="fas fa-paper-plane me-2"></i>{{ content.form_title }}</h4>
                     </div>
                     <div class="card-body p-4">
                         <form method="post" action="{% url 'contact' %}">
                             {% csrf_token %}
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold text-primary"><i class="fas fa-user me-2"></i>Your Name</label>
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-user me-2"></i>{{ content.form_name_label }}</label>
                                     <input type="text" name="name" class="form-control form-control-lg" placeholder="John Doe" required style="border-radius: 10px;">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold text-primary"><i class="fas fa-envelope me-2"></i>Email Address</label>
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-envelope me-2"></i>{{ content.form_email_label }}</label>
                                     <input type="email" name="email" class="form-control form-control-lg" placeholder="john@example.com" required style="border-radius: 10px;">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label fw-bold text-primary"><i class="fas fa-tag me-2"></i>Subject</label>
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-tag me-2"></i>{{ content.form_subject_label }}</label>
                                     <select name="subject" class="form-select form-select-lg" required style="border-radius: 10px;">
                                         <option value="">Select a topic...</option>
                                         <option value="general">General Inquiry</option>
@@ -123,12 +123,12 @@
                                     </select>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label fw-bold text-primary"><i class="fas fa-comment me-2"></i>Message</label>
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-comment me-2"></i>{{ content.form_message_label }}</label>
                                     <textarea name="message" class="form-control form-control-lg" rows="5" placeholder="Tell us how we can help you..." required style="border-radius: 10px;"></textarea>
                                 </div>
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary btn-lg w-100" style="border-radius: 10px;">
-                                        <i class="fas fa-paper-plane me-2"></i>Send Message
+                                        <i class="fas fa-paper-plane me-2"></i>{{ content.form_submit_text }}
                                     </button>
                                 </div>
                             </div>
@@ -142,28 +142,18 @@
                 <!-- Business Hours -->
                 <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
                     <div class="card-header bg-transparent border-0 p-4">
-                        <h5 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>Business Hours</h5>
+                        <h5 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>{{ content.hours_title }}</h5>
                     </div>
                     <div class="card-body p-4 pt-0">
                         <div class="table-responsive">
                             <table class="table table-borderless">
                                 <tbody>
-                                    <tr class="border-bottom">
-                                        <td><i class="fas fa-calendar-day me-2 text-primary"></i>Monday - Friday</td>
-                                        <td class="text-end fw-bold">6:00 AM - 10:00 PM</td>
+                                    {% for hour in business_hours %}
+                                    <tr class="{% if not forloop.last %}border-bottom{% endif %}">
+                                        <td><i class="fas fa-calendar-day me-2 text-{{ hour.icon_color }}"></i>{{ hour.day_range }}</td>
+                                        <td class="text-end fw-bold">{{ hour.hours }}</td>
                                     </tr>
-                                    <tr class="border-bottom">
-                                        <td><i class="fas fa-calendar-day me-2 text-success"></i>Saturday</td>
-                                        <td class="text-end fw-bold">6:00 AM - 10:00 PM</td>
-                                    </tr>
-                                    <tr class="border-bottom">
-                                        <td><i class="fas fa-calendar-day me-2 text-warning"></i>Sunday</td>
-                                        <td class="text-end fw-bold">7:00 AM - 9:00 PM</td>
-                                    </tr>
-                                    <tr>
-                                        <td><i class="fas fa-gift me-2 text-danger"></i>Holidays</td>
-                                        <td class="text-end fw-bold">8:00 AM - 8:00 PM</td>
-                                    </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -173,7 +163,7 @@
                 <!-- Quick Links -->
                 <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
                     <div class="card-header bg-transparent border-0 p-4">
-                        <h5 class="fw-bold mb-0"><i class="fas fa-link me-2 text-primary"></i>Quick Links</h5>
+                        <h5 class="fw-bold mb-0"><i class="fas fa-link me-2 text-primary"></i>{{ content.quick_links_title }}</h5>
                     </div>
                     <div class="card-body p-4 pt-0">
                         <ul class="list-group list-group-flush">
@@ -214,27 +204,22 @@
                 </div>
 
                 <!-- Social Media -->
+                {% if social_links %}
                 <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
                     <div class="card-header bg-transparent border-0 p-4">
-                        <h5 class="fw-bold mb-0"><i class="fas fa-share-alt me-2 text-primary"></i>Follow Us</h5>
+                        <h5 class="fw-bold mb-0"><i class="fas fa-share-alt me-2 text-primary"></i>{{ content.social_title }}</h5>
                     </div>
                     <div class="card-body p-4 pt-0">
                         <div class="d-flex gap-2">
-                            <a href="#" class="btn btn-outline-primary flex-fill" style="border-radius: 10px;">
-                                <i class="fab fa-facebook-f fa-lg"></i>
+                            {% for link in social_links %}
+                            <a href="{{ link.url }}" class="btn {{ link.button_class }} flex-fill" style="border-radius: 10px;" target="_blank">
+                                <i class="{{ link.icon_class }} fa-lg"></i>
                             </a>
-                            <a href="#" class="btn btn-outline-info flex-fill" style="border-radius: 10px;">
-                                <i class="fab fa-twitter fa-lg"></i>
-                            </a>
-                            <a href="#" class="btn btn-outline-danger flex-fill" style="border-radius: 10px;">
-                                <i class="fab fa-instagram fa-lg"></i>
-                            </a>
-                            <a href="#" class="btn btn-outline-success flex-fill" style="border-radius: 10px;">
-                                <i class="fab fa-whatsapp fa-lg"></i>
-                            </a>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -244,9 +229,9 @@
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <span class="badge bg-info mb-3 px-3 py-2">FIND US</span>
-            <h2 class="display-5 fw-bold">Our Location</h2>
-            <p class="lead text-muted">Visit us and experience pickleball excellence</p>
+            <span class="badge bg-info mb-3 px-3 py-2">{{ content.map_badge }}</span>
+            <h2 class="display-5 fw-bold">{{ content.map_title }}</h2>
+            <p class="lead text-muted">{{ content.map_subtitle }}</p>
         </div>
         <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
             <div class="row g-0">
@@ -264,7 +249,7 @@
                 </div>
                 <div class="col-lg-4 bg-light">
                     <div class="p-4 h-100 d-flex flex-column justify-content-center">
-                        <h5 class="fw-bold mb-4"><i class="fas fa-info-circle me-2 text-primary"></i>Getting Here</h5>
+                        <h5 class="fw-bold mb-4"><i class="fas fa-info-circle me-2 text-primary"></i>{{ content.getting_here_title }}</h5>
                         <div class="mb-3">
                             <h6 class="fw-bold mb-1"><i class="fas fa-car me-2 text-primary"></i>By Car</h6>
                             <p class="text-muted small mb-0">Free parking available. Accessible via EDSA and SLEX.</p>
@@ -291,79 +276,30 @@
 <section class="py-5 bg-light">
     <div class="container">
         <div class="text-center mb-5">
-            <span class="badge bg-primary mb-3 px-3 py-2">FAQ</span>
-            <h2 class="display-5 fw-bold">Frequently Asked Questions</h2>
-            <p class="lead text-muted">Quick answers to common questions</p>
+            <span class="badge bg-primary mb-3 px-3 py-2">{{ content.faq_badge }}</span>
+            <h2 class="display-5 fw-bold">{{ content.faq_title }}</h2>
+            <p class="lead text-muted">{{ content.faq_subtitle }}</p>
         </div>
         <div class="row g-4">
+            {% for faq in faqs %}
             <div class="col-md-6">
                 <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-start">
                             <div class="flex-shrink-0">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(59,122,140,0.1);">
-                                    <i class="fas fa-question text-primary"></i>
+                                    <i class="fas fa-question text-{{ faq.icon_color }}"></i>
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="fw-bold mb-2 text-primary">How do I book a court?</h6>
-                                <p class="text-muted small mb-0">You can easily book a court through our online booking system. Create an account, select your preferred date and time, and complete the payment.</p>
+                                <h6 class="fw-bold mb-2 text-{{ faq.icon_color }}">{{ faq.question }}</h6>
+                                <p class="text-muted small mb-0">{{ faq.answer }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-shrink-0">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(40,167,69,0.1);">
-                                    <i class="fas fa-question text-success"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="fw-bold mb-2 text-success">Can I rent equipment?</h6>
-                                <p class="text-muted small mb-0">Yes! We offer paddle and ball rentals at affordable rates. Members enjoy free equipment rental as part of their membership benefits.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-shrink-0">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(255,193,7,0.1);">
-                                    <i class="fas fa-question text-warning"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="fw-bold mb-2 text-warning">Do you offer coaching?</h6>
-                                <p class="text-muted small mb-0">Absolutely! We have certified pickleball coaches available for private and group lessons. Contact us to schedule a session.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm hover-card" style="border-radius: 12px;">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-shrink-0">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(23,162,184,0.1);">
-                                    <i class="fas fa-question text-info"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="fw-bold mb-2 text-info">How do I join tournaments?</h6>
-                                <p class="text-muted small mb-0">Tournament registration is done through our website. Navigate to the Tournaments page, select an event, and click Register to join.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
@@ -373,8 +309,8 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
-                <h2 class="display-5 fw-bold text-white mb-3">Ready to Start Playing?</h2>
-                <p class="lead text-white-50 mb-0">Don't wait! Book your court today and join our growing pickleball community.</p>
+                <h2 class="display-5 fw-bold text-white mb-3">{{ content.cta_title }}</h2>
+                <p class="lead text-white-50 mb-0">{{ content.cta_subtitle }}</p>
             </div>
             <div class="col-lg-4 text-center text-lg-end">
                 <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5">

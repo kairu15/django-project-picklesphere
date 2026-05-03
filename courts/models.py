@@ -106,16 +106,38 @@ class Court(models.Model):
         return slots
 
 
+class CourtImage(models.Model):
+    court = models.ForeignKey(Court, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='courts/gallery/')
+    alt_text = models.CharField(max_length=200, blank=True, null=True)
+    is_primary = models.BooleanField(default=False)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'court_images'
+        ordering = ['order', '-is_primary', '-created_at']
+
+    def __str__(self):
+        return f"{self.court.name} - Image {self.id}"
+
+    def save(self, *args, **kwargs):
+        # Ensure only one primary image per court
+        if self.is_primary:
+            CourtImage.objects.filter(court=self.court, is_primary=True).exclude(id=self.id).update(is_primary=False)
+        super().save(*args, **kwargs)
+
+
 class CourtAvailability(models.Model):
     court = models.ForeignKey(Court, on_delete=models.CASCADE, related_name='availability')
     day_of_week = models.IntegerField(choices=[(i, i) for i in range(7)])  # 0=Monday
     opening_time = models.TimeField()
     closing_time = models.TimeField()
     is_closed = models.BooleanField(default=False)
-    
+
     class Meta:
         db_table = 'court_availability'
         unique_together = ['court', 'day_of_week']
-    
+
     def __str__(self):
         return f"{self.court.name} - Day {self.day_of_week}"

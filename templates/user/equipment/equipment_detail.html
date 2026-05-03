@@ -19,9 +19,9 @@
     <div class="col-lg-8">
         <!-- Main Equipment Card -->
         <div class="card border-0 shadow-lg mb-4 equipment-main-card" style="border-radius: 16px; overflow: hidden;">
-            <div class="equipment-image-wrapper" style="height: 320px; overflow: hidden;">
+            <div class="equipment-image-wrapper image-wrapper" style="height: 320px; overflow: hidden;">
                 {% if equipment.image %}
-                    <img src="{{ equipment.image.url }}" class="card-img-top equipment-image" alt="{{ equipment.name }}" style="height: 100%; object-fit: cover; transition: transform 0.5s ease;">
+                    <img src="{{ equipment.image.url }}" class="card-img-top equipment-image equipment-detail-image clickable-image" alt="{{ equipment.name }}" data-lightbox data-caption="{{ equipment.name }} - {{ equipment.get_type_display }}" style="transition: transform 0.5s ease;">
                 {% else %}
                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center h-100">
                         <div class="equipment-detail-placeholder" style="width: 100px; height: 100px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">

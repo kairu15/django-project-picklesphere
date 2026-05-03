@@ -347,8 +347,32 @@ def admin_dashboard_view(request):
 def pricing_view(request):
     """Pricing page - accessible to all users"""
     from courts.models import Court
+    from .models import PricingContent, PricingTier, PricingFAQ
 
     courts = Court.objects.filter(is_active=True)
+
+    # Get content from database with fallback defaults
+    def get_content(section, default):
+        content = PricingContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+
+    content = {
+        'hero_badge': get_content('hero_badge', 'Transparent Pricing'),
+        'hero_title': get_content('hero_title', 'Simple, Fair Pricing'),
+        'hero_subtitle': get_content('hero_subtitle', 'Choose the perfect plan for your pickleball journey. No hidden fees, no surprises.'),
+        'court_rates_title': get_content('court_rates_title', 'Hourly Court Rates'),
+        'court_rates_subtitle': get_content('court_rates_subtitle', 'Premium courts at competitive prices'),
+        'membership_title': get_content('membership_title', 'Membership Plans'),
+        'membership_subtitle': get_content('membership_subtitle', 'Save more with our exclusive membership options'),
+        'comparison_title': get_content('comparison_title', 'Compare Plans'),
+        'comparison_subtitle': get_content('comparison_subtitle', 'Find the perfect fit for your needs'),
+        'services_title': get_content('services_title', 'Equipment & Services'),
+        'services_subtitle': get_content('services_subtitle', 'Everything you need for the perfect game'),
+        'faq_title': get_content('faq_title', 'Frequently Asked Questions'),
+        'faq_subtitle': get_content('faq_subtitle', 'Got questions? We\'ve got answers'),
+        'cta_title': get_content('cta_title', 'Ready to Start Playing?'),
+        'cta_subtitle': get_content('cta_subtitle', 'Book a court today and experience the best pickleball facility in town.'),
+    }
 
     # Calculate pricing tiers based on court types
     standard_courts = courts.filter(court_type='standard')
@@ -359,32 +383,75 @@ def pricing_view(request):
         'standard_rate': 300 if standard_courts.exists() else 350,
         'premium_rate': 400 if premium_courts.exists() else 450,
         'indoor_rate': 500 if indoor_courts.exists() else 550,
-        'membership_tiers': [
+    }
+
+    # Get membership tiers from database or use defaults
+    db_tiers = PricingTier.objects.filter(is_active=True).order_by('display_order', 'price')
+    if db_tiers.exists():
+        membership_tiers = []
+        for tier in db_tiers:
+            membership_tiers.append({
+                'name': tier.name,
+                'price': float(tier.price),
+                'period': tier.period,
+                'features': tier.features,
+                'recommended': tier.is_recommended
+            })
+    else:
+        # Fallback default membership tiers
+        membership_tiers = [
             {
-                'name': 'Casual Player',
+                'name': 'Basic',
                 'price': 0,
-                'features': ['Pay per session', 'Standard court access', 'Equipment rental available'],
+                'features': ['Court booking access', 'Online reservations', 'Basic equipment rental', 'No priority booking', 'No member discounts'],
                 'recommended': False
-            },
-            {
-                'name': 'Regular Member',
-                'price': 999,
-                'period': 'month',
-                'features': ['10 hours/month included', '10% off additional hours', 'Priority booking (2 days advance)', 'Free equipment rental'],
-                'recommended': True
             },
             {
                 'name': 'Pro Member',
-                'price': 2499,
+                'price': 999,
                 'period': 'month',
-                'features': ['Unlimited court access', 'Premium court access', 'Priority booking (7 days advance)', 'Free premium equipment', 'Tournament entry discounts'],
+                'features': ['All Basic features', '10% off court rentals', 'Priority booking', 'Free paddle rental', 'Tournament discounts'],
+                'recommended': True
+            },
+            {
+                'name': 'Elite',
+                'price': 1999,
+                'period': 'month',
+                'features': ['All Pro features', '20% off court rentals', 'Unlimited bookings', 'Free equipment use', 'Coaching sessions'],
                 'recommended': False
             }
         ]
-    }
+
+    # Get FAQs from database or use defaults
+    db_faqs = PricingFAQ.objects.filter(is_active=True).order_by('display_order', '-created_at')
+    if db_faqs.exists():
+        faqs = db_faqs[:4]  # Get first 4 active FAQs
+    else:
+        # Fallback default FAQs
+        faqs = [
+            {
+                'question': 'Can I cancel my booking?',
+                'answer': 'Yes, you can cancel up to 24 hours before your scheduled time for a full refund. Cancellations within 24 hours may be subject to a fee.'
+            },
+            {
+                'question': 'Do memberships auto-renew?',
+                'answer': 'Yes, monthly memberships auto-renew unless cancelled. You can cancel anytime from your account settings.'
+            },
+            {
+                'question': 'Can I upgrade my membership?',
+                'answer': 'Absolutely! You can upgrade your membership at any time. The price difference will be prorated for the remaining period.'
+            },
+            {
+                'question': 'Are there any hidden fees?',
+                'answer': 'No hidden fees! The prices shown are exactly what you\'ll pay. Equipment rental and other services are clearly priced.'
+            },
+        ]
 
     return render(request, 'public/pricing.html', {
         'pricing': pricing_data,
+        'content': content,
+        'membership_tiers': membership_tiers,
+        'faqs': faqs,
         'courts': courts
     })
 
@@ -393,26 +460,116 @@ def about_view(request):
     """About page - accessible to all users"""
     from courts.models import Court
     from accounts.models import User
+    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem
 
+    # Get content from database with fallback defaults
+    def get_content(section, default):
+        content = AboutContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+
+    content = {
+        'hero_badge': get_content('hero_badge', 'Our Story'),
+        'hero_title': get_content('hero_title', 'Welcome to PickleSphere'),
+        'hero_subtitle': get_content('hero_subtitle', 'The Philippines\' premier pickleball destination, where passion meets excellence'),
+        'mission_title': get_content('mission_title', 'Our Mission'),
+        'mission_text': get_content('mission_text', 'To promote the sport of pickleball in the Philippines by providing world-class facilities, fostering a vibrant community, and making the sport accessible to players of all ages and skill levels.'),
+        'mission_features': get_content('mission_features', 'World-class facilities,Vibrant community,All skill levels,Accessible pricing').split(','),
+        'vision_title': get_content('vision_title', 'Our Vision'),
+        'vision_text': get_content('vision_text', 'To be the leading pickleball facility in Southeast Asia, known for excellence in facilities, coaching, and community engagement, while developing the next generation of Filipino pickleball champions.'),
+        'vision_features': get_content('vision_features', 'Southeast Asia leader,Excellence in coaching,Community focused,Champion development').split(','),
+        'stats_courts': get_content('stats_courts', 'Professional Courts'),
+        'stats_members': get_content('stats_members', 'Active Members'),
+        'stats_years': get_content('stats_years', 'Years Operating'),
+        'stats_tournaments': get_content('stats_tournaments', 'Tournaments Hosted'),
+        'journey_badge': get_content('journey_badge', 'OUR JOURNEY'),
+        'journey_title': get_content('journey_title', 'The PickleSphere Story'),
+        'journey_subtitle': get_content('journey_subtitle', 'From humble beginnings to becoming a leader in pickleball'),
+        'team_badge': get_content('team_badge', 'OUR TEAM'),
+        'team_title': get_content('team_title', 'Meet the Experts'),
+        'team_subtitle': get_content('team_subtitle', 'Passionate professionals dedicated to your pickleball journey'),
+        'facilities_badge': get_content('facilities_badge', 'FACILITIES'),
+        'facilities_title': get_content('facilities_title', 'World-Class Amenities'),
+        'facilities_subtitle': get_content('facilities_subtitle', 'Everything you need for the perfect pickleball experience'),
+        'why_badge': get_content('why_badge', 'WHY PICKLESPHERE'),
+        'why_title': get_content('why_title', 'Why Players Choose Us'),
+        'why_subtitle': get_content('why_subtitle', 'We provide an unmatched pickleball experience that keeps our members coming back.'),
+        'gallery_badge': get_content('gallery_badge', 'GALLERY'),
+        'gallery_title': get_content('gallery_title', 'Explore Our Facility'),
+        'gallery_subtitle': get_content('gallery_subtitle', 'Take a virtual tour of our world-class pickleball courts'),
+        'location_badge': get_content('location_badge', 'VISIT US'),
+        'location_title': get_content('location_title', 'Come Play With Us'),
+        'location_description': get_content('location_description', 'Located in the heart of Makati City, PickleSphere is easily accessible from all parts of Metro Manila with ample parking available.'),
+        'cta_title': get_content('cta_title', 'Join the PickleSphere Community'),
+        'cta_subtitle': get_content('cta_subtitle', 'Experience the fastest-growing sport in the Philippines. Sign up today and start your pickleball journey!'),
+    }
+
+    # Get dynamic stats
     stats = {
         'total_courts': Court.objects.filter(is_active=True).count(),
         'total_members': User.objects.filter(is_active=True).count(),
-        'years_operating': 3,
+        'years_operating': 8,
         'tournaments_hosted': 50
     }
 
-    facilities = [
-        {'icon': 'fa-th-large', 'title': 'Premium Courts', 'description': '12 professional-grade pickleball courts with premium surfaces'},
-        {'icon': 'fa-wifi', 'title': 'Free WiFi', 'description': 'High-speed internet throughout the facility'},
-        {'icon': 'fa-car', 'title': 'Ample Parking', 'description': 'Free parking for over 100 vehicles'},
-        {'icon': 'fa-shower', 'title': 'Locker Rooms', 'description': 'Clean locker rooms with showers available'},
-        {'icon': 'fa-coffee', 'title': 'Café & Lounge', 'description': 'Refreshments and comfortable seating area'},
-        {'icon': 'fa-tools', 'title': 'Pro Shop', 'description': 'Equipment sales, rentals, and professional stringing'},
-    ]
+    # Get milestones from database or use defaults
+    db_milestones = Milestone.objects.filter(is_active=True).order_by('display_order', 'year')
+    if db_milestones.exists():
+        milestones = db_milestones
+    else:
+        # Fallback default milestones
+        milestones = [
+            {'year': '2016', 'title': 'The Beginning', 'description': 'PickleSphere was founded with just 4 outdoor courts, bringing pickleball to the Philippines for the first time.', 'color': 'primary'},
+            {'year': '2019', 'title': 'Expansion', 'description': 'Added 6 indoor climate-controlled courts and opened our pro shop with equipment rentals.', 'color': 'success'},
+            {'year': '2023', 'title': 'Digital Transformation', 'description': 'Launched our online booking platform and mobile app for seamless court reservations.', 'color': 'warning'},
+        ]
+
+    # Get team members from database or use defaults
+    db_team = TeamMember.objects.filter(is_active=True).order_by('display_order')
+    if db_team.exists():
+        team_members = db_team
+    else:
+        # Fallback default team members
+        team_members = [
+            {'name': 'John Santos', 'role': 'Founder & Head Coach', 'bio': 'Former national player with 15+ years of coaching experience. Certified IPTPA instructor.', 'color': 'primary', 'linkedin_url': '#', 'twitter_url': '#'},
+            {'name': 'Maria Garcia', 'role': 'Tournament Director', 'bio': 'Expert in organizing competitive events. Former tournament player and certified referee.', 'color': 'success', 'linkedin_url': '#', 'twitter_url': '#'},
+            {'name': 'David Chen', 'role': 'Facility Manager', 'bio': 'Ensures our courts are always in perfect condition. Expert in court maintenance and operations.', 'color': 'warning', 'linkedin_url': '#', 'twitter_url': '#'},
+        ]
+
+    # Get facilities from database or use defaults
+    db_facilities = Facility.objects.filter(is_active=True).order_by('display_order')
+    if db_facilities.exists():
+        facilities = db_facilities
+    else:
+        # Fallback default facilities
+        facilities = [
+            {'icon': 'fa-table-tennis', 'title': 'Premium Courts', 'description': '12 professional-grade courts with cushioned surfaces and excellent lighting.', 'color': 'primary'},
+            {'icon': 'fa-wind', 'title': 'Climate Control', 'description': '6 indoor courts with full air conditioning and climate control.', 'color': 'success'},
+            {'icon': 'fa-dumbbell', 'title': 'Pro Shop', 'description': 'Equipment sales, rentals, and professional stringing services.', 'color': 'warning'},
+            {'icon': 'fa-shower', 'title': 'Locker Rooms', 'description': 'Clean, modern locker rooms with showers and secure storage.', 'color': 'info'},
+            {'icon': 'fa-coffee', 'title': 'Cafe & Lounge', 'description': 'Relax and refuel with healthy snacks and beverages.', 'color': 'danger'},
+            {'icon': 'fa-car', 'title': 'Ample Parking', 'description': 'Free, secure parking for over 100 vehicles.', 'color': 'purple'},
+        ]
+
+    # Get why choose items from database or use defaults
+    db_why_items = WhyChooseItem.objects.filter(is_active=True).order_by('display_order')
+    if db_why_items.exists():
+        why_items = db_why_items
+    else:
+        # Fallback default why choose items
+        why_items = [
+            {'icon': 'fa-medal', 'title': 'Premium Facilities', 'description': 'Professional courts with top-quality surfaces.', 'color': 'primary'},
+            {'icon': 'fa-users', 'title': 'Vibrant Community', 'description': 'Friendly players and social events.', 'color': 'success'},
+            {'icon': 'fa-chalkboard-teacher', 'title': 'Expert Coaching', 'description': 'Certified coaches for all skill levels.', 'color': 'warning'},
+            {'icon': 'fa-mobile-alt', 'title': 'Easy Booking', 'description': '24/7 online court reservations.', 'color': 'info'},
+        ]
 
     return render(request, 'public/about.html', {
+        'content': content,
         'stats': stats,
-        'facilities': facilities
+        'milestones': milestones,
+        'team_members': team_members,
+        'facilities': facilities,
+        'why_items': why_items,
     })
 
 
@@ -420,6 +577,42 @@ def contact_view(request):
     """Contact page - accessible to all users"""
     from django.core.mail import send_mail
     from django.conf import settings
+    from .models import ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
+
+    # Get content from database with fallback defaults
+    def get_content(section, default):
+        content = ContactContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+
+    content = {
+        'hero_badge': get_content('hero_badge', "We're Here to Help"),
+        'hero_title': get_content('hero_title', 'Get in Touch'),
+        'hero_subtitle': get_content('hero_subtitle', "We'd love to hear from you. Reach out for any questions, inquiries, or just to say hello!"),
+        'phone_label': get_content('phone_label', 'Phone'),
+        'phone_hours': get_content('phone_hours', 'Mon-Sat, 6AM - 10PM'),
+        'email_label': get_content('email_label', 'Email'),
+        'email_response': get_content('email_response', 'We reply within 24 hours'),
+        'visit_label': get_content('visit_label', 'Visit Us'),
+        'visit_city': get_content('visit_city', 'Metro Manila, Philippines'),
+        'form_title': get_content('form_title', 'Send us a Message'),
+        'form_name_label': get_content('form_name_label', 'Your Name'),
+        'form_email_label': get_content('form_email_label', 'Email Address'),
+        'form_subject_label': get_content('form_subject_label', 'Subject'),
+        'form_message_label': get_content('form_message_label', 'Message'),
+        'form_submit_text': get_content('form_submit_text', 'Send Message'),
+        'hours_title': get_content('hours_title', 'Business Hours'),
+        'quick_links_title': get_content('quick_links_title', 'Quick Links'),
+        'social_title': get_content('social_title', 'Follow Us'),
+        'map_badge': get_content('map_badge', 'FIND US'),
+        'map_title': get_content('map_title', 'Our Location'),
+        'map_subtitle': get_content('map_subtitle', 'Visit us and experience pickleball excellence'),
+        'getting_here_title': get_content('getting_here_title', 'Getting Here'),
+        'faq_badge': get_content('faq_badge', 'FAQ'),
+        'faq_title': get_content('faq_title', 'Frequently Asked Questions'),
+        'faq_subtitle': get_content('faq_subtitle', 'Quick answers to common questions'),
+        'cta_title': get_content('cta_title', 'Ready to Start Playing?'),
+        'cta_subtitle': get_content('cta_subtitle', "Don't wait! Book your court today and join our growing pickleball community."),
+    }
 
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -445,19 +638,66 @@ def contact_view(request):
         else:
             messages.error(request, 'Please fill in all fields.')
 
-    contact_info = {
-        'email': 'info@picklesphere.com',
-        'phone': '+63 2 8123 4567',
-        'address': '123 Sports Avenue, Makati City, Metro Manila, Philippines',
-        'hours': [
-            ('Monday - Friday', '6:00 AM - 10:00 PM'),
-            ('Saturday - Sunday', '7:00 AM - 9:00 PM'),
-            ('Holidays', '8:00 AM - 6:00 PM')
+    # Get contact info from database or create default
+    contact_info_obj = ContactInfo.objects.first()
+    if contact_info_obj:
+        contact_info = {
+            'phone': contact_info_obj.phone,
+            'email': contact_info_obj.email,
+            'address': contact_info_obj.address,
+            'city_country': contact_info_obj.city_country,
+            'google_maps_url': contact_info_obj.google_maps_url,
+        }
+    else:
+        # Fallback default contact info
+        contact_info = {
+            'phone': '+63 2 8123 4567',
+            'email': 'info@picklesphere.com',
+            'address': '123 Sports Avenue, Makati City',
+            'city_country': 'Metro Manila, Philippines',
+            'google_maps_url': 'https://maps.google.com/?q=14.5547,121.0244',
+        }
+
+    # Get business hours from database or use defaults
+    db_hours = BusinessHour.objects.filter(is_active=True).order_by('display_order')
+    if db_hours.exists():
+        business_hours = db_hours
+    else:
+        # Fallback default business hours
+        business_hours = [
+            {'day_range': 'Monday - Friday', 'hours': '6:00 AM - 10:00 PM', 'icon_color': 'primary'},
+            {'day_range': 'Saturday', 'hours': '6:00 AM - 10:00 PM', 'icon_color': 'success'},
+            {'day_range': 'Sunday', 'hours': '7:00 AM - 9:00 PM', 'icon_color': 'warning'},
+            {'day_range': 'Holidays', 'hours': '8:00 AM - 8:00 PM', 'icon_color': 'danger'},
         ]
-    }
+
+    # Get FAQs from database or use defaults
+    db_faqs = ContactFAQ.objects.filter(is_active=True).order_by('display_order')
+    if db_faqs.exists():
+        faqs = db_faqs
+    else:
+        # Fallback default FAQs
+        faqs = [
+            {'question': 'How do I book a court?', 'answer': 'You can easily book a court through our online booking system. Create an account, select your preferred date and time, and complete the payment.', 'icon_color': 'primary'},
+            {'question': 'Can I rent equipment?', 'answer': 'Yes! We offer paddle and ball rentals at affordable rates. Members enjoy free equipment rental as part of their membership benefits.', 'icon_color': 'success'},
+            {'question': 'Do you offer coaching?', 'answer': 'Absolutely! We have certified pickleball coaches available for private and group lessons. Contact us to schedule a session.', 'icon_color': 'warning'},
+            {'question': 'How do I join tournaments?', 'answer': 'Tournament registration is done through our website. Navigate to the Tournaments page, select an event, and click Register to join.', 'icon_color': 'info'},
+        ]
+
+    # Get social links from database or use defaults
+    db_socials = SocialLink.objects.filter(is_active=True).order_by('display_order')
+    if db_socials.exists():
+        social_links = db_socials
+    else:
+        # Fallback default social links (empty - no social links shown)
+        social_links = []
 
     return render(request, 'public/contact.html', {
-        'contact_info': contact_info
+        'content': content,
+        'contact_info': contact_info,
+        'business_hours': business_hours,
+        'faqs': faqs,
+        'social_links': social_links,
     })
 
 
@@ -799,3 +1039,888 @@ def faq_view(request):
     ]
     
     return render(request, 'public/faq.html', {'faq_categories': faq_categories})
+
+
+# ============================================================================
+# PRICING PAGE MANAGEMENT
+# ============================================================================
+
+@login_required
+def pricing_management(request):
+    """Pricing page content management"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingContent, PricingTier, PricingFAQ
+    
+    content = PricingContent.objects.filter(is_active=True).order_by('section')
+    tiers = PricingTier.objects.all().order_by('display_order', 'price')
+    faqs = PricingFAQ.objects.all().order_by('display_order')
+    
+    context = {
+        'content': content,
+        'tiers': tiers,
+        'faqs': faqs,
+        'page_title': 'Pricing Page Management'
+    }
+    return render(request, 'admin/pricing/pricing_management.html', context)
+
+
+@login_required
+def pricing_edit_content(request, content_id=None):
+    """Edit or create pricing page content"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingContent
+    
+    content_item = None
+    if content_id:
+        content_item = get_object_or_404(PricingContent, id=content_id)
+    
+    if request.method == 'POST':
+        section = request.POST.get('section')
+        content_text = request.POST.get('content')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        if content_item:
+            content_item.section = section
+            content_item.content = content_text
+            content_item.is_active = is_active
+            content_item.save()
+            messages.success(request, 'Content updated successfully!')
+        else:
+            PricingContent.objects.create(
+                section=section,
+                content=content_text,
+                is_active=is_active
+            )
+            messages.success(request, 'Content created successfully!')
+        
+        return redirect('pricing_management')
+    
+    context = {
+        'content_item': content_item,
+        'section_choices': PricingContent.SECTION_CHOICES,
+        'page_title': 'Edit Pricing Content' if content_item else 'New Pricing Content'
+    }
+    return render(request, 'admin/pricing/pricing_edit_content.html', context)
+
+
+@login_required
+def pricing_delete_content(request, content_id):
+    """Delete pricing content"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingContent
+    content = get_object_or_404(PricingContent, id=content_id)
+    content.delete()
+    messages.success(request, 'Content deleted successfully!')
+    return redirect('pricing_management')
+
+
+@login_required
+def pricing_edit_tier(request, tier_id=None):
+    """Edit or create pricing tier"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingTier
+    import json
+    
+    tier = None
+    if tier_id:
+        tier = get_object_or_404(PricingTier, id=tier_id)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        price = request.POST.get('price', 0)
+        period = request.POST.get('period', '')
+        description = request.POST.get('description', '')
+        features_json = request.POST.get('features', '[]')
+        is_recommended = request.POST.get('is_recommended') == 'on'
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        try:
+            features = json.loads(features_json)
+        except:
+            features = []
+        
+        if tier:
+            tier.name = name
+            tier.price = price
+            tier.period = period
+            tier.description = description
+            tier.features = features
+            tier.is_recommended = is_recommended
+            tier.is_active = is_active
+            tier.display_order = display_order
+            tier.save()
+            messages.success(request, 'Pricing tier updated successfully!')
+        else:
+            PricingTier.objects.create(
+                name=name,
+                price=price,
+                period=period,
+                description=description,
+                features=features,
+                is_recommended=is_recommended,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'Pricing tier created successfully!')
+        
+        return redirect('pricing_management')
+    
+    context = {
+        'tier': tier,
+        'page_title': 'Edit Pricing Tier' if tier else 'New Pricing Tier'
+    }
+    return render(request, 'admin/pricing/pricing_edit_tier.html', context)
+
+
+@login_required
+def pricing_delete_tier(request, tier_id):
+    """Delete pricing tier"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingTier
+    tier = get_object_or_404(PricingTier, id=tier_id)
+    tier.delete()
+    messages.success(request, 'Pricing tier deleted successfully!')
+    return redirect('pricing_management')
+
+
+@login_required
+def pricing_edit_faq(request, faq_id=None):
+    """Edit or create pricing FAQ"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingFAQ
+    
+    faq = None
+    if faq_id:
+        faq = get_object_or_404(PricingFAQ, id=faq_id)
+    
+    if request.method == 'POST':
+        question = request.POST.get('question')
+        answer = request.POST.get('answer')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if faq:
+            faq.question = question
+            faq.answer = answer
+            faq.is_active = is_active
+            faq.display_order = display_order
+            faq.save()
+            messages.success(request, 'FAQ updated successfully!')
+        else:
+            PricingFAQ.objects.create(
+                question=question,
+                answer=answer,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'FAQ created successfully!')
+        
+        return redirect('pricing_management')
+    
+    context = {
+        'faq': faq,
+        'page_title': 'Edit Pricing FAQ' if faq else 'New Pricing FAQ'
+    }
+    return render(request, 'admin/pricing/pricing_edit_faq.html', context)
+
+
+@login_required
+def pricing_delete_faq(request, faq_id):
+    """Delete pricing FAQ"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import PricingFAQ
+    faq = get_object_or_404(PricingFAQ, id=faq_id)
+    faq.delete()
+    messages.success(request, 'FAQ deleted successfully!')
+    return redirect('pricing_management')
+
+
+# ============================================================================
+# ABOUT PAGE MANAGEMENT
+# ============================================================================
+
+@login_required
+def about_management(request):
+    """About page content management"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem
+    
+    content = AboutContent.objects.filter(is_active=True).order_by('section')
+    milestones = Milestone.objects.all().order_by('display_order', 'year')
+    team_members = TeamMember.objects.all().order_by('display_order')
+    facilities = Facility.objects.all().order_by('display_order')
+    why_items = WhyChooseItem.objects.all().order_by('display_order')
+    
+    context = {
+        'content': content,
+        'milestones': milestones,
+        'team_members': team_members,
+        'facilities': facilities,
+        'why_items': why_items,
+        'page_title': 'About Page Management'
+    }
+    return render(request, 'admin/about/about_management.html', context)
+
+
+@login_required
+def about_edit_content(request, content_id=None):
+    """Edit or create about page content"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import AboutContent
+    
+    content_item = None
+    if content_id:
+        content_item = get_object_or_404(AboutContent, id=content_id)
+    
+    if request.method == 'POST':
+        section = request.POST.get('section')
+        content_text = request.POST.get('content')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        if content_item:
+            content_item.section = section
+            content_item.content = content_text
+            content_item.is_active = is_active
+            content_item.save()
+            messages.success(request, 'Content updated successfully!')
+        else:
+            AboutContent.objects.create(
+                section=section,
+                content=content_text,
+                is_active=is_active
+            )
+            messages.success(request, 'Content created successfully!')
+        
+        return redirect('about_management')
+    
+    context = {
+        'content_item': content_item,
+        'section_choices': AboutContent.SECTION_CHOICES,
+        'page_title': 'Edit About Content' if content_item else 'New About Content'
+    }
+    return render(request, 'admin/about/about_edit_content.html', context)
+
+
+@login_required
+def about_delete_content(request, content_id):
+    """Delete about content"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import AboutContent
+    content = get_object_or_404(AboutContent, id=content_id)
+    content.delete()
+    messages.success(request, 'Content deleted successfully!')
+    return redirect('about_management')
+
+
+@login_required
+def about_edit_milestone(request, milestone_id=None):
+    """Edit or create milestone"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Milestone
+    
+    milestone = None
+    if milestone_id:
+        milestone = get_object_or_404(Milestone, id=milestone_id)
+    
+    if request.method == 'POST':
+        year = request.POST.get('year')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        color = request.POST.get('color', 'primary')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if milestone:
+            milestone.year = year
+            milestone.title = title
+            milestone.description = description
+            milestone.color = color
+            milestone.is_active = is_active
+            milestone.display_order = display_order
+            milestone.save()
+            messages.success(request, 'Milestone updated successfully!')
+        else:
+            Milestone.objects.create(
+                year=year,
+                title=title,
+                description=description,
+                color=color,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'Milestone created successfully!')
+        
+        return redirect('about_management')
+    
+    context = {
+        'milestone': milestone,
+        'color_choices': [('primary', 'Primary'), ('success', 'Success'), ('warning', 'Warning'), ('info', 'Info'), ('danger', 'Danger')],
+        'page_title': 'Edit Milestone' if milestone else 'New Milestone'
+    }
+    return render(request, 'admin/about/about_edit_milestone.html', context)
+
+
+@login_required
+def about_delete_milestone(request, milestone_id):
+    """Delete milestone"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Milestone
+    milestone = get_object_or_404(Milestone, id=milestone_id)
+    milestone.delete()
+    messages.success(request, 'Milestone deleted successfully!')
+    return redirect('about_management')
+
+
+@login_required
+def about_edit_team_member(request, member_id=None):
+    """Edit or create team member"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import TeamMember
+    
+    member = None
+    if member_id:
+        member = get_object_or_404(TeamMember, id=member_id)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        role = request.POST.get('role')
+        bio = request.POST.get('bio')
+        linkedin_url = request.POST.get('linkedin_url', '')
+        twitter_url = request.POST.get('twitter_url', '')
+        color = request.POST.get('color', 'primary')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if member:
+            member.name = name
+            member.role = role
+            member.bio = bio
+            member.linkedin_url = linkedin_url
+            member.twitter_url = twitter_url
+            member.color = color
+            member.is_active = is_active
+            member.display_order = display_order
+            if request.FILES.get('photo'):
+                member.photo = request.FILES['photo']
+            member.save()
+            messages.success(request, 'Team member updated successfully!')
+        else:
+            TeamMember.objects.create(
+                name=name,
+                role=role,
+                bio=bio,
+                linkedin_url=linkedin_url,
+                twitter_url=twitter_url,
+                color=color,
+                is_active=is_active,
+                display_order=display_order,
+                photo=request.FILES.get('photo')
+            )
+            messages.success(request, 'Team member created successfully!')
+        
+        return redirect('about_management')
+    
+    context = {
+        'member': member,
+        'color_choices': [('primary', 'Primary'), ('success', 'Success'), ('warning', 'Warning'), ('info', 'Info'), ('danger', 'Danger')],
+        'page_title': 'Edit Team Member' if member else 'New Team Member'
+    }
+    return render(request, 'admin/about/about_edit_team_member.html', context)
+
+
+@login_required
+def about_delete_team_member(request, member_id):
+    """Delete team member"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import TeamMember
+    member = get_object_or_404(TeamMember, id=member_id)
+    member.delete()
+    messages.success(request, 'Team member deleted successfully!')
+    return redirect('about_management')
+
+
+@login_required
+def about_edit_facility(request, facility_id=None):
+    """Edit or create facility"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Facility
+    
+    facility = None
+    if facility_id:
+        facility = get_object_or_404(Facility, id=facility_id)
+    
+    if request.method == 'POST':
+        icon = request.POST.get('icon')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        color = request.POST.get('color', 'primary')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if facility:
+            facility.icon = icon
+            facility.title = title
+            facility.description = description
+            facility.color = color
+            facility.is_active = is_active
+            facility.display_order = display_order
+            facility.save()
+            messages.success(request, 'Facility updated successfully!')
+        else:
+            Facility.objects.create(
+                icon=icon,
+                title=title,
+                description=description,
+                color=color,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'Facility created successfully!')
+        
+        return redirect('about_management')
+    
+    context = {
+        'facility': facility,
+        'color_choices': [('primary', 'Primary'), ('success', 'Success'), ('warning', 'Warning'), ('info', 'Info'), ('danger', 'Danger'), ('purple', 'Purple')],
+        'page_title': 'Edit Facility' if facility else 'New Facility'
+    }
+    return render(request, 'admin/about/about_edit_facility.html', context)
+
+
+@login_required
+def about_delete_facility(request, facility_id):
+    """Delete facility"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Facility
+    facility = get_object_or_404(Facility, id=facility_id)
+    facility.delete()
+    messages.success(request, 'Facility deleted successfully!')
+    return redirect('about_management')
+
+
+@login_required
+def about_edit_why_item(request, item_id=None):
+    """Edit or create why choose item"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import WhyChooseItem
+    
+    item = None
+    if item_id:
+        item = get_object_or_404(WhyChooseItem, id=item_id)
+    
+    if request.method == 'POST':
+        icon = request.POST.get('icon')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        color = request.POST.get('color', 'primary')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if item:
+            item.icon = icon
+            item.title = title
+            item.description = description
+            item.color = color
+            item.is_active = is_active
+            item.display_order = display_order
+            item.save()
+            messages.success(request, 'Item updated successfully!')
+        else:
+            WhyChooseItem.objects.create(
+                icon=icon,
+                title=title,
+                description=description,
+                color=color,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'Item created successfully!')
+        
+        return redirect('about_management')
+    
+    context = {
+        'item': item,
+        'color_choices': [('primary', 'Primary'), ('success', 'Success'), ('warning', 'Warning'), ('info', 'Info'), ('danger', 'Danger')],
+        'page_title': 'Edit Why Choose Item' if item else 'New Why Choose Item'
+    }
+    return render(request, 'admin/about/about_edit_why_item.html', context)
+
+
+@login_required
+def about_delete_why_item(request, item_id):
+    """Delete why choose item"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import WhyChooseItem
+    item = get_object_or_404(WhyChooseItem, id=item_id)
+    item.delete()
+    messages.success(request, 'Item deleted successfully!')
+    return redirect('about_management')
+
+
+# ============================================================================
+# CONTACT PAGE MANAGEMENT
+# ============================================================================
+
+@login_required
+def contact_management(request):
+    """Contact page content management"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
+    
+    content = ContactContent.objects.filter(is_active=True).order_by('section')
+    contact_info = ContactInfo.objects.first()
+    business_hours = BusinessHour.objects.all().order_by('display_order')
+    faqs = ContactFAQ.objects.all().order_by('display_order')
+    social_links = SocialLink.objects.all().order_by('display_order')
+    
+    context = {
+        'content': content,
+        'contact_info': contact_info,
+        'business_hours': business_hours,
+        'faqs': faqs,
+        'social_links': social_links,
+        'page_title': 'Contact Page Management'
+    }
+    return render(request, 'admin/contact/contact_management.html', context)
+
+
+@login_required
+def contact_edit_content(request, content_id=None):
+    """Edit or create contact page content"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import ContactContent
+    
+    content_item = None
+    if content_id:
+        content_item = get_object_or_404(ContactContent, id=content_id)
+    
+    if request.method == 'POST':
+        section = request.POST.get('section')
+        content_text = request.POST.get('content')
+        is_active = request.POST.get('is_active') == 'on'
+        
+        if content_item:
+            content_item.section = section
+            content_item.content = content_text
+            content_item.is_active = is_active
+            content_item.save()
+            messages.success(request, 'Content updated successfully!')
+        else:
+            ContactContent.objects.create(
+                section=section,
+                content=content_text,
+                is_active=is_active
+            )
+            messages.success(request, 'Content created successfully!')
+        
+        return redirect('contact_management')
+    
+    context = {
+        'content_item': content_item,
+        'section_choices': ContactContent.SECTION_CHOICES,
+        'page_title': 'Edit Contact Content' if content_item else 'New Contact Content'
+    }
+    return render(request, 'admin/contact/contact_edit_content.html', context)
+
+
+@login_required
+def contact_delete_content(request, content_id):
+    """Delete contact content"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import ContactContent
+    content = get_object_or_404(ContactContent, id=content_id)
+    content.delete()
+    messages.success(request, 'Content deleted successfully!')
+    return redirect('contact_management')
+
+
+@login_required
+def contact_edit_info(request):
+    """Edit contact information"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import ContactInfo
+    
+    contact_info = ContactInfo.objects.first()
+    
+    if request.method == 'POST':
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        address = request.POST.get('address')
+        city_country = request.POST.get('city_country')
+        google_maps_url = request.POST.get('google_maps_url', '')
+        
+        if contact_info:
+            contact_info.phone = phone
+            contact_info.email = email
+            contact_info.address = address
+            contact_info.city_country = city_country
+            contact_info.google_maps_url = google_maps_url
+            contact_info.save()
+            messages.success(request, 'Contact information updated successfully!')
+        else:
+            ContactInfo.objects.create(
+                phone=phone,
+                email=email,
+                address=address,
+                city_country=city_country,
+                google_maps_url=google_maps_url
+            )
+            messages.success(request, 'Contact information created successfully!')
+        
+        return redirect('contact_management')
+    
+    context = {
+        'contact_info': contact_info,
+        'page_title': 'Edit Contact Information'
+    }
+    return render(request, 'admin/contact/contact_edit_info.html', context)
+
+
+@login_required
+def contact_edit_business_hour(request, hour_id=None):
+    """Edit or create business hour"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import BusinessHour
+    
+    hour = None
+    if hour_id:
+        hour = get_object_or_404(BusinessHour, id=hour_id)
+    
+    if request.method == 'POST':
+        day_range = request.POST.get('day_range')
+        hours = request.POST.get('hours')
+        icon_color = request.POST.get('icon_color', 'primary')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if hour:
+            hour.day_range = day_range
+            hour.hours = hours
+            hour.icon_color = icon_color
+            hour.is_active = is_active
+            hour.display_order = display_order
+            hour.save()
+            messages.success(request, 'Business hour updated successfully!')
+        else:
+            BusinessHour.objects.create(
+                day_range=day_range,
+                hours=hours,
+                icon_color=icon_color,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'Business hour created successfully!')
+        
+        return redirect('contact_management')
+    
+    context = {
+        'hour': hour,
+        'color_choices': [('primary', 'Primary'), ('success', 'Success'), ('warning', 'Warning'), ('info', 'Info'), ('danger', 'Danger')],
+        'page_title': 'Edit Business Hour' if hour else 'New Business Hour'
+    }
+    return render(request, 'admin/contact/contact_edit_business_hour.html', context)
+
+
+@login_required
+def contact_delete_business_hour(request, hour_id):
+    """Delete business hour"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import BusinessHour
+    hour = get_object_or_404(BusinessHour, id=hour_id)
+    hour.delete()
+    messages.success(request, 'Business hour deleted successfully!')
+    return redirect('contact_management')
+
+
+@login_required
+def contact_edit_faq(request, faq_id=None):
+    """Edit or create contact FAQ"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import ContactFAQ
+    
+    faq = None
+    if faq_id:
+        faq = get_object_or_404(ContactFAQ, id=faq_id)
+    
+    if request.method == 'POST':
+        question = request.POST.get('question')
+        answer = request.POST.get('answer')
+        icon_color = request.POST.get('icon_color', 'primary')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if faq:
+            faq.question = question
+            faq.answer = answer
+            faq.icon_color = icon_color
+            faq.is_active = is_active
+            faq.display_order = display_order
+            faq.save()
+            messages.success(request, 'FAQ updated successfully!')
+        else:
+            ContactFAQ.objects.create(
+                question=question,
+                answer=answer,
+                icon_color=icon_color,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'FAQ created successfully!')
+        
+        return redirect('contact_management')
+    
+    context = {
+        'faq': faq,
+        'color_choices': [('primary', 'Primary'), ('success', 'Success'), ('warning', 'Warning'), ('info', 'Info'), ('danger', 'Danger')],
+        'page_title': 'Edit Contact FAQ' if faq else 'New Contact FAQ'
+    }
+    return render(request, 'admin/contact/contact_edit_faq.html', context)
+
+
+@login_required
+def contact_delete_faq(request, faq_id):
+    """Delete contact FAQ"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import ContactFAQ
+    faq = get_object_or_404(ContactFAQ, id=faq_id)
+    faq.delete()
+    messages.success(request, 'FAQ deleted successfully!')
+    return redirect('contact_management')
+
+
+@login_required
+def contact_edit_social_link(request, link_id=None):
+    """Edit or create social link"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import SocialLink
+    
+    link = None
+    if link_id:
+        link = get_object_or_404(SocialLink, id=link_id)
+    
+    if request.method == 'POST':
+        platform = request.POST.get('platform')
+        url = request.POST.get('url')
+        is_active = request.POST.get('is_active') == 'on'
+        display_order = request.POST.get('display_order', 0)
+        
+        if link:
+            link.platform = platform
+            link.url = url
+            link.is_active = is_active
+            link.display_order = display_order
+            link.save()
+            messages.success(request, 'Social link updated successfully!')
+        else:
+            SocialLink.objects.create(
+                platform=platform,
+                url=url,
+                is_active=is_active,
+                display_order=display_order
+            )
+            messages.success(request, 'Social link created successfully!')
+        
+        return redirect('contact_management')
+    
+    context = {
+        'link': link,
+        'platform_choices': SocialLink._meta.get_field('platform').choices,
+        'page_title': 'Edit Social Link' if link else 'New Social Link'
+    }
+    return render(request, 'admin/contact/contact_edit_social_link.html', context)
+
+
+@login_required
+def contact_delete_social_link(request, link_id):
+    """Delete social link"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import SocialLink
+    link = get_object_or_404(SocialLink, id=link_id)
+    link.delete()
+    messages.success(request, 'Social link deleted successfully!')
+    return redirect('contact_management')

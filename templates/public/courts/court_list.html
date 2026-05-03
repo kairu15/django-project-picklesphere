@@ -45,7 +45,9 @@
     <div class="col-md-6 col-lg-4">
         <div class="card border-0 shadow-sm h-100 hover-card" style="border-radius: 12px; transition: all 0.3s ease;">
             {% if court.image %}
-                <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <div class="image-wrapper">
+                    <img src="{{ court.image.url }}" class="card-img-top court-list-image clickable-image" alt="{{ court.name }}" data-lightbox data-caption="{{ court.name }}" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                </div>
             {% else %}
                 <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px; border-top-left-radius: 12px; border-top-right-radius: 12px;">
                     <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">

@@ -711,6 +711,44 @@
     box-shadow: var(--shadow-sm);
 }
 
+.equipment-image-wrapper-sm {
+    position: relative;
+    display: inline-block;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.equipment-image-wrapper-sm::after {
+    content: '\f002';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 24px;
+    height: 24px;
+    background: rgba(59,122,140,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.625rem;
+    transition: all var(--transition-fast);
+    opacity: 0;
+}
+
+.equipment-image-wrapper-sm:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.equipment-image-wrapper-sm:hover {
+    box-shadow: var(--shadow-md);
+}
+
 .equipment-image-placeholder {
     width: 50px;
     height: 50px;

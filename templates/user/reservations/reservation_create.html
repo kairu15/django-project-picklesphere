@@ -132,23 +132,23 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-3">
+                    <div class="row mb-3 align-items-end">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold"><i class="fas fa-hashtag me-2 text-primary"></i>Points per Game <span class="text-danger">*</span></label>
                             {{ form.points_per_game }}
                             {% if form.points_per_game.errors %}
                                 <div class="text-danger small mt-1">{{ form.points_per_game.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold"><i class="fas fa-trophy me-2 text-primary"></i>Games to Win <span class="text-danger">*</span></label>
                             {{ form.games_to_win }}
                             {% if form.games_to_win.errors %}
                                 <div class="text-danger small mt-1">{{ form.games_to_win.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-check mt-4">
+                        <div class="col-md-4">
+                            <div class="form-check mb-2">
                                 {{ form.win_by_two }}
                                 <label class="form-check-label fw-bold" for="{{ form.win_by_two.id_for_label }}"><i class="fas fa-check-double me-2 text-primary"></i>Win by Two Points</label>
                             </div>

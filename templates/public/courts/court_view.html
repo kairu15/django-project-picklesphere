@@ -50,40 +50,29 @@
             <!-- Image Gallery -->
             <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
                 <div class="position-relative">
-                    {% if court.image %}
-                        <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 450px; object-fit: cover;" id="mainImage">
+                    {% if court.images.all %}
+                        {% with primary_image=court.images.all.0 %}
+                            <img src="{{ primary_image.image.url }}" class="card-img-top court-detail-image clickable-image" alt="{{ primary_image.alt_text|default:court.name }}" data-lightbox data-caption="{{ court.name }}" id="mainImage">
+                        {% endwith %}
+                    {% elif court.image %}
+                        <img src="{{ court.image.url }}" class="card-img-top court-detail-image clickable-image" alt="{{ court.name }}" data-lightbox data-caption="{{ court.name }}" id="mainImage">
                     {% else %}
-                        <img src="https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=1200" class="card-img-top" alt="{{ court.name }}" style="height: 450px; object-fit: cover;" id="mainImage">
+                        <img src="https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=1200" class="card-img-top court-detail-image" alt="{{ court.name }}" id="mainImage">
                     {% endif %}
                     <div class="position-absolute bottom-0 start-0 end-0 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);">
                         <h4 class="text-white mb-0"><i class="fas fa-camera me-2"></i>Photo Gallery</h4>
                     </div>
                 </div>
-                {% if court.images %}
+                {% if court.images.all %}
                 <div class="card-body bg-light">
                     <div class="row g-2">
-                        {% for img in court.images %}
+                        {% for img in court.images.all %}
                         <div class="col-3">
-                            <img src="{{ img.url }}" class="img-fluid rounded-3 cursor-pointer hover-opacity" style="height: 80px; object-fit: cover; cursor: pointer;" onclick="document.getElementById('mainImage').src='{{ img.url }}'">
+                            <div class="image-wrapper">
+                                <img src="{{ img.image.url }}" class="img-fluid rounded-3 cursor-pointer" style="height: 80px; object-fit: cover; width: 100%;" onclick="document.getElementById('mainImage').src='{{ img.image.url }}'" alt="{{ img.alt_text|default:court.name }}">
+                            </div>
                         </div>
                         {% endfor %}
-                    </div>
-                </div>
-                {% else %}
-                <div class="card-body bg-light">
-                    <div class="row g-2">
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=400" class="img-fluid rounded-3 cursor-pointer" style="height: 80px; object-fit: cover; cursor: pointer; opacity: 0.8;" onclick="document.getElementById('mainImage').src='https://images.unsplash.com/photo-1622163642998-1ea36b1ade5b?w=1200'">
-                        </div>
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400" class="img-fluid rounded-3 cursor-pointer" style="height: 80px; object-fit: cover; cursor: pointer;" onclick="document.getElementById('mainImage').src='https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200'">
-                        </div>
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=400" class="img-fluid rounded-3 cursor-pointer" style="height: 80px; object-fit: cover; cursor: pointer;" onclick="document.getElementById('mainImage').src='https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=1200'">
-                        </div>
-                        <div class="col-3">
-                            <img src="https://images.unsplash.com/photo-1613919113640-25732ec5e61f?w=400" class="img-fluid rounded-3 cursor-pointer" style="height: 80px; object-fit: cover; cursor: pointer;" onclick="document.getElementById('mainImage').src='https://images.unsplash.com/photo-1613919113640-25732ec5e61f?w=1200'">
-                        </div>
                     </div>
                 </div>
                 {% endif %}
@@ -295,34 +284,6 @@
                 </div>
             </div>
 
-            <!-- Need Help Card -->
-            <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px;">
-                <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3"><i class="fas fa-question-circle me-2 text-info"></i>Need Help?</h6>
-                    <p class="text-muted small mb-3">Have questions about this court or need assistance with booking?</p>
-                    <a href="{% url 'contact' %}" class="btn btn-outline-info w-100">
-                        <i class="fas fa-phone me-2"></i>Contact Support
-                    </a>
-                </div>
-            </div>
-
-            <!-- Share Card -->
-            <div class="card border-0 shadow-lg" style="border-radius: 15px;">
-                <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3"><i class="fas fa-share-alt me-2 text-primary"></i>Share This Court</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary flex-fill" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!');">
-                            <i class="fas fa-link"></i>
-                        </button>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-outline-primary flex-fill">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text=Check out {{ court.name }} at PickleSphere!" target="_blank" class="btn btn-outline-primary flex-fill">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
