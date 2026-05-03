@@ -96,9 +96,9 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if court.is_active %}
-                                <form method="post" action="{% url 'admin_court_delete' court.id %}" class="d-inline" onsubmit="return confirm('Deactivate this court?');">
+                                <form method="post" action="{% url 'admin_court_delete' court.id %}" class="d-inline court-delete-form" data-confirm-message="Deactivate this court?">
                                     {% csrf_token %}
-                                    <button type="submit" class="action-btn delete" title="Deactivate">
+                                    <button type="submit" class="action-btn delete" title="Deactivate" onclick="event.preventDefault(); customConfirm(this.closest('form').dataset.confirmMessage, () => { this.closest('form').submit(); })">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

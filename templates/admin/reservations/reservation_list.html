@@ -108,9 +108,9 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if res.status != 'cancelled' %}
-                                <form method="post" action="{% url 'admin_reservation_delete' res.id %}" class="d-inline" onsubmit="return confirm('Cancel this reservation?');">
+                                <form method="post" action="{% url 'admin_reservation_delete' res.id %}" class="d-inline" data-confirm-message="Cancel this reservation?">
                                     {% csrf_token %}
-                                    <button type="submit" class="action-btn delete" title="Cancel">
+                                    <button type="submit" class="action-btn delete" title="Cancel" onclick="event.preventDefault(); customConfirm(this.closest('form').dataset.confirmMessage, () => { this.closest('form').submit(); })">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

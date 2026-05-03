@@ -31,8 +31,8 @@ def home_view(request):
         status__in=['registration_open', 'in_progress', 'draft']
     ).order_by('tournament_start')[:3]
 
-    # Get dynamic testimonials from database (or use defaults if none exist)
-    db_testimonials = Testimonial.objects.filter(is_active=True)[:3]
+    # Get dynamic testimonials from database (only approved ones, or use defaults if none exist)
+    db_testimonials = Testimonial.objects.filter(is_active=True, is_approved=True)[:3]
     if db_testimonials.exists():
         testimonials = db_testimonials
     else:
@@ -710,13 +710,18 @@ def homepage_management(request):
     
     from .models import Testimonial, Amenity, GalleryImage, HomePageContent
     
-    testimonials = Testimonial.objects.filter(is_active=True).order_by('display_order')
+    # Separate pending and approved testimonials
+    pending_testimonials = Testimonial.objects.filter(is_active=True, is_approved=False).order_by('-created_at')
+    approved_testimonials = Testimonial.objects.filter(is_active=True, is_approved=True).order_by('display_order')
     amenities = Amenity.objects.filter(is_active=True).order_by('display_order')
     gallery_images = GalleryImage.objects.filter(is_active=True).order_by('display_order')
     homepage_content = HomePageContent.objects.filter(is_active=True)
     
     context = {
-        'testimonials': testimonials,
+        'pending_testimonials': pending_testimonials,
+        'approved_testimonials': approved_testimonials,
+        'pending_count': pending_testimonials.count(),
+        'approved_count': approved_testimonials.count(),
         'amenities': amenities,
         'gallery_images': gallery_images,
         'homepage_content': homepage_content,
@@ -751,18 +756,23 @@ def homepage_edit_testimonial(request, testimonial_id=None):
             testimonial.rating = rating
             testimonial.text = text
             testimonial.display_order = display_order
+            # If admin is editing, ensure it's approved
+            if not testimonial.is_approved:
+                testimonial.is_approved = True
             testimonial.save()
             messages.success(request, 'Testimonial updated successfully!')
         else:
+            # Admin-created testimonials are auto-approved
             Testimonial.objects.create(
                 name=name,
                 role=role,
                 rating=rating,
                 text=text,
                 display_order=display_order,
-                is_active=True
+                is_active=True,
+                is_approved=True  # Auto-approve admin-created testimonials
             )
-            messages.success(request, 'Testimonial created successfully!')
+            messages.success(request, 'Testimonial created and approved successfully!')
         
         return redirect('homepage_management')
     
@@ -1924,3 +1934,101 @@ def contact_delete_social_link(request, link_id):
     link.delete()
     messages.success(request, 'Social link deleted successfully!')
     return redirect('contact_management')
+
+
+@login_required
+def submit_testimonial_view(request):
+    """User view for submitting a testimonial"""
+    from .models import Testimonial
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating', 5)
+        text = request.POST.get('text', '').strip()
+        
+        if not text:
+            messages.error(request, 'Please write a testimonial before submitting.')
+            return redirect('submit_testimonial')
+        
+        # Create testimonial with pending approval status
+        Testimonial.objects.create(
+            user=request.user,
+            name=f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
+            role="Member",
+            rating=int(rating),
+            text=text,
+            is_active=True,
+            is_approved=False,  # Pending admin approval
+            display_order=0
+        )
+        
+        messages.success(
+            request, 
+            'Thank you for your testimonial! It has been submitted for review and will appear on the homepage once approved by an administrator.'
+        )
+        return redirect('my_testimonials')
+    
+    return render(request, 'user/submit_testimonial.html', {
+        'page_title': 'Submit Testimonial'
+    })
+
+
+@login_required
+def my_testimonials_view(request):
+    """User view to see their submitted testimonials"""
+    from .models import Testimonial
+    
+    testimonials = Testimonial.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'user/my_testimonials.html', {
+        'testimonials': testimonials,
+        'page_title': 'My Testimonials'
+    })
+
+
+@login_required
+def delete_my_testimonial_view(request, testimonial_id):
+    """User can delete their own pending testimonial"""
+    from .models import Testimonial
+    
+    testimonial = get_object_or_404(Testimonial, id=testimonial_id, user=request.user)
+    
+    # Only allow deletion if not yet approved
+    if testimonial.is_approved:
+        messages.error(request, 'Approved testimonials cannot be deleted.')
+        return redirect('my_testimonials')
+    
+    testimonial.delete()
+    messages.success(request, 'Your testimonial has been deleted.')
+    return redirect('my_testimonials')
+
+
+@login_required
+def admin_approve_testimonial_view(request, testimonial_id):
+    """Admin view to approve a pending testimonial"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Testimonial
+    testimonial = get_object_or_404(Testimonial, id=testimonial_id)
+    
+    testimonial.is_approved = True
+    testimonial.save()
+    messages.success(request, f'Testimonial from {testimonial.name} has been approved and will now appear on the homepage.')
+    return redirect('homepage_management')
+
+
+@login_required
+def admin_reject_testimonial_view(request, testimonial_id):
+    """Admin view to reject/delete a pending testimonial"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Testimonial
+    testimonial = get_object_or_404(Testimonial, id=testimonial_id)
+    
+    name = testimonial.name
+    testimonial.delete()
+    messages.success(request, f'Testimonial from {name} has been rejected and removed.')
+    return redirect('homepage_management')

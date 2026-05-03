@@ -162,7 +162,8 @@
                                 </a>
                                 {% if existing_matches > 0 %}
                                     <button type="submit" name="regenerate" class="btn btn-warning px-4" 
-                                            onclick="return confirm('WARNING: This will DELETE all existing matches and regenerate them. Are you sure?')">
+                                            data-confirm-message="WARNING: This will DELETE all existing matches and regenerate them. Are you sure?"
+                                            onclick="event.preventDefault(); showConfirmModal({ title: 'Regenerate All Matches', message: this.dataset.confirmMessage, actionText: 'Regenerate', actionClass: 'btn-warning', onConfirm: () => { this.form.submit(); } })">
                                         <i class="fas fa-redo me-2"></i>Regenerate All Matches
                                     </button>
                                 {% else %}

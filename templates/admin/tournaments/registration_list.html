@@ -26,7 +26,8 @@
             </form>
             <form method="post" action="{% url 'admin_bulk_approve' tournament.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success" style="border-radius: 10px;" onclick="return confirm('Approve all pending registrations?')">
+                <button type="submit" class="btn btn-success" style="border-radius: 10px;" data-confirm-message="Approve all pending registrations?"
+                        onclick="event.preventDefault(); showConfirmModal({ title: 'Bulk Approve', message: this.dataset.confirmMessage, actionText: 'Approve All', actionClass: 'btn-success', onConfirm: () => { this.closest('form').submit(); } })">
                     <i class="fas fa-check-double me-2"></i>Bulk Approve
                 </button>
             </form>

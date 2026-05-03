@@ -41,7 +41,7 @@
                             <a href="{% url 'about_edit_content' item.id %}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'about_delete_content' item.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this content?')">
+                            <a href="{% url 'about_delete_content' item.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this content?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>
@@ -99,7 +99,7 @@
                             <a href="{% url 'about_edit_milestone' milestone.id %}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'about_delete_milestone' milestone.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this milestone?')">
+                            <a href="{% url 'about_delete_milestone' milestone.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this milestone?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>
@@ -165,7 +165,7 @@
                             <a href="{% url 'about_edit_team_member' member.id %}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'about_delete_team_member' member.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this team member?')">
+                            <a href="{% url 'about_delete_team_member' member.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this team member?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>
@@ -223,7 +223,7 @@
                             <a href="{% url 'about_edit_facility' facility.id %}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'about_delete_facility' facility.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this facility?')">
+                            <a href="{% url 'about_delete_facility' facility.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this facility?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>
@@ -281,7 +281,7 @@
                             <a href="{% url 'about_edit_why_item' item.id %}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'about_delete_why_item' item.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this item?')">
+                            <a href="{% url 'about_delete_why_item' item.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this item?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>

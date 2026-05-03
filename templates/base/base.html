@@ -1505,6 +1505,210 @@
         });
     </script>
 
+    <!-- Global Custom Confirm Modal -->
+    <div id="customConfirmModal" class="custom-confirm-modal">
+        <div class="custom-confirm-content">
+            <div class="custom-confirm-header">
+                <div class="custom-confirm-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h5 class="custom-confirm-title" id="confirmTitle">Confirm Action</h5>
+            </div>
+            <div class="custom-confirm-body">
+                <p id="confirmMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="custom-confirm-footer">
+                <button type="button" class="btn btn-outline-secondary" id="confirmCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Global Custom Confirm Modal Styles */
+        .custom-confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            animation: confirmFadeIn 0.2s ease-out;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-confirm-modal.show {
+            display: flex;
+        }
+
+        .custom-confirm-content {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 420px;
+            width: 90%;
+            animation: confirmSlideUp 0.25s ease-out;
+            overflow: hidden;
+        }
+
+        .custom-confirm-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.75rem 1.5rem 1rem;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .custom-confirm-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+        .custom-confirm-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .custom-confirm-body {
+            padding: 1.5rem;
+            color: #495057;
+            font-size: 0.95rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .custom-confirm-footer {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .custom-confirm-footer .btn {
+            padding: 0.625rem 1.5rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .custom-confirm-footer .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes confirmFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes confirmSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+
+    <script>
+        // Global Custom Confirm Modal Functions
+        let confirmCallback = null;
+        let confirmModal = null;
+        let confirmActionBtn = null;
+        let confirmCancelBtn = null;
+        let confirmTitle = null;
+        let confirmMessage = null;
+
+        function initConfirmModal() {
+            confirmModal = document.getElementById('customConfirmModal');
+            confirmActionBtn = document.getElementById('confirmActionBtn');
+            confirmCancelBtn = document.getElementById('confirmCancelBtn');
+            confirmTitle = document.getElementById('confirmTitle');
+            confirmMessage = document.getElementById('confirmMessage');
+
+            // Close on backdrop click
+            confirmModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeConfirmModal();
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && confirmModal.classList.contains('show')) {
+                    closeConfirmModal();
+                }
+            });
+
+            // Cancel button
+            confirmCancelBtn.addEventListener('click', closeConfirmModal);
+
+            // Action button
+            confirmActionBtn.addEventListener('click', function() {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+                closeConfirmModal();
+            });
+        }
+
+        function showConfirmModal(options) {
+            if (!confirmModal) initConfirmModal();
+
+            // Set content
+            confirmTitle.textContent = options.title || 'Confirm Action';
+            confirmMessage.textContent = options.message || 'Are you sure you want to proceed?';
+            confirmActionBtn.textContent = options.actionText || 'Delete';
+            confirmActionBtn.className = 'btn ' + (options.actionClass || 'btn-danger');
+
+            // Store callback
+            confirmCallback = options.onConfirm || null;
+
+            // Show modal
+            confirmModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmModal() {
+            if (confirmModal) {
+                confirmModal.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            confirmCallback = null;
+        }
+
+        // Legacy confirm replacement function
+        function customConfirm(message, callback) {
+            showConfirmModal({
+                title: 'Confirm Action',
+                message: message,
+                actionText: 'OK',
+                actionClass: 'btn-primary',
+                onConfirm: callback
+            });
+            return false; // Always return false to prevent default
+        }
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', initConfirmModal);
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

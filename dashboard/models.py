@@ -374,6 +374,13 @@ class SocialLink(models.Model):
 
 class Testimonial(models.Model):
     """Customer testimonials for the home page"""
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="The user who submitted this testimonial (if user-submitted)"
+    )
     name = models.CharField(max_length=100)
     role = models.CharField(max_length=100, help_text="e.g., Regular Member, Tournament Player")
     rating = models.IntegerField(
@@ -384,6 +391,10 @@ class Testimonial(models.Model):
     text = models.TextField(help_text="Testimonial content")
     avatar = models.ImageField(upload_to='testimonials/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_approved = models.BooleanField(
+        default=False,
+        help_text="Only approved testimonials are displayed on the homepage"
+    )
     display_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -394,7 +405,14 @@ class Testimonial(models.Model):
         verbose_name_plural = 'Testimonials'
 
     def __str__(self):
-        return f"{self.name} - {self.rating} stars"
+        status = "✓" if self.is_approved else "⏳"
+        return f"{status} {self.name} - {self.rating} stars"
+
+    @property
+    def status_display(self):
+        if not self.is_approved:
+            return "pending"
+        return "approved" if self.is_active else "inactive"
 
 
 class Amenity(models.Model):

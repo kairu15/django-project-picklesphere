@@ -732,6 +732,10 @@ body::-webkit-scrollbar {
                     <i class="fas fa-receipt"></i>
                     <span>Payment History</span>
                 </a>
+                <a href="{% url 'my_testimonials' %}" class="nav-link {% if 'testimonial' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-quote-left"></i>
+                    <span>My Testimonials</span>
+                </a>
             </div>
 
             {% endif %}
