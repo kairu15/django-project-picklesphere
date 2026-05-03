@@ -4,49 +4,62 @@
 {% block title %}Payment Management{% endblock %}
 {% block page_title %}Payment Management{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/staff.css' %}">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'staff_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Payment Management</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <!-- Stats Cards -->
 <div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+    <div class="col-md-4 animate-fadeInUp" style="animation-delay: 0.1s;">
+        <div class="card stat-card-gradient bg-gradient-success h-100">
+            <div class="card-body">
                 <div class="d-flex align-items-center">
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-check-circle fa-lg text-white"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="ms-3">
-                        <h3 class="text-white mb-0 fw-bold">₱{{ total_paid|floatformat:0 }}</h3>
-                        <p class="text-white mb-0 opacity-75">Total Paid</p>
+                        <h3 class="stat-value">₱{{ total_paid|floatformat:0 }}</h3>
+                        <p class="stat-label">Total Paid</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
+    <div class="col-md-4 animate-fadeInUp" style="animation-delay: 0.2s;">
+        <div class="card stat-card-gradient bg-gradient-warning h-100">
+            <div class="card-body">
                 <div class="d-flex align-items-center">
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-clock fa-lg text-white"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-clock"></i>
                     </div>
                     <div class="ms-3">
-                        <h3 class="text-white mb-0 fw-bold">₱{{ total_pending|floatformat:0 }}</h3>
-                        <p class="text-white mb-0 opacity-75">Pending Payments</p>
+                        <h3 class="stat-value">₱{{ total_pending|floatformat:0 }}</h3>
+                        <p class="stat-label">Pending Payments</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+    <div class="col-md-4 animate-fadeInUp" style="animation-delay: 0.3s;">
+        <div class="card stat-card-gradient bg-gradient-primary h-100">
+            <div class="card-body">
                 <div class="d-flex align-items-center">
-                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-day fa-lg text-white"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-calendar-day"></i>
                     </div>
                     <div class="ms-3">
-                        <h3 class="text-white mb-0 fw-bold">₱{{ today_revenue|floatformat:0 }}</h3>
-                        <p class="text-white mb-0 opacity-75">Today's Revenue</p>
+                        <h3 class="stat-value">₱{{ today_revenue|floatformat:0 }}</h3>
+                        <p class="stat-label">Today's Revenue</p>
                     </div>
                 </div>
             </div>
@@ -55,96 +68,107 @@
 </div>
 
 <!-- Filters -->
-<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
-    <div class="card-body p-4">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-2">
-                <label class="form-label fw-bold"><i class="fas fa-filter me-2 text-primary"></i>Status</label>
-                <select name="status" class="form-select" style="border-radius: 10px;">
-                    <option value="">All</option>
-                    <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
-                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold"><i class="fas fa-credit-card me-2 text-primary"></i>Method</label>
-                <select name="method" class="form-select" style="border-radius: 10px;">
-                    <option value="">All</option>
-                    <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
-                    <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
-                    <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>From Date</label>
-                <input type="date" name="date_from" class="form-control" value="{{ date_from }}" style="border-radius: 10px;">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>To Date</label>
-                <input type="date" name="date_to" class="form-control" value="{{ date_to }}" style="border-radius: 10px;">
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
-                    <i class="fas fa-filter me-2"></i>Filter
-                </button>
-            </div>
-        </form>
-    </div>
+<div class="filter-bar animate-fadeInUp">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label"><i class="fas fa-filter me-2"></i>Status</label>
+            <select name="status" class="form-select staff-form-select">
+                <option value="">All Status</option>
+                <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label"><i class="fas fa-credit-card me-2"></i>Method</label>
+            <select name="method" class="form-select staff-form-select">
+                <option value="">All Methods</option>
+                <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
+                <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="fas fa-calendar me-2"></i>From Date</label>
+            <input type="date" name="date_from" class="form-control staff-form-control" value="{{ date_from }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="fas fa-calendar me-2"></i>To Date</label>
+            <input type="date" name="date_to" class="form-control staff-form-control" value="{{ date_to }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-staff btn-staff-primary w-100">
+                <i class="fas fa-filter"></i>Apply
+            </button>
+        </div>
+        {% if status_filter or method_filter or date_from or date_to %}
+        <div class="col-md-2 offset-md-10 mt-2">
+            <a href="{% url 'staff_payments' %}" class="btn btn-staff btn-staff-outline w-100">
+                <i class="fas fa-times"></i>Clear Filters
+            </a>
+        </div>
+        {% endif %}
+    </form>
 </div>
 
 <!-- Payments Table -->
-<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0"><i class="fas fa-list me-2 text-primary"></i>All Payments</h5>
-        <a href="{% url 'revenue_report' %}" class="btn btn-outline-primary" style="border-radius: 10px;">
-            <i class="fas fa-chart-bar me-2"></i>Reports
+<div class="staff-card animate-fadeInUp" style="animation-delay: 0.1s;">
+    <div class="staff-card-header d-flex justify-content-between align-items-center">
+        <h5 class="staff-card-title"><i class="fas fa-list"></i>All Payments</h5>
+        <a href="{% url 'revenue_report' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-chart-bar me-2"></i>View Reports
         </a>
     </div>
-    <div class="card-body p-0">
+    <div class="staff-card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+            <table class="staff-table">
+                <thead>
                     <tr>
-                        <th style="padding: 15px 20px;">ID</th>
-                        <th style="padding: 15px 20px;">User</th>
-                        <th style="padding: 15px 20px;">Reservation</th>
-                        <th style="padding: 15px 20px;">Amount</th>
-                        <th style="padding: 15px 20px;">Method</th>
-                        <th style="padding: 15px 20px;">Status</th>
-                        <th style="padding: 15px 20px;">Date</th>
-                        <th style="padding: 15px 20px;">Actions</th>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Reservation</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for payment in payments %}
-                    <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">
-                            <span class="badge bg-light text-dark border">#{{ payment.id }}</span>
+                    <tr>
+                        <td>
+                            <span class="badge-staff badge-id">#{{ payment.id }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">{{ payment.reservation.user.username }}</td>
-                        <td style="padding: 15px 20px;">
-                            <span class="fw-bold">#{{ payment.reservation.id }}</span>
+                        <td>
+                            <span class="table-cell-main">{{ payment.reservation.user.username }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
-                            <span class="fw-bold">₱{{ payment.amount|floatformat:2 }}</span>
+                        <td>
+                            <span class="table-cell-sub">Res #{{ payment.reservation.id }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
-                            <span class="badge bg-light text-dark border">{{ payment.get_method_display|default:"N/A" }}</span>
+                        <td>
+                            <span class="table-cell-main">₱{{ payment.amount|floatformat:2 }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
-                            <span class="badge px-3 py-2 {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
+                        <td>
+                            <span class="badge-staff badge-id">{{ payment.get_method_display|default:"N/A" }}</span>
+                        </td>
+                        <td>
+                            <span class="badge-staff {% if payment.status == 'paid' %}badge-payment-paid{% elif payment.status == 'pending' %}badge-payment-pending{% else %}badge-status-completed{% endif %}">
+                                <i class="fas fa-{% if payment.status == 'paid' %}check-circle{% elif payment.status == 'pending' %}clock{% else %}question{% endif %}"></i>
                                 {{ payment.get_status_display }}
                             </span>
                         </td>
-                        <td style="padding: 15px 20px;">{{ payment.created_at|date:"M d, Y H:i" }}</td>
-                        <td style="padding: 15px 20px;">
-                            <div class="d-flex gap-1">
-                                <a href="{% url 'payment_status' payment.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                        <td>
+                            <span class="table-cell-main">{{ payment.created_at|date:"M d, Y" }}</span><br>
+                            <span class="table-cell-sub">{{ payment.created_at|time:"H:i" }}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'payment_status' payment.id %}" class="btn-action btn-action-view" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 {% if payment.status == 'pending' %}
-                                <a href="{% url 'verify_payment' payment.id %}" class="btn btn-sm btn-success" style="border-radius: 8px;">
+                                <a href="{% url 'verify_payment' payment.id %}" class="btn-action btn-action-success" title="Verify Payment">
                                     <i class="fas fa-check"></i>
                                 </a>
                                 {% endif %}
@@ -153,11 +177,14 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5">
-                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                                <i class="fas fa-receipt fa-2x text-muted"></i>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <h6 class="empty-state-title">No payments found</h6>
+                                <p class="empty-state-text">Try adjusting your filters or check back later.</p>
                             </div>
-                            <p class="text-muted mb-0">No payments found</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -166,11 +193,5 @@
         </div>
     </div>
 </div>
-
-<style>
-.hover-row:hover {
-    background-color: #f8f9fa;
-}
-</style>
 {% endblock %}
 

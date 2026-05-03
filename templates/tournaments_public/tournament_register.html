@@ -3,19 +3,21 @@
 
 {% block title %}Register for {{ tournament.name }} - PickleSphere{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tournament_list' %}">Tournaments</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tournament_detail' tournament.pk %}">{{ tournament.name|truncatechars:30 }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Register</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'tournament_list' %}">Tournaments</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'tournament_detail' tournament.pk %}">{{ tournament.name|truncatechars:30 }}</a></li>
-                    <li class="breadcrumb-item active">Register</li>
-                </ol>
-            </nav>
-
             <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
                 <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
                     <div class="d-flex align-items-center">

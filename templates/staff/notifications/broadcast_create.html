@@ -4,49 +4,92 @@
 {% block title %}Send Broadcast{% endblock %}
 {% block page_title %}Send Broadcast Message{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/staff.css' %}">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'staff_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'broadcast_list' %}">Broadcasts</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Send New</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center animate-fadeInUp" style="animation-delay: 0.1s;">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0 py-3">
-                <h5 class="fw-bold mb-0"><i class="fas fa-bullhorn me-2 text-primary"></i>Send Broadcast Message</h5>
+        <div class="staff-card">
+            <div class="staff-card-header">
+                <h5 class="staff-card-title"><i class="fas fa-bullhorn"></i>Compose Broadcast Message</h5>
             </div>
-            <div class="card-body p-4">
+            <div class="staff-card-body">
                 <form method="post">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Title</label>
-                        <input type="text" name="title" class="form-control" style="border-radius: 10px;" required placeholder="Enter message title">
+                    
+                    <div class="staff-form-group">
+                        <label class="staff-form-label"><i class="fas fa-heading"></i>Message Title</label>
+                        <input type="text" name="title" class="form-control staff-form-control" required placeholder="Enter a clear, descriptive title for your message">
+                        <div class="form-text">This will be shown as the notification headline.</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Message</label>
-                        <textarea name="message" class="form-control" rows="5" style="border-radius: 10px;" required placeholder="Enter your message"></textarea>
+                    
+                    <div class="staff-form-group">
+                        <label class="staff-form-label"><i class="fas fa-align-left"></i>Message Content</label>
+                        <textarea name="message" class="form-control staff-form-control" rows="6" required placeholder="Enter your broadcast message content here..."></textarea>
+                        <div class="form-text">Be concise and clear. This message will be sent to all selected recipients.</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Target Roles</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="target_roles" value="admin" id="role_admin">
-                            <label class="form-check-label" for="role_admin">Admin</label>
+                    
+                    <div class="staff-form-group">
+                        <label class="staff-form-label"><i class="fas fa-users"></i>Target Recipients</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="staff-check">
+                                    <input type="checkbox" name="target_roles" value="admin" id="role_admin">
+                                    <div>
+                                        <strong>Administrators</strong>
+                                        <div class="small text-muted">System admins only</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="staff-check">
+                                    <input type="checkbox" name="target_roles" value="staff" id="role_staff">
+                                    <div>
+                                        <strong>Staff Members</strong>
+                                        <div class="small text-muted">All staff users</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="staff-check">
+                                    <input type="checkbox" name="target_roles" value="player" id="role_player">
+                                    <div>
+                                        <strong>Players</strong>
+                                        <div class="small text-muted">Registered players</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="staff-check">
+                                    <input type="checkbox" name="target_roles" value="member" id="role_member">
+                                    <div>
+                                        <strong>Members</strong>
+                                        <div class="small text-muted">All members</div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="target_roles" value="staff" id="role_staff">
-                            <label class="form-check-label" for="role_staff">Staff</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="target_roles" value="player" id="role_player">
-                            <label class="form-check-label" for="role_player">Player</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="target_roles" value="member" id="role_member">
-                            <label class="form-check-label" for="role_member">Member</label>
-                        </div>
+                        <div class="form-text mt-2">Select at least one role. Leave all unchecked to send to all users.</div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" style="border-radius: 10px;">
-                            <i class="fas fa-paper-plane me-2"></i>Send Broadcast
+                    
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-staff btn-staff-primary">
+                            <i class="fas fa-paper-plane"></i>Send Broadcast
                         </button>
-                        <a href="{% url 'broadcast_list' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
-                            <i class="fas fa-times me-2"></i>Cancel
+                        <a href="{% url 'broadcast_list' %}" class="btn btn-staff btn-staff-outline">
+                            <i class="fas fa-times"></i>Cancel
                         </a>
                     </div>
                 </form>

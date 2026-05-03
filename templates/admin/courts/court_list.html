@@ -5,28 +5,33 @@
 {% block page_title %}Court Management{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
-    <div class="card-body p-4">
+<!-- Filters -->
+<div class="filter-card">
+    <div class="card-body">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="form-label fw-bold"><i class="fas fa-search me-2 text-primary"></i>Search</label>
-                <input type="text" name="search" class="form-control" value="{{ search_query }}" placeholder="Court or site" style="border-radius: 10px;">
+                <label class="admin-form-label">
+                    <i class="fas fa-search me-2 text-primary"></i>Search
+                </label>
+                <input type="text" name="search" class="form-control admin-form-control" value="{{ search_query }}" placeholder="Court or site name">
             </div>
             <div class="col-md-3">
-                <label class="form-label fw-bold"><i class="fas fa-toggle-on me-2 text-primary"></i>Status</label>
-                <select name="status" class="form-select" style="border-radius: 10px;">
-                    <option value="">All</option>
+                <label class="admin-form-label">
+                    <i class="fas fa-toggle-on me-2 text-primary"></i>Status
+                </label>
+                <select name="status" class="form-select admin-form-control">
+                    <option value="">All Status</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
                     <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
+                <button type="submit" class="btn btn-primary w-100 admin-btn">
                     <i class="fas fa-filter me-2"></i>Filter
                 </button>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'admin_court_create' %}" class="btn btn-success w-100" style="border-radius: 10px;">
+                <a href="{% url 'admin_court_create' %}" class="btn btn-success w-100 admin-btn">
                     <i class="fas fa-plus me-2"></i>Add Court
                 </a>
             </div>
@@ -34,51 +39,66 @@
     </div>
 </div>
 
-<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Courts</h5>
-        <span class="badge bg-primary px-3 py-2"><i class="fas fa-list me-1"></i>{{ courts|length }} total</span>
+<!-- Courts Table -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-map-marker-alt text-primary"></i>
+            All Courts
+        </h5>
+        <span class="badge bg-primary">{{ courts|length }} total</span>
     </div>
     <div class="card-body p-0">
         {% if courts %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
-                        <th style="padding: 15px 20px;">Name</th>
-                        <th style="padding: 15px 20px;">Site</th>
-                        <th style="padding: 15px 20px;">Type</th>
-                        <th style="padding: 15px 20px;">Status</th>
-                        <th style="padding: 15px 20px;">Rate</th>
-                        <th style="padding: 15px 20px;">Availability</th>
-                        <th style="padding: 15px 20px;">Actions</th>
+                        <th>Court</th>
+                        <th>Site</th>
+                        <th>Type</th>
+                        <th>Rate</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for court in courts %}
-                    <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;" class="fw-semibold">{{ court.name }}</td>
-                        <td style="padding: 15px 20px;">{{ court.site.name }}</td>
-                        <td style="padding: 15px 20px;">{{ court.get_court_type_display }}</td>
-                        <td style="padding: 15px 20px;">{{ court.get_status_display }}</td>
-                        <td style="padding: 15px 20px;">₱{{ court.hourly_rate|floatformat:0 }}/hr</td>
-                        <td style="padding: 15px 20px;">
-                            <span class="badge px-3 py-2 {% if court.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-                                {% if court.is_active %}Active{% else %}Inactive{% endif %}
-                            </span>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm avatar-placeholder me-2">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <span class="fw-semibold">{{ court.name }}</span>
+                            </div>
                         </td>
-                        <td style="padding: 15px 20px;">
-                            <div class="d-flex gap-1">
-                                <a href="{% url 'court_detail' court.id %}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" title="View">
+                        <td>{{ court.site.name }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ court.get_court_type_display }}</span>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-primary">₱{{ court.hourly_rate|floatformat:0 }}/hr</span>
+                        </td>
+                        <td>
+                            {% if court.is_active %}
+                            <span class="status-badge active">Active</span>
+                            {% else %}
+                            <span class="status-badge inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'court_detail' court.id %}" class="action-btn view" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{% url 'admin_court_edit' court.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;" title="Edit">
+                                <a href="{% url 'admin_court_edit' court.id %}" class="action-btn edit" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if court.is_active %}
-                                <form method="post" action="{% url 'admin_court_delete' court.id %}" onsubmit="return confirm('Deactivate this court?');">
+                                <form method="post" action="{% url 'admin_court_delete' court.id %}" class="d-inline" onsubmit="return confirm('Deactivate this court?');">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" title="Deactivate">
+                                    <button type="submit" class="action-btn delete" title="Deactivate">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -91,85 +111,18 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+        <div class="empty-state">
+            <div class="empty-state-icon">
                 <i class="fas fa-map-marker-alt fa-2x text-muted"></i>
             </div>
-            <h5 class="fw-bold mb-2">No courts found</h5>
-            <p class="text-muted mb-0">Try adjusting your filters or create a new court.</p>
+            <h5 class="empty-state-title">No courts found</h5>
+            <p class="empty-state-text">Try adjusting your filters or add a new court.</p>
+            <a href="{% url 'admin_court_create' %}" class="btn btn-primary admin-btn mt-3">
+                <i class="fas fa-plus me-2"></i>Add Court
+            </a>
         </div>
         {% endif %}
     </div>
 </div>
-
-<style>
-.hover-row:hover {
-    background-color: #f8f9fa;
-    transform: scale(1.01);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* Enhanced Cards */
-.card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-/* Enhanced Form Controls */
-.form-control,
-.form-select {
-    transition: all 0.2s ease;
-    border: 1px solid #e0e0e0;
-}
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--primary-color, #3B7A8C);
-    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
-    transform: translateY(-1px);
-}
-
-/* Enhanced Table */
-.table-responsive {
-    border-radius: 12px;
-    overflow: hidden;
-}
-.table thead th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-.table tbody tr:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-    transform: scale(1.01);
-}
-
-/* Enhanced Buttons */
-.btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-/* Enhanced Empty State */
-.empty-state-icon {
-    animation: pulse 2s infinite;
-}
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-</style>
 {% endblock %}
 

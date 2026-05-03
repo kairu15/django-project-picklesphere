@@ -2,58 +2,68 @@
 {% load static %}
 
 {% block title %}Activity Log{% endblock %}
-{% block page_title %}User Activity Log{% endblock %}
+{% block page_title %}Activity Log{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Activity</h5>
-        <span class="badge bg-primary px-3 py-2"><i class="fas fa-list me-1"></i>{{ activities|length }} entries</span>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-history text-primary"></i>
+            User Activity Log
+        </h5>
+        <span class="badge bg-primary">{{ activities|length }} entries</span>
     </div>
     <div class="card-body p-0">
         {% if activities %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
-                        <th style="padding: 15px 20px;">User</th>
-                        <th style="padding: 15px 20px;">Action</th>
-                        <th style="padding: 15px 20px;">Details</th>
-                        <th style="padding: 15px 20px;">IP Address</th>
-                        <th style="padding: 15px 20px;">Date & Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>Date & Time</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for activity in activities %}
-                    <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">
-                            <span class="fw-semibold">{{ activity.user.username }}</span>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm avatar-placeholder me-2">
+                                    {{ activity.user.username|first|upper }}
+                                </div>
+                                <span class="fw-semibold">{{ activity.user.username }}</span>
+                            </div>
                         </td>
-                        <td style="padding: 15px 20px;">{{ activity.action }}</td>
-                        <td style="padding: 15px 20px;">{{ activity.details|default:"-" }}</td>
-                        <td style="padding: 15px 20px;">{{ activity.ip_address|default:"-" }}</td>
-                        <td style="padding: 15px 20px;">{{ activity.created_at|date:"M d, Y h:i A" }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ activity.action }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ activity.details|default:"-" }}</span>
+                        </td>
+                        <td>
+                            <span class="font-monospace text-muted">{{ activity.ip_address|default:"-" }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ activity.created_at|date:"M d, Y h:i A" }}</span>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+        <div class="empty-state">
+            <div class="empty-state-icon">
                 <i class="fas fa-history fa-2x text-muted"></i>
             </div>
-            <h5 class="fw-bold mb-2">No activity yet</h5>
-            <p class="text-muted mb-0">User activity will appear here once actions are logged.</p>
+            <h5 class="empty-state-title">No activity yet</h5>
+            <p class="empty-state-text">User activity will appear here once actions are logged.</p>
         </div>
         {% endif %}
     </div>
 </div>
-
-<style>
-.hover-row:hover {
-    background-color: #f8f9fa;
-}
-</style>
 {% endblock %}
 

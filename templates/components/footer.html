@@ -1,25 +1,275 @@
 {% load static %}
-<!-- Footer -->
-<footer style="background: linear-gradient(135deg, #1a3a42 0%, #0d1f23 100%); color: white; padding: 60px 0 0;">
+
+<style>
+/* Footer Styles */
+.site-footer {
+    background: linear-gradient(135deg, #1a3a42 0%, #0d1f23 100%);
+    color: #fff;
+    padding: 4rem 0 0;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.footer-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.footer-brand-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.footer-description {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+
+.footer-social {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.footer-social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.footer-social-link:hover {
+    background: #3B7A8C;
+    color: #fff;
+    transform: translateY(-3px);
+}
+
+.footer-section-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.75rem;
+}
+
+.footer-link {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.footer-link:hover {
+    color: #fff;
+    transform: translateX(3px);
+}
+
+.footer-contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.footer-contact-icon {
+    color: #3B7A8C;
+    font-size: 1rem;
+    margin-top: 0.125rem;
+}
+
+.footer-contact-text {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.footer-newsletter-text {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.footer-newsletter-form {
+    display: flex;
+}
+
+.footer-newsletter-input {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-right: none;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px 0 0 6px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.footer-newsletter-input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.footer-newsletter-input:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.footer-newsletter-btn {
+    background: #3B7A8C;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.footer-newsletter-btn:hover {
+    background: #2a5a66;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+}
+
+.footer-copyright {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+.footer-legal {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: flex-end;
+}
+
+.footer-legal-link {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: color 0.3s ease;
+}
+
+.footer-legal-link:hover {
+    color: #fff;
+}
+
+.footer-credit {
+    padding-bottom: 1.5rem;
+    text-align: center;
+}
+
+.footer-credit-text {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+/* Back to Top Button */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 48px;
+    height: 48px;
+    background: #3B7A8C;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.back-to-top:hover {
+    background: #2a5a66;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+    .footer-legal {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .footer-bottom {
+        text-align: center;
+    }
+}
+</style>
+
+<footer class="site-footer">
     <div class="container">
         <div class="row g-4">
             <!-- Brand Column -->
             <div class="col-lg-3 col-md-6">
-                <div class="d-flex align-items-center mb-3">
-                    <img src="/static/PickleSphereLogo.png" alt="PickleSphere" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 12px;">
-                    <h5 class="mb-0" style="font-weight: 600; font-size: 1.25rem;">PickleSphere</h5>
+                <div class="footer-brand">
+                    <img src="/static/PickleSphereLogo.png" alt="PickleSphere" class="footer-logo">
+                    <h5 class="footer-brand-title">PickleSphere</h5>
                 </div>
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.6;">
+                <p class="footer-description">
                     Experience the thrill of pickleball at our world-class facilities. Your perfect game awaits with professional courts and seamless booking.
                 </p>
-                <div class="d-flex gap-3 mt-3">
-                    <a href="#" style="width: 38px; height: 38px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;">
+                <div class="footer-social">
+                    <a href="#" class="footer-social-link" aria-label="Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" style="width: 38px; height: 38px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;">
+                    <a href="#" class="footer-social-link" aria-label="Instagram">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="#" style="width: 38px; height: 38px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: all 0.3s;">
+                    <a href="#" class="footer-social-link" aria-label="Twitter">
                         <i class="fab fa-twitter"></i>
                     </a>
                 </div>
@@ -27,49 +277,49 @@
 
             <!-- Quick Links -->
             <div class="col-lg-2 col-md-6">
-                <h6 style="font-weight: 600; font-size: 0.875rem; margin-bottom: 20px; color: white; text-transform: uppercase; letter-spacing: 0.5px;">Quick Links</h6>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li class="mb-2"><a href="{% url 'court_list' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">Book a Court</a></li>
-                    <li class="mb-2"><a href="{% url 'tournament_list' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">Tournaments</a></li>
-                    <li class="mb-2"><a href="{% url 'equipment_list' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">Equipment</a></li>
-                    <li class="mb-2"><a href="{% url 'leaderboard' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">Leaderboard</a></li>
-                    <li class="mb-2"><a href="{% url 'about' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">About Us</a></li>
-                    <li><a href="{% url 'contact' %}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: all 0.3s;">Contact</a></li>
+                <h6 class="footer-section-title">Quick Links</h6>
+                <ul class="footer-links">
+                    <li><a href="{% url 'court_list' %}" class="footer-link">Book a Court</a></li>
+                    <li><a href="{% url 'tournament_list' %}" class="footer-link">Tournaments</a></li>
+                    <li><a href="{% url 'equipment_list' %}" class="footer-link">Equipment</a></li>
+                    <li><a href="{% url 'leaderboard' %}" class="footer-link">Leaderboard</a></li>
+                    <li><a href="{% url 'about' %}" class="footer-link">About Us</a></li>
+                    <li><a href="{% url 'contact' %}" class="footer-link">Contact</a></li>
                 </ul>
             </div>
 
             <!-- Contact Us -->
             <div class="col-lg-3 col-md-6">
-                <h6 style="font-weight: 600; font-size: 0.875rem; margin-bottom: 20px; color: white; text-transform: uppercase; letter-spacing: 0.5px;">Contact Us</h6>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li class="mb-3 d-flex align-items-start">
-                        <i class="fas fa-map-marker-alt mt-1 me-3" style="color: #3B7A8C; width: 16px;"></i>
-                        <span style="color: rgba(255,255,255,0.7); font-size: 0.875rem;">123 Sports Complex Ave<br>Metro City, Philippines 1234</span>
+                <h6 class="footer-section-title">Contact Us</h6>
+                <ul class="footer-contact-list">
+                    <li class="footer-contact-item">
+                        <i class="fas fa-map-marker-alt footer-contact-icon"></i>
+                        <span class="footer-contact-text">123 Sports Complex Ave<br>Metro City, Philippines 1234</span>
                     </li>
-                    <li class="mb-3 d-flex align-items-center">
-                        <i class="fas fa-phone me-3" style="color: #3B7A8C; width: 16px;"></i>
-                        <span style="color: rgba(255,255,255,0.7); font-size: 0.875rem;">+63 912 345 6789</span>
+                    <li class="footer-contact-item">
+                        <i class="fas fa-phone footer-contact-icon"></i>
+                        <span class="footer-contact-text">+63 912 345 6789</span>
                     </li>
-                    <li class="mb-3 d-flex align-items-center">
-                        <i class="fas fa-envelope me-3" style="color: #3B7A8C; width: 16px;"></i>
-                        <span style="color: rgba(255,255,255,0.7); font-size: 0.875rem;">info@picklesphere.com</span>
+                    <li class="footer-contact-item">
+                        <i class="fas fa-envelope footer-contact-icon"></i>
+                        <span class="footer-contact-text">info@picklesphere.com</span>
                     </li>
-                    <li class="d-flex align-items-center">
-                        <i class="fas fa-clock me-3" style="color: #3B7A8C; width: 16px;"></i>
-                        <span style="color: rgba(255,255,255,0.7); font-size: 0.875rem;">Open Daily: 6AM - 10PM</span>
+                    <li class="footer-contact-item">
+                        <i class="fas fa-clock footer-contact-icon"></i>
+                        <span class="footer-contact-text">Open Daily: 6AM - 10PM</span>
                     </li>
                 </ul>
             </div>
 
             <!-- Newsletter -->
             <div class="col-lg-4 col-md-6">
-                <h6 style="font-weight: 600; font-size: 0.875rem; margin-bottom: 20px; color: white; text-transform: uppercase; letter-spacing: 0.5px;">Newsletter</h6>
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin-bottom: 15px;">
-                    Subscribe to receive special offers and updates.
+                <h6 class="footer-section-title">Newsletter</h6>
+                <p class="footer-newsletter-text">
+                    Subscribe to receive special offers, tournament updates, and exclusive deals.
                 </p>
-                <form class="d-flex mb-4">
-                    <input type="email" class="form-control" placeholder="Your email address" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px 0 0 6px; border-right: none;">
-                    <button type="submit" class="btn" style="background: #3B7A8C; color: white; border-radius: 0 6px 6px 0; padding: 0 20px;">
+                <form class="footer-newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+                    <input type="email" class="footer-newsletter-input" placeholder="Your email address" required>
+                    <button type="submit" class="footer-newsletter-btn" aria-label="Subscribe">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
@@ -77,46 +327,55 @@
         </div>
 
         <!-- Bottom Bar -->
-        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px; padding: 20px 0;">
+        <div class="footer-bottom">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size: 0.75rem;">
+                    <p class="footer-copyright">
                         &copy; {% now "Y" %} PickleSphere. All rights reserved.
                     </p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="{% url 'privacy_policy' %}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.75rem; margin-right: 20px; transition: all 0.3s;">Privacy Policy</a>
-                    <a href="{% url 'terms_of_service' %}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.75rem; margin-right: 20px; transition: all 0.3s;">Terms of Service</a>
-                    <a href="{% url 'faq' %}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.75rem; transition: all 0.3s;">FAQ</a>
+                <div class="col-md-6">
+                    <div class="footer-legal">
+                        <a href="{% url 'privacy_policy' %}" class="footer-legal-link">Privacy Policy</a>
+                        <a href="{% url 'terms_of_service' %}" class="footer-legal-link">Terms of Service</a>
+                        <a href="{% url 'faq' %}" class="footer-legal-link">FAQ</a>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Developer Credit -->
-        <div class="text-center" style="padding-bottom: 20px;">
-            <p style="color: rgba(255,255,255,0.4); font-size: 0.75rem; margin: 0;">
+        <div class="footer-credit">
+            <p class="footer-credit-text">
                 Developed by <strong>Kylle Ian D. Acibron</strong> &bull; Contact: kylleacibron@gmail.com &bull; Version: 1.0.0
             </p>
         </div>
     </div>
 
     <!-- Back to Top Button -->
-    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" 
-            style="position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background: #3B7A8C; color: white; border: none; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 999; transition: all 0.3s;">
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
         <i class="fas fa-chevron-up"></i>
     </button>
 </footer>
 
-<style>
-footer a:hover {
-    color: white !important;
-}
-footer .btn:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-}
-footer button:hover {
-    background: #2a5a66 !important;
-}
-</style>
+<script>
+    // Back to Top Button
+    (function() {
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        function toggleBackToTop() {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        }
+        
+        window.addEventListener('scroll', toggleBackToTop, { passive: true });
+        
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    })();
+</script>
 

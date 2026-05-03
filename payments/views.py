@@ -177,32 +177,41 @@ def verify_payment_view(request, payment_id):
     if not request.user.is_staff_user() and not request.user.is_admin():
         messages.error(request, 'You do not have permission to perform this action.')
         return redirect('dashboard')
-    
+
     payment = get_object_or_404(Payment, id=payment_id)
-    
+
+    # Determine template and redirect URL based on user role and URL path
+    is_admin_url = 'admin' in request.path
+    if request.user.is_admin() and is_admin_url:
+        template_name = 'admin/payments/verify_payment.html'
+        redirect_url = 'admin_payments'
+    else:
+        template_name = 'staff/payments/verify_payment.html'
+        redirect_url = 'staff_payments'
+
     if request.method == 'POST':
         form = PaymentApprovalForm(request.POST, instance=payment)
         if form.is_valid():
             old_status = payment.status
             payment = form.save()
-            
+
             # Update reservation status if payment is verified
             if payment.status == 'paid' and old_status != 'paid':
                 payment.reservation.status = 'confirmed'
                 payment.reservation.save()
-                
+
                 # Set cash payment details
                 if payment.method == 'cash':
                     payment.cash_received_by = request.user
                     payment.cash_received_at = timezone.now()
                     payment.save()
-                
+
                 # Notify user
                 Notification.objects.create(
                     user=payment.reservation.user,
                     message=f"Your payment for reservation #{payment.reservation.id} has been verified. Your reservation is confirmed!"
                 )
-            
+
             # Log the action
             PaymentLog.objects.create(
                 payment=payment,
@@ -210,13 +219,13 @@ def verify_payment_view(request, payment_id):
                 details=f'Payment status changed from {old_status} to {payment.status}',
                 performed_by=request.user
             )
-            
+
             messages.success(request, f'Payment #{payment.id} has been {payment.status}.')
-            return redirect('staff_payments')
+            return redirect(redirect_url)
     else:
         form = PaymentApprovalForm(instance=payment)
-    
-    return render(request, 'staff/payments/verify_payment.html', {
+
+    return render(request, template_name, {
         'form': form,
         'payment': payment
     })
@@ -250,6 +259,118 @@ def view_payment_proof_view(request, payment_id):
         'payment': payment,
         'proof_image': payment.gcash_proof_image
     })
+
+
+@login_required
+def admin_payments_view(request):
+    """Admin-only payment management with enhanced features"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('dashboard')
+
+    payments = Payment.objects.all().order_by('-created_at')
+
+    # Filter by status
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        payments = payments.filter(status=status_filter)
+
+    # Filter by method
+    method_filter = request.GET.get('method', '')
+    if method_filter:
+        payments = payments.filter(method=method_filter)
+
+    # Filter by date range
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        payments = payments.filter(created_at__date__gte=date_from)
+    if date_to:
+        payments = payments.filter(created_at__date__lte=date_to)
+
+    # Filter by user role (who made the payment verification)
+    verified_by_filter = request.GET.get('verified_by', '')
+    if verified_by_filter:
+        if verified_by_filter == 'admin':
+            payments = payments.filter(cash_received_by__role='admin')
+        elif verified_by_filter == 'staff':
+            payments = payments.filter(cash_received_by__role='staff')
+        elif verified_by_filter == 'system':
+            payments = payments.filter(cash_received_by__isnull=True, method='card')
+
+    # Enhanced Statistics
+    today = timezone.now().date()
+
+    # Today's stats
+    today_payments = Payment.objects.filter(created_at__date=today)
+    today_revenue = today_payments.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    today_count = today_payments.filter(status='paid').count()
+
+    # This week's stats
+    week_start = today - timedelta(days=today.weekday())
+    week_payments = Payment.objects.filter(created_at__date__gte=week_start)
+    week_revenue = week_payments.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    week_count = week_payments.filter(status='paid').count()
+
+    # This month's stats
+    month_start = today.replace(day=1)
+    month_payments = Payment.objects.filter(created_at__date__gte=month_start)
+    month_revenue = month_payments.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    month_count = month_payments.filter(status='paid').count()
+
+    # Overall totals
+    total_paid = Payment.objects.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_pending = Payment.objects.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_refunded = Payment.objects.filter(status='refunded').aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Payment method breakdown
+    method_breakdown = Payment.objects.filter(status='paid').values('method').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total')
+
+    # Verification stats - who processed payments
+    verification_stats = Payment.objects.filter(
+        status='paid',
+        cash_received_by__isnull=False
+    ).values('cash_received_by__role').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    )
+
+    # Pending verifications (GCash pending)
+    pending_gcash = Payment.objects.filter(status='pending', method='gcash').count()
+    pending_cash = Payment.objects.filter(status='pending', method='cash').count()
+
+    # Recent payment logs
+    recent_logs = PaymentLog.objects.select_related('payment', 'performed_by').order_by('-created_at')[:10]
+
+    context = {
+        'payments': payments,
+        'status_filter': status_filter,
+        'method_filter': method_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'verified_by_filter': verified_by_filter,
+        # Stats
+        'today_revenue': today_revenue,
+        'today_count': today_count,
+        'week_revenue': week_revenue,
+        'week_count': week_count,
+        'month_revenue': month_revenue,
+        'month_count': month_count,
+        'total_paid': total_paid,
+        'total_pending': total_pending,
+        'total_refunded': total_refunded,
+        # Breakdowns
+        'method_breakdown': method_breakdown,
+        'verification_stats': verification_stats,
+        'pending_gcash': pending_gcash,
+        'pending_cash': pending_cash,
+        'recent_logs': recent_logs,
+    }
+
+    return render(request, 'admin/payments/admin_payments.html', context)
 
 
 @login_required

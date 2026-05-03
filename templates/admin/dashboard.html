@@ -2,66 +2,122 @@
 {% load static %}
 
 {% block title %}Admin Dashboard{% endblock %}
-{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
-<!-- Stats Cards -->
+<!-- Key Metrics Row -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_users }}</div>
+                    <div class="stats-label text-muted">Total Users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-calendar-check fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_reservations }}</div>
+                    <div class="stats-label text-muted">Total Reservations</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-map-marker-alt fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_courts }}</div>
+                    <div class="stats-label text-muted">Active Courts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ revenue_stats.total_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Total Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Metrics Row -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-users fa-lg text-white"></i>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 class="fw-bold mb-0">{{ metrics.total_users }}</h3>
-                        <p class="text-muted mb-0">Total Users</p>
+                        <h6 class="text-muted mb-1">Today's Reservations</h6>
+                        <h4 class="fw-bold mb-0 text-success">{{ metrics.today_reservations }}</h4>
+                    </div>
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                        <i class="fas fa-calendar-day text-success fa-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-check fa-lg text-white"></i>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 class="fw-bold mb-0">{{ metrics.total_reservations }}</h3>
-                        <p class="text-muted mb-0">Total Reservations</p>
+                        <h6 class="text-muted mb-1">Pending Approval</h6>
+                        <h4 class="fw-bold mb-0 text-warning">{{ metrics.pending_reservations }}</h4>
+                    </div>
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                        <i class="fas fa-clock text-warning fa-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-map-marker-alt fa-lg text-white"></i>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 class="fw-bold mb-0">{{ metrics.total_courts }}</h3>
-                        <p class="text-muted mb-0">Active Courts</p>
+                        <h6 class="text-muted mb-1">Today's Revenue</h6>
+                        <h4 class="fw-bold mb-0 text-primary">₱{{ revenue_stats.today_revenue|floatformat:0 }}</h4>
+                    </div>
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="fas fa-coins text-primary fa-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-money-bill-wave fa-lg text-white"></i>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 class="fw-bold mb-0">₱{{ revenue_stats.total_revenue|floatformat:0 }}</h3>
-                        <p class="text-muted mb-0">Total Revenue</p>
+                        <h6 class="text-muted mb-1">Pending Payments</h6>
+                        <h4 class="fw-bold mb-0 text-danger">₱{{ revenue_stats.pending_amount|floatformat:0 }}</h4>
+                    </div>
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                        <i class="fas fa-wallet text-danger fa-lg"></i>
                     </div>
                 </div>
             </div>
@@ -69,267 +125,185 @@
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-day fa-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">{{ metrics.today_reservations }}</h3>
-                        <p class="text-muted mb-0">Today's Reservations</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-clock fa-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">{{ metrics.pending_reservations }}</h3>
-                        <p class="text-muted mb-0">Pending Approval</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-coins fa-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">₱{{ revenue_stats.today_revenue|floatformat:0 }}</h3>
-                        <p class="text-muted mb-0">Today's Revenue</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-wallet fa-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="fw-bold mb-0">₱{{ revenue_stats.pending_amount|floatformat:0 }}</h3>
-                        <p class="text-muted mb-0">Pending Payments</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- Data Tables Section -->
 <div class="row g-4">
     <!-- Recent Reservations -->
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Recent Reservations</h5>
-                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">View All</a>
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                    Recent Reservations
+                </h5>
+                <a href="{% url 'admin_reservation_list' %}" class="btn btn-sm btn-outline-primary admin-btn">
+                    View All
+                </a>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                {% if recent_reservations %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
                             <tr>
-                                <th style="padding: 15px 20px;">ID</th>
-                                <th style="padding: 15px 20px;">User</th>
-                                <th style="padding: 15px 20px;">Court</th>
-                                <th style="padding: 15px 20px;">Date</th>
-                                <th style="padding: 15px 20px;">Status</th>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Court</th>
+                                <th>Date</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for reservation in recent_reservations %}
-                            <tr class="hover-row" style="transition: all 0.3s ease;">
-                                <td style="padding: 15px 20px;">#{{ reservation.id }}</td>
-                                <td style="padding: 15px 20px;">{{ reservation.user.username }}</td>
-                                <td style="padding: 15px 20px;">{{ reservation.court.name }}</td>
-                                <td style="padding: 15px 20px;">{{ reservation.date|date:"M d, Y" }}</td>
-                                <td style="padding: 15px 20px;">
-                                    <span class="badge px-3 py-2 {% if reservation.status == 'approved' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                            <tr>
+                                <td class="fw-semibold">#{{ reservation.id }}</td>
+                                <td>{{ reservation.user.username }}</td>
+                                <td>{{ reservation.court.name }}</td>
+                                <td>{{ reservation.date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="status-badge {{ reservation.status }}">
                                         {{ reservation.get_status_display }}
                                     </span>
                                 </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No reservations found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-calendar-alt fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No reservations found</h5>
+                    <p class="empty-state-text">New reservations will appear here.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
     <!-- Recent Payments -->
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Recent Payments</h5>
-                <a href="{% url 'staff_payments' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">View All</a>
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-credit-card text-primary"></i>
+                    Recent Payments
+                </h5>
+                <a href="{% url 'admin_payments' %}" class="btn btn-sm btn-outline-primary admin-btn">
+                    View All
+                </a>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                {% if recent_payments %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
                             <tr>
-                                <th style="padding: 15px 20px;">ID</th>
-                                <th style="padding: 15px 20px;">User</th>
-                                <th style="padding: 15px 20px;">Amount</th>
-                                <th style="padding: 15px 20px;">Method</th>
-                                <th style="padding: 15px 20px;">Status</th>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for payment in recent_payments %}
-                            <tr class="hover-row" style="transition: all 0.3s ease;">
-                                <td style="padding: 15px 20px;">#{{ payment.id }}</td>
-                                <td style="padding: 15px 20px;">{{ payment.reservation.user.username }}</td>
-                                <td style="padding: 15px 20px;">₱{{ payment.amount|floatformat:2 }}</td>
-                                <td style="padding: 15px 20px;">{{ payment.get_method_display|default:"N/A" }}</td>
-                                <td style="padding: 15px 20px;">
-                                    <span class="badge px-3 py-2 {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                            <tr>
+                                <td class="fw-semibold">#{{ payment.id }}</td>
+                                <td>{{ payment.reservation.user.username }}</td>
+                                <td>₱{{ payment.amount|floatformat:2 }}</td>
+                                <td>{{ payment.get_method_display|default:"N/A" }}</td>
+                                <td>
+                                    <span class="status-badge {{ payment.status }}">
                                         {{ payment.get_status_display }}
                                     </span>
                                 </td>
                             </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No payments found</td>
-                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-credit-card fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No payments found</h5>
+                    <p class="empty-state-text">Payment records will appear here.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+<!-- Court Usage Section -->
 <div class="row g-4 mt-2">
-    <!-- Court Usage -->
-    <div class="col-lg-12">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Top Courts by Usage</h5>
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    Top Courts by Usage
+                </h5>
+                <span class="badge bg-primary">{{ court_usage|length }} courts</span>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                {% if court_usage %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
                             <tr>
-                                <th style="padding: 15px 20px;">Court</th>
-                                <th style="padding: 15px 20px;">Total Reservations</th>
+                                <th>Court</th>
+                                <th>Total Reservations</th>
+                                <th>Utilization</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for court in court_usage %}
-                            <tr class="hover-row" style="transition: all 0.3s ease;">
-                                <td style="padding: 15px 20px;">{{ court.court__name }}</td>
-                                <td style="padding: 15px 20px;">{{ court.total }}</td>
-                            </tr>
-                            {% empty %}
                             <tr>
-                                <td colspan="2" class="text-center py-4 text-muted">No data available</td>
+                                <td class="fw-semibold">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                    {{ court.court__name }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ court.total }}</span>
+                                </td>
+                                <td style="width: 30%;">
+                                    <div class="progress progress-thin">
+                                        <div class="progress-bar bg-primary court-utilization-bar" role="progressbar"
+                                             data-court-total="{{ court.total }}"
+                                             data-total-reservations="{{ metrics.total_reservations }}"></div>
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-chart-bar fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No usage data available</h5>
+                    <p class="empty-state-text">Court usage statistics will appear here.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.hover-row:hover {
-    background-color: #f8f9fa;
-    transform: scale(1.01);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* Enhanced Stats Cards */
-.card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-/* Enhanced Table */
-.table-responsive {
-    border-radius: 12px;
-    overflow: hidden;
-}
-.table {
-    margin: 0;
-}
-.table thead th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-.table tbody tr:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-    transform: scale(1.01);
-}
-
-/* Enhanced Buttons */
-.btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-.btn:active {
-    transform: translateY(0);
-}
-
-/* Enhanced Card Header */
-.card-header {
-    background: transparent;
-    border-bottom: 1px solid #f0f0f0;
-    padding: 20px 25px;
-    transition: all 0.3s ease;
-}
-.card:hover .card-header {
-    background: linear-gradient(135deg, rgba(59,122,140,0.02) 0%, transparent 100%);
-}
-
-/* Enhanced Badge */
-.badge {
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-}
-</style>
+<script>
+// Calculate and set court utilization progress bars
+document.querySelectorAll('.court-utilization-bar').forEach(function(bar) {
+    var courtTotal = parseInt(bar.getAttribute('data-court-total')) || 0;
+    var totalReservations = parseInt(bar.getAttribute('data-total-reservations')) || 0;
+    var percentage = totalReservations > 0 ? (courtTotal / totalReservations * 100) : 0;
+    bar.style.width = percentage + '%';
+});
+</script>
 {% endblock %}
 

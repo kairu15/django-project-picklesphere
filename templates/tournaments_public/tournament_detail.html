@@ -3,16 +3,18 @@
 
 {% block title %}{{ tournament.name }} - PickleSphere{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'tournament_list' %}">Tournaments</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ tournament.name|truncatechars:40 }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'tournament_list' %}">Tournaments</a></li>
-            <li class="breadcrumb-item active">{{ tournament.name|truncatechars:40 }}</li>
-        </ol>
-    </nav>
-
     <!-- Tournament Header -->
     <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
         <div class="card-body p-4">
@@ -141,9 +143,9 @@
                         <div class="progress mb-3" style="height: 10px;">
                             <div class="progress-bar bg-success" id="participantProgress" data-progress="{{ registration_count }}" data-max="{{ tournament.max_participants }}"></div>
                         </div>
-                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">
                             {% for reg in registrations %}
-                            <div class="list-group-item d-flex align-items-center py-3 px-0 border-bottom">
+                            <div class="list-group-item d-flex align-items-center py-3 px-2 border-bottom" style="min-width: 0;">
                                 <div class="flex-shrink-0">
                                     {% if reg.user.profile_picture %}
                                         <img src="{{ reg.user.profile_picture.url }}" alt="" class="rounded-circle" style="width: 45px; height: 45px; object-fit: cover;">
@@ -153,8 +155,8 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <div class="fw-bold">{{ reg.user.get_full_name|default:reg.user.username }}</div>
+                                <div class="ms-3 flex-grow-1" style="min-width: 0;">
+                                    <div class="fw-bold text-truncate">{{ reg.user.get_full_name|default:reg.user.username }}</div>
                                     <small class="text-muted">{{ reg.skill_level|title }}</small>
                                 </div>
                                 <div>
@@ -180,16 +182,16 @@
         <!-- Right Column - Matches & Leaderboard -->
         <div class="col-lg-8">
             <!-- Tabs -->
-            <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-                <div class="card-header bg-transparent border-bottom p-0">
-                    <ul class="nav nav-tabs card-header-tabs mx-4 mt-3" id="tournamentTabs" role="tablist" style="border: none;">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active px-4 py-3 fw-semibold" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent;">
+            <div class="card border-0" style="border-radius: 15px; overflow: hidden; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08);">
+                <div class="bg-white" style="border-bottom: 1px solid #e9ecef;">
+                    <ul class="nav nav-tabs w-100 mb-0" id="tournamentTabs" role="tablist" style="border-bottom: none;">
+                        <li class="nav-item flex-fill text-center" role="presentation">
+                            <button class="nav-link active w-100 px-4 py-3 fw-semibold" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab" style="border: none; border-bottom: 3px solid var(--primary-color, #3B7A8C); color: var(--primary-color, #3B7A8C); background: transparent; margin: 0;">
                                 <i class="fas fa-gamepad me-2"></i>Matches
                             </button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link px-4 py-3 fw-semibold" id="leaderboard-tab" data-bs-toggle="tab" data-bs-target="#leaderboard" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent;">
+                        <li class="nav-item flex-fill text-center" role="presentation">
+                            <button class="nav-link w-100 px-4 py-3 fw-semibold" id="leaderboard-tab" data-bs-toggle="tab" data-bs-target="#leaderboard" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent; color: #6c757d; background: transparent; margin: 0;">
                                 <i class="fas fa-trophy me-2"></i>Leaderboard
                             </button>
                         </li>
@@ -355,11 +357,37 @@
 </div>
 
 <style>
-/* Custom Tab Styling */
-.nav-tabs .nav-link.active {
-    border-bottom: 3px solid var(--primary-color, #3B7A8C) !important;
-    color: var(--primary-color, #3B7A8C) !important;
+/* Custom Tab Styling - Clean and No Overlap */
+#tournamentTabs {
+    display: flex;
+    border-bottom: none !important;
+}
+
+#tournamentTabs .nav-link {
+    border: none !important;
+    border-radius: 0 !important;
+    color: #6c757d;
     font-weight: 600;
+    background: transparent;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+#tournamentTabs .nav-link:hover {
+    color: var(--primary-color, #3B7A8C);
+    background-color: rgba(59, 122, 140, 0.05);
+}
+
+#tournamentTabs .nav-link.active {
+    color: var(--primary-color, #3B7A8C) !important;
+    background-color: rgba(59, 122, 140, 0.08);
+}
+
+/* Remove Bootstrap default card-header-tabs styling */
+.nav-tabs .nav-link:focus,
+.nav-tabs .nav-link:hover {
+    border-color: transparent !important;
+    isolation: auto;
 }
 
 /* Hover Effects */

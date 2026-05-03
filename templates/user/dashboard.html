@@ -7,21 +7,22 @@
 {% block content %}
 <!-- Quick Actions - Only show if profile is incomplete -->
 {% if not user.phone_number or not user.address %}
-<div class="card mb-4 border-0 shadow-lg" style="border-radius: 15px; border-left: 4px solid var(--primary-color, #3B7A8C) !important; overflow: hidden;">
+<div class="card mb-4 border-0 shadow-lg profile-completion-card" style="border-radius: 16px; overflow: hidden; position: relative;">
+    <div class="position-absolute" style="left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #3B7A8C 0%, #1a3a42 100%);"></div>
     <div class="card-body p-4">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div class="d-flex align-items-center">
                 <div class="flex-shrink-0">
-                    <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <div class="profile-icon-wrapper" style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59,122,140,0.3);">
                         <i class="fas fa-user-edit fa-lg text-white"></i>
                     </div>
                 </div>
                 <div class="ms-3">
-                    <h5 class="mb-1 fw-bold">Complete Your Profile</h5>
-                    <p class="text-muted mb-0">Add more details to unlock all features and personalize your experience.</p>
+                    <h5 class="mb-1 fw-bold text-dark">Complete Your Profile</h5>
+                    <p class="text-muted mb-0 small">Add more details to unlock all features and personalize your experience.</p>
                 </div>
             </div>
-            <a href="{% url 'profile' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
+            <a href="{% url 'profile' %}" class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 500; box-shadow: 0 4px 12px rgba(59,122,140,0.3);">
                 <i class="fas fa-edit me-2"></i>Complete Profile
             </a>
         </div>
@@ -32,68 +33,68 @@
 <!-- Quick Stats -->
 <div class="row g-4 mb-4">
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+        <div class="card stat-card border-0 shadow-sm h-100" style="border-radius: 16px; overflow: hidden;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59,122,140,0.25);">
                             <i class="fas fa-calendar-check fa-lg text-white"></i>
                         </div>
                     </div>
                     <div class="ms-3">
-                        <h3 class="mb-0 fw-bold">{{ total_reservations|default:"0" }}</h3>
-                        <p class="text-muted mb-0 small">Total Reservations</p>
+                        <h3 class="mb-0 fw-bold stat-value">{{ total_reservations|default:"0" }}</h3>
+                        <p class="text-muted mb-0 small stat-label">Total Reservations</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+        <div class="card stat-card border-0 shadow-sm h-100" style="border-radius: 16px; overflow: hidden;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(40,167,69,0.25);">
                             <i class="fas fa-trophy fa-lg text-white"></i>
                         </div>
                     </div>
                     <div class="ms-3">
-                        <h3 class="mb-0 fw-bold">{{ total_matches|default:"0" }}</h3>
-                        <p class="text-muted mb-0 small">Matches Played</p>
+                        <h3 class="mb-0 fw-bold stat-value">{{ total_matches|default:"0" }}</h3>
+                        <p class="text-muted mb-0 small stat-label">Matches Played</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+        <div class="card stat-card border-0 shadow-sm h-100" style="border-radius: 16px; overflow: hidden;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(255,193,7,0.25);">
                             <i class="fas fa-star fa-lg text-white"></i>
                         </div>
                     </div>
                     <div class="ms-3">
-                        <h3 class="mb-0 fw-bold">{{ stats.win_rate|default:"0"|floatformat:0 }}%</h3>
-                        <p class="text-muted mb-0 small">Win Rate</p>
+                        <h3 class="mb-0 fw-bold stat-value">{{ stats.win_rate|default:"0"|floatformat:0 }}%</h3>
+                        <p class="text-muted mb-0 small stat-label">Win Rate</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
+        <div class="card stat-card border-0 shadow-sm h-100" style="border-radius: 16px; overflow: hidden;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(220,53,69,0.25);">
                             <i class="fas fa-medal fa-lg text-white"></i>
                         </div>
                     </div>
                     <div class="ms-3">
-                        <h3 class="mb-0 fw-bold">{{ stats.wins|default:"0" }}</h3>
-                        <p class="text-muted mb-0 small">Total Wins</p>
+                        <h3 class="mb-0 fw-bold stat-value">{{ stats.wins|default:"0" }}</h3>
+                        <p class="text-muted mb-0 small stat-label">Total Wins</p>
                     </div>
                 </div>
             </div>
@@ -235,24 +236,75 @@
 {% endif %}
 
 <style>
+/* Profile Completion Card */
+.profile-completion-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.profile-completion-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59,122,140,0.15) !important;
+}
+.profile-icon-wrapper {
+    transition: transform 0.3s ease;
+}
+.profile-completion-card:hover .profile-icon-wrapper {
+    transform: scale(1.05) rotate(5deg);
+}
+
+/* Stat Cards */
+.stat-card {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+.stat-card:hover::before {
+    left: 100%;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
+}
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+.stat-icon {
+    transition: transform 0.3s ease;
+}
+.stat-value {
+    font-size: 1.75rem;
+    letter-spacing: -0.5px;
+}
+.stat-label {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
 /* Hover Effects */
+.hover-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .hover-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
 }
 
 /* Smooth transitions */
-.card, .hover-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Enhanced Cards */
 .card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.1) !important;
 }
 
 /* Enhanced Buttons */
@@ -263,7 +315,10 @@
 }
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+.btn-primary:hover {
+    box-shadow: 0 4px 15px rgba(59,122,140,0.35);
 }
 
 /* Enhanced Badges */
@@ -273,23 +328,34 @@
     text-transform: uppercase;
     font-size: 0.7rem;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 /* Match result winner styling */
+.match-result-icon {
+    transition: all 0.3s ease;
+}
 .match-result-icon.winner {
     background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
     animation: winnerPulse 1s ease;
 }
 @keyframes winnerPulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
+    50% { transform: scale(1.15); }
 }
 
 /* Notification type styling */
+.notification-icon {
+    transition: all 0.3s ease;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .notification-icon.success {
     background: rgba(40,167,69,0.1) !important;
-    transition: all 0.3s ease;
 }
 .notification-icon.success:hover {
     background: rgba(40,167,69,0.2) !important;
@@ -300,7 +366,6 @@
 }
 .notification-icon.warning {
     background: rgba(255,193,7,0.1) !important;
-    transition: all 0.3s ease;
 }
 .notification-icon.warning:hover {
     background: rgba(255,193,7,0.2) !important;
@@ -311,7 +376,6 @@
 }
 .notification-icon.error {
     background: rgba(220,53,69,0.1) !important;
-    transition: all 0.3s ease;
 }
 .notification-icon.error:hover {
     background: rgba(220,53,69,0.2) !important;
@@ -322,7 +386,6 @@
 }
 .notification-icon.info {
     background: rgba(23,162,184,0.1) !important;
-    transition: all 0.3s ease;
 }
 .notification-icon.info:hover {
     background: rgba(23,162,184,0.2) !important;
@@ -345,7 +408,7 @@
 .dropdown-menu {
     border: none;
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
     padding: 8px;
 }
 .dropdown-item {
@@ -357,6 +420,18 @@
 .dropdown-item:hover {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     transform: translateX(4px);
+}
+
+/* Card headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Date badge styling */
+.date-badge {
+    min-width: 60px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 </style>
 

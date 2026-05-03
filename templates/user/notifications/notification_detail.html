@@ -4,35 +4,84 @@
 {% block title %}Notification{% endblock %}
 {% block page_title %}Notification Details{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'notification_list' %}">Notifications</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Notification #{{ notification.id }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <div class="notification-icon-header" data-type="{{ notification.notification_type }}"></div>
-                    <div class="ms-3">
-                        <span class="badge px-3 py-2 {% if notification.notification_type == 'success' %}bg-success{% elif notification.notification_type == 'warning' %}bg-warning text-dark{% elif notification.notification_type == 'error' %}bg-danger{% else %}bg-info{% endif %} fs-6">
-                            {{ notification.get_notification_type_display }}
-                        </span>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg notification-detail-card" style="border-radius: 16px; overflow: hidden;">
+            <!-- Header with Type Badge -->
+            <div class="card-header bg-white border-bottom py-4 px-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="notification-detail-icon" data-type="{{ notification.notification_type }}"></div>
+                        <div>
+                            <span class="badge px-3 py-2 {% if notification.notification_type == 'success' %}bg-success{% elif notification.notification_type == 'warning' %}bg-warning text-dark{% elif notification.notification_type == 'error' %}bg-danger{% else %}bg-info{% endif %}" style="font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas {% if notification.notification_type == 'success' %}fa-check{% elif notification.notification_type == 'warning' %}fa-exclamation{% elif notification.notification_type == 'error' %}fa-times{% else %}fa-info{% endif %} me-1"></i>
+                                {{ notification.get_notification_type_display }}
+                            </span>
+                            {% if not notification.is_read %}
+                            <span class="badge bg-primary ms-2" style="font-size: 0.7rem; border-radius: 4px;">New</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block">{{ notification.created_at|date:"F d, Y" }}</small>
+                        <small class="text-muted">{{ notification.created_at|time:"g:i A" }}</small>
                     </div>
                 </div>
-                <small class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</small>
             </div>
+            
+            <!-- Message Content -->
             <div class="card-body p-4">
-                <p class="mb-4 fs-5">{{ notification.message }}</p>
+                <div class="notification-message-box p-4 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 12px; border-left: 4px solid #3B7A8C;">
+                    <p class="mb-0 fs-5" style="line-height: 1.7; color: #333;">{{ notification.message }}</p>
+                </div>
                 
-                <div class="d-flex justify-content-between pt-2">
-                    <a href="{% url 'notification_list' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
+                <!-- Metadata -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                            <i class="fas fa-clock text-primary"></i>
+                            <div>
+                                <small class="text-muted d-block">Received</small>
+                                <span class="fw-medium">{{ notification.created_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 p-3" style="background: rgba(40,167,69,0.05); border-radius: 10px;">
+                            <i class="fas {% if notification.is_read %}fa-envelope-open text-success{% else %}fa-envelope text-warning{% endif %}"></i>
+                            <div>
+                                <small class="text-muted d-block">Status</small>
+                                <span class="fw-medium {% if notification.is_read %}text-success{% else %}text-warning{% endif %}">
+                                    {% if notification.is_read %}Read{% else %}Unread{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
+                    <a href="{% url 'notification_list' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
                         <i class="fas fa-arrow-left me-2"></i>Back to Notifications
                     </a>
                     <div class="d-flex gap-2">
                         {% if not notification.is_read %}
-                        <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-primary px-4" style="border-radius: 10px;">
+                        <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 500; box-shadow: 0 4px 12px rgba(59,122,140,0.25);">
                             <i class="fas fa-check me-2"></i>Mark as Read
                         </a>
                         {% endif %}
-                        <a href="{% url 'delete_notification' notification.id %}" class="btn btn-outline-danger px-4" style="border-radius: 10px;" onclick="return confirm('Are you sure you want to delete this notification?');">
+                        <a href="{% url 'delete_notification' notification.id %}" class="btn btn-outline-danger px-4 py-2" style="border-radius: 10px; font-weight: 500;" onclick="return confirm('Are you sure you want to delete this notification?');">
                             <i class="fas fa-trash me-2"></i>Delete
                         </a>
                     </div>
@@ -43,49 +92,92 @@
 </div>
 
 <style>
-.notification-icon-header {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    font-size: 0.9rem;
+}
+.breadcrumb-item a {
+    color: #3B7A8C;
+    transition: color 0.2s ease;
+}
+.breadcrumb-item a:hover {
+    color: #1a3a42;
+}
+.notification-detail-card {
+    transition: all 0.3s ease;
+}
+.notification-detail-card:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+}
+.notification-detail-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
-.notification-icon-header[data-type="success"] {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+.notification-detail-card:hover .notification-detail-icon {
+    transform: scale(1.05);
 }
-.notification-icon-header[data-type="success"] i {
-    color: white;
+.notification-detail-icon[data-type="success"] {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
 }
-.notification-icon-header[data-type="warning"] {
-    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+.notification-detail-icon[data-type="success"] i {
+    color: #28a745;
 }
-.notification-icon-header[data-type="warning"] i {
-    color: white;
+.notification-detail-icon[data-type="warning"] {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
 }
-.notification-icon-header[data-type="error"] {
-    background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
+.notification-detail-icon[data-type="warning"] i {
+    color: #856404;
 }
-.notification-icon-header[data-type="error"] i {
-    color: white;
+.notification-detail-icon[data-type="error"] {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
 }
-.notification-icon-header[data-type="info"] {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+.notification-detail-icon[data-type="error"] i {
+    color: #dc3545;
 }
-.notification-icon-header[data-type="info"] i {
-    color: white;
+.notification-detail-icon[data-type="info"] {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+}
+.notification-detail-icon[data-type="info"] i {
+    color: #17a2b8;
+}
+.notification-message-box {
+    position: relative;
+}
+.notification-message-box::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #3B7A8C 0%, #1a3a42 100%);
+    border-radius: 12px 0 0 12px;
 }
 </style>
 
 <script>
-document.querySelectorAll('.notification-icon-header').forEach(function(icon) {
+document.querySelectorAll('.notification-detail-icon').forEach(function(icon) {
     const type = icon.getAttribute('data-type');
-    let iconClass = 'info';
-    if (type === 'success') iconClass = 'check';
-    else if (type === 'warning') iconClass = 'exclamation';
-    else if (type === 'error') iconClass = 'times';
-    else iconClass = 'info';
-    icon.innerHTML = '<i class="fas fa-' + iconClass + ' fa-lg text-white"></i>';
+    let iconClass = 'fa-info-circle';
+    let iconColor = '#17a2b8';
+    if (type === 'success') {
+        iconClass = 'fa-check-circle';
+        iconColor = '#28a745';
+    } else if (type === 'warning') {
+        iconClass = 'fa-exclamation-circle';
+        iconColor = '#ffc107';
+    } else if (type === 'error') {
+        iconClass = 'fa-times-circle';
+        iconColor = '#dc3545';
+    }
+    icon.innerHTML = '<i class="fas ' + iconClass + ' fa-2x" style="color: ' + iconColor + '"></i>';
 });
 </script>
 {% endblock %}

@@ -4,91 +4,115 @@
 {% block title %}Payment Status{% endblock %}
 {% block page_title %}Payment #{{ payment.id }}{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'payment_history' %}">Payment History</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Payment #{{ payment.id }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Details</h5>
-                <span class="badge px-3 py-2 {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %} fs-6">
-                    {{ payment.get_status_display }}
-                </span>
+        <div class="card border-0 shadow-lg payment-status-card" style="border-radius: 16px; overflow: hidden;">
+            <!-- Card Header -->
+            <div class="card-header bg-white border-bottom py-4 px-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; box-shadow: 0 4px 12px rgba(59,122,140,0.25);">
+                            <i class="fas fa-credit-card text-white"></i>
+                        </div>
+                        Payment Details
+                    </h5>
+                    <span class="badge px-4 py-2 payment-status-badge {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}" style="font-size: 0.9rem; border-radius: 10px;">
+                        {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-2"></i>{% elif payment.status == 'pending' %}<i class="fas fa-clock me-2"></i>{% elif payment.status == 'refunded' %}<i class="fas fa-undo me-2"></i>{% else %}<i class="fas fa-question-circle me-2"></i>{% endif %}
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
             </div>
+            
             <div class="card-body p-4">
                 <!-- Status Banner -->
-                <div class="card border-0 mb-4 status-banner" data-status="{{ payment.status }}" style="border-radius: 12px;">
+                <div class="card border-0 mb-4 status-banner" data-status="{{ payment.status }}" style="border-radius: 16px; overflow: hidden;">
                     <div class="card-body text-center p-4">
                         <div class="status-icon" data-status="{{ payment.status }}"></div>
-                        <h5 class="mb-0 fw-bold">Payment {{ payment.get_status_display }}</h5>
+                        <h4 class="mb-1 fw-bold status-text">{{ payment.get_status_display }}</h4>
+                        <p class="mb-0 text-muted">Payment #{{ payment.id }}</p>
                     </div>
                 </div>
                 
-                <div class="row g-4">
+                <!-- Payment Info Grid -->
+                <div class="row g-4 mb-4">
                     <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-calendar-check text-primary"></i>
+                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%); border-radius: 12px; border: 1px solid rgba(59,122,140,0.1);">
+                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59,122,140,0.25);">
+                                <i class="fas fa-calendar-check text-white"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Reservation</h6>
-                                <p class="mb-0 fw-semibold">#{{ payment.reservation.id }}</p>
+                                <p class="mb-0 fw-semibold text-dark">#{{ payment.reservation.id }}</p>
                                 <p class="text-muted small mb-0">{{ payment.reservation.court.name }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-peso-sign text-primary"></i>
+                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(40,167,69,0.05) 0%, rgba(40,167,69,0.02) 100%); border-radius: 12px; border: 1px solid rgba(40,167,69,0.1);">
+                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(40,167,69,0.25);">
+                                <i class="fas fa-peso-sign text-white"></i>
                             </div>
                             <div>
-                                <h6 class="text-muted small mb-0">Amount</h6>
+                                <h6 class="text-muted small mb-0">Amount Paid</h6>
                                 <p class="mb-0 fw-bold fs-4" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-credit-card text-primary"></i>
+                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(255,193,7,0.05) 0%, rgba(255,193,7,0.02) 100%); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
+                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,193,7,0.25);">
+                                <i class="fas fa-credit-card text-white"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Payment Method</h6>
-                                <p class="mb-0 fw-semibold">{{ payment.get_method_display|default:"Not selected" }}</p>
+                                <p class="mb-0 fw-semibold text-dark">{{ payment.get_method_display|default:"Not selected" }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-clock text-primary"></i>
+                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(108,117,125,0.05) 0%, rgba(108,117,125,0.02) 100%); border-radius: 12px; border: 1px solid rgba(108,117,125,0.1);">
+                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(108,117,125,0.25);">
+                                <i class="fas fa-clock text-white"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Transaction Date</h6>
-                                <p class="mb-0 fw-semibold">{{ payment.created_at|date:"M d, Y H:i" }}</p>
+                                <p class="mb-0 fw-semibold text-dark">{{ payment.created_at|date:"M d, Y" }}</p>
+                                <p class="text-muted small mb-0">{{ payment.created_at|time:"g:i A" }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Payment Summary -->
-                <hr class="my-4">
-                <h6 class="fw-bold mb-3"><i class="fas fa-receipt me-2 text-primary"></i>Payment Summary</h6>
-                <div class="bg-light p-3 rounded-3" style="border-radius: 12px;">
-                    <div class="d-flex justify-content-between mb-2">
+                <div class="payment-summary-box p-4 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 12px; border: 1px solid #e9ecef;">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                        <i class="fas fa-receipt me-2 text-primary"></i>Payment Summary
+                    </h6>
+                    <div class="d-flex justify-content-between mb-2 py-2">
                         <span class="text-muted">Court Fee</span>
-                        <span class="fw-semibold">₱{{ payment.reservation.subtotal|floatformat:2 }}</span>
+                        <span class="fw-medium">₱{{ payment.reservation.subtotal|floatformat:2 }}</span>
                     </div>
                     {% if payment.reservation.equipment_fee > 0 %}
-                    <div class="d-flex justify-content-between mb-2">
+                    <div class="d-flex justify-content-between mb-2 py-2">
                         <span class="text-muted">Equipment Fee</span>
-                        <span class="fw-semibold">₱{{ payment.reservation.equipment_fee|floatformat:2 }}</span>
+                        <span class="fw-medium">₱{{ payment.reservation.equipment_fee|floatformat:2 }}</span>
                     </div>
                     {% endif %}
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between">
-                        <span class="fw-bold">Total</span>
-                        <span class="fw-bold fs-5" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</span>
+                    <hr class="my-3">
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <span class="fw-bold">Total Amount</span>
+                        <span class="fw-bold fs-4" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</span>
                     </div>
                 </div>
                 
@@ -138,19 +162,25 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="card-footer bg-white border-0 p-4">
-                <div class="d-flex justify-content-between">
+            
+            <!-- Card Footer -->
+            <div class="card-footer bg-white border-top p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     {% if user.is_normal_user %}
-                        <a href="{% url 'payment_history' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
-                            <i class="fas fa-arrow-left me-2"></i>Back to History
+                        <a href="{% url 'payment_history' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Payment History
                         </a>
                         {% if payment.status == 'pending' %}
-                        <a href="{% url 'payment_checkout' payment.reservation.id %}" class="btn btn-primary px-4" style="border-radius: 10px;">
+                        <a href="{% url 'payment_checkout' payment.reservation.id %}" class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 500; box-shadow: 0 4px 12px rgba(59,122,140,0.25);">
                             <i class="fas fa-redo me-2"></i>Retry Payment
+                        </a>
+                        {% else %}
+                        <a href="{% url 'reservation_detail' payment.reservation.id %}" class="btn btn-outline-primary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
+                            <i class="fas fa-eye me-2"></i>View Reservation
                         </a>
                         {% endif %}
                     {% else %}
-                        <a href="{% url 'staff_payments' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
+                        <a href="{% url 'staff_payments' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
                             <i class="fas fa-arrow-left me-2"></i>Back to Payments
                         </a>
                     {% endif %}
@@ -159,6 +189,57 @@
         </div>
     </div>
 </div>
+
+<style>
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    font-size: 0.9rem;
+}
+.breadcrumb-item a {
+    color: #3B7A8C;
+    transition: color 0.2s ease;
+}
+.breadcrumb-item a:hover {
+    color: #1a3a42;
+}
+.payment-status-card {
+    transition: all 0.3s ease;
+}
+.payment-status-card:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+}
+.payment-status-badge {
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+.status-banner {
+    transition: all 0.3s ease;
+}
+.status-banner.paid {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+}
+.status-banner.pending {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+}
+.status-banner.refunded, .status-banner.failed {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+}
+.info-item {
+    transition: all 0.3s ease;
+}
+.info-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.payment-summary-box {
+    transition: all 0.3s ease;
+}
+.payment-summary-box:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+</style>
 
 <script>
 document.querySelectorAll('.status-banner').forEach(function(banner) {

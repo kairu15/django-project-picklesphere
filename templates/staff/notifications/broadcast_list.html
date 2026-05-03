@@ -4,54 +4,83 @@
 {% block title %}Broadcast Messages{% endblock %}
 {% block page_title %}Broadcast Messages{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/staff.css' %}">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'staff_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Broadcast History</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h5 class="fw-bold mb-0">Broadcast History</h5>
-    <a href="{% url 'broadcast_message' %}" class="btn btn-primary" style="border-radius: 10px;">
-        <i class="fas fa-plus me-2"></i>Send New Broadcast
+<div class="d-flex justify-content-between align-items-center mb-4 animate-fadeInUp">
+    <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Broadcast History</h5>
+    <a href="{% url 'broadcast_message' %}" class="btn btn-staff btn-staff-primary">
+        <i class="fas fa-plus"></i>Send New Broadcast
     </a>
 </div>
 
-<div class="card border-0 shadow-sm" style="border-radius: 12px;">
-    <div class="card-body p-0">
+<div class="staff-card animate-fadeInUp" style="animation-delay: 0.1s;">
+    <div class="staff-card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+            <table class="staff-table">
+                <thead>
                     <tr>
-                        <th style="padding: 15px 20px;">Title</th>
-                        <th style="padding: 15px 20px;">Message</th>
-                        <th style="padding: 15px 20px;">Sent By</th>
-                        <th style="padding: 15px 20px;">Target Roles</th>
-                        <th style="padding: 15px 20px;">Sent At</th>
+                        <th>Title</th>
+                        <th>Message Preview</th>
+                        <th>Sent By</th>
+                        <th>Target Roles</th>
+                        <th>Sent At</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for broadcast in broadcasts %}
-                    <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">
-                            <span class="fw-bold">{{ broadcast.title }}</span>
+                    <tr>
+                        <td>
+                            <span class="table-cell-main">{{ broadcast.title }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
-                            <span class="text-muted">{{ broadcast.message|truncatewords:20 }}</span>
+                        <td>
+                            <span class="table-cell-sub">{{ broadcast.message|truncatewords:15 }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
-                            {{ broadcast.sent_by.get_full_name|default:broadcast.sent_by.username }}
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="stat-icon-wrapper" style="width: 36px; height: 36px; background: rgba(59,122,140,0.1);">
+                                    <i class="fas fa-user text-primary" style="font-size: 0.875rem;"></i>
+                                </div>
+                                <span class="table-cell-main">{{ broadcast.sent_by.get_full_name|default:broadcast.sent_by.username }}</span>
+                            </div>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td>
                             {% for role in broadcast.target_roles %}
-                            <span class="badge bg-info me-1">{{ role|title }}</span>
+                            <span class="badge-staff badge-status-pending me-1">{{ role|title }}</span>
                             {% empty %}
-                            <span class="text-muted">All Users</span>
+                            <span class="badge-staff badge-status-completed">All Users</span>
                             {% endfor %}
                         </td>
-                        <td style="padding: 15px 20px;">
-                            <small>{{ broadcast.sent_at|date:"M d, Y" }}</small><br>
-                            <small class="text-muted">{{ broadcast.sent_at|time:"g:i A" }}</small>
+                        <td>
+                            <span class="table-cell-main">{{ broadcast.sent_at|date:"M d, Y" }}</span><br>
+                            <span class="table-cell-sub">{{ broadcast.sent_at|time:"g:i A" }}</span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">No broadcast messages sent yet.</td>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-bullhorn"></i>
+                                </div>
+                                <h6 class="empty-state-title">No broadcasts sent yet</h6>
+                                <p class="empty-state-text mb-3">Send your first broadcast message to notify users.</p>
+                                <a href="{% url 'broadcast_message' %}" class="btn btn-staff btn-staff-primary">
+                                    <i class="fas fa-plus"></i>Send New Broadcast
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -59,11 +88,5 @@
         </div>
     </div>
 </div>
-
-<style>
-.hover-row:hover {
-    background-color: #f8f9fa;
-}
-</style>
 {% endblock %}
 

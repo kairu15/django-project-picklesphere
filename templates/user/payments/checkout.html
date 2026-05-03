@@ -4,62 +4,105 @@
 {% block title %}Payment Checkout{% endblock %}
 {% block page_title %}Complete Your Payment{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'reservation_list' %}">Reservations</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+        <!-- Reservation Summary Card -->
+        <div class="card border-0 shadow-lg mb-4 summary-card" style="border-radius: 16px; overflow: hidden;">
             <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
                 <div class="d-flex align-items-center">
-                    <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
                         <i class="fas fa-shopping-cart fa-lg text-white"></i>
                     </div>
                     <div class="ms-3">
                         <h5 class="mb-0 fw-bold">Reservation Summary</h5>
-                        <p class="mb-0 opacity-75">Review your booking details</p>
+                        <p class="mb-0 opacity-75">Review your booking details before payment</p>
                     </div>
                 </div>
             </div>
             <div class="card-body p-4">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-map-marker-alt text-primary"></i>
+                <div class="row g-4">
+                    <div class="col-md-7">
+                        <div class="summary-details">
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-map-marker-alt text-white"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Court</small>
+                                    <span class="fw-semibold">{{ reservation.court.name }}</span>
+                                </div>
                             </div>
-                            <strong>Court:</strong> {{ reservation.court.name }}
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-calendar text-primary"></i>
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-calendar text-white"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Date</small>
+                                    <span class="fw-semibold">{{ reservation.date|date:"l, M d, Y" }}</span>
+                                </div>
                             </div>
-                            <strong>Date:</strong> {{ reservation.date|date:"M d, Y" }}
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-clock text-primary"></i>
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-clock text-white"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Time</small>
+                                    <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</span>
+                                </div>
                             </div>
-                            <strong>Time:</strong> {{ reservation.start_time|time:"H:i" }} - {{ reservation.end_time|time:"H:i" }}
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mb-0">
-                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-hourglass-half text-primary"></i>
+                            <div class="d-flex align-items-center gap-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-hourglass-half text-white"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Duration</small>
+                                    <span class="fw-semibold">{{ reservation.duration_hours }} hours</span>
+                                </div>
                             </div>
-                            <strong>Duration:</strong> {{ reservation.duration_hours }} hours
                         </div>
                     </div>
-                    <div class="col-md-6 text-md-end">
-                        <p class="mb-1">Court Fee: ₱{{ reservation.subtotal|floatformat:2 }}</p>
-                        <p class="mb-1">Equipment Fee: ₱{{ reservation.equipment_fee|floatformat:2 }}</p>
-                        <hr class="my-2">
-                        <h5 class="mb-0 fw-bold" style="color: #3B7A8C;">Total: ₱{{ reservation.total_amount|floatformat:2 }}</h5>
+                    <div class="col-md-5">
+                        <div class="price-summary p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 12px; border: 1px solid #e9ecef;">
+                            <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Price Breakdown</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Court Fee</span>
+                                <span class="fw-medium">₱{{ reservation.subtotal|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Equipment Fee</span>
+                                <span class="fw-medium">₱{{ reservation.equipment_fee|floatformat:2 }}</span>
+                            </div>
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Total Amount</span>
+                                <span class="fw-bold fs-4" style="color: #3B7A8C;">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Select Payment Method</h5>
+        <!-- Payment Method Card -->
+        <div class="card border-0 shadow-lg payment-method-card" style="border-radius: 16px; overflow: hidden;">
+            <div class="card-header bg-white border-bottom py-4 px-4">
+                <h5 class="fw-bold mb-0 d-flex align-items-center">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; box-shadow: 0 4px 12px rgba(40,167,69,0.25);">
+                        <i class="fas fa-credit-card text-white"></i>
+                    </div>
+                    Select Payment Method
+                </h5>
             </div>
             <div class="card-body p-4">
                 <form method="post">
@@ -67,42 +110,42 @@
                     
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <div class="form-check border rounded p-3 h-100" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer;">
+                            <div class="payment-option form-check border rounded p-3 h-100" data-method="gcash" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: #fff;">
                                 <input type="radio" name="method" value="gcash" id="gcash" class="form-check-input" required>
                                 <label class="form-check-label w-100" for="gcash">
                                     <div class="text-center">
-                                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                        <div class="payment-icon gcash-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(59,122,140,0.3); transition: transform 0.3s ease;">
                                             <i class="fas fa-mobile-alt fa-lg text-white"></i>
                                         </div>
-                                        <h6 class="mb-1 fw-bold">GCash</h6>
-                                        <small class="text-muted">Pay via GCash</small>
+                                        <h6 class="mb-1 fw-bold text-dark">GCash</h6>
+                                        <small class="text-muted">Mobile Wallet Payment</small>
                                     </div>
                                 </label>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="form-check border rounded p-3 h-100" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer;">
+                            <div class="payment-option form-check border rounded p-3 h-100" data-method="cash" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: #fff;">
                                 <input type="radio" name="method" value="cash" id="cash" class="form-check-input">
                                 <label class="form-check-label w-100" for="cash">
                                     <div class="text-center">
-                                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                        <div class="payment-icon cash-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(40,167,69,0.3); transition: transform 0.3s ease;">
                                             <i class="fas fa-money-bill-wave fa-lg text-white"></i>
                                         </div>
-                                        <h6 class="mb-1 fw-bold">Cash</h6>
-                                        <small class="text-muted">Pay at counter</small>
+                                        <h6 class="mb-1 fw-bold text-dark">Cash</h6>
+                                        <small class="text-muted">Pay at Counter</small>
                                     </div>
                                 </label>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="form-check border rounded p-3 h-100" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer;">
+                            <div class="payment-option form-check border rounded p-3 h-100" data-method="card" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: #fff;">
                                 <input type="radio" name="method" value="card" id="card" class="form-check-input">
                                 <label class="form-check-label w-100" for="card">
                                     <div class="text-center">
-                                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                        <div class="payment-icon card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(23,162,184,0.3); transition: transform 0.3s ease;">
                                             <i class="fas fa-credit-card fa-lg text-white"></i>
                                         </div>
-                                        <h6 class="mb-1 fw-bold">Card</h6>
+                                        <h6 class="mb-1 fw-bold text-dark">Card</h6>
                                         <small class="text-muted">Credit/Debit Card</small>
                                     </div>
                                 </label>
@@ -160,11 +203,11 @@
                         </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between pt-2">
-                        <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
-                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-4 border-top">
+                        <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel Payment
                         </a>
-                        <button type="submit" class="btn btn-success px-5" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none;">
+                        <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none; font-weight: 500; box-shadow: 0 4px 15px rgba(40,167,69,0.35);">
                             <i class="fas fa-lock me-2"></i>Complete Payment
                         </button>
                     </div>
@@ -174,12 +217,80 @@
     </div>
 </div>
 
+<style>
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    font-size: 0.9rem;
+}
+.breadcrumb-item a {
+    color: #3B7A8C;
+    transition: color 0.2s ease;
+}
+.breadcrumb-item a:hover {
+    color: #1a3a42;
+}
+.summary-card {
+    transition: all 0.3s ease;
+}
+.summary-card:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
+}
+.payment-method-card {
+    transition: all 0.3s ease;
+}
+.payment-method-card:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
+}
+.payment-option {
+    border: 2px solid #e9ecef !important;
+    transition: all 0.3s ease;
+}
+.payment-option:hover {
+    border-color: #3B7A8C !important;
+    box-shadow: 0 4px 15px rgba(59,122,140,0.15);
+}
+.payment-option:hover .payment-icon {
+    transform: scale(1.1);
+}
+.payment-option.selected {
+    border-color: #3B7A8C !important;
+    background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%) !important;
+    box-shadow: 0 4px 15px rgba(59,122,140,0.2);
+}
+.payment-option.selected .gcash-icon {
+    box-shadow: 0 4px 20px rgba(59,122,140,0.4);
+}
+.payment-option.selected .cash-icon {
+    box-shadow: 0 4px 20px rgba(40,167,69,0.4);
+}
+.payment-option.selected .card-icon {
+    box-shadow: 0 4px 20px rgba(23,162,184,0.4);
+}
+.form-check-input:checked {
+    background-color: #3B7A8C;
+    border-color: #3B7A8C;
+}
+</style>
+
 <script>
     document.querySelectorAll('input[name="method"]').forEach(radio => {
         radio.addEventListener('change', function() {
+            // Hide all payment details
             document.getElementById('gcashDetails').classList.add('d-none');
             document.getElementById('cashDetails').classList.add('d-none');
             document.getElementById('cardDetails').classList.add('d-none');
+            
+            // Remove selected class from all options
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to current option and show details
+            const selectedOption = this.closest('.payment-option');
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
             
             if (this.value === 'gcash') {
                 document.getElementById('gcashDetails').classList.remove('d-none');
@@ -187,6 +298,19 @@
                 document.getElementById('cashDetails').classList.remove('d-none');
             } else if (this.value === 'card') {
                 document.getElementById('cardDetails').classList.remove('d-none');
+            }
+        });
+    });
+    
+    // Click on payment option div to select radio
+    document.querySelectorAll('.payment-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change'));
+                }
             }
         });
     });
