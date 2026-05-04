@@ -122,163 +122,168 @@ The primary purpose of PickleSphere is to digitize and streamline the operations
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> UserLogin{User Login}
+    Start([Start]) --> UserSelect{Select User Type}
     
-    UserLogin --> AdminUser[Administrator]
-    UserLogin --> PlayerUser[Player]
-    UserLogin --> OrganizerUser[Tournament Organizer]
+    UserSelect --> Admin[Administrator]
+    UserSelect --> Player[Player]
+    UserSelect --> Organizer[Tournament Organizer]
     
-    %% Administrator Path
-    AdminUser --> AdminLogin[Login to Admin Panel]
-    AdminLogin --> AdminDash[Admin Dashboard]
-    AdminDash --> AdminTask{Select Task}
+    %% Administrator Flow
+    Admin --> AdminLogin[Login to Admin Panel]
+    AdminLogin --> AdminDashboard[Access Admin Dashboard]
+    AdminDashboard --> AdminTask{Select Task}
     
-    AdminTask --> CourtMgmt[Manage Courts]
-    AdminTask --> UserMgmt[Manage Users]
-    AdminTask --> EquipMgmt[Manage Equipment]
-    AdminTask --> ReportView[View Reports]
-    AdminTask --> TourneyMgmt[Manage Tournaments]
+    AdminTask --> ManageCourts[Manage Courts]
+    AdminTask --> ManageUsers[Manage Users]
+    AdminTask --> ManageEquipment[Manage Equipment]
+    AdminTask --> ViewReports[View Reports]
+    AdminTask --> ManageTournaments[Manage Tournaments]
     
-    CourtMgmt --> CourtAction{Action}
-    CourtAction --> AddCourt[Add Court]
-    CourtAction --> EditCourt[Edit Court]
-    CourtAction --> DelCourt[Delete Court]
-    AddCourt --> SaveCourtDB[Save to Database]
-    EditCourt --> SaveCourtDB
-    DelCourt --> SaveCourtDB
-    SaveCourtDB --> AdminDash
+    ManageCourts --> CourtAction{Court Action}
+    CourtAction --> AddCourt[Add New Court]
+    CourtAction --> UpdateCourt[Update Court Info]
+    CourtAction --> DeleteCourt[Delete Court]
+    AddCourt --> SaveCourt[Save to Database]
+    UpdateCourt --> SaveCourt
+    DeleteCourt --> SaveCourt
+    SaveCourt --> AdminDashboard
     
-    UserMgmt --> UserAction{Action}
-    UserAction --> ViewUser[View Users]
-    UserAction --> EditUserProfile[Edit User]
-    UserAction --> SuspendUserAcc[Suspend User]
-    ViewUser --> AdminDash
-    EditUserProfile --> SaveUserDB[Save Changes]
-    SuspendUserAcc --> SaveUserDB
-    SaveUserDB --> AdminDash
+    ManageUsers --> UserAction{User Action}
+    UserAction --> ViewUsers[View All Users]
+    UserAction --> EditUser[Edit User Profile]
+    UserAction --> SuspendUser[Suspend User]
+    ViewUsers --> AdminDashboard
+    EditUser --> SaveUser[Save Changes]
+    SuspendUser --> SaveUser
+    SaveUser --> AdminDashboard
     
-    EquipMgmt --> EquipAction{Action}
+    ManageEquipment --> EquipAction{Equipment Action}
     EquipAction --> AddEquip[Add Equipment]
-    EquipAction --> EditEquip[Edit Equipment]
+    EquipAction --> UpdateEquip[Update Equipment]
     EquipAction --> ViewRentals[View Rentals]
-    AddEquip --> SaveEquipDB[Save to Database]
-    EditEquip --> SaveEquipDB
-    ViewRentals --> AdminDash
-    SaveEquipDB --> AdminDash
+    AddEquip --> SaveEquip[Save to Database]
+    UpdateEquip --> SaveEquip
+    ViewRentals --> AdminDashboard
+    SaveEquip --> AdminDashboard
     
-    ReportView --> GenReport[Generate Report]
-    GenReport --> AdminDash
+    ViewReports --> GenerateReport[Generate Report]
+    GenerateReport --> AdminDashboard
     
-    TourneyMgmt --> TourneyAction{Action}
+    ManageTournaments --> TourneyAction{Tournament Action}
     TourneyAction --> CreateTourney[Create Tournament]
-    TourneyAction --> EditTourney[Edit Tournament]
-    TourneyAction --> ViewTourneyResults[View Results]
-    CreateTourney --> SaveTourneyDB[Save to Database]
-    EditTourney --> SaveTourneyDB
-    ViewTourneyResults --> AdminDash
-    SaveTourneyDB --> AdminDash
+    TourneyAction --> UpdateTourney[Update Tournament]
+    TourneyAction --> ViewResults[View Results]
+    CreateTourney --> SaveTourney[Save to Database]
+    UpdateTourney --> SaveTourney
+    ViewResults --> AdminDashboard
+    SaveTourney --> AdminDashboard
     
-    %% Player Path
-    PlayerUser --> PlayerLogin[Login to Account]
-    PlayerLogin --> PlayerDash[Player Dashboard]
-    PlayerDash --> PlayerTask{Select Task}
+    %% Player Flow
+    Player --> PlayerLogin[Login to Account]
+    PlayerLogin --> PlayerDashboard[Access User Dashboard]
+    PlayerDashboard --> PlayerTask{Select Task}
     
-    PlayerTask --> BookCourtTask[Book Court]
-    PlayerTask --> RentEquipTask[Rent Equipment]
-    PlayerTask --> JoinTourneyTask[Join Tournament]
-    PlayerTask --> ViewProfileTask[View Profile]
-    PlayerTask --> ViewHistoryTask[View History]
+    PlayerTask --> BookCourt[Book Court]
+    PlayerTask --> RentEquipment[Rent Equipment]
+    PlayerTask --> JoinTournament[Join Tournament]
+    PlayerTask --> ViewProfile[View Profile]
+    PlayerTask --> ViewHistory[View History]
     
-    BookCourtTask --> CheckAvail[Check Availability]
-    CheckAvail --> IsAvail{Available?}
-    IsAvail --> NoAvail[Select Different Date]
-    IsAvail --> YesAvail[Select Time Slot]
-    NoAvail --> CheckAvail
-    YesAvail --> ProcessPay[Process Payment]
-    ProcessPay --> PaySuccess{Payment OK?}
-    PaySuccess --> PayRetry[Retry Payment]
-    PaySuccess --> PayConfirm[Confirm Booking]
-    PayRetry --> ProcessPay
-    PayConfirm --> SaveBookingDB[Save Booking]
-    SaveBookingDB --> SendBookNotify[Send Notification]
-    SendBookNotify --> PlayerDash
+    BookCourt --> CheckAvailability[Check Court Availability]
+    CheckAvailability --> Available{Available?}
+    Available -->|Yes| SelectTime[Select Time Slot]
+    Available -->|No| SelectDate[Select Different Date]
+    SelectDate --> CheckAvailability
     
-    RentEquipTask --> ViewEquipList[View Equipment]
-    ViewEquipList --> SelectEquip[Select Equipment]
-    SelectEquip --> ProcessEquipPay[Process Payment]
-    ProcessEquipPay --> EquipPaySuccess{Payment OK?}
-    EquipPaySuccess --> EquipPayRetry[Retry Payment]
-    EquipPaySuccess --> EquipPayConfirm[Confirm Rental]
-    EquipPayRetry --> ProcessEquipPay
-    EquipPayConfirm --> SaveRentalDB[Save Rental]
-    SaveRentalDB --> SendEquipNotify[Send Notification]
-    SendEquipNotify --> PlayerDash
+    SelectTime --> ProcessPayment[Process Payment]
+    ProcessPayment --> PaymentSuccess{Payment Successful?}
+    PaymentSuccess -->|Yes| ConfirmBooking[Confirm Booking]
+    PaymentSuccess -->|No| RetryPayment[Retry Payment]
+    RetryPayment --> ProcessPayment
     
-    JoinTourneyTask --> ViewTourneyList[View Tournaments]
-    ViewTourneyList --> SelectTourney[Select Tournament]
-    SelectTourney --> RegisterTourney[Register]
-    RegisterTourney --> ProcessTourneyPay[Process Payment]
-    ProcessTourneyPay --> TourneyPaySuccess{Payment OK?}
-    TourneyPaySuccess --> TourneyPayRetry[Retry Payment]
-    TourneyPaySuccess --> TourneyPayConfirm[Confirm Registration]
-    TourneyPayRetry --> ProcessTourneyPay
-    TourneyPayConfirm --> SaveRegDB[Save Registration]
-    SaveRegDB --> SendTourneyNotify[Send Notification]
-    SendTourneyNotify --> PlayerDash
+    ConfirmBooking --> SaveBooking[Save Booking to Database]
+    SaveBooking --> SendNotification[Send Confirmation Notification]
+    SendNotification --> PlayerDashboard
     
-    ViewProfileTask --> ProfileAction{Action}
+    RentEquipment --> ViewEquipment[View Available Equipment]
+    ViewEquipment --> SelectEquip[Select Equipment]
+    SelectEquip --> EquipPayment[Process Equipment Payment]
+    EquipPayment --> EquipSuccess{Payment Successful?}
+    EquipSuccess -->|Yes| ConfirmRental[Confirm Rental]
+    EquipSuccess -->|No| RetryEquipPayment[Retry Payment]
+    RetryEquipPayment --> EquipPayment
+    
+    ConfirmRental --> SaveRental[Save Rental to Database]
+    SaveRental --> EquipNotify[Send Rental Notification]
+    EquipNotify --> PlayerDashboard
+    
+    JoinTournament --> ViewTournaments[View Available Tournaments]
+    ViewTournaments --> SelectTourney[Select Tournament]
+    SelectTourney --> RegisterTourney[Register for Tournament]
+    RegisterTourney --> TourneyPayment[Process Registration Fee]
+    TourneyPayment --> TourneySuccess{Payment Successful?}
+    TourneySuccess -->|Yes| ConfirmRegistration[Confirm Registration]
+    TourneySuccess -->|No| RetryTourneyPayment[Retry Payment]
+    RetryTourneyPayment --> TourneyPayment
+    
+    ConfirmRegistration --> SaveRegistration[Save Registration]
+    SaveRegistration --> TourneyNotify[Send Registration Notification]
+    TourneyNotify --> PlayerDashboard
+    
+    ViewProfile --> ProfileAction{Profile Action}
     ProfileAction --> UpdateProfile[Update Profile]
-    ProfileAction --> ChangePass[Change Password]
-    UpdateProfile --> SaveProfileDB[Save Changes]
-    ChangePass --> SavePassDB[Save Password]
-    SaveProfileDB --> PlayerDash
-    SavePassDB --> PlayerDash
+    ProfileAction --> ChangePassword[Change Password]
+    UpdateProfile --> SaveProfile[Save Changes]
+    ChangePassword --> SavePassword[Save New Password]
+    SaveProfile --> PlayerDashboard
+    SavePassword --> PlayerDashboard
     
-    ViewHistoryTask --> ShowHistory[Display History]
-    ShowHistory --> PlayerDash
+    ViewHistory --> DisplayHistory[Display Booking History]
+    DisplayHistory --> PlayerDashboard
     
-    %% Organizer Path
-    OrganizerUser --> OrganizerLogin[Login as Organizer]
-    OrganizerLogin --> OrganizerDash[Organizer Dashboard]
-    OrganizerDash --> OrganizerTask{Select Task}
+    %% Tournament Organizer Flow
+    Organizer --> OrganizerLogin[Login as Organizer]
+    OrganizerLogin --> OrganizerDashboard[Access Organizer Dashboard]
+    OrganizerDashboard --> OrganizerTask{Select Task}
     
-    OrganizerTask --> CreateEvent[Create Event]
-    OrganizerTask --> MgmtParticipants[Manage Participants]
+    OrganizerTask --> CreateEvent[Create Tournament Event]
+    OrganizerTask --> ManageParticipants[Manage Participants]
     OrganizerTask --> TrackScores[Track Scores]
     OrganizerTask --> PublishResults[Publish Results]
     
-    CreateEvent --> EnterEventDetails[Enter Details]
-    EnterEventDetails --> SaveEventDB[Save Event]
-    SaveEventDB --> OrganizerDash
+    CreateEvent --> EventDetails[Enter Event Details]
+    EventDetails --> SaveEvent[Save Event to Database]
+    SaveEvent --> OrganizerDashboard
     
-    MgmtParticipants --> ViewParticipants[View Participants]
-    ViewParticipants --> ParticipantAction{Action}
-    ParticipantAction --> ApprovePart[Approve]
-    ParticipantAction --> RejectPart[Reject]
-    ApprovePart --> UpdatePartStatus[Update Status]
-    RejectPart --> UpdatePartStatus
-    UpdatePartStatus --> OrganizerDash
+    ManageParticipants --> ViewParticipants[View Registered Participants]
+    ViewParticipants --> ParticipantAction{Participant Action}
+    ParticipantAction --> Approve[Approve Participant]
+    ParticipantAction --> Reject[Reject Participant]
+    Approve --> UpdateStatus[Update Participant Status]
+    Reject --> UpdateStatus
+    UpdateStatus --> OrganizerDashboard
     
     TrackScores --> SelectMatch[Select Match]
-    SelectMatch --> EnterMatchScores[Enter Scores]
-    EnterMatchScores --> SaveScoresDB[Save Scores]
-    SaveScoresDB --> OrganizerDash
+    SelectMatch --> EnterScores[Enter Match Scores]
+    EnterScores --> SaveScores[Save Scores to Database]
+    SaveScores --> OrganizerDashboard
     
-    PublishResults --> GenResults[Generate Results]
-    GenResults --> PublishToPublic[Publish]
-    PublishToPublic --> OrganizerDash
+    PublishResults --> GenerateResults[Generate Final Results]
+    GenerateResults --> Publish[Publish to Public]
+    Publish --> OrganizerDashboard
     
-    %% Logout Flow
-    AdminDash --> LogoutCheck{Logout?}
-    PlayerDash --> LogoutCheck
-    OrganizerDash --> LogoutCheck
+    %% Common Logout Flow
+    AdminDashboard --> Logout{Logout?}
+    PlayerDashboard --> Logout
+    OrganizerDashboard --> Logout
     
-    LogoutCheck --> YesLogout[Logout User]
-    LogoutCheck --> NoLogout[Return to Dashboard]
-    YesLogout --> End([End])
-    NoLogout --> AdminDash
-    NoLogout --> PlayerDash
-    NoLogout --> OrganizerDash
+    Logout -->|Yes| LogoutUser[Logout User]
+    LogoutUser --> End([End])
+    
+    Logout -->|No| ReturnDashboard[Return to Dashboard]
+    ReturnDashboard --> AdminDashboard
+    ReturnDashboard --> PlayerDashboard
+    ReturnDashboard --> OrganizerDashboard
     
     %% Styling
     classDef startEnd fill:#2ecc71,stroke:#27ae60,stroke-width:3px,color:#fff
@@ -288,10 +293,10 @@ flowchart TD
     classDef user fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
     
     class Start,End startEnd
-    class AdminLogin,AdminDash,PlayerLogin,PlayerDash,OrganizerLogin,OrganizerDash,YesLogout process
-    class UserLogin,AdminTask,CourtAction,UserAction,EquipAction,IsAvail,PaySuccess,EquipPaySuccess,TourneyPaySuccess,ProfileAction,ParticipantAction,LogoutCheck decision
-    class SaveCourtDB,SaveUserDB,SaveEquipDB,SaveTourneyDB,SaveBookingDB,SaveRentalDB,SaveRegDB,SaveProfileDB,SavePassDB,SaveEventDB,UpdatePartStatus,SaveScoresDB database
-    class AdminUser,PlayerUser,OrganizerUser user
+    class AdminLogin,AdminDashboard,PlayerLogin,PlayerDashboard,OrganizerLogin,OrganizerDashboard,LogoutUser,ReturnDashboard process
+    class UserSelect,AdminTask,CourtAction,UserAction,EquipAction,Available,PaymentSuccess,EquipSuccess,TourneySuccess,ProfileAction,ParticipantAction,Logout decision
+    class SaveCourt,SaveUser,SaveEquip,SaveBooking,SaveRental,SaveRegistration,SaveEvent,UpdateStatus,SaveScores database
+    class Admin,Player,Organizer user
 ```
 
 ### Flowchart Legend
