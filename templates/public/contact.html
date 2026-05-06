@@ -55,7 +55,7 @@
                             <i class="fas fa-phone fa-2x text-white"></i>
                         </div>
                         <h5 class="fw-bold mb-2" style="color: var(--text-dark);">{{ content.phone_label }}</h5>
-                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.phone|default:"+63 2 8123 4567" }}</p>
+                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.phone|default:"09455470173" }}</p>
                         <p class="small mb-0" style="color: var(--text-muted);">{{ content.phone_hours }}</p>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                             <i class="fas fa-envelope fa-2x text-white"></i>
                         </div>
                         <h5 class="fw-bold mb-2" style="color: var(--text-dark);">{{ content.email_label }}</h5>
-                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.email|default:"info@picklesphere.com" }}</p>
+                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.email }}</p>
                         <p class="small mb-0" style="color: var(--text-muted);">{{ content.email_response }}</p>
                     </div>
                 </div>
@@ -79,8 +79,8 @@
                             <i class="fas fa-map-marker-alt fa-2x text-white"></i>
                         </div>
                         <h5 class="fw-bold mb-2" style="color: var(--text-dark);">{{ content.visit_label }}</h5>
-                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.address|default:"123 Sports Avenue, Makati City" }}</p>
-                        <p class="small mb-0" style="color: var(--text-muted);">{{ content.visit_city }}</p>
+                        <p class="mb-0" style="color: var(--text-muted);">{{ contact_info.address|default:"Valencia, Negros Oriental, Philippines, 6215" }}</p>
+                        <p class="small mb-0" style="color: var(--text-muted);">{{ content.visit_city|default:"Valencia, Negros Oriental, Philippines, 6215" }}</p>
                     </div>
                 </div>
             </div>
@@ -240,8 +240,8 @@
                         <div class="text-center text-muted">
                             <i class="fas fa-map-marked-alt fa-5x text-primary mb-4"></i>
                             <h4 class="mb-2">PickleSphere Facility</h4>
-                            <p class="mb-3">123 Sports Avenue, Makati City<br>Metro Manila, Philippines</p>
-                            <a href="https://maps.google.com/?q=14.5547,121.0244" target="_blank" class="btn btn-primary btn-lg">
+                            <p class="mb-3">Valencia, Negros Oriental, Philippines, 6215</p>
+                            <a href="https://www.google.com/maps/place/Valencia,+Negros+Oriental/@9.282029,123.2462065,4497m/data=!3m1!1e3!4m15!1m8!3m7!1s0x33ab6610c202c097:0xc63ce6d8ba0ac08e!2sValencia,+Negros+Oriental!3b1!8m2!3d9.280507!4d123.2443346!16zL20vMDR6eGx0!3m5!1s0x33ab6610c202c097:0xc63ce6d8ba0ac08e!8m2!3d9.280507!4d123.2443346!16zL20vMDR6eGx0?entry=ttu&g_ep=EgoyMDI2MDUwMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="btn btn-primary btn-lg">
                                 <i class="fas fa-directions me-2"></i>Get Directions
                             </a>
                         </div>
@@ -252,18 +252,18 @@
                         <h5 class="fw-bold mb-4"><i class="fas fa-info-circle me-2 text-primary"></i>{{ content.getting_here_title }}</h5>
                         <div class="mb-3">
                             <h6 class="fw-bold mb-1"><i class="fas fa-car me-2 text-primary"></i>By Car</h6>
-                            <p class="text-muted small mb-0">Free parking available. Accessible via EDSA and SLEX.</p>
+                            <p class="text-muted small mb-0">From Dumaguete City, take Valencia Road (National Highway). 15-min drive. Free parking available.</p>
                         </div>
                         <div class="mb-3">
-                            <h6 class="fw-bold mb-1"><i class="fas fa-train me-2 text-success"></i>By Public Transit</h6>
-                            <p class="text-muted small mb-0">10-min walk from MRT Magallanes Station.</p>
+                            <h6 class="fw-bold mb-1"><i class="fas fa-bus me-2 text-success"></i>By Public Transit</h6>
+                            <p class="text-muted small mb-0">Jeepneys and buses from Dumaguete City to Valencia. Stop at Valencia Plaza, short walk to facility.</p>
                         </div>
                         <div class="mb-3">
                             <h6 class="fw-bold mb-1"><i class="fas fa-motorcycle me-2 text-warning"></i>By Ride-Sharing</h6>
-                            <p class="text-muted small mb-0">Search for "PickleSphere Makati" on Grab or Angkas.</p>
+                            <p class="text-muted small mb-0">Hire a tricycle or habal-habal from Dumaguete City. Grab is available in the area.</p>
                         </div>
                         <div class="alert alert-info mt-3">
-                            <small><i class="fas fa-parking me-2"></i><strong>100+ parking spots available</strong></small>
+                            <small><i class="fas fa-parking me-2"></i><strong>50+ parking spots available</strong></small>
                         </div>
                     </div>
                 </div>

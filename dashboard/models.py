@@ -259,11 +259,11 @@ class ContactContent(models.Model):
 
 class ContactInfo(models.Model):
     """Contact information (singleton pattern)"""
-    phone = models.CharField(max_length=100, default='+63 2 8123 4567')
-    email = models.EmailField(default='info@picklesphere.com')
-    address = models.TextField(default='123 Sports Avenue, Makati City')
-    city_country = models.CharField(max_length=200, default='Metro Manila, Philippines')
-    google_maps_url = models.URLField(blank=True, help_text="Google Maps directions URL")
+    phone = models.CharField(max_length=100, default='09455470173')
+    email = models.EmailField(blank=True)
+    address = models.TextField(default='Valencia, Negros Oriental, Philippines, 6215')
+    city_country = models.CharField(max_length=200, default='Valencia, Negros Oriental, Philippines, 6215')
+    google_maps_url = models.URLField(blank=True, max_length=1000, help_text="Google Maps directions URL")
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 

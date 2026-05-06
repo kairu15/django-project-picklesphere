@@ -91,6 +91,12 @@ def home_view(request):
             {'icon': 'fa-medal', 'title': 'Training', 'description': 'Professional coaching available'},
         ]
 
+    # Calculate stats for home page
+    from datetime import datetime
+    current_year = datetime.now().year
+    years_experience = max(1, current_year - 2024 + 1)
+    tournaments_count = Tournament.objects.filter(status='completed').count()
+
     return render(request, 'public/home.html', {
         'featured_courts': featured_courts,
         'total_courts': total_courts,
@@ -100,6 +106,8 @@ def home_view(request):
         'testimonials': testimonials,
         'gallery_images': gallery_images,
         'amenities': amenities,
+        'years_experience': years_experience,
+        'tournaments_count': tournaments_count,
     })
 
 
@@ -380,9 +388,9 @@ def pricing_view(request):
     indoor_courts = courts.filter(court_type='indoor')
 
     pricing_data = {
-        'standard_rate': 300 if standard_courts.exists() else 350,
-        'premium_rate': 400 if premium_courts.exists() else 450,
-        'indoor_rate': 500 if indoor_courts.exists() else 550,
+        'standard_rate': 200 if standard_courts.exists() else 200,
+        'premium_rate': 350 if premium_courts.exists() else 350,
+        'indoor_rate': 300 if indoor_courts.exists() else 300,
     }
 
     # Get membership tiers from database or use defaults
@@ -408,14 +416,14 @@ def pricing_view(request):
             },
             {
                 'name': 'Pro Member',
-                'price': 999,
+                'price': 400,
                 'period': 'month',
                 'features': ['All Basic features', '10% off court rentals', 'Priority booking', 'Free paddle rental', 'Tournament discounts'],
                 'recommended': True
             },
             {
                 'name': 'Elite',
-                'price': 1999,
+                'price': 350,
                 'period': 'month',
                 'features': ['All Pro features', '20% off court rentals', 'Unlimited bookings', 'Free equipment use', 'Coaching sessions'],
                 'recommended': False
@@ -504,11 +512,21 @@ def about_view(request):
     }
 
     # Get dynamic stats
+    from datetime import datetime
+    from tournaments.models import Tournament
+
+    # Auto-calculate years operating from 2024
+    current_year = datetime.now().year
+    years_operating = max(1, current_year - 2024 + 1)  # +1 to include 2024
+
+    # Count actual completed tournaments
+    tournaments_hosted = Tournament.objects.filter(status='completed').count()
+
     stats = {
         'total_courts': Court.objects.filter(is_active=True).count(),
         'total_members': User.objects.filter(is_active=True).count(),
-        'years_operating': 8,
-        'tournaments_hosted': 50
+        'years_operating': years_operating,
+        'tournaments_hosted': tournaments_hosted
     }
 
     # Get milestones from database or use defaults
@@ -563,9 +581,15 @@ def about_view(request):
             {'icon': 'fa-mobile-alt', 'title': 'Easy Booking', 'description': '24/7 online court reservations.', 'color': 'info'},
         ]
 
+    # Calculate years experience for template
+    from datetime import datetime
+    current_year = datetime.now().year
+    years_experience = max(1, current_year - 2024 + 1)
+
     return render(request, 'public/about.html', {
         'content': content,
         'stats': stats,
+        'years_experience': years_experience,
         'milestones': milestones,
         'team_members': team_members,
         'facilities': facilities,
@@ -870,7 +894,7 @@ def homepage_edit_gallery(request, gallery_id=None):
                     'gallery': gallery,
                     'page_title': 'Edit Gallery Image' if gallery else 'New Gallery Image'
                 }
-                return render(request, 'dashboard/homepage_edit_gallery.html', context)
+                return render(request, 'admin/homepage/homepage_edit_gallery.html', context)
         
         return redirect('homepage_management')
     
@@ -878,7 +902,7 @@ def homepage_edit_gallery(request, gallery_id=None):
         'gallery': gallery,
         'page_title': 'Edit Gallery Image' if gallery else 'New Gallery Image'
     }
-    return render(request, 'dashboard/homepage_edit_gallery.html', context)
+    return render(request, 'admin/homepage/homepage_edit_gallery.html', context)
 
 
 @login_required

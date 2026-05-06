@@ -33,20 +33,36 @@
                                 </div>
                             </div>
                             <div class="ms-4">
-                                <h3 class="fw-bold mb-0">{{ content.mission_title }}</h3>
+                                <h3 class="fw-bold mb-0">Our Mission</h3>
                             </div>
                         </div>
-                        <p class="lead text-muted">{{ content.mission_text }}</p>
+                        <p class="lead text-muted">To promote the sport of pickleball within the local community by providing quality facilities, building an inclusive and active environment, and making the sport accessible to players of all ages and skill levels.</p>
                         <hr class="my-4">
                         <div class="row g-2">
-                            {% for feature in content.mission_features %}
                             <div class="col-6">
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-check-circle text-success me-2"></i>
-                                    <small>{{ feature }}</small>
+                                    <small>Quality local facilities</small>
                                 </div>
                             </div>
-                            {% endfor %}
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <small>Strong community engagement</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <small>Open to all skill levels</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <small>Affordable and accessible pricing</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -61,20 +77,36 @@
                                 </div>
                             </div>
                             <div class="ms-4">
-                                <h3 class="fw-bold mb-0">{{ content.vision_title }}</h3>
+                                <h3 class="fw-bold mb-0">Our Vision</h3>
                             </div>
                         </div>
-                        <p class="lead text-muted">{{ content.vision_text }}</p>
+                        <p class="lead text-muted">To become a trusted and leading pickleball facility in the local area, recognized for quality service, effective coaching, and strong community involvement, while nurturing and developing local pickleball talent.</p>
                         <hr class="my-4">
                         <div class="row g-2">
-                            {% for feature in content.vision_features %}
                             <div class="col-6">
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-check-circle text-success me-2"></i>
-                                    <small>{{ feature }}</small>
+                                    <small>Leading local facility</small>
                                 </div>
                             </div>
-                            {% endfor %}
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <small>Excellence in coaching</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <small>Community-centered approach</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <small>Development of local players</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,8 +142,8 @@
                     <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
                         <i class="fas fa-calendar fa-2x"></i>
                     </div>
-                    <h2 class="display-4 fw-bold mb-2">{{ stats.years_operating|default:"8" }}</h2>
-                    <p class="mb-0 fs-5" style="opacity: 0.85;">{{ content.stats_years }}</p>
+                    <h2 class="display-4 fw-bold mb-2">{{ stats.years_operating|default:"3" }}</h2>
+                    <p class="mb-0 fs-5" style="opacity: 0.85;">Years Operating</p>
                 </div>
             </div>
             <div class="col-md-3 col-6">
@@ -119,8 +151,8 @@
                     <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
                         <i class="fas fa-trophy fa-2x"></i>
                     </div>
-                    <h2 class="display-4 fw-bold mb-2">{{ stats.tournaments_hosted|default:"50" }}+</h2>
-                    <p class="mb-0 fs-5" style="opacity: 0.85;">{{ content.stats_tournaments }}</p>
+                    <h2 class="display-4 fw-bold mb-2">{{ stats.tournaments_hosted|default:"20" }}</h2>
+                    <p class="mb-0 fs-5" style="opacity: 0.85;">Tournaments Hosted</p>
                 </div>
             </div>
         </div>
@@ -293,11 +325,13 @@
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="position-relative">
-                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800" alt="PickleSphere Facility" class="img-fluid rounded-4 shadow-lg" style="width: 100%; height: 500px; object-fit: cover;">
-                    <div class="position-absolute" style="bottom: -20px; right: -20px; background: var(--primary-color, #3B7A8C); padding: 20px; border-radius: 15px;">
-                        <h3 class="text-white mb-0">8+</h3>
-                        <p class="text-white-50 mb-0">Years of Excellence</p>
+                <div class="position-relative d-flex justify-content-center">
+                    <div style="width: 400px; height: 400px; border-radius: 50%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); border: 8px solid white; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                        <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere Logo" class="w-100 h-100" style="object-fit: contain; padding: 20px;">
+                    </div>
+                    <div class="position-absolute" style="bottom: 10px; right: 50px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); padding: 20px 25px; border-radius: 16px; box-shadow: 0 8px 30px rgba(59, 122, 140, 0.4); border: 3px solid white;">
+                        <h3 class="text-white mb-0 fw-bold" style="font-size: 2rem; line-height: 1;">{{ years_experience|default:"1" }}+</h3>
+                        <p class="text-white mb-0 mt-1" style="opacity: 0.9; font-size: 0.85rem;">Years of Excellence</p>
                     </div>
                 </div>
             </div>
