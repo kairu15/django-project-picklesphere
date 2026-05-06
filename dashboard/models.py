@@ -415,6 +415,53 @@ class Testimonial(models.Model):
         return "approved" if self.is_active else "inactive"
 
 
+class Rating(models.Model):
+    """Rating submitted by users after reservation completion"""
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='ratings',
+        help_text="The user who submitted this rating"
+    )
+    reservation = models.ForeignKey(
+        'reservations.Reservation',
+        on_delete=models.CASCADE,
+        related_name='rating',
+        help_text="The completed reservation being rated"
+    )
+    rating = models.IntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Rating from 1 to 5 stars"
+    )
+    comment = models.TextField(
+        blank=True,
+        null=True,
+        max_length=500,
+        help_text="Optional comment (max 500 characters)"
+    )
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="Featured ratings are displayed on the homepage"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Rating'
+        verbose_name_plural = 'Ratings'
+        unique_together = [['user', 'reservation']]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.rating} stars for Reservation #{self.reservation.id}"
+
+    @property
+    def star_display(self):
+        """Returns HTML for star display"""
+        return '★' * self.rating + '☆' * (5 - self.rating)
+
+
 class Amenity(models.Model):
     """Facility amenities displayed on home page"""
     icon = models.CharField(

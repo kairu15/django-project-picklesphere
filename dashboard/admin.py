@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Testimonial, Amenity, GalleryImage, HomePageContent,
+    Testimonial, Rating, Amenity, GalleryImage, HomePageContent,
     PricingContent, PricingTier, PricingFAQ,
     AboutContent, Milestone, TeamMember, Facility, WhyChooseItem,
     ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
@@ -178,6 +178,23 @@ class SocialLinkAdmin(admin.ModelAdmin):
 
 
 # Homepage Admin Classes (existing)
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'reservation', 'rating', 'comment_short', 'is_featured', 'created_at']
+    list_filter = ['is_featured', 'rating', 'created_at']
+    list_editable = ['is_featured']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'comment']
+    ordering = ['-created_at']
+    readonly_fields = ['created_at', 'updated_at']
+    fields = ['user', 'reservation', 'rating', 'comment', 'is_featured', 'created_at', 'updated_at']
+
+    def comment_short(self, obj):
+        if obj.comment:
+            return obj.comment[:50] + '...' if len(obj.comment) > 50 else obj.comment
+        return '-'
+    comment_short.short_description = 'Comment'
+
+
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = ['name', 'role', 'rating', 'is_active', 'display_order', 'created_at']

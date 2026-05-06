@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
+from django.http import HttpResponse, Http404
 from datetime import datetime, timedelta
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
@@ -65,18 +66,21 @@ def payment_checkout_view(request, reservation_id):
                 return redirect('payment_status', payment_id=payment.id)
                 
         elif method == 'cash':
-            payment.status = 'pending'
-            payment.save()
-            
-            PaymentLog.objects.create(
-                payment=payment,
-                action='Cash Payment Selected',
-                details='User selected cash payment method',
-                performed_by=request.user
-            )
-            
-            messages.success(request, 'Please proceed to the counter to complete your cash payment.')
-            return redirect('payment_status', payment_id=payment.id)
+            form = CashPaymentForm(request.POST, request.FILES, instance=payment)
+            if form.is_valid():
+                payment = form.save()
+                payment.status = 'pending'
+                payment.save()
+
+                PaymentLog.objects.create(
+                    payment=payment,
+                    action='Cash Payment Selected',
+                    details='User selected cash payment method',
+                    performed_by=request.user
+                )
+
+                messages.success(request, 'Please proceed to the counter to complete your cash payment.')
+                return redirect('payment_status', payment_id=payment.id)
             
         elif method == 'card':
             # Generate transaction ID for card payment
@@ -248,7 +252,7 @@ def view_payment_proof_view(request, payment_id):
     # Check permissions - user can view their own, staff/admin can view all
     if payment.reservation.user != request.user and not request.user.is_staff_user() and not request.user.is_admin():
         messages.error(request, 'You do not have permission to view this payment proof.')
-        return redirect('dashboard')
+        return redirect('payment_status', payment_id=payment.id)
 
     # Check if image exists
     if not payment.gcash_proof_image:
@@ -259,6 +263,42 @@ def view_payment_proof_view(request, payment_id):
         'payment': payment,
         'proof_image': payment.gcash_proof_image
     })
+
+
+@login_required
+def serve_payment_proof_image(request, payment_id):
+    """Serve the payment proof image directly"""
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    # Check permissions - user can view their own, staff/admin can view all
+    if payment.reservation.user != request.user and not request.user.is_staff_user() and not request.user.is_admin():
+        raise Http404("Payment proof not found")
+
+    # Check if image exists
+    if not payment.gcash_proof_image or not payment.gcash_proof_image.name:
+        raise Http404("Payment proof image not found")
+
+    try:
+        # Serve the image file
+        with open(payment.gcash_proof_image.path, 'rb') as f:
+            image_data = f.read()
+
+        # Determine content type based on file extension
+        import os
+        content_type = 'image/jpeg'
+        if payment.gcash_proof_image.name.lower().endswith('.png'):
+            content_type = 'image/png'
+        elif payment.gcash_proof_image.name.lower().endswith('.gif'):
+            content_type = 'image/gif'
+        elif payment.gcash_proof_image.name.lower().endswith('.webp'):
+            content_type = 'image/webp'
+
+        response = HttpResponse(image_data, content_type=content_type)
+        return response
+    except FileNotFoundError:
+        raise Http404("Payment proof image file not found")
+    except Exception as e:
+        raise Http404("Error loading payment proof image")
 
 
 @login_required

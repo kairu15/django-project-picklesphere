@@ -21,10 +21,10 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     method = models.CharField(max_length=20, choices=METHOD_CHOICES, blank=True, null=True)
     
-    # For GCash payments
+    # For GCash payments (also used as generic proof of payment for any method)
     gcash_reference = models.CharField(max_length=100, blank=True, null=True)
     gcash_proof_image = models.ImageField(upload_to='payments/gcash/', blank=True, null=True)
-    
+
     # For cash payments
     cash_received_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='cash_payments_received')
     cash_received_at = models.DateTimeField(null=True, blank=True)

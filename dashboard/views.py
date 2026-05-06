@@ -18,7 +18,7 @@ def home_view(request):
     """Public home page"""
     from tournaments.models import Tournament
     from django.utils import timezone
-    from .models import Testimonial, Amenity, GalleryImage
+    from .models import Rating, Amenity, GalleryImage
 
     featured_courts = Court.objects.filter(is_active=True, site__is_active=True)[:6]
     total_courts = Court.objects.filter(is_active=True).count()
@@ -31,35 +31,56 @@ def home_view(request):
         status__in=['registration_open', 'in_progress', 'draft']
     ).order_by('tournament_start')[:3]
 
-    # Get dynamic testimonials from database (only approved ones, or use defaults if none exist)
-    db_testimonials = Testimonial.objects.filter(is_active=True, is_approved=True)[:3]
-    if db_testimonials.exists():
-        testimonials = db_testimonials
-    else:
-        # Fallback default testimonials
-        testimonials = [
+    # Get ratings for display (prioritize featured ratings, then fill with recent)
+    from django.db.models import Avg
+    
+    # Calculate average rating
+    rating_stats = Rating.objects.aggregate(
+        average_rating=Avg('rating'),
+        total_ratings=Count('id')
+    )
+    average_rating = rating_stats['average_rating'] or 0
+    total_ratings = rating_stats['total_ratings'] or 0
+    
+    # Get featured ratings only (admin-controlled homepage display)
+    featured_ratings_list = list(Rating.objects.select_related('user').filter(is_featured=True).order_by('-created_at')[:6])
+    
+    # Prepare ratings for template from featured ratings only
+    ratings = []
+    for rating in featured_ratings_list:
+        ratings.append({
+            'name': rating.user.get_full_name() or rating.user.username,
+            'rating': rating.rating,
+            'comment': rating.comment,
+            'created_at': rating.created_at,
+            'is_featured': rating.is_featured,
+            'avatar': None
+        })
+    
+    # Fallback if no ratings exist
+    if not ratings:
+        ratings = [
             {
                 'name': 'John Martinez',
-                'role': 'Regular Member',
                 'rating': 5,
-                'text': 'PickleSphere has completely transformed my pickleball experience. The courts are top-notch and the booking system is so convenient!',
+                'comment': 'PickleSphere has completely transformed my pickleball experience. The courts are top-notch and the booking system is so convenient!',
                 'avatar': None
             },
             {
                 'name': 'Sarah Chen',
-                'role': 'Tournament Player',
                 'rating': 5,
-                'text': 'I love the tournament features! The match tracking and leaderboard system makes every game exciting. Highly recommend!',
+                'comment': 'I love the tournament features! The match tracking and leaderboard system makes every game exciting. Highly recommend!',
                 'avatar': None
             },
             {
                 'name': 'Mike Thompson',
-                'role': 'Beginner',
                 'rating': 5,
-                'text': 'As someone new to pickleball, the equipment rental and friendly community made it easy to get started. Great facility!',
+                'comment': 'As someone new to pickleball, the equipment rental and friendly community made it easy to get started. Great facility!',
                 'avatar': None
             }
         ]
+        average_rating = 5.0
+        total_ratings = 3
 
     # Get dynamic gallery images from database (or use defaults if none exist)
     db_gallery = GalleryImage.objects.filter(is_active=True)[:6]
@@ -103,7 +124,9 @@ def home_view(request):
         'total_users': total_users,
         'sites': sites,
         'upcoming_tournaments': upcoming_tournaments,
-        'testimonials': testimonials,
+        'ratings': ratings,
+        'average_rating': round(average_rating, 1),
+        'total_ratings': total_ratings,
         'gallery_images': gallery_images,
         'amenities': amenities,
         'years_experience': years_experience,
@@ -732,26 +755,71 @@ def homepage_management(request):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('dashboard')
     
-    from .models import Testimonial, Amenity, GalleryImage, HomePageContent
+    from .models import Rating, Amenity, GalleryImage, HomePageContent
+    from django.db.models import Avg, Count
     
-    # Separate pending and approved testimonials
-    pending_testimonials = Testimonial.objects.filter(is_active=True, is_approved=False).order_by('-created_at')
-    approved_testimonials = Testimonial.objects.filter(is_active=True, is_approved=True).order_by('display_order')
+    # Get ratings statistics
+    rating_stats = Rating.objects.aggregate(
+        average_rating=Avg('rating'),
+        total_ratings=Count('id')
+    )
+    
+    # Get featured ratings (displayed on homepage)
+    featured_ratings = Rating.objects.select_related('user', 'reservation').filter(is_featured=True).order_by('-created_at')[:6]
+    
+    # Get all ratings for management
+    all_ratings = Rating.objects.select_related('user', 'reservation').order_by('-created_at')[:30]
+    
+    # Get rating distribution
+    rating_distribution = []
+    for i in range(5, 0, -1):
+        count = Rating.objects.filter(rating=i).count()
+        percentage = (count / rating_stats['total_ratings'] * 100) if rating_stats['total_ratings'] > 0 else 0
+        rating_distribution.append({
+            'stars': i,
+            'count': count,
+            'percentage': round(percentage, 1)
+        })
+    
     amenities = Amenity.objects.filter(is_active=True).order_by('display_order')
     gallery_images = GalleryImage.objects.filter(is_active=True).order_by('display_order')
     homepage_content = HomePageContent.objects.filter(is_active=True)
     
     context = {
-        'pending_testimonials': pending_testimonials,
-        'approved_testimonials': approved_testimonials,
-        'pending_count': pending_testimonials.count(),
-        'approved_count': approved_testimonials.count(),
+        'average_rating': round(rating_stats['average_rating'] or 0, 1),
+        'total_ratings': rating_stats['total_ratings'] or 0,
+        'featured_ratings': featured_ratings,
+        'featured_count': featured_ratings.count(),
+        'all_ratings': all_ratings,
+        'rating_distribution': rating_distribution,
         'amenities': amenities,
         'gallery_images': gallery_images,
         'homepage_content': homepage_content,
         'page_title': 'Homepage Management'
     }
     return render(request, 'admin/homepage/homepage_management.html', context)
+
+
+@login_required
+def toggle_featured_rating(request, rating_id):
+    """Toggle featured status of a rating for homepage display"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import Rating
+    rating = get_object_or_404(Rating, id=rating_id)
+    
+    # Toggle featured status
+    rating.is_featured = not rating.is_featured
+    rating.save()
+    
+    if rating.is_featured:
+        messages.success(request, f'Rating from {rating.user.username} is now featured on the homepage.')
+    else:
+        messages.success(request, f'Rating from {rating.user.username} has been removed from featured.')
+    
+    return redirect('homepage_management')
 
 
 @login_required
@@ -1961,98 +2029,117 @@ def contact_delete_social_link(request, link_id):
 
 
 @login_required
-def submit_testimonial_view(request):
-    """User view for submitting a testimonial"""
-    from .models import Testimonial
+def submit_rating_view(request, reservation_id):
+    """User view for submitting a rating for a completed reservation"""
+    from .models import Rating
+    from reservations.models import Reservation
+    
+    reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
+    
+    # Check if reservation is completed
+    if reservation.status != 'completed':
+        messages.error(request, 'You can only rate completed reservations.')
+        return redirect('reservation_list')
+    
+    # Check if already rated
+    if Rating.objects.filter(user=request.user, reservation=reservation).exists():
+        messages.info(request, 'You have already rated this reservation.')
+        return redirect('reservation_list')
     
     if request.method == 'POST':
-        rating = request.POST.get('rating', 5)
-        text = request.POST.get('text', '').strip()
+        rating_value = request.POST.get('rating', 5)
+        comment = request.POST.get('comment', '').strip()
+        skip = request.POST.get('skip')
         
-        if not text:
-            messages.error(request, 'Please write a testimonial before submitting.')
-            return redirect('submit_testimonial')
+        if skip:
+            # User chose to skip rating - mark as skipped (could store in session or a Skip model)
+            messages.info(request, 'You can rate your experience later from your reservation details.')
+            return redirect('reservation_list')
         
-        # Create testimonial with pending approval status
-        Testimonial.objects.create(
+        try:
+            rating_value = int(rating_value)
+            if rating_value < 1 or rating_value > 5:
+                raise ValueError
+        except ValueError:
+            messages.error(request, 'Please select a valid rating between 1 and 5 stars.')
+            return redirect('submit_rating', reservation_id=reservation_id)
+        
+        # Create the rating
+        Rating.objects.create(
             user=request.user,
-            name=f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
-            role="Member",
-            rating=int(rating),
-            text=text,
-            is_active=True,
-            is_approved=False,  # Pending admin approval
-            display_order=0
+            reservation=reservation,
+            rating=rating_value,
+            comment=comment if comment else None
         )
         
-        messages.success(
-            request, 
-            'Thank you for your testimonial! It has been submitted for review and will appear on the homepage once approved by an administrator.'
-        )
-        return redirect('my_testimonials')
+        messages.success(request, 'Thank you for your rating! Your feedback helps us improve.')
+        return redirect('reservation_list')
     
-    return render(request, 'user/submit_testimonial.html', {
-        'page_title': 'Submit Testimonial'
+    return render(request, 'user/submit_rating.html', {
+        'reservation': reservation,
+        'page_title': 'Rate Your Experience'
     })
+
+
+@login_required
+def check_pending_rating_view(request):
+    """AJAX view to check if user has any unrated completed reservations"""
+    from .models import Rating
+    from reservations.models import Reservation
+    from django.http import JsonResponse
+    
+    # Find completed reservations without ratings
+    unrated_reservations = Reservation.objects.filter(
+        user=request.user,
+        status='completed'
+    ).exclude(
+        id__in=Rating.objects.filter(user=request.user).values_list('reservation_id', flat=True)
+    ).select_related('court')
+    
+    if unrated_reservations.exists():
+        reservation = unrated_reservations.first()
+        return JsonResponse({
+            'has_pending_rating': True,
+            'reservation_id': reservation.id,
+            'court_name': reservation.court.name,
+            'date': reservation.date.strftime('%B %d, %Y')
+        })
+    
+    return JsonResponse({'has_pending_rating': False})
+
+
+# Deprecated testimonial views - replaced by rating system
+# Kept for reference but no longer used in URLs
+@login_required
+def submit_testimonial_view(request):
+    """DEPRECATED: Use submit_rating_view instead"""
+    messages.info(request, 'Testimonials have been replaced by our new rating system.')
+    return redirect('dashboard')
 
 
 @login_required
 def my_testimonials_view(request):
-    """User view to see their submitted testimonials"""
-    from .models import Testimonial
-    
-    testimonials = Testimonial.objects.filter(user=request.user).order_by('-created_at')
-    
-    return render(request, 'user/my_testimonials.html', {
-        'testimonials': testimonials,
-        'page_title': 'My Testimonials'
-    })
+    """DEPRECATED: Testimonials replaced by rating system"""
+    messages.info(request, 'Testimonials have been replaced by our new rating system.')
+    return redirect('dashboard')
 
 
 @login_required
 def delete_my_testimonial_view(request, testimonial_id):
-    """User can delete their own pending testimonial"""
-    from .models import Testimonial
-    
-    testimonial = get_object_or_404(Testimonial, id=testimonial_id, user=request.user)
-    
-    # Only allow deletion if not yet approved
-    if testimonial.is_approved:
-        messages.error(request, 'Approved testimonials cannot be deleted.')
-        return redirect('my_testimonials')
-    
-    testimonial.delete()
-    messages.success(request, 'Your testimonial has been deleted.')
-    return redirect('my_testimonials')
+    """DEPRECATED: Testimonials replaced by rating system"""
+    messages.info(request, 'Testimonials have been replaced by our new rating system.')
+    return redirect('dashboard')
 
 
 @login_required
 def admin_approve_testimonial_view(request, testimonial_id):
-    """Admin view to approve a pending testimonial"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
-    
-    from .models import Testimonial
-    testimonial = get_object_or_404(Testimonial, id=testimonial_id)
-    
-    testimonial.is_approved = True
-    testimonial.save()
-    messages.success(request, f'Testimonial from {testimonial.name} has been approved and will now appear on the homepage.')
+    """DEPRECATED: Testimonials replaced by rating system"""
+    messages.info(request, 'Testimonials have been replaced by our new rating system.')
     return redirect('homepage_management')
 
 
 @login_required
 def admin_reject_testimonial_view(request, testimonial_id):
-    """Admin view to reject/delete a pending testimonial"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
-    
-    from .models import Testimonial
-    testimonial = get_object_or_404(Testimonial, id=testimonial_id)
-    
-    name = testimonial.name
-    testimonial.delete()
-    messages.success(request, f'Testimonial from {name} has been rejected and removed.')
+    """DEPRECATED: Testimonials replaced by rating system"""
+    messages.info(request, 'Testimonials have been replaced by our new rating system.')
     return redirect('homepage_management')

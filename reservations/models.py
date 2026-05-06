@@ -43,6 +43,9 @@ class Reservation(models.Model):
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_reservations')
     approved_at = models.DateTimeField(null=True, blank=True)
 
+    # Rating tracking
+    is_rated = models.BooleanField(default=False, help_text='Whether this reservation has been rated by the user')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -101,3 +104,27 @@ class CancellationRequest(models.Model):
     
     def __str__(self):
         return f"Cancellation Request for Reservation #{self.reservation.id}"
+
+
+class ReservationInvitation(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+        ('expired', 'Expired'),
+    )
+
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='invitations')
+    invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_invitations')
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    message = models.TextField(blank=True, null=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'reservation_invitations'
+        unique_together = [('reservation', 'invited_user')]
+
+    def __str__(self):
+        return f"Invitation for {self.invited_user.username} to Reservation #{self.reservation.id}"

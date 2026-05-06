@@ -119,33 +119,14 @@
                 {% if payment.method == 'gcash' %}
                 <hr class="my-4">
                 <h6 class="fw-bold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>GCash Payment Details</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-hashtag text-primary"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted small mb-0">Reference Number</p>
-                                <p class="mb-0 fw-semibold font-monospace">{{ payment.gcash_reference|default:"N/A" }}</p>
-                            </div>
-                        </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-hashtag text-primary"></i>
                     </div>
-                    {% if payment.gcash_proof_image %}
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-image text-primary"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted small mb-0">Proof of Payment</p>
-                                <a href="{{ payment.gcash_proof_image.url }}" target="_blank" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
-                                    <i class="fas fa-image me-1"></i>View Image
-                                </a>
-                            </div>
-                        </div>
+                    <div>
+                        <p class="text-muted small mb-0">Reference Number</p>
+                        <p class="mb-0 fw-semibold font-monospace">{{ payment.gcash_reference|default:"N/A" }}</p>
                     </div>
-                    {% endif %}
                 </div>
                 {% endif %}
                 
@@ -161,8 +142,40 @@
                     </div>
                 </div>
                 {% endif %}
+
+                {% if payment.gcash_proof_image and payment.gcash_proof_image.name %}
+                <hr class="my-4">
+                <div class="payment-proof-section">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                        <i class="fas fa-receipt me-2 text-primary"></i>Payment Receipt
+                    </h6>
+                    <div class="position-relative" style="border-radius: 12px; overflow: hidden; border: 1px solid #e9ecef; background: #f8f9fa;">
+                        <img src="{% url 'serve_payment_proof_image' payment.id %}"
+                             alt="Payment Receipt"
+                             class="w-100"
+                             style="max-height: 400px; object-fit: contain; display: block;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-error" style="display: none; padding: 40px; text-align: center; background: #f8f9fa;">
+                            <i class="fas fa-image text-muted fa-3x mb-3"></i>
+                            <p class="text-muted mb-0">Receipt image not available</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            
+
+            <!-- Image Modal - Floating Window Style -->
+            <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" style="max-width: fit-content; margin: 1.75rem auto;">
+                    <div class="modal-content border-0" style="background: transparent; box-shadow: none;">
+                        <div class="modal-body p-0 text-center position-relative">
+                            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1050; background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px; opacity: 1;"></button>
+                            <img id="modalImage" src="" alt="Payment Receipt" class="img-fluid" style="max-height: 85vh; max-width: 85vw; border-radius: 16px; box-shadow: 0 25px 80px rgba(0,0,0,0.6);">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Card Footer -->
             <div class="card-footer bg-white border-top p-4">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -239,6 +252,30 @@
 .payment-summary-box:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
+
+/* Floating Window Modal Styles */
+#imageModal .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+#imageModal .modal-dialog {
+    animation: modalFloatIn 0.3s ease-out;
+}
+@keyframes modalFloatIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+#imageModal .btn-close:hover {
+    background-color: rgba(255,255,255,0.3) !important;
+    transform: scale(1.1);
+}
 </style>
 
 <script>
@@ -262,7 +299,7 @@ document.querySelectorAll('.status-icon').forEach(function(icon) {
     icon.style.alignItems = 'center';
     icon.style.justifyContent = 'center';
     icon.style.marginBottom = '15px';
-    
+
     if (status === 'paid') {
         icon.style.background = 'linear-gradient(135deg, #28a745 0%, #1e7e34 100%)';
         icon.innerHTML = '<i class="fas fa-check-circle fa-2x text-white"></i>';
@@ -274,6 +311,13 @@ document.querySelectorAll('.status-icon').forEach(function(icon) {
         icon.innerHTML = '<i class="fas fa-times-circle fa-2x text-white"></i>';
     }
 });
+
+function openImageModal(imageUrl) {
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = imageUrl;
+    const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+    imageModal.show();
+}
 </script>
 {% endblock %}
 

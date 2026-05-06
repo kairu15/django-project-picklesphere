@@ -30,12 +30,16 @@ class GCashPaymentForm(forms.ModelForm):
 class CashPaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['payment_notes']
+        fields = ['payment_notes', 'gcash_proof_image']
         widgets = {
             'payment_notes': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Additional notes...'
+            }),
+            'gcash_proof_image': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
             }),
         }
 

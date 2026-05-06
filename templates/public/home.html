@@ -213,9 +213,6 @@
                                 <i class="fas fa-table-tennis fa-4x" style="color: var(--primary-light);"></i>
                             </div>
                         {% endif %}
-                        <div class="position-absolute top-0 end-0 m-3">
-                            <span class="badge px-3 py-2" style="background: var(--success-color); border-radius: var(--border-radius-sm); font-weight: 500;">Premium</span>
-                        </div>
                     </div>
                     <div class="card-body p-4">
                         <h5 class="card-title fw-bold mb-2" style="color: var(--text-dark);">{{ court.name }}</h5>
@@ -351,40 +348,45 @@
     </div>
 </section>
 
-<!-- Testimonials Section -->
+<!-- Customer Ratings Section -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Testimonials</span>
-            <h2 class="display-5 fw-bold text-white mb-3">What Our Players Say</h2>
-            <p class="lead" style="color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto;">Hear from our community of pickleball enthusiasts</p>
+            <span class="badge mb-3 px-3 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Customer Ratings</span>
+            <h2 class="display-5 fw-bold text-white mb-3">Feedback from our pickleball community</h2>
         </div>
         <div class="row g-4">
-            {% for testimonial in testimonials %}
+            {% for rating in ratings|slice:":6" %}
             <div class="col-md-4">
                 <div class="card h-100 border-0" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                     <div class="card-body p-4">
                         <div class="mb-3" style="color: var(--warning-color);">
                             {% for i in "12345" %}
-                                {% if forloop.counter <= testimonial.rating %}
+                                {% if forloop.counter <= rating.rating %}
                                     <i class="fas fa-star"></i>
                                 {% else %}
                                     <i class="far fa-star" style="color: var(--border-color);"></i>
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <p class="card-text fst-italic mb-4" style="color: var(--text-body); line-height: 1.7;">"{{ testimonial.text }}"</p>
+                        {% if rating.comment %}
+                        <p class="card-text fst-italic mb-4" style="color: var(--text-body); line-height: 1.7;">"{{ rating.comment }}"</p>
+                        {% endif %}
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; background: var(--primary-lighter); color: var(--primary-color);">
-                                <span class="fw-bold">{{ testimonial.name|first }}</span>
+                                <span class="fw-bold">{{ rating.name|first }}</span>
                             </div>
                             <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">{{ testimonial.name }}</h6>
-                                <small style="color: var(--text-muted);">{{ testimonial.role }}</small>
+                                <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">{{ rating.name }}</h6>
+                                <small style="color: var(--text-muted);">Verified Player</small>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-white-50">No ratings yet. Be the first to rate your experience!</p>
             </div>
             {% endfor %}
         </div>

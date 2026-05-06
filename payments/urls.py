@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', views.admin_payments_view, name='admin_payments'),
     path('admin/verify/<int:payment_id>/', views.verify_payment_view, name='admin_verify_payment'),
     path('proof/<int:payment_id>/', views.view_payment_proof_view, name='view_payment_proof'),
+    path('proof-image/<int:payment_id>/', views.serve_payment_proof_image, name='serve_payment_proof_image'),
     path('reports/', views.revenue_report_view, name='revenue_report'),
     path('reports/export/', views.revenue_report_export_view, name='revenue_report_export'),
 ]
