@@ -141,10 +141,40 @@ class ReservationApprovalForm(forms.ModelForm):
 class CancellationRequestForm(forms.ModelForm):
     class Meta:
         model = CancellationRequest
-        fields = ['reason']
+        fields = ['reason', 'refund_method', 'gcash_number', 'account_name', 'paypal_email']
         widgets = {
             'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Please provide a reason for cancellation...'}),
+            'refund_method': forms.RadioSelect(choices=CancellationRequest.REFUND_METHOD_CHOICES),
+            'gcash_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full Name'}),
+            'paypal_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['refund_method'].required = True
+        self.fields['gcash_number'].required = False
+        self.fields['account_name'].required = False
+        self.fields['paypal_email'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        refund_method = cleaned_data.get('refund_method')
+        gcash_number = cleaned_data.get('gcash_number')
+        account_name = cleaned_data.get('account_name')
+        paypal_email = cleaned_data.get('paypal_email')
+
+        if refund_method == 'gcash':
+            if not gcash_number:
+                self.add_error('gcash_number', 'GCash mobile number is required for GCash refunds.')
+            if not account_name:
+                self.add_error('account_name', 'Account name is required for GCash refunds.')
+
+        if refund_method == 'paypal':
+            if not paypal_email:
+                self.add_error('paypal_email', 'PayPal email is required for PayPal refunds.')
+
+        return cleaned_data
 
 
 class AdminReservationForm(forms.ModelForm):

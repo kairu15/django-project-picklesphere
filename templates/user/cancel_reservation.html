@@ -75,7 +75,7 @@
                     </div>
                 </div>
 
-                <form method="post">
+                <form method="post" id="cancellationForm">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
@@ -97,25 +97,154 @@
                         {% endif %}
                     </div>
 
-                    <div class="alert alert-info border-0 mb-4" style="background: rgba(23,162,184,0.1); border-radius: 12px;">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-info-circle text-info fa-lg"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h6 class="alert-heading fw-bold mb-1">Cancellation Policy</h6>
-                                <p class="mb-0 text-muted">Your cancellation request will be reviewed by staff. Refund eligibility depends on cancellation timing and our policies. Cancellations made at least 24 hours in advance are eligible for full refund.</p>
-                            </div>
-                        </div>
-                    </div>
-
+                    <!-- Trigger Modal Button -->
                     <div class="d-flex justify-content-between align-items-center pt-2">
                         <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
                             <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
-                        <button type="submit" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
-                            <i class="fas fa-times-circle me-2"></i>Submit Cancellation Request
+                        <button type="button" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;" data-bs-toggle="modal" data-bs-target="#refundModal">
+                            <i class="fas fa-times-circle me-2"></i>Proceed to Cancellation
                         </button>
+                    </div>
+
+                    <!-- Refund Modal -->
+                    <div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content" style="border-radius: 15px; overflow: hidden; border: none;">
+                                <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); color: white;">
+                                    <h5 class="modal-title fw-bold" id="refundModalLabel"><i class="fas fa-undo-alt me-2"></i>Confirm Cancellation & Refund</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    <!-- Info Message -->
+                                    <div class="p-4" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f9ff 100%);">
+                                        <div class="d-flex align-items-start">
+                                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-info-circle text-primary fa-lg"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <p class="mb-0 fw-medium" style="color: #1a3a42;">Cancelling a pending booking will free up the room for other guests.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4">
+                                        <!-- Refund Amount -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold text-dark mb-2">Refund Amount:</label>
+                                            <div class="p-3 rounded-3" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745;">
+                                                <span class="fw-bold fs-4" style="color: #155724;">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Refund Method -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold text-dark">Select Refund Method <span class="text-danger">*</span></label>
+                                            
+                                            <div class="refund-options">
+                                                <!-- GCash Option -->
+                                                <div class="refund-option card mb-3 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('gcash')">
+                                                    <div class="card-body p-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="refund_method" id="refund_gcash" value="gcash" required>
+                                                            <label class="form-check-label w-100" for="refund_gcash">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                                                        <i class="fas fa-mobile-alt text-white"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="fw-bold d-block">GCash</span>
+                                                                        <small class="text-muted">Refund to your GCash account</small>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                        <!-- GCash Fields -->
+                                                        <div id="gcashFields" class="mt-3 ms-4 d-none">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold">GCash Mobile Number</label>
+                                                                {{ form.gcash_number }}
+                                                                {% if form.gcash_number.errors %}
+                                                                    <div class="text-danger small mt-1">{{ form.gcash_number.errors.0 }}</div>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="mb-0">
+                                                                <label class="form-label small fw-semibold">Account Name</label>
+                                                                {{ form.account_name }}
+                                                                {% if form.account_name.errors %}
+                                                                    <div class="text-danger small mt-1">{{ form.account_name.errors.0 }}</div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- PayPal Option -->
+                                                <div class="refund-option card mb-3 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('paypal')">
+                                                    <div class="card-body p-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="refund_method" id="refund_paypal" value="paypal">
+                                                            <label class="form-check-label w-100" for="refund_paypal">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                                                        <i class="fab fa-paypal text-white"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="fw-bold d-block">PayPal</span>
+                                                                        <small class="text-muted">Refund to your PayPal account</small>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                        <!-- PayPal Fields -->
+                                                        <div id="paypalFields" class="mt-3 ms-4 d-none">
+                                                            <div class="mb-0">
+                                                                <label class="form-label small fw-semibold">PayPal Email</label>
+                                                                {{ form.paypal_email }}
+                                                                {% if form.paypal_email.errors %}
+                                                                    <div class="text-danger small mt-1">{{ form.paypal_email.errors.0 }}</div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Credit Card Option -->
+                                                <div class="refund-option card mb-0 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('card')">
+                                                    <div class="card-body p-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="refund_method" id="refund_card" value="card">
+                                                            <label class="form-check-label w-100" for="refund_card">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                                                        <i class="fas fa-credit-card text-white"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="fw-bold d-block">Credit Card</span>
+                                                                        <small class="text-muted">Refund to your credit card (5–7 business days)</small>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% if form.refund_method.errors %}
+                                                <div class="text-danger small mt-2">{{ form.refund_method.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 10px;">
+                                        Close
+                                    </button>
+                                    <button type="submit" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
+                                        <i class="fas fa-check-circle me-2"></i>Confirm Cancellation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -123,14 +252,63 @@
     </div>
 </div>
 
+<style>
+.refund-option {
+    border: 2px solid #e9ecef !important;
+}
+.refund-option:hover {
+    border-color: #3B7A8C !important;
+    box-shadow: 0 4px 15px rgba(59,122,140,0.15) !important;
+}
+.refund-option.selected {
+    border-color: #3B7A8C !important;
+    background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%) !important;
+}
+.refund-option input[type="radio"]:checked {
+    background-color: #3B7A8C;
+    border-color: #3B7A8C;
+}
+</style>
+
 <script>
-    // Style the form textarea
+    // Style form inputs
     document.querySelectorAll('textarea').forEach(function(textarea) {
         textarea.classList.add('form-control');
         textarea.style.borderRadius = '10px';
         textarea.style.padding = '12px 15px';
         textarea.style.minHeight = '120px';
         textarea.style.resize = 'vertical';
+    });
+
+    // Refund method selection
+    function selectRefundMethod(method) {
+        // Update radio buttons
+        document.querySelectorAll('input[name="refund_method"]').forEach(radio => {
+            radio.checked = (radio.value === method);
+        });
+
+        // Update visual selection
+        document.querySelectorAll('.refund-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        document.querySelector(`#refund_${method}`).closest('.refund-option').classList.add('selected');
+
+        // Show/hide fields
+        document.getElementById('gcashFields').classList.add('d-none');
+        document.getElementById('paypalFields').classList.add('d-none');
+
+        if (method === 'gcash') {
+            document.getElementById('gcashFields').classList.remove('d-none');
+        } else if (method === 'paypal') {
+            document.getElementById('paypalFields').classList.remove('d-none');
+        }
+    }
+
+    // Listen for radio changes
+    document.querySelectorAll('input[name="refund_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            selectRefundMethod(this.value);
+        });
     });
 </script>
 {% endblock %}

@@ -162,9 +162,9 @@
                         </ul>
                     </div>
                     <div class="card-footer bg-transparent border-0 p-4">
-                        <a href="{% url 'register' %}" class="btn btn-success w-100">
+                        <button class="btn btn-success w-100" onclick="showComingSoon()">
                             <i class="fas fa-crown me-2"></i>Join Pro
-                        </a>
+                        </button>
                     </div>
                 </div>
                 {% else %}
@@ -192,9 +192,9 @@
                         </ul>
                     </div>
                     <div class="card-footer bg-transparent border-0 p-4">
-                        <a href="{% url 'register' %}" class="btn {% if tier.name == 'Elite' %}btn-dark{% else %}btn-outline-primary{% endif %} w-100">
+                        <button class="btn {% if tier.name == 'Elite' %}btn-dark{% else %}btn-outline-primary{% endif %} w-100" onclick="showComingSoon()">
                             {% if tier.name == 'Elite' %}<i class="fas fa-gem me-2"></i>Go Elite{% else %}Get Started{% endif %}
-                        </a>
+                        </button>
                     </div>
                 </div>
                 {% endif %}
@@ -424,6 +424,33 @@
     color: var(--text-body);
 }
 </style>
+
+<!-- Coming Soon Modal -->
+<div class="modal fade" id="comingSoonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center" style="border-radius: 15px; border: none;">
+            <div class="modal-body p-5">
+                <div class="mb-4">
+                    <div class="mx-auto" style="width: 80px; height: 80px; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-rocket fa-2x text-white"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-3">Coming Soon!</h4>
+                <p class="text-muted mb-4">Membership plans are launching soon. Stay tuned for exclusive benefits and savings!</p>
+                <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" style="border-radius: 8px;">
+                    <i class="fas fa-check me-2"></i>Got it
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showComingSoon() {
+    var modal = new bootstrap.Modal(document.getElementById('comingSoonModal'));
+    modal.show();
+}
+</script>
 
 {% include 'components/footer.html' %}
 {% endblock %}

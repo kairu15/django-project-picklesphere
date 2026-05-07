@@ -17,6 +17,7 @@ urlpatterns = [
     # Rating URLs
     path('ratings/submit/<int:reservation_id>/', views.submit_rating_view, name='submit_rating'),
     path('ratings/check/', views.check_pending_rating_view, name='check_pending_rating'),
+    path('dashboard/ratings/', views.rating_list_view, name='rating_list'),
     path('dashboard/homepage/amenity/add/', views.homepage_edit_amenity, name='homepage_add_amenity'),
     path('dashboard/homepage/amenity/<int:amenity_id>/edit/', views.homepage_edit_amenity, name='homepage_edit_amenity'),
     path('dashboard/homepage/amenity/<int:amenity_id>/delete/', views.homepage_delete_amenity, name='homepage_delete_amenity'),
@@ -59,6 +60,8 @@ urlpatterns = [
     path('dashboard/about/why-item/add/', views.about_edit_why_item, name='about_add_why_item'),
     path('dashboard/about/why-item/<int:item_id>/edit/', views.about_edit_why_item, name='about_edit_why_item'),
     path('dashboard/about/why-item/<int:item_id>/delete/', views.about_delete_why_item, name='about_delete_why_item'),
+    path('dashboard/about/gallery/add/', views.about_add_gallery_image, name='about_add_gallery_image'),
+    path('dashboard/about/gallery/<int:image_id>/delete/', views.about_delete_gallery_image, name='about_delete_gallery_image'),
 
     # Contact Page Management
     path('dashboard/contact/', views.contact_management, name='contact_management'),
@@ -75,4 +78,11 @@ urlpatterns = [
     path('dashboard/contact/social/add/', views.contact_edit_social_link, name='contact_add_social_link'),
     path('dashboard/contact/social/<int:link_id>/edit/', views.contact_edit_social_link, name='contact_edit_social_link'),
     path('dashboard/contact/social/<int:link_id>/delete/', views.contact_delete_social_link, name='contact_delete_social_link'),
+
+    # Contact Messages Management
+    path('dashboard/contact/messages/', views.contact_messages_view, name='contact_messages'),
+    path('dashboard/contact/messages/<int:message_id>/', views.contact_message_detail_view, name='contact_message_detail'),
+    
+    # User Messages
+    path('dashboard/user/messages/', views.user_messages_view, name='user_messages'),
 ]

@@ -12,6 +12,7 @@ from payments.models import Payment
 from scoring.models import Match, PlayerStats
 from equipment.models import Equipment, EquipmentRental
 from notifications.models import Notification
+from .models import ContactMessage
 
 
 def home_view(request):
@@ -171,12 +172,6 @@ def user_dashboard_view(request):
     except PlayerStats.DoesNotExist:
         stats = None
     
-    # Notifications
-    notifications = Notification.objects.filter(
-        user=request.user,
-        is_read=False
-    ).order_by('-created_at')[:5]
-    
     # Quick stats
     total_reservations = Reservation.objects.filter(user=request.user).count()
     total_matches = Match.objects.filter(
@@ -190,7 +185,6 @@ def user_dashboard_view(request):
         'upcoming_reservations': upcoming_reservations,
         'recent_matches': recent_matches,
         'stats': stats,
-        'notifications': notifications,
         'total_reservations': total_reservations,
         'total_matches': total_matches
     })
@@ -491,12 +485,22 @@ def about_view(request):
     """About page - accessible to all users"""
     from courts.models import Court
     from accounts.models import User
-    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem
+    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem, ContactInfo
 
     # Get content from database with fallback defaults
     def get_content(section, default):
         content = AboutContent.objects.filter(section=section, is_active=True).first()
         return content.content if content else default
+
+    # Get contact info from database or use defaults
+    contact_info = ContactInfo.objects.first()
+    if not contact_info:
+        contact_info = {
+            'phone': '+63 2 8123 4567',
+            'email': 'info@picklesphere.com',
+            'address': '123 Sports Avenue, Makati City',
+            'city_country': 'Metro Manila, Philippines',
+        }
 
     content = {
         'hero_badge': get_content('hero_badge', 'Our Story'),
@@ -529,7 +533,7 @@ def about_view(request):
         'gallery_subtitle': get_content('gallery_subtitle', 'Take a virtual tour of our world-class pickleball courts'),
         'location_badge': get_content('location_badge', 'VISIT US'),
         'location_title': get_content('location_title', 'Come Play With Us'),
-        'location_description': get_content('location_description', 'Located in the heart of Makati City, PickleSphere is easily accessible from all parts of Metro Manila with ample parking available.'),
+        'location_description': get_content('location_description', 'Located in Valencia, Negros Oriental, PickleSphere is easily accessible from all parts of the province with ample parking available.'),
         'cta_title': get_content('cta_title', 'Join the PickleSphere Community'),
         'cta_subtitle': get_content('cta_subtitle', 'Experience the fastest-growing sport in the Philippines. Sign up today and start your pickleball journey!'),
     }
@@ -604,6 +608,10 @@ def about_view(request):
             {'icon': 'fa-mobile-alt', 'title': 'Easy Booking', 'description': '24/7 online court reservations.', 'color': 'info'},
         ]
 
+    # Get gallery images from database
+    from .models import AboutGalleryImage
+    gallery_images = AboutGalleryImage.objects.filter(is_active=True).order_by('display_order')
+
     # Calculate years experience for template
     from datetime import datetime
     current_year = datetime.now().year
@@ -617,6 +625,8 @@ def about_view(request):
         'team_members': team_members,
         'facilities': facilities,
         'why_items': why_items,
+        'gallery_images': gallery_images,
+        'contact_info': contact_info,
     })
 
 
@@ -662,12 +672,26 @@ def contact_view(request):
     }
 
     if request.method == 'POST':
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            messages.error(request, 'You must be logged in to send a message. Please sign in first.')
+            return redirect('login')
+        
         name = request.POST.get('name')
         email = request.POST.get('email')
         subject = request.POST.get('subject')
         message = request.POST.get('message')
 
         if name and email and subject and message:
+            # Save to database
+            from .models import ContactMessage
+            ContactMessage.objects.create(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message
+            )
+            
             # Send email (configure EMAIL settings in settings.py)
             try:
                 send_mail(
@@ -754,44 +778,14 @@ def homepage_management(request):
     if not request.user.is_admin():
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('dashboard')
-    
-    from .models import Rating, Amenity, GalleryImage, HomePageContent
-    from django.db.models import Avg, Count
-    
-    # Get ratings statistics
-    rating_stats = Rating.objects.aggregate(
-        average_rating=Avg('rating'),
-        total_ratings=Count('id')
-    )
-    
-    # Get featured ratings (displayed on homepage)
-    featured_ratings = Rating.objects.select_related('user', 'reservation').filter(is_featured=True).order_by('-created_at')[:6]
-    
-    # Get all ratings for management
-    all_ratings = Rating.objects.select_related('user', 'reservation').order_by('-created_at')[:30]
-    
-    # Get rating distribution
-    rating_distribution = []
-    for i in range(5, 0, -1):
-        count = Rating.objects.filter(rating=i).count()
-        percentage = (count / rating_stats['total_ratings'] * 100) if rating_stats['total_ratings'] > 0 else 0
-        rating_distribution.append({
-            'stars': i,
-            'count': count,
-            'percentage': round(percentage, 1)
-        })
-    
+
+    from .models import Amenity, GalleryImage, HomePageContent
+
     amenities = Amenity.objects.filter(is_active=True).order_by('display_order')
     gallery_images = GalleryImage.objects.filter(is_active=True).order_by('display_order')
     homepage_content = HomePageContent.objects.filter(is_active=True)
-    
+
     context = {
-        'average_rating': round(rating_stats['average_rating'] or 0, 1),
-        'total_ratings': rating_stats['total_ratings'] or 0,
-        'featured_ratings': featured_ratings,
-        'featured_count': featured_ratings.count(),
-        'all_ratings': all_ratings,
-        'rating_distribution': rating_distribution,
         'amenities': amenities,
         'gallery_images': gallery_images,
         'homepage_content': homepage_content,
@@ -1369,21 +1363,23 @@ def about_management(request):
     if not request.user.is_admin():
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('dashboard')
-    
-    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem
-    
+
+    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem, AboutGalleryImage
+
     content = AboutContent.objects.filter(is_active=True).order_by('section')
     milestones = Milestone.objects.all().order_by('display_order', 'year')
     team_members = TeamMember.objects.all().order_by('display_order')
     facilities = Facility.objects.all().order_by('display_order')
     why_items = WhyChooseItem.objects.all().order_by('display_order')
-    
+    gallery_images = AboutGalleryImage.objects.filter(is_active=True).order_by('display_order')
+
     context = {
         'content': content,
         'milestones': milestones,
         'team_members': team_members,
         'facilities': facilities,
         'why_items': why_items,
+        'gallery_images': gallery_images,
         'page_title': 'About Page Management'
     }
     return render(request, 'admin/about/about_management.html', context)
@@ -1711,6 +1707,51 @@ def about_delete_why_item(request, item_id):
     item = get_object_or_404(WhyChooseItem, id=item_id)
     item.delete()
     messages.success(request, 'Item deleted successfully!')
+    return redirect('about_management')
+
+
+@login_required
+def about_add_gallery_image(request):
+    """Add gallery image for about page"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import AboutGalleryImage
+    
+    if request.method == 'POST':
+        image = request.FILES.get('image')
+        title = request.POST.get('title', '')
+        alt_text = request.POST.get('alt_text', '')
+        display_order = request.POST.get('display_order', 0)
+        
+        if image:
+            AboutGalleryImage.objects.create(
+                image=image,
+                title=title,
+                alt_text=alt_text,
+                display_order=display_order
+            )
+            messages.success(request, 'Gallery image uploaded successfully!')
+        else:
+            messages.error(request, 'Please select an image to upload.')
+        
+        return redirect('about_management')
+    
+    return redirect('about_management')
+
+
+@login_required
+def about_delete_gallery_image(request, image_id):
+    """Delete gallery image"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    from .models import AboutGalleryImage
+    image = get_object_or_404(AboutGalleryImage, id=image_id)
+    image.delete()
+    messages.success(request, 'Gallery image deleted successfully!')
     return redirect('about_management')
 
 
@@ -2139,7 +2180,188 @@ def admin_approve_testimonial_view(request, testimonial_id):
 
 
 @login_required
+def contact_messages_view(request):
+    """Admin view to display all contact messages"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('dashboard')
+    
+    messages_list = ContactMessage.objects.all().order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        messages_list = messages_list.filter(status=status_filter)
+    
+    # Count unread messages
+    unread_count = ContactMessage.objects.filter(is_read=False).count()
+    
+    return render(request, 'admin/contact/contact_messages.html', {
+        'messages': messages_list,
+        'unread_count': unread_count,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def contact_message_detail_view(request, message_id):
+    """Admin view to view and reply to a specific contact message"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('dashboard')
+    
+    message = get_object_or_404(ContactMessage, id=message_id)
+    
+    # Mark as read when viewed
+    if not message.is_read:
+        message.is_read = True
+        message.status = 'read'
+        message.save()
+    
+    if request.method == 'POST':
+        reply_text = request.POST.get('reply')
+        action = request.POST.get('action')
+        
+        if action == 'reply' and reply_text:
+            # Save the reply
+            message.admin_reply = reply_text
+            message.replied_by = request.user
+            message.replied_at = timezone.now()
+            message.status = 'replied'
+            message.save()
+            
+            # Find the user by email and create a notification
+            from accounts.models import User
+            from notifications.models import Notification
+            try:
+                user = User.objects.get(email=message.email)
+                Notification.objects.create(
+                    user=user,
+                    message=f"Admin replied to your message: {message.get_subject_display()}",
+                    notification_type='success'
+                )
+            except User.DoesNotExist:
+                # User doesn't exist, skip notification
+                pass
+            
+            # Send email to the sender
+            from django.core.mail import send_mail
+            from django.conf import settings
+            try:
+                send_mail(
+                    f'Re: {message.get_subject_display()} - PickleSphere',
+                    f'Hi {message.name},\n\nThank you for contacting us. Here is our reply:\n\n{reply_text}\n\nBest regards,\nPickleSphere Team',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [message.email],
+                    fail_silently=True
+                )
+                messages.success(request, 'Reply sent successfully!')
+            except Exception:
+                messages.success(request, 'Reply saved successfully!')
+            
+            return redirect('contact_messages')
+        
+        elif action == 'close':
+            message.status = 'closed'
+            message.save()
+            messages.success(request, 'Message closed.')
+            return redirect('contact_messages')
+    
+    return render(request, 'admin/contact/contact_message_detail.html', {
+        'message': message,
+    })
+
+
+@login_required
+def user_messages_view(request):
+    """User view to display their contact messages and admin replies"""
+    # Get messages sent by this user (matched by email)
+    user_messages = ContactMessage.objects.filter(
+        email=request.user.email
+    ).order_by('-created_at')
+    
+    # Mark all unread replies as read when user views the page
+    user_messages.filter(
+        admin_reply__isnull=False,
+        user_read_reply=False
+    ).update(user_read_reply=True)
+    
+    # Count unread replies (before marking as read)
+    unread_replies = user_messages.filter(
+        admin_reply__isnull=False,
+        user_read_reply=False
+    ).count()
+    
+    return render(request, 'user/messages.html', {
+        'messages': user_messages,
+        'unread_replies': unread_replies,
+    })
+
+
+
+@login_required
 def admin_reject_testimonial_view(request, testimonial_id):
     """DEPRECATED: Testimonials replaced by rating system"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
     return redirect('homepage_management')
+
+
+@login_required
+def rating_list_view(request):
+    """Admin view to display all customer ratings with overview statistics"""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('dashboard')
+
+    from .models import Rating
+    from django.db.models import Avg, Count
+
+    # Get all ratings with related user and reservation
+    ratings = Rating.objects.select_related('user', 'reservation', 'reservation__court').order_by('-created_at')
+
+    # Calculate statistics
+    rating_stats = Rating.objects.aggregate(
+        average_rating=Avg('rating'),
+        total_ratings=Count('id')
+    )
+    total_ratings = rating_stats['total_ratings'] or 0
+
+    # Get rating distribution
+    distribution = Rating.objects.values('rating').annotate(count=Count('id')).order_by('-rating')
+    rating_distribution = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    for item in distribution:
+        rating_distribution[item['rating']] = item['count']
+
+    # Calculate distribution percentages for template
+    distribution_list = []
+    for stars in [5, 4, 3, 2, 1]:
+        count = rating_distribution.get(stars, 0)
+        percentage = int((count / total_ratings * 100)) if total_ratings > 0 else 0
+        distribution_list.append({
+            'stars': stars,
+            'count': count,
+            'percentage': percentage,
+        })
+
+    # Filter by rating if provided
+    rating_filter = request.GET.get('rating')
+    if rating_filter:
+        ratings = ratings.filter(rating=rating_filter)
+
+    # Filter by featured status
+    featured_filter = request.GET.get('featured')
+    if featured_filter == 'true':
+        ratings = ratings.filter(is_featured=True)
+    elif featured_filter == 'false':
+        ratings = ratings.filter(is_featured=False)
+
+    context = {
+        'ratings': ratings,
+        'average_rating': rating_stats['average_rating'] or 0,
+        'total_ratings': total_ratings,
+        'distribution_list': distribution_list,
+        'rating_filter': rating_filter,
+        'featured_filter': featured_filter,
+    }
+
+    return render(request, 'admin/analytics/ratings.html', context)

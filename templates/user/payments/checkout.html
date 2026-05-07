@@ -322,6 +322,52 @@
             }
         });
     });
+
+    // Form validation for GCash payment
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('input[name="method"]:checked');
+
+        if (selectedMethod && selectedMethod.value === 'gcash') {
+            const referenceField = document.querySelector('input[name="gcash_reference"], #id_gcash_reference');
+            const proofField = document.querySelector('input[type="file"][name="gcash_proof_image"], #id_gcash_proof_image');
+
+            let hasError = false;
+
+            // Remove existing error messages
+            document.querySelectorAll('.gcash-error-msg').forEach(el => el.remove());
+
+            if (!referenceField || !referenceField.value.trim()) {
+                hasError = true;
+                if (referenceField) {
+                    referenceField.classList.add('is-invalid');
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'gcash-error-msg invalid-feedback d-block';
+                    errorMsg.textContent = 'Please enter your GCash Reference Number';
+                    referenceField.parentNode.appendChild(errorMsg);
+                }
+            } else if (referenceField) {
+                referenceField.classList.remove('is-invalid');
+            }
+
+            if (!proofField || !proofField.files || proofField.files.length === 0) {
+                hasError = true;
+                if (proofField) {
+                    proofField.classList.add('is-invalid');
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'gcash-error-msg invalid-feedback d-block';
+                    errorMsg.textContent = 'Please upload proof of payment';
+                    proofField.parentNode.appendChild(errorMsg);
+                }
+            } else if (proofField) {
+                proofField.classList.remove('is-invalid');
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
 </script>
 {% endblock %}
 

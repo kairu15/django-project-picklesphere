@@ -532,3 +532,86 @@ class HomePageContent(models.Model):
 
     def __str__(self):
         return self.get_section_display()
+
+
+class ContactMessage(models.Model):
+    """Contact form submissions from users"""
+    SUBJECT_CHOICES = [
+        ('general_inquiry', 'General Inquiry'),
+        ('booking', 'Booking Related'),
+        ('feedback', 'Feedback'),
+        ('support', 'Technical Support'),
+        ('partnership', 'Partnership'),
+        ('other', 'Other'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('read', 'Read'),
+        ('replied', 'Replied'),
+        ('closed', 'Closed'),
+    ]
+    
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES, default='general_inquiry')
+    message = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    admin_reply = models.TextField(blank=True, null=True, help_text="Admin's reply to this message")
+    replied_at = models.DateTimeField(blank=True, null=True, help_text="When the admin replied")
+    replied_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='replied_messages',
+        help_text="Admin user who replied"
+    )
+    is_read = models.BooleanField(default=False, help_text="Whether admin has read this message")
+    user_read_reply = models.BooleanField(default=False, help_text="Whether user has read the admin's reply")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Contact Message'
+        verbose_name_plural = 'Contact Messages'
+
+    def __str__(self):
+        return f"{self.name} - {self.get_subject_display()} ({self.created_at.strftime('%Y-%m-%d')})"
+
+    @property
+    def status_badge_class(self):
+        """Return Bootstrap badge class for status"""
+        classes = {
+            'new': 'bg-primary',
+            'read': 'bg-info',
+            'replied': 'bg-success',
+            'closed': 'bg-secondary',
+        }
+        return classes.get(self.status, 'bg-secondary')
+
+
+class AboutGalleryImage(models.Model):
+    """Gallery images for the about page facility section"""
+    image = models.ImageField(upload_to='about/gallery/')
+    title = models.CharField(max_length=100, blank=True)
+    alt_text = models.CharField(max_length=200, help_text="Alternative text for accessibility")
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'About Gallery Image'
+        verbose_name_plural = 'About Gallery Images'
+
+    def __str__(self):
+        return self.title or f"About Gallery Image {self.id}"
+
+    @property
+    def url(self):
+        if self.image:
+            return self.image.url
+        return ''

@@ -3,6 +3,7 @@ from reservations.models import Reservation
 from equipment.models import EquipmentRental
 from payments.models import Payment
 from tournaments.models import Registration
+from dashboard.models import ContactMessage
 
 
 def sidebar_badges(request):
@@ -13,10 +14,12 @@ def sidebar_badges(request):
         'badge_pending_equipment': 0,
         'badge_pending_tournaments': 0,
         'badge_active_matches': 0,
+        'badge_contact_messages': 0,
         'badge_my_pending_reservations': 0,
         'badge_my_pending_payments': 0,
         'badge_my_rentals': 0,
         'badge_my_tournaments': 0,
+        'badge_user_messages': 0,
     }
     
     if not request.user.is_authenticated:
@@ -45,6 +48,11 @@ def sidebar_badges(request):
         # Tournament registrations pending
         context['badge_pending_tournaments'] = Registration.objects.filter(
             status='pending'
+        ).count()
+        
+        # Unread contact messages
+        context['badge_contact_messages'] = ContactMessage.objects.filter(
+            is_read=False
         ).count()
     
     # Staff badges
@@ -90,6 +98,13 @@ def sidebar_badges(request):
         context['badge_my_tournaments'] = Registration.objects.filter(
             user=user,
             status='pending'
+        ).count()
+        
+        # User's unread message replies (admin replied but user hasn't read)
+        context['badge_user_messages'] = ContactMessage.objects.filter(
+            email=user.email,
+            admin_reply__isnull=False,
+            user_read_reply=False
         ).count()
     
     return context

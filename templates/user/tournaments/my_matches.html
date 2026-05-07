@@ -12,13 +12,13 @@
         <div class="card-header bg-transparent border-0 p-0">
             <ul class="nav nav-tabs card-header-tabs mx-4 mt-3" id="matchesTab" role="tablist" style="border: none;">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active px-4 py-3 fw-semibold" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent;">
+                    <button class="nav-link px-4 py-3 fw-bold text-dark" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent; color: #333;">
                         <i class="fas fa-calendar me-2"></i>Upcoming
                         {% if upcoming_matches %}<span class="badge bg-primary ms-2">{{ upcoming_matches|length }}</span>{% endif %}
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link px-4 py-3 fw-semibold" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent;">
+                    <button class="nav-link active px-4 py-3 fw-bold text-dark" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" style="border: none; border-bottom: 3px solid transparent; color: #333;">
                         <i class="fas fa-check-circle me-2"></i>Completed
                     </button>
                 </li>
@@ -27,7 +27,7 @@
         <div class="card-body p-4">
             <div class="tab-content" id="matchesTabContent">
                 <!-- Upcoming Matches -->
-                <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+                <div class="tab-pane fade" id="upcoming" role="tabpanel">
                     {% if upcoming_matches %}
                         <div class="row g-4">
                             {% for match in upcoming_matches %}
@@ -117,7 +117,7 @@
                 </div>
 
                 <!-- Completed Matches -->
-                <div class="tab-pane fade" id="completed" role="tabpanel">
+                <div class="tab-pane fade show active" id="completed" role="tabpanel">
                     {% if completed_matches %}
                         <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
                             <div class="table-responsive">

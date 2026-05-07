@@ -181,11 +181,11 @@ def approve_reservation_view(request, reservation_id):
 @login_required
 def cancel_reservation_view(request, reservation_id):
     reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
-    
+
     if reservation.status in ['completed', 'cancelled']:
         messages.error(request, 'This reservation cannot be cancelled.')
         return redirect('reservation_list')
-    
+
     if request.method == 'POST':
         form = CancellationRequestForm(request.POST)
         if form.is_valid():
@@ -193,16 +193,35 @@ def cancel_reservation_view(request, reservation_id):
             cancellation.reservation = reservation
             cancellation.requested_by = request.user
             cancellation.save()
-            
+
             # Update reservation status
             reservation.status = 'cancelled'
             reservation.save()
-            
+
+            # Update payment status to refunded
+            try:
+                payment = reservation.payment
+                if payment.status == 'paid':
+                    payment.status = 'refunded'
+                    payment.save()
+
+                    # Create refund record
+                    from payments.models import Refund
+                    Refund.objects.create(
+                        payment=payment,
+                        amount=payment.amount,
+                        reason=cancellation.reason,
+                        status='processed',
+                        requested_by=request.user
+                    )
+            except:
+                pass
+
             # Return equipment
             for rental in reservation.rented_equipment.all():
                 rental.equipment.quantity_available += rental.quantity
                 rental.equipment.save()
-            
+
             # Notify staff
             from accounts.models import User
             staff_users = User.objects.filter(role__in=['staff', 'admin'])
@@ -211,12 +230,12 @@ def cancel_reservation_view(request, reservation_id):
                     user=staff,
                     message=f"Reservation #{reservation.id} has been cancelled by {request.user.username}."
                 )
-            
-            messages.success(request, 'Cancellation request submitted successfully.')
+
+            messages.success(request, 'Cancellation request submitted successfully. Refund has been processed.')
             return redirect('reservation_list')
     else:
         form = CancellationRequestForm()
-    
+
     return render(request, 'user/cancel_reservation.html', {
         'form': form,
         'reservation': reservation

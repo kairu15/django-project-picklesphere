@@ -193,48 +193,6 @@
     </div>
 </div>
 
-<!-- Notifications -->
-{% if notifications %}
-<div class="card border-0 shadow-lg mt-4" style="border-radius: 15px; overflow: hidden;">
-    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center p-4">
-        <h5 class="fw-bold mb-0"><i class="fas fa-bell me-2 text-warning"></i>Recent Notifications</h5>
-        <a href="{% url 'notification_list' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">View All</a>
-    </div>
-    <div class="card-body p-4">
-        {% for notification in notifications %}
-        <div class="d-flex align-items-start p-3 mb-2 border rounded-3 {% if not notification.is_read %}bg-light border-primary{% endif %}" style="transition: all 0.3s ease;">
-            <div class="flex-shrink-0">
-                <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
-                    <div class="notification-icon" data-type="{{ notification.notification_type }}" style="width: 40px; height: 40px; background: rgba(23,162,184,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-info-circle text-info"></i>
-                    </div>
-                </a>
-            </div>
-            <div class="flex-grow-1 ms-3">
-                <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
-                    <p class="mb-1 text-dark {% if not notification.is_read %}fw-semibold{% endif %}">{{ notification.message }}</p>
-                </a>
-                <small class="text-muted"><i class="far fa-clock me-1"></i>{{ notification.created_at|timesince }} ago</small>
-            </div>
-            <div class="flex-shrink-0">
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown" style="text-decoration: none;">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" style="border-radius: 10px;">
-                        {% if not notification.is_read %}
-                        <li><a class="dropdown-item" href="{% url 'mark_notification_read' notification.id %}"><i class="fas fa-check me-2 text-success"></i>Mark as read</a></li>
-                        {% endif %}
-                        <li><a class="dropdown-item text-danger" href="{% url 'delete_notification' notification.id %}"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
-
 <style>
 /* Profile Completion Card */
 .profile-completion-card {

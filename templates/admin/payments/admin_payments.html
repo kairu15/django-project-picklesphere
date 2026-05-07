@@ -437,36 +437,4 @@
     </div>
 </div>
 
-<!-- Recent Activity Logs -->
-<div class="admin-card mt-4">
-    <div class="admin-card-header">
-        <h5 class="admin-card-title"><i class="fas fa-history me-2"></i>Recent Payment Activity</h5>
-    </div>
-    <div class="card-body">
-        {% for log in recent_logs %}
-        <div class="activity-log-item">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <span class="badge bg-secondary me-2">#{{ log.payment.id }}</span>
-                    <span class="fw-semibold">{{ log.action }}</span>
-                </div>
-                <small class="text-muted">{{ log.created_at|timesince }} ago</small>
-            </div>
-            {% if log.details %}
-            <p class="mb-1 mt-2 text-muted small">{{ log.details }}</p>
-            {% endif %}
-            {% if log.performed_by %}
-            <small class="text-muted">
-                <i class="fas fa-user me-1"></i>by {{ log.performed_by.username }}
-                <span class="badge {% if log.performed_by.role == 'admin' %}bg-danger{% else %}bg-warning text-dark{% endif %} ms-1">
-                    {{ log.performed_by.get_role_display }}
-                </span>
-            </small>
-            {% endif %}
-        </div>
-        {% empty %}
-        <p class="text-muted text-center mb-0">No recent activity</p>
-        {% endfor %}
-    </div>
-</div>
 {% endblock %}

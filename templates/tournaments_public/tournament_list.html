@@ -28,7 +28,7 @@
             <form method="get" class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold" style="color: var(--text-muted);"><i class="fas fa-tag me-2"></i>Status</label>
-                    <select name="status" class="form-select form-select-lg" onchange="this.form.submit()" style="border-radius: var(--border-radius-sm); border-color: var(--border-color);">
+                    <select name="status" class="form-select" onchange="this.form.submit()" style="border-radius: var(--border-radius-sm); border-color: var(--border-color); padding: 0.625rem 0.75rem; height: 42px;">
                         <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
                         <option value="registration_open" {% if status_filter == 'registration_open' %}selected{% endif %}>Registration Open</option>
                         <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
@@ -38,7 +38,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold" style="color: var(--text-muted);"><i class="fas fa-users me-2"></i>Category</label>
-                    <select name="category" class="form-select form-select-lg" onchange="this.form.submit()" style="border-radius: var(--border-radius-sm); border-color: var(--border-color);">
+                    <select name="category" class="form-select" onchange="this.form.submit()" style="border-radius: var(--border-radius-sm); border-color: var(--border-color); padding: 0.625rem 0.75rem; height: 42px;">
                         <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All Categories</option>
                         <option value="singles" {% if category_filter == 'singles' %}selected{% endif %}>Singles</option>
                         <option value="doubles" {% if category_filter == 'doubles' %}selected{% endif %}>Doubles</option>
@@ -46,7 +46,7 @@
                     </select>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
-                    <a href="{% url 'tournament_list' %}" class="btn btn-outline-secondary w-100 btn-lg" style="border-radius: var(--border-radius-sm); border-color: var(--border-color); color: var(--text-muted);">
+                    <a href="{% url 'tournament_list' %}" class="btn btn-outline-secondary w-100" style="border-radius: var(--border-radius-sm); border-color: var(--border-color); color: var(--text-muted); height: 42px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-undo me-2"></i>Clear Filters
                     </a>
                 </div>

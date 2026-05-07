@@ -90,6 +90,12 @@ class ReservationEquipment(models.Model):
 
 
 class CancellationRequest(models.Model):
+    REFUND_METHOD_CHOICES = (
+        ('gcash', 'GCash'),
+        ('paypal', 'PayPal'),
+        ('card', 'Credit Card'),
+    )
+
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE, related_name='cancellation_request')
     reason = models.TextField()
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -97,11 +103,19 @@ class CancellationRequest(models.Model):
     approved = models.BooleanField(null=True, blank=True)
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_cancellations')
     approved_at = models.DateTimeField(null=True, blank=True)
-    
+
+    # Refund fields
+    refund_method = models.CharField(max_length=20, choices=REFUND_METHOD_CHOICES, blank=True, null=True)
+    gcash_number = models.CharField(max_length=20, blank=True, null=True)
+    account_name = models.CharField(max_length=100, blank=True, null=True)
+    paypal_email = models.EmailField(blank=True, null=True)
+    refund_processed = models.BooleanField(default=False)
+    refund_processed_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         db_table = 'cancellation_requests'
         ordering = ['-requested_at']
-    
+
     def __str__(self):
         return f"Cancellation Request for Reservation #{self.reservation.id}"
 

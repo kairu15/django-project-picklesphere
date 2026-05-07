@@ -241,6 +241,114 @@
     </div>
 </div>
 
+<!-- Facility Gallery -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0"><i class="fas fa-images text-primary me-2"></i>Facility Gallery</h5>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGalleryModal">
+            <i class="fas fa-plus me-1"></i>Add Image
+        </button>
+    </div>
+    <div class="card-body p-0">
+        {% if gallery_images %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Alt Text</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for image in gallery_images %}
+                    <tr>
+                        <td>
+                            {% if image.image %}
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
+                            {% else %}
+                            <div style="width: 80px; height: 50px; background: #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="fw-semibold">{{ image.title|default:"Untitled" }}</td>
+                        <td class="text-muted">{{ image.alt_text|truncatechars:30 }}</td>
+                        <td>{{ image.display_order }}</td>
+                        <td>
+                            {% if image.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'about_delete_gallery_image' image.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this gallery image?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-images fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No gallery images added yet.</p>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addGalleryModal">
+                <i class="fas fa-plus me-1"></i>Add First Image
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Gallery Image Modal -->
+<div class="modal fade" id="addGalleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-image text-primary me-2"></i>Add Gallery Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'about_add_gallery_image' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Image File <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        <div class="form-text">Recommended size: 800x500 pixels</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="e.g., Court 1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="alt_text" class="form-label">Alt Text <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="alt_text" name="alt_text" placeholder="e.g., Indoor pickleball court with LED lighting" required>
+                        <div class="form-text">Description for accessibility and SEO</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="display_order" class="form-label">Display Order</label>
+                        <input type="number" class="form-control" id="display_order" name="display_order" value="0" min="0">
+                        <div class="form-text">Lower numbers appear first</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-1"></i>Upload Image
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Why Choose Items -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
