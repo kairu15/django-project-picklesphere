@@ -89,12 +89,20 @@
 
                     <div class="mb-4">
                         <label for="{{ form.reason.id_for_label }}" class="form-label fw-semibold">
-                            <i class="fas fa-comment-alt me-2 text-primary"></i>Reason for Cancellation
+                            <i class="fas fa-comment-alt me-2 text-primary"></i>Reason for Cancellation <span class="text-danger">*</span>
                         </label>
                         {{ form.reason }}
                         {% if form.reason.errors %}
                             <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.reason.errors.0 }}</div>
                         {% endif %}
+                    </div>
+
+                    <!-- Hidden fields for modal form submission -->
+                    <div class="d-none">
+                        {{ form.refund_method }}
+                        {{ form.gcash_number }}
+                        {{ form.account_name }}
+                        {{ form.paypal_email }}
                     </div>
 
                     <!-- Trigger Modal Button -->
@@ -162,18 +170,14 @@
                                                         <!-- GCash Fields -->
                                                         <div id="gcashFields" class="mt-3 ms-4 d-none">
                                                             <div class="mb-3">
-                                                                <label class="form-label small fw-semibold">GCash Mobile Number</label>
-                                                                {{ form.gcash_number }}
-                                                                {% if form.gcash_number.errors %}
-                                                                    <div class="text-danger small mt-1">{{ form.gcash_number.errors.0 }}</div>
-                                                                {% endif %}
+                                                                <label class="form-label small fw-semibold">GCash Mobile Number <span class="text-danger">*</span></label>
+                                                                <input type="text" name="gcash_number_modal" id="gcashNumberModal" class="form-control" placeholder="09XXXXXXXXX" style="border-radius: 8px;">
+                                                                <div class="invalid-feedback" id="gcashNumberError">Please enter your GCash mobile number</div>
                                                             </div>
                                                             <div class="mb-0">
-                                                                <label class="form-label small fw-semibold">Account Name</label>
-                                                                {{ form.account_name }}
-                                                                {% if form.account_name.errors %}
-                                                                    <div class="text-danger small mt-1">{{ form.account_name.errors.0 }}</div>
-                                                                {% endif %}
+                                                                <label class="form-label small fw-semibold">Account Name <span class="text-danger">*</span></label>
+                                                                <input type="text" name="account_name_modal" id="accountNameModal" class="form-control" placeholder="Full Name" style="border-radius: 8px;">
+                                                                <div class="invalid-feedback" id="accountNameError">Please enter the account name</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -199,11 +203,9 @@
                                                         <!-- PayPal Fields -->
                                                         <div id="paypalFields" class="mt-3 ms-4 d-none">
                                                             <div class="mb-0">
-                                                                <label class="form-label small fw-semibold">PayPal Email</label>
-                                                                {{ form.paypal_email }}
-                                                                {% if form.paypal_email.errors %}
-                                                                    <div class="text-danger small mt-1">{{ form.paypal_email.errors.0 }}</div>
-                                                                {% endif %}
+                                                                <label class="form-label small fw-semibold">PayPal Email <span class="text-danger">*</span></label>
+                                                                <input type="email" name="paypal_email_modal" id="paypalEmailModal" class="form-control" placeholder="email@example.com" style="border-radius: 8px;">
+                                                                <div class="invalid-feedback" id="paypalEmailError">Please enter your PayPal email</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -239,7 +241,7 @@
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 10px;">
                                         Close
                                     </button>
-                                    <button type="submit" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
+                                    <button type="button" class="btn btn-danger px-4" id="confirmCancelBtn" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
                                         <i class="fas fa-check-circle me-2"></i>Confirm Cancellation
                                     </button>
                                 </div>
@@ -280,6 +282,12 @@
         textarea.style.resize = 'vertical';
     });
 
+    // Style hidden form inputs to have proper classes when shown
+    document.querySelectorAll('input[name="gcash_number"], input[name="account_name"], input[name="paypal_email"]').forEach(function(input) {
+        input.classList.add('form-control');
+        input.style.borderRadius = '8px';
+    });
+
     // Refund method selection
     function selectRefundMethod(method) {
         // Update radio buttons
@@ -291,11 +299,22 @@
         document.querySelectorAll('.refund-option').forEach(option => {
             option.classList.remove('selected');
         });
-        document.querySelector(`#refund_${method}`).closest('.refund-option').classList.add('selected');
+        const selectedOption = document.querySelector(`#refund_${method}`);
+        if (selectedOption) {
+            selectedOption.closest('.refund-option').classList.add('selected');
+        }
+
+        // Update hidden form field
+        document.querySelector('input[name="refund_method"]').value = method;
 
         // Show/hide fields
         document.getElementById('gcashFields').classList.add('d-none');
         document.getElementById('paypalFields').classList.add('d-none');
+
+        // Reset validation states
+        document.getElementById('gcashNumberModal').classList.remove('is-invalid');
+        document.getElementById('accountNameModal').classList.remove('is-invalid');
+        document.getElementById('paypalEmailModal').classList.remove('is-invalid');
 
         if (method === 'gcash') {
             document.getElementById('gcashFields').classList.remove('d-none');
@@ -309,6 +328,78 @@
         radio.addEventListener('change', function() {
             selectRefundMethod(this.value);
         });
+    });
+
+    // Form validation and submission
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        const selectedMethod = document.querySelector('input[name="refund_method"]:checked');
+        const reasonField = document.querySelector('textarea[name="reason"]');
+
+        // Validate reason
+        if (!reasonField || !reasonField.value.trim()) {
+            reasonField.classList.add('is-invalid');
+            alert('Please provide a reason for cancellation.');
+            return;
+        } else {
+            reasonField.classList.remove('is-invalid');
+        }
+
+        // Validate refund method selected
+        if (!selectedMethod) {
+            alert('Please select a refund method.');
+            return;
+        }
+
+        let isValid = true;
+
+        // Validate method-specific fields
+        if (selectedMethod.value === 'gcash') {
+            const gcashNumber = document.getElementById('gcashNumberModal').value.trim();
+            const accountName = document.getElementById('accountNameModal').value.trim();
+
+            if (!gcashNumber) {
+                document.getElementById('gcashNumberModal').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('gcashNumberModal').classList.remove('is-invalid');
+                document.querySelector('input[name="gcash_number"]').value = gcashNumber;
+            }
+
+            if (!accountName) {
+                document.getElementById('accountNameModal').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('accountNameModal').classList.remove('is-invalid');
+                document.querySelector('input[name="account_name"]').value = accountName;
+            }
+        } else if (selectedMethod.value === 'paypal') {
+            const paypalEmail = document.getElementById('paypalEmailModal').value.trim();
+
+            if (!paypalEmail) {
+                document.getElementById('paypalEmailModal').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('paypalEmailModal').classList.remove('is-invalid');
+                document.querySelector('input[name="paypal_email"]').value = paypalEmail;
+            }
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+        // Submit the form
+        document.getElementById('cancellationForm').submit();
+    });
+
+    // Remove invalid state on input
+    ['gcashNumberModal', 'accountNameModal', 'paypalEmailModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
     });
 </script>
 {% endblock %}
