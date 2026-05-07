@@ -243,7 +243,73 @@
     gap: 0.5rem;
 }
 
-/* ===== Button Styles ===== */
+/* ===== Bootstrap Button Overrides - Consistent with User Interface ===== */
+.btn {
+    border-radius: var(--admin-radius-sm);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: var(--admin-transition);
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2d5f6d 0%, #1a3a42 100%);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--admin-success) 0%, #1e7e34 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--admin-warning) 0%, #e0a800 100%);
+    border: none;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #c69500 100%);
+    color: #212529;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--admin-info) 0%, #117a8b 100%);
+    border: none;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #117a8b 0%, #0c525d 100%);
+}
+
+.btn-outline-secondary {
+    border: 2px solid var(--admin-secondary);
+    color: var(--admin-secondary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--admin-secondary);
+    color: white;
+    border-color: var(--admin-secondary);
+}
+
+/* ===== Legacy Admin Button Styles (deprecated - use Bootstrap classes) ===== */
 .admin-btn {
     border-radius: var(--admin-radius-sm);
     font-weight: 500;

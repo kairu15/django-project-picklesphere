@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from . import session_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +31,10 @@ urlpatterns = [
     path('notifications/', include('notifications.urls')),
     path('equipment/', include('equipment.urls')),
     path('tournaments/', include('tournaments.urls')),
+    # Session management API
+    path('api/session/heartbeat/', session_views.session_heartbeat, name='session_heartbeat'),
+    path('api/session/info/', session_views.session_info, name='session_info'),
+    path('api/session/extend/', session_views.extend_session, name='extend_session'),
 ]
 
 if settings.DEBUG:

@@ -1710,6 +1710,279 @@
     </script>
 
     {% block extra_js %}{% endblock %}
+
+    {% if user.is_authenticated %}
+    <!-- Session Timeout Warning Modal -->
+    <div id="sessionWarningModal" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: white; border-radius: 16px 16px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-clock me-2"></i>Session Expiring Soon
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-hourglass-half fa-3x text-warning"></i>
+                    </div>
+                    <p class="mb-2">Your session will expire in:</p>
+                    <h3 id="sessionCountdown" class="text-warning fw-bold mb-3">5:00</h3>
+                    <p class="text-muted small">Due to inactivity, you'll be automatically logged out.</p>
+                </div>
+                <div class="modal-footer justify-content-center p-4" style="border-top: 1px solid #f0f0f0;">
+                    <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Logout Now
+                    </button>
+                    <button type="button" class="btn btn-primary" id="extendSessionBtn" style="background: var(--primary-color); border: none;">
+                        <i class="fas fa-sync me-1"></i>Stay Logged In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Expired Modal -->
+    <div id="sessionExpiredModal" class="modal fade" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: none; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border-radius: 16px 16px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-lock me-2"></i>Session Expired
+                    </h5>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-lock fa-3x text-danger"></i>
+                    </div>
+                    <p class="mb-2">Your session has expired due to inactivity.</p>
+                    <p class="text-muted small">Please log in again to continue.</p>
+                </div>
+                <div class="modal-footer justify-content-center p-4" style="border-top: 1px solid #f0f0f0;">
+                    <a href="{% url 'login' %}" class="btn btn-primary" style="background: var(--primary-color); border: none;">
+                        <i class="fas fa-sign-in-alt me-1"></i>Log In Again
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Activity Indicator (Bottom Right) -->
+    <div id="sessionIndicator" class="position-fixed bottom-0 end-0 m-3 p-2 rounded shadow-sm" style="background: white; z-index: 1040; display: none;">
+        <small class="text-muted">
+            <i class="fas fa-circle text-success me-1"></i>
+            <span id="sessionTimeRemaining">30:00</span> remaining
+        </small>
+    </div>
+
+    <script>
+    (function() {
+        // Session management configuration - use defaults if context vars not available
+        const SESSION_TIMEOUT = parseInt('{{ session_timeout_seconds|default:1800 }}') || 1800;
+        const WARNING_THRESHOLD = parseInt('{{ session_warning_seconds|default:300 }}') || 300;
+        const HEARTBEAT_INTERVAL = 60000; // 1 minute
+        const COUNTDOWN_INTERVAL = 1000; // 1 second
+        
+        let timeRemaining = SESSION_TIMEOUT;
+        let warningShown = false;
+        let expiredShown = false;
+        let heartbeatTimer = null;
+        let countdownTimer = null;
+        
+        const warningModalEl = document.getElementById('sessionWarningModal');
+        const expiredModalEl = document.getElementById('sessionExpiredModal');
+        const warningModal = warningModalEl ? new bootstrap.Modal(warningModalEl) : null;
+        const expiredModal = expiredModalEl ? new bootstrap.Modal(expiredModalEl) : null;
+        const countdownEl = document.getElementById('sessionCountdown');
+        const indicatorEl = document.getElementById('sessionIndicator');
+        const indicatorTimeEl = document.getElementById('sessionTimeRemaining');
+        
+        // Format seconds to MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + ':' + secs.toString().padStart(2, '0');
+        }
+        
+        // Update session indicator
+        function updateIndicator() {
+            if (!indicatorEl || !indicatorTimeEl) return;
+            indicatorEl.style.display = 'block';
+            indicatorTimeEl.textContent = formatTime(timeRemaining);
+            
+            // Change color based on time remaining
+            const indicatorIcon = indicatorEl.querySelector('i');
+            if (indicatorIcon) {
+                if (timeRemaining <= 60) {
+                    indicatorIcon.className = 'fas fa-circle text-danger me-1';
+                } else if (timeRemaining <= WARNING_THRESHOLD) {
+                    indicatorIcon.className = 'fas fa-circle text-warning me-1';
+                } else {
+                    indicatorIcon.className = 'fas fa-circle text-success me-1';
+                }
+            }
+        }
+        
+        // Show warning modal
+        function showWarning() {
+            if (!warningModal || !countdownEl) return;
+            if (!warningShown) {
+                warningShown = true;
+                warningModal.show();
+            }
+            countdownEl.textContent = formatTime(timeRemaining);
+        }
+        
+        // Show expired modal
+        function showExpired() {
+            if (!expiredModal) return;
+            if (!expiredShown) {
+                expiredShown = true;
+                if (warningModal) warningModal.hide();
+                expiredModal.show();
+            }
+        }
+        
+        // Send heartbeat to server
+        async function sendHeartbeat() {
+            try {
+                const response = await fetch('/api/session/heartbeat/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    timeRemaining = data.time_remaining || SESSION_TIMEOUT;
+                    
+                    if (data.show_warning && !warningShown) {
+                        showWarning();
+                    }
+                } else if (response.status === 401) {
+                    // Session expired on server
+                    showExpired();
+                }
+            } catch (error) {
+                console.error('Heartbeat error:', error);
+            }
+        }
+        
+        // Extend session
+        async function extendSession() {
+            try {
+                const response = await fetch('/api/session/extend/', {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    timeRemaining = data.time_remaining || SESSION_TIMEOUT;
+                    warningShown = false;
+                    if (warningModal) warningModal.hide();
+                    updateIndicator();
+                }
+            } catch (error) {
+                console.error('Extend session error:', error);
+            }
+        }
+        
+        // Get CSRF cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Countdown timer
+        function startCountdown() {
+            countdownTimer = setInterval(function() {
+                timeRemaining--;
+                
+                if (timeRemaining <= WARNING_THRESHOLD && !warningShown) {
+                    showWarning();
+                }
+                
+                if (timeRemaining <= 0) {
+                    showExpired();
+                    clearInterval(countdownTimer);
+                }
+                
+                if (warningShown && countdownEl) {
+                    countdownEl.textContent = formatTime(Math.max(0, timeRemaining));
+                }
+                
+                updateIndicator();
+            }, COUNTDOWN_INTERVAL);
+        }
+        
+        // Start heartbeat
+        function startHeartbeat() {
+            heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+        }
+        
+        // Handle user activity to reset timer
+        function handleUserActivity() {
+            // Only reset if not already in warning state
+            if (!warningShown && timeRemaining < SESSION_TIMEOUT - 60) {
+                sendHeartbeat();
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with server-provided data
+            var initialTime = parseInt('{{ session_info.time_remaining|default:1800 }}');
+            if (!isNaN(initialTime) && initialTime > 0) {
+                timeRemaining = initialTime;
+            }
+            
+            // Start timers
+            startCountdown();
+            startHeartbeat();
+            updateIndicator();
+            
+            // Bind extend button
+            var extendBtn = document.getElementById('extendSessionBtn');
+            if (extendBtn) {
+                extendBtn.addEventListener('click', extendSession);
+            }
+            
+            // Bind logout button in warning modal
+            var logoutBtn = document.querySelector('#sessionWarningModal .btn-outline-secondary');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    window.location.href = '/accounts/logout/';
+                });
+            }
+            
+            // Track user activity
+            var events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+            var activityTimeout;
+            events.forEach(function(event) {
+                document.addEventListener(event, function() {
+                    clearTimeout(activityTimeout);
+                    activityTimeout = setTimeout(handleUserActivity, 1000);
+                }, true);
+            });
+        });
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>
 

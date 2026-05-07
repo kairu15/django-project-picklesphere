@@ -7,79 +7,27 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-transparent border-bottom p-4">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-times-circle fa-lg text-white"></i>
+        <form method="post" id="cancellationForm">
+            {% csrf_token %}
+
+            <!-- Cancellation & Refund Card -->
+            <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
+                <div class="card-header bg-transparent border-bottom p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-times-circle fa-lg text-white"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="ms-3">
-                        <h4 class="fw-bold mb-0">Request Cancellation</h4>
-                        <p class="text-muted mb-0 small">Reservation #{{ reservation.id }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body p-4">
-                <!-- Reservation Details Card -->
-                <div class="card mb-4 border-0" style="background: #f8f9fa; border-radius: 12px;">
-                    <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Reservation Details</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-map-marker-alt text-primary"></i>
-                                    </div>
-                                    <div class="ms-2">
-                                        <small class="text-muted d-block">Court</small>
-                                        <span class="fw-semibold">{{ reservation.court.name }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div style="width: 35px; height: 35px; background: rgba(40,167,69,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-calendar text-success"></i>
-                                    </div>
-                                    <div class="ms-2">
-                                        <small class="text-muted d-block">Date</small>
-                                        <span class="fw-semibold">{{ reservation.date|date:"F d, Y" }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div style="width: 35px; height: 35px; background: rgba(255,193,7,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-clock text-warning"></i>
-                                    </div>
-                                    <div class="ms-2">
-                                        <small class="text-muted d-block">Time</small>
-                                        <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div style="width: 35px; height: 35px; background: rgba(111,66,193,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-tag text-info"></i>
-                                    </div>
-                                    <div class="ms-2">
-                                        <small class="text-muted d-block">Status</small>
-                                        <span class="badge bg-{{ reservation.status|default:'primary' }}">{{ reservation.get_status_display }}</span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="ms-3">
+                            <h4 class="fw-bold mb-0">Confirm Cancellation & Refund</h4>
+                            <p class="text-muted mb-0 small">Reservation #{{ reservation.id }}</p>
                         </div>
                     </div>
                 </div>
-
-                <form method="post" id="cancellationForm">
-                    {% csrf_token %}
-
+                <div class="card-body p-4">
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger rounded-3" style="border-radius: 12px;">
+                        <div class="alert alert-danger rounded-3 mb-4" style="border-radius: 12px;">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             {% for error in form.non_field_errors %}
                                 <div>{{ error }}</div>
@@ -87,6 +35,27 @@
                         </div>
                     {% endif %}
 
+                    <!-- Info Message -->
+                    <div class="p-4 mb-4" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f9ff 100%); border-radius: 12px;">
+                        <div class="d-flex align-items-start">
+                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-info-circle text-primary fa-lg"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="mb-0 fw-medium" style="color: #1a3a42;">Cancelling a pending booking will free up the room for other guests.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Refund Amount -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">Refund Amount:</label>
+                        <div class="p-3 rounded-3" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745; border-radius: 12px;">
+                            <span class="fw-bold fs-4" style="color: #155724;">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Reason for Cancellation -->
                     <div class="mb-4">
                         <label for="{{ form.reason.id_for_label }}" class="form-label fw-semibold">
                             <i class="fas fa-comment-alt me-2 text-primary"></i>Reason for Cancellation <span class="text-danger">*</span>
@@ -97,160 +66,66 @@
                         {% endif %}
                     </div>
 
-                    <!-- Hidden fields for modal form submission -->
-                    <div class="d-none">
-                        {{ form.refund_method }}
-                        {{ form.gcash_number }}
-                        {{ form.account_name }}
-                        {{ form.paypal_email }}
-                    </div>
-
-                    <!-- Trigger Modal Button -->
-                    <div class="d-flex justify-content-between align-items-center pt-2">
-                        <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
-                            <i class="fas fa-arrow-left me-2"></i>Back
-                        </a>
-                        <button type="button" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;" data-bs-toggle="modal" data-bs-target="#refundModal">
-                            <i class="fas fa-times-circle me-2"></i>Proceed to Cancellation
-                        </button>
-                    </div>
-
-                    <!-- Refund Modal -->
-                    <div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content" style="border-radius: 15px; overflow: hidden; border: none;">
-                                <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); color: white;">
-                                    <h5 class="modal-title fw-bold" id="refundModalLabel"><i class="fas fa-undo-alt me-2"></i>Confirm Cancellation & Refund</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body p-0">
-                                    <!-- Info Message -->
-                                    <div class="p-4" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f9ff 100%);">
-                                        <div class="d-flex align-items-start">
-                                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <i class="fas fa-info-circle text-primary fa-lg"></i>
+                    <!-- Refund Method -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Select Refund Method <span class="text-danger">*</span></label>
+                        
+                        <div class="refund-options">
+                            <!-- GCash Option -->
+                            <div class="refund-option card mb-3 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('gcash')">
+                                <div class="card-body p-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="refund_method" id="refund_gcash" value="gcash" required {% if form.refund_method.value == 'gcash' %}checked{% endif %}>
+                                        <label class="form-check-label w-100" for="refund_gcash">
+                                            <div class="d-flex align-items-center">
+                                                <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                                    <i class="fas fa-mobile-alt text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-bold d-block">GCash</span>
+                                                    <small class="text-muted">Refund to your GCash account</small>
+                                                </div>
                                             </div>
-                                            <div class="ms-3">
-                                                <p class="mb-0 fw-medium" style="color: #1a3a42;">Cancelling a pending booking will free up the room for other guests.</p>
-                                            </div>
-                                        </div>
+                                        </label>
                                     </div>
-
-                                    <div class="p-4">
-                                        <!-- Refund Amount -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold text-dark mb-2">Refund Amount:</label>
-                                            <div class="p-3 rounded-3" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745;">
-                                                <span class="fw-bold fs-4" style="color: #155724;">₱{{ reservation.total_amount|floatformat:2 }}</span>
-                                            </div>
+                                    <!-- GCash Fields -->
+                                    <div id="gcashFields" class="mt-3 ms-4 d-none">
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">GCash Mobile Number <span class="text-danger">*</span></label>
+                                            <input type="text" name="gcash_number" id="gcashNumberInput" class="form-control" placeholder="09XXXXXXXXX" style="border-radius: 8px;" value="{{ form.gcash_number.value|default:'' }}">
+                                            {% if form.gcash_number.errors %}
+                                                <div class="text-danger small mt-1">{{ form.gcash_number.errors.0 }}</div>
+                                            {% endif %}
                                         </div>
-
-                                        <!-- Refund Method -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold text-dark">Select Refund Method <span class="text-danger">*</span></label>
-                                            
-                                            <div class="refund-options">
-                                                <!-- GCash Option -->
-                                                <div class="refund-option card mb-3 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('gcash')">
-                                                    <div class="card-body p-3">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="refund_method" id="refund_gcash" value="gcash" required>
-                                                            <label class="form-check-label w-100" for="refund_gcash">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                                                                        <i class="fas fa-mobile-alt text-white"></i>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span class="fw-bold d-block">GCash</span>
-                                                                        <small class="text-muted">Refund to your GCash account</small>
-                                                                    </div>
-                                                                </div>
-                                                            </label>
-                                                        </div>
-                                                        <!-- GCash Fields -->
-                                                        <div id="gcashFields" class="mt-3 ms-4 d-none">
-                                                            <div class="mb-3">
-                                                                <label class="form-label small fw-semibold">GCash Mobile Number <span class="text-danger">*</span></label>
-                                                                <input type="text" name="gcash_number_modal" id="gcashNumberModal" class="form-control" placeholder="09XXXXXXXXX" style="border-radius: 8px;">
-                                                                <div class="invalid-feedback" id="gcashNumberError">Please enter your GCash mobile number</div>
-                                                            </div>
-                                                            <div class="mb-0">
-                                                                <label class="form-label small fw-semibold">Account Name <span class="text-danger">*</span></label>
-                                                                <input type="text" name="account_name_modal" id="accountNameModal" class="form-control" placeholder="Full Name" style="border-radius: 8px;">
-                                                                <div class="invalid-feedback" id="accountNameError">Please enter the account name</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- PayPal Option -->
-                                                <div class="refund-option card mb-3 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('paypal')">
-                                                    <div class="card-body p-3">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="refund_method" id="refund_paypal" value="paypal">
-                                                            <label class="form-check-label w-100" for="refund_paypal">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #0070ba 0%, #005ea6 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                                                                        <i class="fab fa-paypal text-white"></i>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span class="fw-bold d-block">PayPal</span>
-                                                                        <small class="text-muted">Refund to your PayPal account</small>
-                                                                    </div>
-                                                                </div>
-                                                            </label>
-                                                        </div>
-                                                        <!-- PayPal Fields -->
-                                                        <div id="paypalFields" class="mt-3 ms-4 d-none">
-                                                            <div class="mb-0">
-                                                                <label class="form-label small fw-semibold">PayPal Email <span class="text-danger">*</span></label>
-                                                                <input type="email" name="paypal_email_modal" id="paypalEmailModal" class="form-control" placeholder="email@example.com" style="border-radius: 8px;">
-                                                                <div class="invalid-feedback" id="paypalEmailError">Please enter your PayPal email</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Credit Card Option -->
-                                                <div class="refund-option card mb-0 border-0 shadow-sm" style="border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="selectRefundMethod('card')">
-                                                    <div class="card-body p-3">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="refund_method" id="refund_card" value="card">
-                                                            <label class="form-check-label w-100" for="refund_card">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                                                                        <i class="fas fa-credit-card text-white"></i>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span class="fw-bold d-block">Credit Card</span>
-                                                                        <small class="text-muted">Refund to your credit card (5–7 business days)</small>
-                                                                    </div>
-                                                                </div>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% if form.refund_method.errors %}
-                                                <div class="text-danger small mt-2">{{ form.refund_method.errors.0 }}</div>
+                                        <div class="mb-0">
+                                            <label class="form-label small fw-semibold">Account Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="account_name" id="accountNameInput" class="form-control" placeholder="Full Name" style="border-radius: 8px;" value="{{ form.account_name.value|default:'' }}">
+                                            {% if form.account_name.errors %}
+                                                <div class="text-danger small mt-1">{{ form.account_name.errors.0 }}</div>
                                             {% endif %}
                                         </div>
                                     </div>
                                 </div>
-                                <div class="modal-footer bg-light">
-                                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 10px;">
-                                        Close
-                                    </button>
-                                    <button type="button" class="btn btn-danger px-4" id="confirmCancelBtn" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
-                                        <i class="fas fa-check-circle me-2"></i>Confirm Cancellation
-                                    </button>
-                                </div>
                             </div>
+
                         </div>
+                        {% if form.refund_method.errors %}
+                            <div class="text-danger small mt-2">{{ form.refund_method.errors.0 }}</div>
+                        {% endif %}
                     </div>
-                </form>
+                </div>
+                <div class="card-footer bg-light p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
+                            <i class="fas fa-arrow-left me-2"></i>Close
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4" style="border-radius: 10px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border: none;">
+                            <i class="fas fa-check-circle me-2"></i>Confirm Cancellation
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -282,12 +157,6 @@
         textarea.style.resize = 'vertical';
     });
 
-    // Style hidden form inputs to have proper classes when shown
-    document.querySelectorAll('input[name="gcash_number"], input[name="account_name"], input[name="paypal_email"]').forEach(function(input) {
-        input.classList.add('form-control');
-        input.style.borderRadius = '8px';
-    });
-
     // Refund method selection
     function selectRefundMethod(method) {
         // Update radio buttons
@@ -304,102 +173,27 @@
             selectedOption.closest('.refund-option').classList.add('selected');
         }
 
-        // Update hidden form field
-        document.querySelector('input[name="refund_method"]').value = method;
-
         // Show/hide fields
         document.getElementById('gcashFields').classList.add('d-none');
-        document.getElementById('paypalFields').classList.add('d-none');
-
-        // Reset validation states
-        document.getElementById('gcashNumberModal').classList.remove('is-invalid');
-        document.getElementById('accountNameModal').classList.remove('is-invalid');
-        document.getElementById('paypalEmailModal').classList.remove('is-invalid');
 
         if (method === 'gcash') {
             document.getElementById('gcashFields').classList.remove('d-none');
-        } else if (method === 'paypal') {
-            document.getElementById('paypalFields').classList.remove('d-none');
         }
     }
+
+    // Initialize from pre-selected value
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkedRadio = document.querySelector('input[name="refund_method"]:checked');
+        if (checkedRadio) {
+            selectRefundMethod(checkedRadio.value);
+        }
+    });
 
     // Listen for radio changes
     document.querySelectorAll('input[name="refund_method"]').forEach(radio => {
         radio.addEventListener('change', function() {
             selectRefundMethod(this.value);
         });
-    });
-
-    // Form validation and submission
-    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
-        const selectedMethod = document.querySelector('input[name="refund_method"]:checked');
-        const reasonField = document.querySelector('textarea[name="reason"]');
-
-        // Validate reason
-        if (!reasonField || !reasonField.value.trim()) {
-            reasonField.classList.add('is-invalid');
-            alert('Please provide a reason for cancellation.');
-            return;
-        } else {
-            reasonField.classList.remove('is-invalid');
-        }
-
-        // Validate refund method selected
-        if (!selectedMethod) {
-            alert('Please select a refund method.');
-            return;
-        }
-
-        let isValid = true;
-
-        // Validate method-specific fields
-        if (selectedMethod.value === 'gcash') {
-            const gcashNumber = document.getElementById('gcashNumberModal').value.trim();
-            const accountName = document.getElementById('accountNameModal').value.trim();
-
-            if (!gcashNumber) {
-                document.getElementById('gcashNumberModal').classList.add('is-invalid');
-                isValid = false;
-            } else {
-                document.getElementById('gcashNumberModal').classList.remove('is-invalid');
-                document.querySelector('input[name="gcash_number"]').value = gcashNumber;
-            }
-
-            if (!accountName) {
-                document.getElementById('accountNameModal').classList.add('is-invalid');
-                isValid = false;
-            } else {
-                document.getElementById('accountNameModal').classList.remove('is-invalid');
-                document.querySelector('input[name="account_name"]').value = accountName;
-            }
-        } else if (selectedMethod.value === 'paypal') {
-            const paypalEmail = document.getElementById('paypalEmailModal').value.trim();
-
-            if (!paypalEmail) {
-                document.getElementById('paypalEmailModal').classList.add('is-invalid');
-                isValid = false;
-            } else {
-                document.getElementById('paypalEmailModal').classList.remove('is-invalid');
-                document.querySelector('input[name="paypal_email"]').value = paypalEmail;
-            }
-        }
-
-        if (!isValid) {
-            return;
-        }
-
-        // Submit the form
-        document.getElementById('cancellationForm').submit();
-    });
-
-    // Remove invalid state on input
-    ['gcashNumberModal', 'accountNameModal', 'paypalEmailModal'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('input', function() {
-                this.classList.remove('is-invalid');
-            });
-        }
     });
 </script>
 {% endblock %}

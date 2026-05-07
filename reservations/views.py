@@ -231,7 +231,17 @@ def cancel_reservation_view(request, reservation_id):
                     message=f"Reservation #{reservation.id} has been cancelled by {request.user.username}."
                 )
 
-            messages.success(request, 'Cancellation request submitted successfully. Refund has been processed.')
+            # Format success message with refund details
+            refund_method_display = dict(cancellation.REFUND_METHOD_CHOICES).get(cancellation.refund_method, 'GCash')
+            processing_time = "5-7 business days" if cancellation.refund_method == 'card' else "24-48 hours"
+
+            success_message = (
+                f"Booking #{reservation.id:06d} has been cancelled successfully. "
+                f"Refund of ₱{reservation.total_amount:,.2f} will be processed via {refund_method_display} "
+                f"within {processing_time}."
+            )
+
+            messages.success(request, success_message)
             return redirect('reservation_list')
     else:
         form = CancellationRequestForm()

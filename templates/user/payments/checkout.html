@@ -123,34 +123,6 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="payment-option form-check border rounded p-3 h-100" data-method="cash" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: #fff;">
-                                <input type="radio" name="method" value="cash" id="cash" class="form-check-input">
-                                <label class="form-check-label w-100" for="cash">
-                                    <div class="text-center">
-                                        <div class="payment-icon cash-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(40,167,69,0.3); transition: transform 0.3s ease;">
-                                            <i class="fas fa-money-bill-wave fa-lg text-white"></i>
-                                        </div>
-                                        <h6 class="mb-1 fw-bold text-dark">Cash</h6>
-                                        <small class="text-muted">Pay at Counter</small>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="payment-option form-check border rounded p-3 h-100" data-method="card" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: #fff;">
-                                <input type="radio" name="method" value="card" id="card" class="form-check-input">
-                                <label class="form-check-label w-100" for="card">
-                                    <div class="text-center">
-                                        <div class="payment-icon card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(23,162,184,0.3); transition: transform 0.3s ease;">
-                                            <i class="fas fa-credit-card fa-lg text-white"></i>
-                                        </div>
-                                        <h6 class="mb-1 fw-bold text-dark">Card</h6>
-                                        <small class="text-muted">Credit/Debit Card</small>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
                     </div>
                     
                     <!-- GCash Details -->
@@ -175,41 +147,6 @@
                         </div>
                     </div>
                     
-                    <!-- Cash Details -->
-                    <div id="cashDetails" class="d-none mb-4">
-                        <div class="card border-0" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border-radius: 12px;">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <div style="width: 30px; height: 30px; background: rgba(255,193,7,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-info-circle text-warning"></i>
-                                    </div>
-                                    <span class="fw-bold">Please proceed to the counter to complete your cash payment.</span>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold"><i class="fas fa-sticky-note me-2 text-warning"></i>Notes (Optional)</label>
-                                    {{ cash_form.payment_notes }}
-                                </div>
-                                <div class="mb-0">
-                                    <label class="form-label fw-bold"><i class="fas fa-image me-2 text-warning"></i>Upload Proof of Payment (Optional)</label>
-                                    {{ cash_form.gcash_proof_image }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Card Details -->
-                    <div id="cardDetails" class="d-none mb-4">
-                        <div class="card border-0" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 12px;">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div style="width: 30px; height: 30px; background: rgba(40,167,69,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-info-circle text-success"></i>
-                                    </div>
-                                    <span class="fw-bold">Card payment will be processed securely.</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-4 border-top">
                         <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
@@ -269,12 +206,6 @@
 .payment-option.selected .gcash-icon {
     box-shadow: 0 4px 20px rgba(59,122,140,0.4);
 }
-.payment-option.selected .cash-icon {
-    box-shadow: 0 4px 20px rgba(40,167,69,0.4);
-}
-.payment-option.selected .card-icon {
-    box-shadow: 0 4px 20px rgba(23,162,184,0.4);
-}
 .form-check-input:checked {
     background-color: #3B7A8C;
     border-color: #3B7A8C;
@@ -286,8 +217,6 @@
         radio.addEventListener('change', function() {
             // Hide all payment details
             document.getElementById('gcashDetails').classList.add('d-none');
-            document.getElementById('cashDetails').classList.add('d-none');
-            document.getElementById('cardDetails').classList.add('d-none');
             
             // Remove selected class from all options
             document.querySelectorAll('.payment-option').forEach(opt => {
@@ -302,10 +231,6 @@
             
             if (this.value === 'gcash') {
                 document.getElementById('gcashDetails').classList.remove('d-none');
-            } else if (this.value === 'cash') {
-                document.getElementById('cashDetails').classList.remove('d-none');
-            } else if (this.value === 'card') {
-                document.getElementById('cardDetails').classList.remove('d-none');
             }
         });
     });

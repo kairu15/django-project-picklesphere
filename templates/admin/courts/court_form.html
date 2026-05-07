@@ -21,7 +21,7 @@
             <i class="fas fa-map-marker-alt text-primary"></i>
             {% if edit_mode %}Update Court Details{% else %}New Court Details{% endif %}
         </h5>
-        <a href="{% url 'admin_court_list' %}" class="btn btn-outline-secondary admin-btn">
+        <a href="{% url 'admin_court_list' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back
         </a>
     </div>
@@ -76,10 +76,10 @@
 
             <!-- Form Actions -->
             <div class="d-flex justify-content-between align-items-center pt-4 border-top">
-                <a href="{% url 'admin_court_list' %}" class="btn btn-outline-secondary admin-btn">
+                <a href="{% url 'admin_court_list' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-times me-2"></i>Cancel
                 </a>
-                <button type="submit" class="btn btn-primary admin-btn">
+                <button type="submit" class="btn btn-primary">
                     {% if edit_mode %}
                         <i class="fas fa-save me-2"></i>Save Changes
                     {% else %}

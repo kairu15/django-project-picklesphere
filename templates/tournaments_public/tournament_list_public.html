@@ -28,63 +28,6 @@
     </div>
 </section>
 
-<!-- Search & Filter Section -->
-<section class="py-4" style="background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: relative; z-index: 10; margin-top: -40px;">
-    <div class="container">
-        <div class="card border-0 shadow-lg" style="border-radius: 15px;">
-            <div class="card-body p-4">
-                <form method="get" class="row g-3 align-items-end">
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label fw-bold text-primary"><i class="fas fa-search me-2"></i>Search</label>
-                        <input type="text" name="search" class="form-control form-control-lg" placeholder="Tournament name..." value="{{ search_query }}">
-                    </div>
-                    <div class="col-lg-2 col-md-6">
-                        <label class="form-label fw-bold text-primary"><i class="fas fa-filter me-2"></i>Status</label>
-                        <select name="status" class="form-select form-select-lg">
-                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
-                            <option value="registration_open" {% if status_filter == 'registration_open' %}selected{% endif %}>Registration Open</option>
-                            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
-                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
-                            <option value="upcoming" {% if status_filter == 'upcoming' %}selected{% endif %}>Coming Soon</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-md-6">
-                        <label class="form-label fw-bold text-primary"><i class="fas fa-users me-2"></i>Category</label>
-                        <select name="category" class="form-select form-select-lg">
-                            <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All Categories</option>
-                            <option value="singles" {% if category_filter == 'singles' %}selected{% endif %}>Singles</option>
-                            <option value="doubles" {% if category_filter == 'doubles' %}selected{% endif %}>Doubles</option>
-                            <option value="mixed_doubles" {% if category_filter == 'mixed_doubles' %}selected{% endif %}>Mixed Doubles</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-md-6">
-                        <label class="form-label fw-bold text-primary"><i class="fas fa-signal me-2"></i>Skill Level</label>
-                        <select name="skill_level" class="form-select form-select-lg">
-                            <option value="all" {% if skill_filter == 'all' %}selected{% endif %}>All Levels</option>
-                            <option value="beginner" {% if skill_filter == 'beginner' %}selected{% endif %}>Beginner</option>
-                            <option value="intermediate" {% if skill_filter == 'intermediate' %}selected{% endif %}>Intermediate</option>
-                            <option value="advanced" {% if skill_filter == 'advanced' %}selected{% endif %}>Advanced</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-md-6">
-                        <label class="form-label fw-bold text-primary"><i class="fas fa-sort me-2"></i>Sort By</label>
-                        <select name="sort" class="form-select form-select-lg">
-                            <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Start Date</option>
-                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
-                            <option value="registration_end" {% if sort_by == 'registration_end' %}selected{% endif %}>Registration Deadline</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-1 col-md-12">
-                        <a href="{% url 'tournament_list' %}" class="btn btn-outline-secondary btn-lg w-100">
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- Tournament Categories -->
 <section class="py-4 bg-light">
     <div class="container">

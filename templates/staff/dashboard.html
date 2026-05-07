@@ -21,17 +21,17 @@
 <!-- Quick Actions -->
 <div class="quick-actions animate-fadeInUp">
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{% url 'staff_reservations' %}" class="btn btn-staff btn-staff-primary">
-            <i class="fas fa-calendar-check"></i>View Reservations
+        <a href="{% url 'staff_reservations' %}" class="btn btn-primary">
+            <i class="fas fa-calendar-check me-2"></i>View Reservations
         </a>
-        <a href="{% url 'staff_payments' %}" class="btn btn-staff btn-staff-success">
-            <i class="fas fa-money-bill-wave"></i>Verify Payments
+        <a href="{% url 'staff_payments' %}" class="btn btn-success">
+            <i class="fas fa-money-bill-wave me-2"></i>Verify Payments
         </a>
-        <a href="{% url 'match_list' %}" class="btn btn-staff btn-staff-warning">
-            <i class="fas fa-trophy"></i>Manage Matches
+        <a href="{% url 'match_list' %}" class="btn btn-warning">
+            <i class="fas fa-trophy me-2"></i>Manage Matches
         </a>
-        <a href="{% url 'staff_equipment' %}" class="btn btn-staff" style="background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%); color: white;">
-            <i class="fas fa-tools"></i>Equipment
+        <a href="{% url 'staff_equipment' %}" class="btn btn-info">
+            <i class="fas fa-tools me-2"></i>Equipment
         </a>
     </div>
 </div>
@@ -150,7 +150,9 @@
         <div class="staff-card h-100">
             <div class="staff-card-header d-flex justify-content-between align-items-center">
                 <h5 class="staff-card-title"><i class="fas fa-calendar-alt"></i>Today's Schedule</h5>
-                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
             </div>
             <div class="staff-card-body p-0">
                 <div class="table-responsive">

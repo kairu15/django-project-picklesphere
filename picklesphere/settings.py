@@ -56,6 +56,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'picklesphere.session_management.EnhancedSessionMiddleware',
+    'picklesphere.session_management.SessionActivityMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -75,6 +77,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notification_count',
                 'notifications.sidebar_badge_context.sidebar_badges',
+                'picklesphere.session_management.session_context_processor',
             ],
         },
     },
@@ -153,3 +156,18 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Session Management Settings
+# Session timeout in seconds (30 minutes of inactivity)
+SESSION_TIMEOUT = 1800
+# Warning before timeout in seconds (5 minutes before)
+SESSION_WARNING_BEFORE = 300
+# Session cookie settings
+SESSION_COOKIE_AGE = 3600  # 1 hour max session age
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax'
+# Save session on every request to track activity
+SESSION_SAVE_EVERY_REQUEST = True
+# Use database-backed sessions for reliability
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
