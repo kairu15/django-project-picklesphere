@@ -243,7 +243,15 @@
                             </div>
                             <div class="admin-info-content">
                                 <div class="admin-info-label">Payment Date</div>
-                                <div class="admin-info-value">{{ payment.created_at|date:"M d, Y H:i" }}</div>
+                                <div class="admin-info-value">
+                                    {% if payment.method == 'cash' and payment.cash_received_at %}
+                                        {{ payment.cash_received_at|date:"F d, Y g:i A" }}
+                                    {% elif payment.status == 'paid' %}
+                                        {{ payment.updated_at|date:"F d, Y g:i A" }}
+                                    {% else %}
+                                        {{ payment.created_at|date:"F d, Y g:i A" }}
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         {% if payment.gcash_reference %}
@@ -257,23 +265,7 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if payment.cash_received_by %}
-                        <div class="admin-info-item">
-                            <div class="admin-info-icon bg-warning">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="admin-info-content">
-                                <div class="admin-info-label">Verified By</div>
-                                <div class="admin-info-value">
-                                    {{ payment.cash_received_by.username }}
-                                    <span class="badge {% if payment.cash_received_by.role == 'admin' %}bg-danger{% else %}bg-warning text-dark{% endif %} ms-1">
-                                        {{ payment.cash_received_by.get_role_display }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
+                                            </div>
                 </div>
             </div>
         </div>

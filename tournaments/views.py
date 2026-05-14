@@ -321,19 +321,28 @@ def admin_registration_list(request, pk):
     if not request.user.is_admin and not request.user.is_staff_user:
         messages.error(request, 'Access denied.')
         return redirect('home')
-    
+
     tournament = get_object_or_404(Tournament, pk=pk)
     status_filter = request.GET.get('status', 'all')
-    
-    registrations = tournament.registrations.select_related('user').order_by('-registered_at')
-    
+
+    all_registrations = tournament.registrations.select_related('user').order_by('-registered_at')
+    registrations = all_registrations
+
     if status_filter != 'all':
         registrations = registrations.filter(status=status_filter)
-    
+
+    # Get counts for stats display
+    pending_count = all_registrations.filter(status='pending').count()
+    approved_count = all_registrations.filter(status='approved').count()
+    rejected_count = all_registrations.filter(status='rejected').count()
+
     context = {
         'tournament': tournament,
         'registrations': registrations,
         'status_filter': status_filter,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
         'page_title': f'Registrations - {tournament.name}'
     }
     return render(request, 'admin/tournaments/registration_list.html', context)
@@ -464,13 +473,22 @@ def admin_match_list(request, pk):
     if not request.user.is_admin and not request.user.is_staff_user:
         messages.error(request, 'Access denied.')
         return redirect('home')
-    
+
     tournament = get_object_or_404(Tournament, pk=pk)
     matches = Match.objects.filter(tournament=tournament).order_by('round_name', 'match_number')
-    
+
+    # Calculate status counts
+    scheduled_count = matches.filter(status='scheduled').count()
+    completed_count = matches.filter(status='completed').count()
+    in_progress_count = matches.filter(status='in_progress').count()
+
     context = {
         'tournament': tournament,
         'matches': matches,
+        'total_count': matches.count(),
+        'scheduled_count': scheduled_count,
+        'completed_count': completed_count,
+        'in_progress_count': in_progress_count,
         'page_title': f'Matches - {tournament.name}'
     }
     return render(request, 'admin/tournaments/match_list.html', context)

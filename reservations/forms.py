@@ -63,10 +63,21 @@ class ReservationForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['court'].queryset = Court.objects.filter(is_active=True)
+        # Make all match settings fields not required since they're set by admin
         self.fields['match_name'].required = False
+        self.fields['match_format'].required = False
+        self.fields['game_type'].required = False
+        self.fields['scoring_format'].required = False
+        self.fields['points_per_game'].required = False
+        self.fields['games_to_win'].required = False
+        self.fields['win_by_two'].required = False
+        # Set default values
         self.fields['points_per_game'].initial = 11
         self.fields['games_to_win'].initial = 2
         self.fields['win_by_two'].initial = True
+        self.fields['match_format'].initial = 'singles'
+        self.fields['game_type'].initial = 'friendly'
+        self.fields['scoring_format'].initial = '11'
     
     def clean(self):
         cleaned_data = super().clean()

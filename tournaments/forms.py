@@ -103,13 +103,15 @@ class MatchScoreForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         match = kwargs.get('instance')
-        
+
         if match:
             # Limit winner choices to match participants
             if match.tournament.category == 'singles':
-                self.fields['winner'].queryset = match.tournament.registrations.filter(
+                from accounts.models import User
+                approved_user_ids = match.tournament.registrations.filter(
                     status='approved'
-                ).values_list('user', flat=True)
+                ).values_list('user_id', flat=True)
+                self.fields['winner'].queryset = User.objects.filter(id__in=approved_user_ids)
                 self.fields['winner_team'].widget = forms.HiddenInput()
             else:
                 self.fields['winner'].widget = forms.HiddenInput()
@@ -201,16 +203,15 @@ class TeamForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         tournament = kwargs.pop('tournament', None)
         super().__init__(*args, **kwargs)
-        
+
         if tournament:
             # Limit player choices to approved registrations
-            approved_users = tournament.registrations.filter(
+            from accounts.models import User
+            approved_user_ids = tournament.registrations.filter(
                 status='approved'
-            ).values_list('user', flat=True)
-            
-            self.fields['player1'].queryset = tournament.registrations.filter(
-                status='approved'
-            ).select_related('user')
-            self.fields['player2'].queryset = tournament.registrations.filter(
-                status='approved'
-            ).select_related('user')
+            ).values_list('user_id', flat=True)
+
+            approved_users = User.objects.filter(id__in=approved_user_ids)
+
+            self.fields['player1'].queryset = approved_users
+            self.fields['player2'].queryset = approved_users

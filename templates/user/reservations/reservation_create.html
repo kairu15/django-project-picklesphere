@@ -97,67 +97,6 @@
                         </div>
                     </div>
 
-                    <hr class="my-4">
-                    <h6 class="fw-bold mb-3" style="color: #3B7A8C;"><i class="fas fa-gamepad me-2"></i>Match Settings</h6>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold"><i class="fas fa-tag me-2 text-primary"></i>Match Name (Optional)</label>
-                        {{ form.match_name }}
-                        {% if form.match_name.errors %}
-                            <div class="text-danger small mt-1">{{ form.match_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold"><i class="fas fa-users me-2 text-primary"></i>Format <span class="text-danger">*</span></label>
-                            {{ form.match_format }}
-                            {% if form.match_format.errors %}
-                                <div class="text-danger small mt-1">{{ form.match_format.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold"><i class="fas fa-gamepad me-2 text-primary"></i>Game Type <span class="text-danger">*</span></label>
-                            {{ form.game_type }}
-                            {% if form.game_type.errors %}
-                                <div class="text-danger small mt-1">{{ form.game_type.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold"><i class="fas fa-star me-2 text-primary"></i>Scoring Format <span class="text-danger">*</span></label>
-                            {{ form.scoring_format }}
-                            {% if form.scoring_format.errors %}
-                                <div class="text-danger small mt-1">{{ form.scoring_format.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3 align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold"><i class="fas fa-hashtag me-2 text-primary"></i>Points per Game <span class="text-danger">*</span></label>
-                            {{ form.points_per_game }}
-                            {% if form.points_per_game.errors %}
-                                <div class="text-danger small mt-1">{{ form.points_per_game.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold"><i class="fas fa-trophy me-2 text-primary"></i>Games to Win <span class="text-danger">*</span></label>
-                            {{ form.games_to_win }}
-                            {% if form.games_to_win.errors %}
-                                <div class="text-danger small mt-1">{{ form.games_to_win.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check mb-2">
-                                {{ form.win_by_two }}
-                                <label class="form-check-label fw-bold" for="{{ form.win_by_two.id_for_label }}"><i class="fas fa-check-double me-2 text-primary"></i>Win by Two Points</label>
-                            </div>
-                            {% if form.win_by_two.errors %}
-                                <div class="text-danger small mt-1">{{ form.win_by_two.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
                     <div class="mb-4">
                         <label class="form-label fw-bold"><i class="fas fa-sticky-note me-2 text-primary"></i>Notes (Optional)</label>
                         {{ form.notes }}

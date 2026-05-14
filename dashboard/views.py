@@ -672,11 +672,6 @@ def contact_view(request):
     }
 
     if request.method == 'POST':
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            messages.error(request, 'You must be logged in to send a message. Please sign in first.')
-            return redirect('login')
-        
         name = request.POST.get('name')
         email = request.POST.get('email')
         subject = request.POST.get('subject')

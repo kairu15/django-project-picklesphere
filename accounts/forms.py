@@ -16,6 +16,10 @@ class UserRegistrationForm(UserCreationForm):
         'class': 'form-control',
         'placeholder': 'your@email.com'
     }))
+    gender = forms.ChoiceField(choices=User.GENDER_CHOICES, required=False, widget=forms.Select(attrs={
+        'class': 'form-select',
+        'placeholder': 'Select gender'
+    }))
     phone_number = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={
         'class': 'form-control',
         'placeholder': 'Phone number'
@@ -34,7 +38,7 @@ class UserRegistrationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'password1', 'password2']
+        fields = ['username', 'first_name', 'last_name', 'email', 'gender', 'phone_number', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -60,11 +64,12 @@ class UserLoginForm(AuthenticationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone_number', 'address', 'profile_picture']
+        fields = ['first_name', 'last_name', 'email', 'gender', 'phone_number', 'address', 'profile_picture']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),

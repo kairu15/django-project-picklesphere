@@ -79,7 +79,7 @@
                                 <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; padding: 8px 14px;">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                {% if reservation.status == 'pending' or reservation.status == 'confirmed' %}
+                                {% if reservation.status == 'pending' %}
                                 <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 8px 14px;">
                                     <i class="fas fa-times"></i>
                                 </a>

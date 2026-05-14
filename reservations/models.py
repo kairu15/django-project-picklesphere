@@ -57,8 +57,10 @@ class Reservation(models.Model):
         return f"Reservation #{self.id} - {self.user.username} - {self.court.name}"
     
     def calculate_total(self):
-        court_fee = float(self.hourly_rate) * float(self.duration_hours)
-        equipment_fee = float(self.equipment_fee)
+        hourly_rate = float(self.hourly_rate) if self.hourly_rate else 0.0
+        duration_hours = float(self.duration_hours) if self.duration_hours else 0.0
+        equipment_fee = float(self.equipment_fee) if self.equipment_fee else 0.0
+        court_fee = hourly_rate * duration_hours
         return court_fee + equipment_fee
     
     def save(self, *args, **kwargs):

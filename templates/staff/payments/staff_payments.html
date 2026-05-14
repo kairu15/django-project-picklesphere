@@ -67,57 +67,11 @@
     </div>
 </div>
 
-<!-- Filters -->
-<div class="filter-bar animate-fadeInUp">
-    <form method="get" class="row g-3 align-items-end">
-        <div class="col-md-2">
-            <label class="form-label"><i class="fas fa-filter me-2"></i>Status</label>
-            <select name="status" class="form-select staff-form-select">
-                <option value="">All Status</option>
-                <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
-                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label"><i class="fas fa-credit-card me-2"></i>Method</label>
-            <select name="method" class="form-select staff-form-select">
-                <option value="">All Methods</option>
-                <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
-                <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
-                <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label"><i class="fas fa-calendar me-2"></i>From Date</label>
-            <input type="date" name="date_from" class="form-control staff-form-control" value="{{ date_from }}">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label"><i class="fas fa-calendar me-2"></i>To Date</label>
-            <input type="date" name="date_to" class="form-control staff-form-control" value="{{ date_to }}">
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-filter me-2"></i>Apply
-            </button>
-        </div>
-        {% if status_filter or method_filter or date_from or date_to %}
-        <div class="col-md-2 offset-md-10 mt-2">
-            <a href="{% url 'staff_payments' %}" class="btn btn-outline-secondary w-100">
-                <i class="fas fa-times me-2"></i>Clear Filters
-            </a>
-        </div>
-        {% endif %}
-    </form>
-</div>
 
 <!-- Payments Table -->
 <div class="staff-card animate-fadeInUp" style="animation-delay: 0.1s;">
     <div class="staff-card-header d-flex justify-content-between align-items-center">
         <h5 class="staff-card-title"><i class="fas fa-list"></i>All Payments</h5>
-        <a href="{% url 'revenue_report' %}" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-chart-bar me-2"></i>View Reports
-        </a>
     </div>
     <div class="staff-card-body p-0">
         <div class="table-responsive">
@@ -159,8 +113,7 @@
                             </span>
                         </td>
                         <td>
-                            <span class="table-cell-main">{{ payment.created_at|date:"M d, Y" }}</span><br>
-                            <span class="table-cell-sub">{{ payment.created_at|time:"H:i" }}</span>
+                            <span class="table-cell-main">{{ payment.created_at|date:"M d, Y" }}</span>
                         </td>
                         <td>
                             <div class="action-buttons">

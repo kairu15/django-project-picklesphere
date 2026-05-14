@@ -250,7 +250,7 @@
                                                     {% endif %}
                                                 </td>
                                                 <td style="padding: 15px;">
-                                                    <span class="badge bg-{{ match.status|default:'secondary' }} px-3 py-2">
+                                                    <span class="badge bg-{% if match.status == 'scheduled' %}secondary{% elif match.status == 'in_progress' %}warning text-dark{% elif match.status == 'completed' %}success{% elif match.status == 'cancelled' %}danger{% elif match.status == 'postponed' %}dark{% else %}secondary{% endif %} px-3 py-2">
                                                         {{ match.get_status_display }}
                                                     </span>
                                                 </td>

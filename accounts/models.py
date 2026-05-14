@@ -9,7 +9,15 @@ class User(AbstractUser):
         ('user', 'User'),
     )
     
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+        ('P', 'Prefer not to say'),
+    )
+    
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     address = models.TextField(blank=True, null=True)

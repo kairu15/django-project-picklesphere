@@ -41,6 +41,10 @@ def reservation_list_view(request):
 
 @login_required
 def reservation_create_view(request):
+    # Fetch active match settings from database
+    from scoring.models import MatchSettings
+    active_settings = MatchSettings.objects.filter(is_active=True).first()
+    
     if request.method == 'POST':
         form = ReservationForm(request.POST, user=request.user)
         equipment_ids = request.POST.getlist('equipment')
@@ -49,6 +53,16 @@ def reservation_create_view(request):
             reservation = form.save(commit=False)
             reservation.user = request.user
             reservation.hourly_rate = reservation.court.hourly_rate
+            
+            # Apply match settings from admin configuration
+            if active_settings:
+                reservation.match_format = active_settings.format
+                reservation.game_type = active_settings.game_type
+                reservation.scoring_format = active_settings.scoring_format
+                reservation.points_per_game = active_settings.points_per_game
+                reservation.games_to_win = active_settings.games_to_win
+                reservation.win_by_two = active_settings.win_by_two
+            
             reservation.save()
             
             # Add equipment
@@ -98,7 +112,26 @@ def reservation_create_view(request):
             messages.success(request, 'Reservation created successfully! Please proceed to payment.')
             return redirect('payment_checkout', reservation_id=reservation.id)
     else:
-        form = ReservationForm(user=request.user)
+        # Get court from query parameter to pre-select
+        initial_court = request.GET.get('court')
+        initial_data = {}
+        if initial_court:
+            try:
+                court = Court.objects.get(id=initial_court, is_active=True)
+                initial_data['court'] = court.id
+            except Court.DoesNotExist:
+                pass
+        
+        # Add match settings from admin configuration as initial values
+        if active_settings:
+            initial_data['match_format'] = active_settings.format
+            initial_data['game_type'] = active_settings.game_type
+            initial_data['scoring_format'] = active_settings.scoring_format
+            initial_data['points_per_game'] = active_settings.points_per_game
+            initial_data['games_to_win'] = active_settings.games_to_win
+            initial_data['win_by_two'] = active_settings.win_by_two
+        
+        form = ReservationForm(user=request.user, initial=initial_data)
     
     equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
     
@@ -354,8 +387,10 @@ def admin_reservation_create_view(request):
         form = AdminReservationForm(request.POST)
         if form.is_valid():
             reservation = form.save(commit=False)
-            # Calculate totals
-            reservation.subtotal = float(reservation.hourly_rate) * float(reservation.duration_hours)
+            # Calculate totals with proper None handling
+            hourly_rate = float(reservation.hourly_rate) if reservation.hourly_rate else 0.0
+            duration_hours = float(reservation.duration_hours) if reservation.duration_hours else 0.0
+            reservation.subtotal = hourly_rate * duration_hours
             reservation.total_amount = reservation.calculate_total()
             reservation.save()
 

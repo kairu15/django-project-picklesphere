@@ -31,13 +31,11 @@
                 <select name="method" class="form-select" style="border-radius: 10px;">
                     <option value="">All Methods</option>
                     <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
-                    <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
-                    <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Credit/Debit Card</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
-                    <i class="fas fa-filter me-2"></i>Filter
+                <button type="submit" class="btn btn-primary w-auto" style="border-radius: 10px;">
+                    <i class="fas fa-search me-2"></i>Search
                 </button>
             </div>
         </form>
@@ -420,36 +418,6 @@
     </div>
 </div>
 
-<!-- 5. DISCOUNTS AND PROMOTIONS -->
-<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
-    <div class="card-header bg-transparent border-0 py-3">
-        <h5 class="fw-bold mb-0"><i class="fas fa-tags me-2 text-primary"></i>Discounts & Special Rates</h5>
-    </div>
-    <div class="card-body">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="p-3 bg-light rounded text-center">
-                    <i class="fas fa-moon fa-2x text-primary mb-2"></i>
-                    <h5 class="fw-bold">{{ discounts_data.off_peak_bookings }}</h5>
-                    <p class="text-muted small mb-0">Off-Peak Bookings<br><small class="text-muted">(Before 8AM, After 6PM)</small></p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="p-3 bg-light rounded text-center">
-                    <i class="fas fa-percent fa-2x text-success mb-2"></i>
-                    <h5 class="fw-bold">--</h5>
-                    <p class="text-muted small mb-0">Promo Codes Used<br><small class="text-muted">(Future feature)</small></p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="p-3 bg-light rounded text-center">
-                    <i class="fas fa-users fa-2x text-info mb-2"></i>
-                    <h5 class="fw-bold">--</h5>
-                    <p class="text-muted small mb-0">Membership Discounts<br><small class="text-muted">(Future feature)</small></p>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- 6. REFUNDS AND CANCELLATIONS -->

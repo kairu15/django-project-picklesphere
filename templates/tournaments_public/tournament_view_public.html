@@ -325,7 +325,7 @@
                                                         {% if match.status == 'completed' %}
                                                             <div class="display-6 fw-bold">{{ match.score1 }} - {{ match.score2 }}</div>
                                                         {% else %}
-                                                            <span class="badge bg-{% if match.status == 'in_progress' %}warning text-dark{% else %}secondary{% endif %} px-3 py-2">
+                                                            <span class="badge bg-{% if match.status == 'scheduled' %}info{% elif match.status == 'in_progress' %}warning text-dark{% elif match.status == 'cancelled' %}danger{% elif match.status == 'postponed' %}dark{% else %}secondary{% endif %} px-3 py-2">
                                                                 {{ match.get_status_display }}
                                                             </span>
                                                         {% endif %}
