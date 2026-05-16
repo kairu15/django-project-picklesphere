@@ -35,23 +35,56 @@
                         </div>
                     {% endif %}
 
-                    <!-- Info Message -->
-                    <div class="p-4 mb-4" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f9ff 100%); border-radius: 12px;">
+                    <!-- Time Limit Warning -->
+                    <div class="p-4 mb-4" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-radius: 12px; border: 1px solid #ffc107;">
                         <div class="d-flex align-items-start">
-                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-info-circle text-primary fa-lg"></i>
+                            <div style="width: 40px; height: 40px; background: rgba(255,193,7,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock text-warning fa-lg"></i>
                             </div>
                             <div class="ms-3">
-                                <p class="mb-0 fw-medium" style="color: #1a3a42;">Cancelling a pending booking will free up the room for other guests.</p>
+                                <p class="mb-1 fw-bold" style="color: #856404;">Cancellation Time Limit</p>
+                                <p class="mb-0 small" style="color: #856404;">
+                                    You can only cancel within <strong>{{ time_limit_minutes }} minutes</strong> of reservation creation.
+                                    {% if time_remaining %}
+                                        Time remaining: <strong>{{ time_remaining.total_seconds|floatformat:0 }} seconds</strong>
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Refund Amount -->
+                    <!-- Deduction Notice -->
+                    <div class="p-4 mb-4" style="background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border-radius: 12px; border: 1px solid #dc3545;">
+                        <div class="d-flex align-items-start">
+                            <div style="width: 40px; height: 40px; background: rgba(220,53,69,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-percentage text-danger fa-lg"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="mb-1 fw-bold" style="color: #721c24;">Cancellation Fee</p>
+                                <p class="mb-0 small" style="color: #721c24;">
+                                    A <strong>30% cancellation fee</strong> will be applied to your refund.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Refund Amount Breakdown -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-2">Refund Amount:</label>
-                        <div class="p-3 rounded-3" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745; border-radius: 12px;">
-                            <span class="fw-bold fs-4" style="color: #155724;">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                        <label class="form-label fw-bold text-dark mb-2">Refund Breakdown:</label>
+                        <div class="p-4 rounded-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 1px solid #dee2e6; border-radius: 12px;">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Original Amount:</span>
+                                <span class="fw-bold">₱{{ reservation.total_amount|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-danger">Cancellation Fee ({{ deduction_percentage }}%):</span>
+                                <span class="fw-bold text-danger">-₱{{ deduction_amount|floatformat:2 }}</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Refund Amount:</span>
+                                <span class="fw-bold fs-4" style="color: #155724;">₱{{ refund_amount|floatformat:2 }}</span>
+                            </div>
                         </div>
                     </div>
 

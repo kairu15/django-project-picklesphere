@@ -5,7 +5,7 @@ from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from django.http import JsonResponse
 from datetime import datetime, timedelta
-from .models import Reservation, ReservationEquipment, CancellationRequest
+from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
 from payments.models import Payment
 from notifications.models import Notification
@@ -219,12 +219,42 @@ def cancel_reservation_view(request, reservation_id):
         messages.error(request, 'This reservation cannot be cancelled.')
         return redirect('reservation_list')
 
+    # Get active cancellation policy
+    cancellation_policy = CancellationPolicy.objects.filter(is_active=True).first()
+    if not cancellation_policy:
+        # Create default policy if none exists
+        cancellation_policy = CancellationPolicy.objects.create(
+            name='Default Cancellation Policy',
+            time_limit_minutes=20,
+            deduction_percentage=30,
+            is_active=True
+        )
+
+    # Check if cancellation is within time limit
+    time_since_creation = timezone.now() - reservation.created_at
+    time_limit_minutes = cancellation_policy.time_limit_minutes
+    is_within_time_limit = time_since_creation <= timedelta(minutes=time_limit_minutes)
+
+    if not is_within_time_limit:
+        messages.error(request, f'Cancellation is only allowed within {time_limit_minutes} minutes of reservation creation. Your reservation was created {time_since_creation.total_seconds() / 60:.1f} minutes ago.')
+        return redirect('reservation_list')
+
     if request.method == 'POST':
         form = CancellationRequestForm(request.POST)
         if form.is_valid():
             cancellation = form.save(commit=False)
             cancellation.reservation = reservation
             cancellation.requested_by = request.user
+            cancellation.is_within_time_limit = is_within_time_limit
+
+            # Calculate deduction based on policy
+            deduction_percentage = cancellation_policy.deduction_percentage
+            deduction_amount = (reservation.total_amount * deduction_percentage) / 100
+            refund_amount = reservation.total_amount - deduction_amount
+
+            cancellation.deduction_percentage = deduction_percentage
+            cancellation.deduction_amount = deduction_amount
+            cancellation.cancellation_note = f'A {deduction_percentage}% cancellation fee (₱{deduction_amount:,.2f}) has been applied. Refund amount: ₱{refund_amount:,.2f}.'
             cancellation.save()
 
             # Update reservation status
@@ -238,12 +268,12 @@ def cancel_reservation_view(request, reservation_id):
                     payment.status = 'refunded'
                     payment.save()
 
-                    # Create refund record
+                    # Create refund record with deducted amount
                     from payments.models import Refund
                     Refund.objects.create(
                         payment=payment,
-                        amount=payment.amount,
-                        reason=cancellation.reason,
+                        amount=refund_amount,
+                        reason=f"{cancellation.reason} ({deduction_percentage}% cancellation fee applied)",
                         status='processed',
                         requested_by=request.user
                     )
@@ -261,7 +291,7 @@ def cancel_reservation_view(request, reservation_id):
             for staff in staff_users:
                 Notification.objects.create(
                     user=staff,
-                    message=f"Reservation #{reservation.id} has been cancelled by {request.user.username}."
+                    message=f"Reservation #{reservation.id} has been cancelled by {request.user.username} with {deduction_percentage}% deduction."
                 )
 
             # Format success message with refund details
@@ -270,7 +300,8 @@ def cancel_reservation_view(request, reservation_id):
 
             success_message = (
                 f"Booking #{reservation.id:06d} has been cancelled successfully. "
-                f"Refund of ₱{reservation.total_amount:,.2f} will be processed via {refund_method_display} "
+                f"A {deduction_percentage}% cancellation fee (₱{deduction_amount:,.2f}) has been applied. "
+                f"Refund of ₱{refund_amount:,.2f} will be processed via {refund_method_display} "
                 f"within {processing_time}."
             )
 
@@ -279,9 +310,20 @@ def cancel_reservation_view(request, reservation_id):
     else:
         form = CancellationRequestForm()
 
+    # Calculate deduction amounts for display
+    deduction_percentage = cancellation_policy.deduction_percentage
+    deduction_amount = (reservation.total_amount * deduction_percentage) / 100
+    refund_amount = reservation.total_amount - deduction_amount
+
     return render(request, 'user/cancel_reservation.html', {
         'form': form,
-        'reservation': reservation
+        'reservation': reservation,
+        'is_within_time_limit': is_within_time_limit,
+        'time_limit_minutes': time_limit_minutes,
+        'time_remaining': timedelta(minutes=time_limit_minutes) - time_since_creation if is_within_time_limit else None,
+        'deduction_percentage': deduction_percentage,
+        'deduction_amount': deduction_amount,
+        'refund_amount': refund_amount,
     })
 
 

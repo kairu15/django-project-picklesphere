@@ -91,6 +91,22 @@ class ReservationEquipment(models.Model):
         return f"{self.equipment.name} x{self.quantity} for Reservation #{self.reservation.id}"
 
 
+class CancellationPolicy(models.Model):
+    name = models.CharField(max_length=100, default='Default Cancellation Policy')
+    time_limit_minutes = models.PositiveIntegerField(default=20, help_text='Time limit in minutes for cancellation after reservation creation')
+    deduction_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=30, help_text='Percentage deduction for cancellation fee')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'cancellation_policies'
+        verbose_name_plural = 'Cancellation Policies'
+
+    def __str__(self):
+        return f"{self.name} ({self.deduction_percentage}% fee, {self.time_limit_minutes} min limit)"
+
+
 class CancellationRequest(models.Model):
     REFUND_METHOD_CHOICES = (
         ('gcash', 'GCash'),
@@ -113,6 +129,12 @@ class CancellationRequest(models.Model):
     paypal_email = models.EmailField(blank=True, null=True)
     refund_processed = models.BooleanField(default=False)
     refund_processed_at = models.DateTimeField(null=True, blank=True)
+
+    # Cancellation policy fields
+    deduction_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    deduction_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=30)
+    cancellation_note = models.TextField(blank=True, null=True)
+    is_within_time_limit = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'cancellation_requests'
