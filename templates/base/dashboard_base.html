@@ -591,6 +591,10 @@ body::-webkit-scrollbar {
                         <span class="menu-badge warning">{{ badge_pending_payments }}</span>
                     {% endif %}
                 </a>
+                <a href="{% url 'admin_cancellation_refunds' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_cancellation_refunds' %}active{% endif %}">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>Cancellation & Refund</span>
+                </a>
             </div>
 
             <div class="nav-section">
@@ -637,10 +641,6 @@ body::-webkit-scrollbar {
                 <a href="{% url 'homepage_management' %}" class="nav-link {% if 'homepage' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-home"></i>
                     <span>Manage Homepage Content</span>
-                </a>
-                <a href="{% url 'pricing_management' %}" class="nav-link {% if 'pricing_management' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-tags"></i>
-                    <span>Manage Pricing Page</span>
                 </a>
                 <a href="{% url 'about_management' %}" class="nav-link {% if 'about_management' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-info-circle"></i>
@@ -1100,4 +1100,3 @@ body::-webkit-scrollbar {
 
 {% block extra_js %}{% endblock %}
 {% endblock %}
-

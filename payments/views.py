@@ -8,7 +8,7 @@ from django.http import HttpResponse, Http404
 from datetime import datetime, timedelta
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
-from reservations.models import Reservation
+from reservations.models import Reservation, CancellationRequest
 from notifications.models import Notification
 
 
@@ -411,6 +411,88 @@ def admin_payments_view(request):
     }
 
     return render(request, 'admin/payments/admin_payments.html', context)
+
+
+@login_required
+def admin_cancellation_refunds_view(request):
+    """Admin page for reviewing cancellation refund details and marking payments refunded."""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('dashboard')
+
+    cancellations = CancellationRequest.objects.select_related(
+        'reservation',
+        'reservation__user',
+        'reservation__court',
+        'requested_by',
+    ).order_by('-requested_at')
+
+    if request.method == 'POST':
+        cancellation_id = request.POST.get('cancellation_id')
+        cancellation = get_object_or_404(cancellations, id=cancellation_id)
+
+        try:
+            payment = cancellation.reservation.payment
+        except Payment.DoesNotExist:
+            messages.error(request, 'No payment record was found for this cancellation.')
+            return redirect('admin_cancellation_refunds')
+
+        old_status = payment.status
+        original_amount = payment.amount
+        refund_amount = original_amount - cancellation.deduction_amount
+
+        now = timezone.now()
+
+        payment.status = 'refunded'
+        payment.save(update_fields=['status', 'updated_at'])
+
+        cancellation.refund_processed = True
+        cancellation.refund_processed_at = now
+        cancellation.save(update_fields=['refund_processed', 'refund_processed_at'])
+
+        refund = Refund.objects.filter(payment=payment).order_by('-requested_at').first()
+        created = refund is None
+        if created:
+            refund = Refund(payment=payment, requested_by=cancellation.requested_by)
+
+        refund.amount = refund_amount
+        refund.reason = f"{cancellation.reason} ({cancellation.deduction_percentage}% cancellation fee applied)"
+        refund.status = 'processed'
+        refund.approved_by = request.user
+        refund.approved_at = now
+        refund.processed_at = now
+        refund.save()
+
+        PaymentLog.objects.create(
+            payment=payment,
+            action='Payment Refunded',
+            details=f'Payment status changed from {old_status} to refunded via Cancellation & Refund page. Refund record #{refund.id} {"created" if created else "updated"}.',
+            performed_by=request.user
+        )
+
+        Notification.objects.create(
+            user=payment.reservation.user,
+            message=f"Your payment for reservation #{payment.reservation.id} has been marked as refunded."
+        )
+
+        messages.success(request, f'Payment #{payment.id} has been updated to Refunded.')
+        return redirect('admin_cancellation_refunds')
+
+    refund_rows = []
+    for cancellation in cancellations:
+        payment = getattr(cancellation.reservation, 'payment', None)
+        original_amount = payment.amount if payment else cancellation.reservation.total_amount
+        refund_amount = original_amount - cancellation.deduction_amount
+        refund_rows.append({
+            'cancellation': cancellation,
+            'payment': payment,
+            'original_amount': original_amount,
+            'refund_amount': refund_amount,
+        })
+
+    return render(request, 'admin/payments/cancellation_refunds.html', {
+        'refund_rows': refund_rows,
+    })
 
 
 @login_required

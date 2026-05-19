@@ -19,12 +19,25 @@ def home_view(request):
     """Public home page"""
     from tournaments.models import Tournament
     from django.utils import timezone
-    from .models import Rating, Amenity, GalleryImage
+    from .models import Rating, Amenity, GalleryImage, HomePageContent
 
     featured_courts = Court.objects.filter(is_active=True, site__is_active=True)[:6]
     total_courts = Court.objects.filter(is_active=True).count()
     total_users = User.objects.filter(is_active=True).count()
     sites = Site.objects.filter(is_active=True)[:4]
+
+    def get_homepage_content(section, default):
+        content = HomePageContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+
+    homepage_text = {
+        'hero_title': get_homepage_content('hero_title', 'Welcome to PickleSphere'),
+        'hero_subtitle': get_homepage_content('hero_subtitle', 'The ultimate pickleball facility and game management system. Reserve courts, join tournaments, and become part of our growing community.'),
+        'about_title': get_homepage_content('about_title', 'Experience the Best Pickleball Facility'),
+        'about_text': get_homepage_content('about_text', "Discover our state-of-the-art pickleball courts designed for players of all skill levels. Whether you're a beginner or a seasoned pro, we have everything you need to enjoy the game."),
+        'cta_title': get_homepage_content('cta_title', 'Ready to Start Playing?'),
+        'cta_text': get_homepage_content('cta_text', 'Join our community of pickleball enthusiasts today! Book your first court and experience the PickleSphere difference.'),
+    }
 
     # Get upcoming tournaments
     upcoming_tournaments = Tournament.objects.filter(
@@ -132,6 +145,7 @@ def home_view(request):
         'amenities': amenities,
         'years_experience': years_experience,
         'tournaments_count': tournaments_count,
+        'homepage_text': homepage_text,
     })
 
 
@@ -173,7 +187,7 @@ def user_dashboard_view(request):
         stats = None
     
     # Quick stats
-    total_reservations = Reservation.objects.filter(user=request.user).count()
+    total_reservations = Reservation.objects.filter(user=request.user).exclude(status='cancelled').count()
     total_matches = Match.objects.filter(
         Q(team1_player1=request.user) |
         Q(team1_player2=request.user) |
@@ -308,7 +322,7 @@ def admin_dashboard_view(request):
         'total_users': User.objects.count(),
         'active_users': User.objects.filter(is_active=True).count(),
         'total_courts': Court.objects.filter(is_active=True).count(),
-        'total_reservations': Reservation.objects.count(),
+        'total_reservations': Reservation.objects.exclude(status='cancelled').count(),
         'today_reservations': Reservation.objects.filter(date=today).count(),
         'pending_reservations': Reservation.objects.filter(status='pending').count(),
         'confirmed_reservations': Reservation.objects.filter(status='confirmed').count(),
@@ -787,6 +801,50 @@ def homepage_management(request):
         'page_title': 'Homepage Management'
     }
     return render(request, 'admin/homepage/homepage_management.html', context)
+
+
+@login_required
+def populate_homepage_content(request):
+    """Create or reactivate the default homepage text content."""
+    if not request.user.is_admin():
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+
+    if request.method != 'POST':
+        return redirect('homepage_management')
+
+    from .models import HomePageContent
+
+    default_content = {
+        'hero_title': 'Welcome to PickleSphere',
+        'hero_subtitle': 'The ultimate pickleball facility and game management system. Reserve courts, join tournaments, and become part of our growing community.',
+        'about_title': 'Experience the Best Pickleball Facility',
+        'about_text': "Discover our state-of-the-art pickleball courts designed for players of all skill levels. Whether you're a beginner or a seasoned pro, we have everything you need to enjoy the game.",
+        'cta_title': 'Ready to Start Playing?',
+        'cta_text': 'Join our community of pickleball enthusiasts today! Book your first court and experience the PickleSphere difference.',
+    }
+
+    created_count = 0
+    updated_count = 0
+    for section, content in default_content.items():
+        item, created = HomePageContent.objects.update_or_create(
+            section=section,
+            defaults={
+                'content': content,
+                'is_active': True,
+            }
+        )
+        if created:
+            created_count += 1
+        else:
+            updated_count += 1
+
+    if created_count:
+        messages.success(request, f'Default homepage text content added ({created_count} new, {updated_count} refreshed).')
+    else:
+        messages.success(request, 'Homepage text content refreshed with default values.')
+
+    return redirect('homepage_management')
 
 
 @login_required

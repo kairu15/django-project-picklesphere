@@ -391,6 +391,7 @@
 
 <!-- Location -->
 <section class="py-5">
+    {% with about_location="Valencia, Negros Oriental, Philippines" %}
     <div class="container">
         <div class="row g-4 align-items-center">
             <div class="col-lg-6">
@@ -410,7 +411,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold mb-1">Address</h6>
-                                    <p class="text-muted mb-0">{{ contact_info.address }}</p>
+                                    <p class="text-muted mb-0">{{ about_location }}</p>
                                 </div>
                             </div>
                         </div>
@@ -461,25 +462,20 @@
                             loading="lazy"
                             allowfullscreen
                             referrerpolicy="no-referrer-when-downgrade"
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5!2d125.6!3d7.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zN8KwMDYnMDAuMCJOIDEyNcKwMzYnMDAuMCJF!5e0!3m2!1sen!2sph!4v1600000000000">
+                            src="https://www.google.com/maps?q=Valencia%2C%20Negros%20Oriental%2C%20Philippines&output=embed">
                         </iframe>
                     </div>
                     <div class="card-footer bg-white border-0 p-3 text-center">
-                        <p class="text-muted mb-2"><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ contact_info.address }}</p>
-                        {% if contact_info.google_maps_url %}
-                        <a href="{{ contact_info.google_maps_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <p class="text-muted mb-2"><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ about_location }}</p>
+                        <a href="https://maps.google.com/?q={{ about_location|urlencode }}" target="_blank" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-external-link-alt me-2"></i>View Larger Map
                         </a>
-                        {% else %}
-                        <a href="https://maps.google.com/?q={{ contact_info.address|urlencode }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-external-link-alt me-2"></i>View Larger Map
-                        </a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    {% endwith %}
 </section>
 
 <!-- CTA Section -->
@@ -593,4 +589,3 @@ section {
 
 {% include 'components/footer.html' %}
 {% endblock %}
-

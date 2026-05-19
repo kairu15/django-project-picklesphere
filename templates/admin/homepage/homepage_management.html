@@ -68,6 +68,12 @@
             <p class="text-muted mb-0">Manage content displayed on the public homepage</p>
         </div>
         <div>
+            <form method="post" action="{% url 'populate_homepage_content' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-magic me-2"></i>Populate Default Content
+                </button>
+            </form>
             <a href="/" target="_blank" class="btn btn-outline-primary">
                 <i class="fas fa-external-link-alt me-2"></i>View Live Site
             </a>
@@ -206,7 +212,13 @@
             {% else %}
                 <div class="text-center py-4 text-muted">
                     <i class="fas fa-file-alt fa-3x mb-3 opacity-25"></i>
-                    <p>No content configured. Run populate_homepage command to add default content.</p>
+                    <p>No content configured. Use Populate Default Content to add the standard homepage text.</p>
+                    <form method="post" action="{% url 'populate_homepage_content' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-magic me-2"></i>Populate Default Content
+                        </button>
+                    </form>
                 </div>
             {% endif %}
         </div>
@@ -225,4 +237,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-
