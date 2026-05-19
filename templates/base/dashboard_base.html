@@ -532,7 +532,7 @@ body::-webkit-scrollbar {
     <aside class="sidebar">
         <!-- Logo Header -->
         <div class="sidebar-header">
-            <img src="/static/PickleSphereLogo.png" alt="PickleSphere" class="sidebar-logo">
+            <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="sidebar-logo">
             <div class="sidebar-title">PickleSphere</div>
             <div class="sidebar-subtitle">{% if user.is_admin %}Administration{% elif user.is_staff_user %}Staff Portal{% else %}User Portal{% endif %}</div>
         </div>

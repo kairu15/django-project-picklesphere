@@ -405,7 +405,7 @@
             {% for image in gallery_images|slice:":6" %}
             <div class="col-md-4 col-lg-2">
                 <div class="position-relative overflow-hidden hover-gallery" style="height: 200px; border-radius: var(--border-radius); box-shadow: var(--card-shadow);">
-                    <img src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" alt="{% if image.alt_text %}{{ image.alt_text }}{% else %}{{ image.alt }}{% endif %}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.src='/static/PickleSphereLogo.png';">
+                    <img src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" alt="{% if image.alt_text %}{{ image.alt_text }}{% else %}{{ image.alt }}{% endif %}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.src='{% static 'PickleSphereLogo.png' %}';">
                     <div class="gallery-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(59, 122, 140, 0.85); opacity: 0; transition: opacity var(--transition-base); cursor: pointer;">
                         <i class="fas fa-search-plus fa-2x text-white"></i>
                     </div>
