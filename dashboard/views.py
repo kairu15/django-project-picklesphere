@@ -14,6 +14,9 @@ from equipment.models import Equipment, EquipmentRental
 from notifications.models import Notification
 from .models import ContactMessage
 
+STATIC_CONTACT_PHONE = '09455470173'
+STATIC_CONTACT_EMAIL = 'picklesphere@gmail.com'
+
 
 def home_view(request):
     """Public home page"""
@@ -510,11 +513,14 @@ def about_view(request):
     contact_info = ContactInfo.objects.first()
     if not contact_info:
         contact_info = {
-            'phone': '+63 2 8123 4567',
-            'email': 'info@picklesphere.com',
+            'phone': STATIC_CONTACT_PHONE,
+            'email': STATIC_CONTACT_EMAIL,
             'address': '123 Sports Avenue, Makati City',
             'city_country': 'Metro Manila, Philippines',
         }
+    else:
+        contact_info.phone = STATIC_CONTACT_PHONE
+        contact_info.email = STATIC_CONTACT_EMAIL
 
     content = {
         'hero_badge': get_content('hero_badge', 'Our Story'),
@@ -722,8 +728,8 @@ def contact_view(request):
     contact_info_obj = ContactInfo.objects.first()
     if contact_info_obj:
         contact_info = {
-            'phone': contact_info_obj.phone,
-            'email': contact_info_obj.email,
+            'phone': STATIC_CONTACT_PHONE,
+            'email': STATIC_CONTACT_EMAIL,
             'address': contact_info_obj.address,
             'city_country': contact_info_obj.city_country,
             'google_maps_url': contact_info_obj.google_maps_url,
@@ -731,8 +737,8 @@ def contact_view(request):
     else:
         # Fallback default contact info
         contact_info = {
-            'phone': '+63 2 8123 4567',
-            'email': 'info@picklesphere.com',
+            'phone': STATIC_CONTACT_PHONE,
+            'email': STATIC_CONTACT_EMAIL,
             'address': '123 Sports Avenue, Makati City',
             'city_country': 'Metro Manila, Philippines',
             'google_maps_url': 'https://maps.google.com/?q=14.5547,121.0244',
@@ -1181,7 +1187,7 @@ def faq_view(request):
                 },
                 {
                     'question': 'How do I contact customer support?',
-                    'answer': 'You can reach us through the Contact page, email us at info@picklesphere.com, or call us at +63 912 345 6789. Our support team is available Monday to Saturday, 9 AM to 6 PM.'
+                    'answer': f'You can reach us through the Contact page, email us at {STATIC_CONTACT_EMAIL}, or call us at {STATIC_CONTACT_PHONE}. Our support team is available Monday to Saturday, 9 AM to 6 PM.'
                 }
             ]
         }
@@ -1906,8 +1912,8 @@ def contact_edit_info(request):
     contact_info = ContactInfo.objects.first()
     
     if request.method == 'POST':
-        phone = request.POST.get('phone')
-        email = request.POST.get('email')
+        phone = STATIC_CONTACT_PHONE
+        email = STATIC_CONTACT_EMAIL
         address = request.POST.get('address')
         city_country = request.POST.get('city_country')
         google_maps_url = request.POST.get('google_maps_url', '')
