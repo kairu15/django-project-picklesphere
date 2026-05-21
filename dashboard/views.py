@@ -1912,8 +1912,8 @@ def contact_edit_info(request):
     contact_info = ContactInfo.objects.first()
     
     if request.method == 'POST':
-        phone = STATIC_CONTACT_PHONE
-        email = STATIC_CONTACT_EMAIL
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
         address = request.POST.get('address')
         city_country = request.POST.get('city_country')
         google_maps_url = request.POST.get('google_maps_url', '')

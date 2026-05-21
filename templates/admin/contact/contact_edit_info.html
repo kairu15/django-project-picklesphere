@@ -16,20 +16,20 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="phone" class="form-control" value="09455470173" readonly required>
+                            <input type="text" name="phone" class="form-control" value="{{ contact_info.phone|default:site_contact_info.phone }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" value="picklesphere@gmail.com" readonly required>
+                            <input type="email" name="email" class="form-control" value="{{ contact_info.email|default:site_contact_info.email }}" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Address</label>
-                        <textarea name="address" class="form-control" rows="2" required>{{ contact_info.address|default:'123 Sports Avenue, Makati City' }}</textarea>
+                        <textarea name="address" class="form-control" rows="2" required>{{ contact_info.address|default:site_contact_info.address }}</textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">City/Country</label>
-                        <input type="text" name="city_country" class="form-control" value="{{ contact_info.city_country|default:'Metro Manila, Philippines' }}" required>
+                        <input type="text" name="city_country" class="form-control" value="{{ contact_info.city_country|default:site_contact_info.city_country }}" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Google Maps URL</label>

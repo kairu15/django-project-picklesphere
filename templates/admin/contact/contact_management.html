@@ -71,8 +71,8 @@
         {% if contact_info %}
         <div class="row">
             <div class="col-md-6">
-                <p><strong>Phone:</strong> 09455470173</p>
-                <p><strong>Email:</strong> picklesphere@gmail.com</p>
+                <p><strong>Phone:</strong> {{ contact_info.phone }}</p>
+                <p><strong>Email:</strong> {{ contact_info.email }}</p>
             </div>
             <div class="col-md-6">
                 <p><strong>Address:</strong> {{ contact_info.address }}</p>
@@ -81,8 +81,8 @@
         </div>
         {% else %}
         <div class="text-center py-3">
-            <p><strong>Phone:</strong> 09455470173</p>
-            <p><strong>Email:</strong> picklesphere@gmail.com</p>
+            <p><strong>Phone:</strong> {{ site_contact_info.phone }}</p>
+            <p><strong>Email:</strong> {{ site_contact_info.email }}</p>
             <a href="{% url 'contact_edit_info' %}" class="btn btn-success">Add Contact Info</a>
         </div>
         {% endif %}

@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notification_count',
                 'notifications.sidebar_badge_context.sidebar_badges',
+                'dashboard.context_processors.site_contact_info',
                 'picklesphere.session_management.session_context_processor',
             ],
         },

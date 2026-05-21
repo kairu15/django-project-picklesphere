@@ -294,15 +294,15 @@
                 <ul class="footer-contact-list">
                     <li class="footer-contact-item">
                         <i class="fas fa-map-marker-alt footer-contact-icon"></i>
-                        <span class="footer-contact-text">123 Sports Complex Ave<br>Metro City, Philippines 1234</span>
+                        <span class="footer-contact-text">{{ site_contact_info.address }}<br>{{ site_contact_info.city_country }}</span>
                     </li>
                     <li class="footer-contact-item">
                         <i class="fas fa-phone footer-contact-icon"></i>
-                        <span class="footer-contact-text">09455470173</span>
+                        <span class="footer-contact-text">{{ site_contact_info.phone }}</span>
                     </li>
                     <li class="footer-contact-item">
                         <i class="fas fa-envelope footer-contact-icon"></i>
-                        <span class="footer-contact-text">picklesphere@gmail.com</span>
+                        <span class="footer-contact-text">{{ site_contact_info.email }}</span>
                     </li>
                     <li class="footer-contact-item">
                         <i class="fas fa-clock footer-contact-icon"></i>

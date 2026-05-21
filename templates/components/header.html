@@ -6,13 +6,13 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <div class="top-bar-contact">
-                    <a href="tel:09455470173" class="top-bar-link">
+                    <a href="tel:{{ site_contact_info.phone }}" class="top-bar-link">
                         <i class="fas fa-phone-alt"></i>
-                        <span>09455470173</span>
+                        <span>{{ site_contact_info.phone }}</span>
                     </a>
-                    <a href="mailto:picklesphere@gmail.com" class="top-bar-link">
+                    <a href="mailto:{{ site_contact_info.email }}" class="top-bar-link">
                         <i class="fas fa-envelope"></i>
-                        <span>picklesphere@gmail.com</span>
+                        <span>{{ site_contact_info.email }}</span>
                     </a>
                 </div>
             </div>
