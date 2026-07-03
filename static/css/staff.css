@@ -900,13 +900,188 @@
 /* ============================================
    RESPONSIVE ADJUSTMENTS
    ============================================ */
-@media (max-width: 768px) {
+@media (max-width: 575.98px) {
+    :root {
+        --card-radius: 12px;
+        --btn-radius: 10px;
+        --input-radius: 8px;
+    }
+    
+    .staff-card-header {
+        padding: 1rem 1.25rem !important;
+    }
+    
+    .staff-card-body {
+        padding: 1.25rem !important;
+    }
+    
+    .staff-card-title {
+        font-size: 1rem !important;
+    }
+    
+    .stat-card-gradient .card-body {
+        padding: 1.25rem !important;
+    }
+    
+    .stat-card-gradient .stat-value {
+        font-size: 1.375rem !important;
+    }
+    
+    .stat-card-gradient .stat-icon-wrapper {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    
+    .stat-card-gradient .stat-icon-wrapper i {
+        font-size: 1.25rem !important;
+    }
+    
+    .stat-icon-wrapper {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    
+    .stat-icon-wrapper i {
+        font-size: 1.25rem !important;
+    }
+    
+    .equipment-icon-box,
+    .equipment-icon-warning,
+    .equipment-icon-success {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .equipment-icon-box i,
+    .equipment-icon-warning i,
+    .equipment-icon-success i {
+        font-size: 1.125rem !important;
+    }
+    
+    .quick-actions {
+        padding: 1rem !important;
+    }
+    
+    .quick-actions .btn {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.8125rem !important;
+    }
+    
+    .staff-form-control,
+    .staff-form-select {
+        padding: 0.625rem 0.875rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .badge-staff {
+        padding: 0.375rem 0.625rem !important;
+        font-size: 0.6875rem !important;
+    }
+    
+    .badge-staff-lg {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8125rem !important;
+    }
+    
+    .staff-breadcrumb {
+        font-size: 0.8125rem !important;
+        flex-wrap: wrap;
+    }
+    
+    .timeline-item {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .timeline-icon {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    .timeline-icon i {
+        font-size: 0.875rem !important;
+    }
+    
+    .equipment-item {
+        gap: 0.75rem;
+    }
+    
+    .equipment-image {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .equipment-image-placeholder {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .equipment-name {
+        font-size: 0.875rem !important;
+    }
+    
+    .empty-state {
+        padding: 2rem 1rem !important;
+    }
+    
+    .empty-state-icon {
+        width: 70px !important;
+        height: 70px !important;
+    }
+    
+    .empty-state-icon i {
+        font-size: 1.75rem !important;
+    }
+}
+
+@media (max-width: 767.98px) {
     :root {
         --card-radius: 12px;
     }
     
     .stat-card-gradient .stat-value {
         font-size: 1.5rem;
+    }
+    
+    .staff-table thead {
+        display: none !important;
+    }
+    
+    .staff-table tbody tr {
+        display: block !important;
+        margin-bottom: 0.75rem !important;
+        border: 1px solid var(--staff-border, #e9ecef) !important;
+        border-radius: var(--card-radius) !important;
+        background: white !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+    
+    .staff-table tbody td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.75rem 1rem !important;
+        text-align: right !important;
+        border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+    }
+    
+    .staff-table tbody td:last-child {
+        border-bottom: none !important;
+    }
+    
+    .staff-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 700 !important;
+        font-size: 0.6875rem !important;
+        color: var(--staff-secondary) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        flex-shrink: 0;
+        margin-right: 1rem;
+    }
+    
+    .staff-table tbody tr:hover {
+        transform: none !important;
+        background: white !important;
     }
     
     .staff-table thead th,
@@ -923,6 +1098,11 @@
         height: 32px;
     }
     
+    .action-btn {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
     .filter-bar {
         padding: 1rem;
     }
@@ -930,6 +1110,39 @@
     .info-item {
         flex-direction: column;
         gap: 0.75rem;
+    }
+    
+    .info-icon {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    .info-value {
+        font-size: 0.9375rem !important;
+    }
+    
+    .staff-breadcrumb {
+        flex-wrap: wrap;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .staff-card-header {
+        padding: 1rem 1.25rem !important;
+    }
+    
+    .staff-card-body {
+        padding: 1.25rem !important;
+    }
+    
+    .staff-table thead th,
+    .staff-table tbody td {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .stat-card-gradient .card-body {
+        padding: 1.25rem !important;
     }
 }
 
