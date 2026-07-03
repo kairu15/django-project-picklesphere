@@ -334,12 +334,12 @@ body::-webkit-scrollbar {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: rgba(255,255,255,0.5);
+    color: var(--sidebar-search-icon-color, rgba(255,255,255,0.5));
     transition: color 0.3s ease;
 }
 .sidebar-search input:focus + .sidebar-search-wrapper i,
 .sidebar-search input:focus ~ .sidebar-search-wrapper i {
-    color: rgba(59,122,140,0.8);
+    color: var(--sidebar-search-icon-focus-color, rgba(59,122,140,0.8));
 }
 .nav-section {
     margin-bottom: 8px;
@@ -454,7 +454,17 @@ body::-webkit-scrollbar {
 /* Enhanced Header Icon Button */
 .header-icon-btn {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: var(--header-icon-size);
+    height: var(--header-icon-size);
+    background: var(--header-icon-bg);
+    color: var(--header-icon-color);
     position: relative;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 .header-icon-btn::after {
     content: '';
@@ -473,6 +483,8 @@ body::-webkit-scrollbar {
     height: 100px;
 }
 .header-icon-btn:hover {
+    background: var(--header-icon-hover-bg);
+    color: var(--header-icon-hover-color);
     transform: translateY(-2px) scale(1.05);
 }
 
@@ -520,6 +532,13 @@ body::-webkit-scrollbar {
     box-shadow: 0 8px 30px rgba(0,0,0,0.15);
 }
 .stat-icon {
+    width: var(--stat-icon-size);
+    height: var(--stat-icon-size);
+    border-radius: var(--stat-icon-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--stat-icon-font-size);
     transition: transform 0.3s ease;
 }
 .stat-card:hover .stat-icon {

@@ -46,10 +46,9 @@
                 
                 <!-- Payment Info Grid -->
                 <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%); border-radius: 12px; border: 1px solid rgba(59,122,140,0.1);">
-                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59,122,140,0.25);">
-                                <i class="fas fa-calendar-check text-white"></i>
+                    <div class="col-md-6">                            <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%); border-radius: 12px; border: 1px solid rgba(59,122,140,0.1);">
+                            <div class="stat-icon primary" style="width: 44px; height: 44px;">
+                                <i class="fas fa-calendar-check"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Reservation</h6>
@@ -59,9 +58,9 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(40,167,69,0.05) 0%, rgba(40,167,69,0.02) 100%); border-radius: 12px; border: 1px solid rgba(40,167,69,0.1);">
-                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(40,167,69,0.25);">
-                                <i class="fas fa-peso-sign text-white"></i>
+                        <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(40,167,69,0.05) 0%, rgba(40,167,69,0.02) 100%); border-radius: 12px; border: 1px solid rgba(40,167,69,0.1);">
+                            <div class="stat-icon success" style="width: 44px; height: 44px;">
+                                <i class="fas fa-peso-sign"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Amount Paid</h6>
@@ -70,9 +69,9 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(255,193,7,0.05) 0%, rgba(255,193,7,0.02) 100%); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
-                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,193,7,0.25);">
-                                <i class="fas fa-credit-card text-white"></i>
+                        <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(255,193,7,0.05) 0%, rgba(255,193,7,0.02) 100%); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
+                            <div class="stat-icon warning" style="width: 44px; height: 44px;">
+                                <i class="fas fa-credit-card"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Payment Method</h6>
@@ -81,9 +80,9 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="info-item d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(108,117,125,0.05) 0%, rgba(108,117,125,0.02) 100%); border-radius: 12px; border: 1px solid rgba(108,117,125,0.1);">
-                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(108,117,125,0.25);">
-                                <i class="fas fa-clock text-white"></i>
+                        <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(108,117,125,0.05) 0%, rgba(108,117,125,0.02) 100%); border-radius: 12px; border: 1px solid rgba(108,117,125,0.1);">
+                            <div class="stat-icon" style="width: 44px; height: 44px; background: rgba(108,117,125,0.1); color: #6c757d;">
+                                <i class="fas fa-clock"></i>
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Transaction Date</h6>
@@ -117,7 +116,7 @@
                 
                 {% if payment.method == 'gcash' %}
                 <hr class="my-4">
-                <h6 class="fw-bold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>GCash Payment Details</h6>
+                <h6 class="fw-bold mb-3"><i class="fas fa-mobile-alt text-primary me-2"></i>GCash Payment Details</h6>
                 <div class="d-flex align-items-center gap-2">
                     <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-hashtag text-primary"></i>
@@ -241,13 +240,6 @@
 }
 .status-banner.refunded, .status-banner.failed {
     background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-}
-.info-item {
-    transition: all 0.3s ease;
-}
-.info-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 .payment-summary-box {
     transition: all 0.3s ease;

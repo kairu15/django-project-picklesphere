@@ -89,15 +89,17 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5 empty-state">
-                            <div class="empty-icon" style="width: 100px; height: 100px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
-                                <i class="fas fa-calendar-times fa-3x" style="color: #6c757d;"></i>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-calendar-times fa-2x text-muted"></i>
+                                </div>
+                                <h5 class="empty-state-title">No reservations found</h5>
+                                <p class="empty-state-text">You haven't made any reservations yet. Start by booking a court!</p>
+                                <a href="{% url 'court_list' %}" class="btn btn-primary mt-3">
+                                    <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
+                                </a>
                             </div>
-                            <h5 class="fw-bold mb-2 text-dark">No reservations found</h5>
-                            <p class="text-muted mb-4">You haven't made any reservations yet. Start by booking a court!</p>
-                            <a href="{% url 'court_list' %}" class="btn btn-primary px-4 py-2" style="border-radius: 10px; font-weight: 500; box-shadow: 0 4px 12px rgba(59,122,140,0.25);">
-                                <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
-                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -130,13 +132,6 @@
     font-weight: 500;
     display: inline-flex;
     align-items: center;
-}
-.empty-icon {
-    animation: gentle-float 3s infinite ease-in-out;
-}
-@keyframes gentle-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
 }
 </style>
 {% endblock %}

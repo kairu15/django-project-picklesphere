@@ -84,8 +84,8 @@
             <div class="col-md-4 text-center">
                 <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
                     <div class="card-body py-5">
-                        <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                            <i class="fas fa-map-marker-alt fa-2x text-white"></i>
+                        <div class="stat-icon glass lg mx-auto mb-3">
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <h2 class="fw-bold text-white mb-2" style="font-size: 2.75rem; letter-spacing: -1px;">{{ total_courts|default:"2" }}+</h2>
                         <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85; letter-spacing: 0.5px;">Premium Courts</p>
@@ -95,8 +95,8 @@
             <div class="col-md-4 text-center">
                 <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
                     <div class="card-body py-5">
-                        <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                            <i class="fas fa-users fa-2x text-white"></i>
+                        <div class="stat-icon glass lg mx-auto mb-3">
+                            <i class="fas fa-users"></i>
                         </div>
                         <h2 class="fw-bold text-white mb-2" style="font-size: 2.75rem; letter-spacing: -1px;">{{ total_users|default:"3" }}+</h2>
                         <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85; letter-spacing: 0.5px;">Active Members</p>
@@ -106,8 +106,8 @@
             <div class="col-md-4 text-center">
                 <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
                     <div class="card-body py-5">
-                        <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                            <i class="fas fa-trophy fa-2x text-white"></i>
+                        <div class="stat-icon glass lg mx-auto mb-3">
+                            <i class="fas fa-trophy"></i>
                         </div>
                         <h2 class="fw-bold text-white mb-2" style="font-size: 2.75rem; letter-spacing: -1px;">{{ tournaments_count|default:"0" }}</h2>
                         <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85; letter-spacing: 0.5px;">Tournaments Hosted</p>
@@ -141,8 +141,8 @@
                 <div class="row g-4 mb-4">
                     <div class="col-6">
                         <div class="d-flex align-items-center">
-                            <div style="width: 45px; height: 45px; background: var(--primary-lighter); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                <i class="fas fa-check-circle text-primary" style="font-size: 1.25rem;"></i>
+                            <div class="stat-icon primary md me-3" style="border-radius: 50%;">
+                                <i class="fas fa-check-circle"></i>
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Premium Courts</h6>
@@ -152,8 +152,8 @@
                     </div>
                     <div class="col-6">
                         <div class="d-flex align-items-center">
-                            <div style="width: 45px; height: 45px; background: var(--success-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                <i class="fas fa-check-circle text-success" style="font-size: 1.25rem;"></i>
+                            <div class="stat-icon success md me-3" style="border-radius: 50%;">
+                                <i class="fas fa-check-circle"></i>
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">24/7 Booking</h6>
@@ -163,8 +163,8 @@
                     </div>
                     <div class="col-6">
                         <div class="d-flex align-items-center">
-                            <div style="width: 45px; height: 45px; background: var(--warning-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                <i class="fas fa-check-circle" style="color: var(--warning-color); font-size: 1.25rem;"></i>
+                            <div class="stat-icon warning md me-3" style="border-radius: 50%;">
+                                <i class="fas fa-check-circle"></i>
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Tournaments</h6>
@@ -174,8 +174,8 @@
                     </div>
                     <div class="col-6">
                         <div class="d-flex align-items-center">
-                            <div style="width: 45px; height: 45px; background: var(--info-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                <i class="fas fa-check-circle text-info" style="font-size: 1.25rem;"></i>
+                            <div class="stat-icon info md me-3" style="border-radius: 50%;">
+                                <i class="fas fa-check-circle"></i>
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Coaching</h6>
@@ -234,11 +234,11 @@
                 </div>
             </div>
             {% empty %}
-            <div class="col-12 text-center py-5">
-                <div style="width: 80px; height: 80px; background: var(--bg-light); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                    <i class="fas fa-table-tennis fa-3x" style="color: var(--primary-light);"></i>
-                </div>
-                <p style="color: var(--text-muted);">No courts available at the moment.</p>
+            <div class="col-12 text-center py-5">                    <div class="stat-icon primary xl mx-auto mb-3" style="border-radius: 50%; background: var(--bg-light); color: var(--primary-light);">
+                        <i class="fas fa-table-tennis"></i>
+                    </div>
+                    <p style="color: var(--text-muted);">No courts available at the moment.</p>
+                    
             </div>
             {% endfor %}
         </div>
@@ -263,8 +263,8 @@
             <div class="col-md-4 col-lg-2">
                 <div class="card h-100 border-0 text-center hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
                     <div class="card-body p-4">
-                        <div class="mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                            <i class="fas {{ amenity.icon }} fa-2x text-white"></i>
+                        <div class="stat-icon gradient-primary lg mx-auto mb-3">
+                            <i class="fas {{ amenity.icon }}"></i>
                         </div>
                         <h6 class="fw-bold mb-2" style="color: var(--text-dark);">{{ amenity.title }}</h6>
                         <p class="small mb-0" style="color: var(--text-muted);">{{ amenity.description }}</p>
@@ -310,9 +310,9 @@
                         <p class="card-text" style="color: var(--text-muted);">{{ tournament.description|truncatewords:12|default:"Join our exciting tournament and compete with other players!" }}</p>
                         
                         <ul class="list-unstyled mt-3 mb-4">
-                            <li class="mb-2" style="color: var(--text-body);"><i class="fas fa-calendar me-2" style="color: var(--primary-color);"></i><strong>Starts:</strong> {{ tournament.tournament_start|date:"M d, Y" }}</li>
-                            <li class="mb-2" style="color: var(--text-body);"><i class="fas fa-users me-2" style="color: var(--primary-color);"></i><strong>Players:</strong> {{ tournament.registrations.count }}/{{ tournament.max_participants }}</li>
-                            <li style="color: var(--text-body);"><i class="fas fa-signal me-2" style="color: var(--primary-color);"></i><strong>Level:</strong> {{ tournament.get_skill_level_display }}</li>
+                            <li class="mb-2 text-body"><i class="fas fa-calendar me-2 text-primary"></i><strong>Starts:</strong> {{ tournament.tournament_start|date:"M d, Y" }}</li>
+                            <li class="mb-2 text-body"><i class="fas fa-users me-2 text-primary"></i><strong>Players:</strong> {{ tournament.registrations.count }}/{{ tournament.max_participants }}</li>
+                            <li class="text-body"><i class="fas fa-signal me-2 text-primary"></i><strong>Level:</strong> {{ tournament.get_skill_level_display }}</li>
                         </ul>
                         
                         <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-outline-primary w-100" style="border-radius: var(--border-radius-sm); font-weight: 500;">
@@ -327,8 +327,8 @@
             </div>
             {% empty %}
             <div class="col-12 text-center py-5">
-                <div style="width: 80px; height: 80px; background: var(--bg-light); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                    <i class="fas fa-trophy fa-3x" style="color: var(--primary-light);"></i>
+                <div class="stat-icon primary xl mx-auto mb-3" style="border-radius: 50%; background: var(--bg-light); color: var(--primary-light);">
+                    <i class="fas fa-trophy"></i>
                 </div>
                 <h4 style="color: var(--text-muted);">No upcoming tournaments</h4>
                 <p style="color: var(--text-muted);">Check back soon for exciting competitions!</p>
@@ -427,8 +427,8 @@
         <div class="row g-4">
             <div class="col-md-3 text-center">
                 <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-mobile-alt fa-2x text-white"></i>
+                    <div class="stat-icon gradient-primary lg mx-auto mb-3">
+                        <i class="fas fa-mobile-alt"></i>
                     </div>
                     <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Easy Reservation</h5>
                     <p class="small mb-0" style="color: var(--text-muted);">Reserve your court anytime, anywhere with our online booking system.</p>
@@ -436,8 +436,8 @@
             </div>
             <div class="col-md-3 text-center">
                 <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--success-color) 0%, #34ce57 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-chart-line fa-2x text-white"></i>
+                    <div class="stat-icon gradient-success lg mx-auto mb-3">
+                        <i class="fas fa-chart-line"></i>
                     </div>
                     <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Score Tracking</h5>
                     <p class="small mb-0" style="color: var(--text-muted);">Track your matches and analyze performance with detailed statistics.</p>
@@ -445,8 +445,8 @@
             </div>
             <div class="col-md-3 text-center">
                 <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--warning-color) 0%, #ffdb70 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-tools fa-2x text-white"></i>
+                    <div class="stat-icon gradient-warning lg mx-auto mb-3">
+                        <i class="fas fa-tools"></i>
                     </div>
                     <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Equipment Rental</h5>
                     <p class="small mb-0" style="color: var(--text-muted);">Premium paddles and balls available for rent if you don't have your own.</p>
@@ -454,8 +454,8 @@
             </div>
             <div class="col-md-3 text-center">
                 <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="mx-auto mb-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--info-color) 0%, #5bc0de 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-credit-card fa-2x text-white"></i>
+                    <div class="stat-icon gradient-info lg mx-auto mb-3">
+                        <i class="fas fa-credit-card"></i>
                     </div>
                     <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Easy Payments</h5>
                     <p class="small mb-0" style="color: var(--text-muted);">Pay securely with multiple options including GCash and credit cards.</p>

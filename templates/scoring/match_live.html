@@ -30,7 +30,7 @@
 <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
         <div>
-            <h5 class="fw-bold mb-0"><i class="fas fa-play-circle me-2 text-primary"></i>Match #{{ match.id }}</h5>
+            <h5 class="fw-bold mb-0"><i class="fas fa-play-circle text-primary me-2"></i>Match #{{ match.id }}</h5>
             <small class="text-muted">{{ match.reservation.court.name }} • Game {{ current_game.game_number }} of {{ match.games_to_win }}</small>
         </div>
         <span class="badge px-3 py-2 {% if match.status == 'ongoing' %}bg-warning text-dark{% elif match.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %} fs-6">
@@ -131,7 +131,7 @@
 {% if completed_games %}
 <div class="card border-0 shadow-sm" style="border-radius: 12px;">
     <div class="card-header bg-transparent border-0">
-        <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Game History</h5>
+        <h5 class="fw-bold mb-0"><i class="fas fa-history text-primary me-2"></i>Game History</h5>
     </div>
     <div class="card-body p-4">
         <div class="row g-3">

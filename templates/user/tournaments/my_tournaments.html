@@ -17,8 +17,8 @@
                             <p class="text-muted mb-1 small">Total Registrations</p>
                             <h3 class="mb-0 fw-bold">{{ registrations.count|default:"0" }}</h3>
                         </div>
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-trophy fa-lg text-white"></i>
+                        <div class="stat-icon primary" style="width: 50px; height: 50px;">
+                            <i class="fas fa-trophy fa-lg"></i>
                         </div>
                     </div>
                 </div>
@@ -32,8 +32,8 @@
                             <p class="text-muted mb-1 small">Pending</p>
                             <h3 class="mb-0 fw-bold">-</h3>
                         </div>
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-clock fa-lg text-white"></i>
+                        <div class="stat-icon warning" style="width: 50px; height: 50px;">
+                            <i class="fas fa-clock fa-lg"></i>
                         </div>
                     </div>
                 </div>
@@ -47,8 +47,8 @@
                             <p class="text-muted mb-1 small">Approved</p>
                             <h3 class="mb-0 fw-bold">-</h3>
                         </div>
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-check-circle fa-lg text-white"></i>
+                        <div class="stat-icon success" style="width: 50px; height: 50px;">
+                            <i class="fas fa-check-circle fa-lg"></i>
                         </div>
                     </div>
                 </div>
@@ -62,8 +62,8 @@
                             <p class="text-muted mb-1 small">Active</p>
                             <h3 class="mb-0 fw-bold">-</h3>
                         </div>
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-play-circle fa-lg text-white"></i>
+                        <div class="stat-icon" style="width: 50px; height: 50px; background: rgba(23,162,184,0.1); color: #17a2b8;">
+                            <i class="fas fa-play-circle fa-lg"></i>
                         </div>
                     </div>
                 </div>
@@ -131,13 +131,13 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-5">
-                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                        <i class="fas fa-trophy fa-3x text-muted"></i>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-trophy fa-2x text-muted"></i>
                     </div>
-                    <h5 class="text-muted">No tournament registrations yet</h5>
-                    <p class="text-muted mb-3">Browse available tournaments and join the competition!</p>
-                    <a href="{% url 'tournament_list' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
+                    <h5 class="empty-state-title">No tournament registrations yet</h5>
+                    <p class="empty-state-text">Browse available tournaments and join the competition!</p>
+                    <a href="{% url 'tournament_list' %}" class="btn btn-primary mt-3">
                         <i class="fas fa-search me-2"></i>Browse Tournaments
                     </a>
                 </div>

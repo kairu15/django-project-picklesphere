@@ -10,7 +10,7 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px;">
             <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="fas fa-trophy me-2 text-primary"></i>Match Overview</h5>
+                <h5 class="fw-bold mb-0"><i class="fas fa-trophy text-primary me-2"></i>Match Overview</h5>
                 <span class="badge px-3 py-2 {% if match.status == 'completed' %}bg-success{% elif match.status == 'ongoing' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
                     {{ match.get_status_display }}
                 </span>
@@ -126,7 +126,7 @@
         <!-- Actions -->
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
             <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-cog me-2 text-primary"></i>Actions</h5>
+                <h5 class="fw-bold mb-0"><i class="fas fa-cog text-primary me-2"></i>Actions</h5>
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
@@ -145,7 +145,7 @@
         <!-- Timeline -->
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
             <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>Timeline</h5>
+                <h5 class="fw-bold mb-0"><i class="fas fa-clock text-primary me-2"></i>Timeline</h5>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
@@ -173,7 +173,7 @@
         <!-- Notes -->
         <div class="card border-0 shadow-sm" style="border-radius: 12px;">
             <div class="card-header bg-transparent border-0">
-                <h5 class="fw-bold mb-0"><i class="fas fa-sticky-note me-2 text-primary"></i>Notes</h5>
+                <h5 class="fw-bold mb-0"><i class="fas fa-sticky-note text-primary me-2"></i>Notes</h5>
             </div>
             <div class="card-body">
                 <p class="mb-0 text-muted">{{ match.notes }}</p>
@@ -186,7 +186,7 @@
 <!-- Games Breakdown -->
 <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px;">
     <div class="card-header bg-transparent border-0">
-        <h5 class="fw-bold mb-0"><i class="fas fa-gamepad me-2 text-primary"></i>Games Breakdown</h5>
+        <h5 class="fw-bold mb-0"><i class="fas fa-gamepad text-primary me-2"></i>Games Breakdown</h5>
     </div>
     <div class="card-body">
         {% if match.games.all %}

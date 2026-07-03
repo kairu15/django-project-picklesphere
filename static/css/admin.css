@@ -75,9 +75,9 @@
 }
 
 .stats-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--admin-radius-sm);
+    width: var(--stat-icon-size, 60px);
+    height: var(--stat-icon-size, 60px);
+    border-radius: var(--stat-icon-radius, var(--admin-radius-sm));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -181,9 +181,9 @@
 }
 
 .empty-state-icon {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    width: var(--empty-icon-size, 80px);
+    height: var(--empty-icon-size, 80px);
+    background: linear-gradient(135deg, var(--empty-icon-bg-start, #e9ecef) 0%, var(--empty-icon-bg-end, #dee2e6) 100%);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;

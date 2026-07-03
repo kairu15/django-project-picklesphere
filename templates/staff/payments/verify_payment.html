@@ -24,7 +24,7 @@
         <!-- Payment Details Card -->
         <div class="staff-card mb-4 animate-fadeInUp">
             <div class="staff-card-header">
-                <h5 class="staff-card-title"><i class="fas fa-credit-card"></i>Payment Details</h5>
+                <h5 class="staff-card-title"><i class="fas fa-credit-card text-primary me-2"></i>Payment Details</h5>
                 <span class="badge-staff {% if payment.status == 'paid' %}badge-payment-paid{% elif payment.status == 'pending' %}badge-payment-pending{% else %}badge-status-completed{% endif %}">
                     {{ payment.get_status_display }}
                 </span>
@@ -34,7 +34,7 @@
                     <div class="col-md-6">
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-hashtag"></i>
+                                <i class="fas fa-hashtag text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Payment ID</div>
@@ -43,7 +43,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-calendar-check"></i>
+                                <i class="fas fa-calendar-check text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Reservation</div>
@@ -52,7 +52,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-user"></i>
+                                <i class="fas fa-user text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Customer</div>
@@ -61,7 +61,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-map-marker-alt"></i>
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Court</div>
@@ -72,7 +72,7 @@
                     <div class="col-md-6">
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-peso-sign"></i>
+                                <i class="fas fa-peso-sign text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Amount</div>
@@ -81,7 +81,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-credit-card"></i>
+                                <i class="fas fa-credit-card text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Payment Method</div>
@@ -90,7 +90,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-clock"></i>
+                                <i class="fas fa-clock text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Payment Date</div>
@@ -108,7 +108,7 @@
                         {% if payment.gcash_reference %}
                         <div class="info-item">
                             <div class="info-icon">
-                                <i class="fas fa-hashtag"></i>
+                                <i class="fas fa-hashtag text-primary me-2"></i>
                             </div>
                             <div class="info-content">
                                 <div class="info-label">GCash Reference</div>
@@ -125,7 +125,7 @@
         <!-- GCash Proof Card -->
         <div class="staff-card mb-4 animate-fadeInUp" style="animation-delay: 0.1s;">
             <div class="staff-card-header d-flex justify-content-between align-items-center">
-                <h5 class="staff-card-title"><i class="fas fa-image"></i>GCash Payment Proof</h5>
+                <h5 class="staff-card-title"><i class="fas fa-image text-primary me-2"></i>GCash Payment Proof</h5>
                 <a href="{% url 'view_payment_proof' payment.id %}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-expand me-2"></i>View Full Size
                 </a>
@@ -142,7 +142,7 @@
         <!-- Update Status Form -->
         <div class="staff-card animate-fadeInUp" style="animation-delay: 0.2s;">
             <div class="staff-card-header">
-                <h5 class="staff-card-title"><i class="fas fa-edit"></i>Update Payment Status</h5>
+                <h5 class="staff-card-title"><i class="fas fa-edit text-primary me-2"></i>Update Payment Status</h5>
             </div>
             <div class="staff-card-body">
                 <form method="post">

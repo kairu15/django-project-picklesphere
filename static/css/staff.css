@@ -65,7 +65,7 @@
 }
 
 .staff-card-title i {
-    color: var(--staff-primary);
+    color: var(--icon-primary-color, var(--staff-primary));
     font-size: 1.2rem;
 }
 
@@ -513,7 +513,7 @@
 }
 
 .staff-form-label i {
-    color: var(--staff-primary);
+    color: var(--icon-primary-color, var(--staff-primary));
     font-size: 0.875rem;
 }
 
@@ -599,9 +599,9 @@
 }
 
 .empty-state-icon {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    width: var(--empty-icon-size, 100px);
+    height: var(--empty-icon-size, 100px);
+    background: linear-gradient(135deg, var(--empty-icon-bg-start, #f8f9fa) 0%, var(--empty-icon-bg-end, #e9ecef) 100%);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -611,8 +611,8 @@
 }
 
 .empty-state-icon i {
-    font-size: 2.5rem;
-    color: var(--staff-secondary);
+    font-size: var(--empty-icon-font-size, 2.5rem);
+    color: var(--icon-muted-color, var(--staff-secondary));
 }
 
 .empty-state-title {
@@ -656,7 +656,7 @@
 .info-icon {
     width: 40px;
     height: 40px;
-    background: rgba(59,122,140,0.1);
+    background: var(--icon-primary-bg, rgba(59,122,140,0.1));
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -665,7 +665,7 @@
 }
 
 .info-icon i {
-    color: var(--staff-primary);
+    color: var(--icon-primary-color, var(--staff-primary));
     font-size: 1rem;
 }
 

@@ -23,26 +23,26 @@
     <div class="col-lg-8">
         <div class="staff-card">
             <div class="staff-card-header">
-                <h5 class="staff-card-title"><i class="fas fa-bullhorn"></i>Compose Broadcast Message</h5>
+                <h5 class="staff-card-title"><i class="fas fa-bullhorn text-primary me-2"></i>Compose Broadcast Message</h5>
             </div>
             <div class="staff-card-body">
                 <form method="post">
                     {% csrf_token %}
                     
                     <div class="staff-form-group">
-                        <label class="staff-form-label"><i class="fas fa-heading"></i>Message Title</label>
+                        <label class="staff-form-label"><i class="fas fa-heading text-primary me-2"></i>Message Title</label>
                         <input type="text" name="title" class="form-control staff-form-control" required placeholder="Enter a clear, descriptive title for your message">
                         <div class="form-text">This will be shown as the notification headline.</div>
                     </div>
                     
                     <div class="staff-form-group">
-                        <label class="staff-form-label"><i class="fas fa-align-left"></i>Message Content</label>
+                        <label class="staff-form-label"><i class="fas fa-align-left text-primary me-2"></i>Message Content</label>
                         <textarea name="message" class="form-control staff-form-control" rows="6" required placeholder="Enter your broadcast message content here..."></textarea>
                         <div class="form-text">Be concise and clear. This message will be sent to all selected recipients.</div>
                     </div>
                     
                     <div class="staff-form-group">
-                        <label class="staff-form-label"><i class="fas fa-users"></i>Target Recipients</label>
+                        <label class="staff-form-label"><i class="fas fa-users text-primary me-2"></i>Target Recipients</label>
                         <div class="row g-2">
                             <div class="col-md-6">
                                 <label class="staff-check">

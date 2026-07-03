@@ -28,8 +28,8 @@
                     <div class="card-body p-5">
                         <div class="d-flex align-items-center mb-4">
                             <div class="flex-shrink-0">
-                                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-bullseye fa-2x text-white"></i>
+                                <div class="stat-icon gradient-primary lg">
+                                    <i class="fas fa-bullseye"></i>
                                 </div>
                             </div>
                             <div class="ms-4">
@@ -72,8 +72,8 @@
                     <div class="card-body p-5">
                         <div class="d-flex align-items-center mb-4">
                             <div class="flex-shrink-0">
-                                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-eye fa-2x text-white"></i>
+                                <div class="stat-icon gradient-success lg">
+                                    <i class="fas fa-eye"></i>
                                 </div>
                             </div>
                             <div class="ms-4">
@@ -121,8 +121,8 @@
         <div class="row g-4 text-center">
             <div class="col-md-3 col-6">
                 <div class="text-white">
-                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                        <i class="fas fa-map-marker-alt fa-2x"></i>
+                    <div class="stat-icon glass lg mx-auto mb-3">
+                        <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <h2 class="display-4 fw-bold mb-2">{{ stats.total_courts|default:"12" }}</h2>
                     <p class="mb-0 fs-5" style="opacity: 0.85;">{{ content.stats_courts }}</p>
@@ -130,8 +130,8 @@
             </div>
             <div class="col-md-3 col-6">
                 <div class="text-white">
-                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                        <i class="fas fa-users fa-2x"></i>
+                    <div class="stat-icon glass lg mx-auto mb-3">
+                        <i class="fas fa-users"></i>
                     </div>
                     <h2 class="display-4 fw-bold mb-2">{{ stats.total_members|default:"500" }}+</h2>
                     <p class="mb-0 fs-5" style="opacity: 0.85;">{{ content.stats_members }}</p>
@@ -139,8 +139,8 @@
             </div>
             <div class="col-md-3 col-6">
                 <div class="text-white">
-                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                        <i class="fas fa-calendar fa-2x"></i>
+                    <div class="stat-icon glass lg mx-auto mb-3">
+                        <i class="fas fa-calendar"></i>
                     </div>
                     <h2 class="display-4 fw-bold mb-2">{{ stats.years_operating|default:"3" }}</h2>
                     <p class="mb-0 fs-5" style="opacity: 0.85;">Years Operating</p>
@@ -148,8 +148,8 @@
             </div>
             <div class="col-md-3 col-6">
                 <div class="text-white">
-                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                        <i class="fas fa-trophy fa-2x"></i>
+                    <div class="stat-icon glass lg mx-auto mb-3">
+                        <i class="fas fa-trophy"></i>
                     </div>
                     <h2 class="display-4 fw-bold mb-2">{{ stats.tournaments_hosted|default:"20" }}</h2>
                     <p class="mb-0 fs-5" style="opacity: 0.85;">Tournaments Hosted</p>
@@ -211,17 +211,17 @@
                 <div class="card border-0 shadow-lg hover-card text-center" style="border-radius: 15px; overflow: hidden;">
                     <div class="card-body p-4">
                         {% if member.color == 'primary' %}
-                        <div class="mb-3 mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon gradient-primary xxxl mx-auto mb-3">
                         {% elif member.color == 'success' %}
-                        <div class="mb-3 mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon gradient-success xxxl mx-auto mb-3">
                         {% elif member.color == 'warning' %}
-                        <div class="mb-3 mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon gradient-warning xxxl mx-auto mb-3">
                         {% elif member.color == 'danger' %}
-                        <div class="mb-3 mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon gradient-danger xxxl mx-auto mb-3">
                         {% elif member.color == 'info' %}
-                        <div class="mb-3 mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon gradient-info xxxl mx-auto mb-3">
                         {% else %}
-                        <div class="mb-3 mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="stat-icon gradient-primary xxxl mx-auto mb-3">
                         {% endif %}
                             {% if member.photo %}
                             <img src="{{ member.photo.url }}" alt="{{ member.name }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
@@ -261,22 +261,8 @@
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-lg hover-card" style="border-radius: 15px;">
                     <div class="card-body text-center p-4">
-                        {% if facility.color == 'primary' %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% elif facility.color == 'success' %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% elif facility.color == 'warning' %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% elif facility.color == 'danger' %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% elif facility.color == 'info' %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% elif facility.color == 'purple' %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% else %}
-                        <div class="mb-3 mx-auto" style="width: 70px; height: 70px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        {% endif %}
-                            <i class="fas {{ facility.icon }} fa-2x text-white"></i>
+                        <div class="stat-icon gradient-{{ facility.color|default:'primary' }} lg mx-auto mb-3">
+                            <i class="fas {{ facility.icon }}"></i>
                         </div>
                         <h5 class="fw-bold mb-2">{{ facility.title }}</h5>
                         <p class="text-muted mb-0">{{ facility.description }}</p>
@@ -405,8 +391,8 @@
                         <div class="card border-0 shadow-sm" style="border-radius: 12px;">
                             <div class="card-body p-3 d-flex align-items-center">
                                 <div class="flex-shrink-0 me-3">
-                                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-map-marker-alt text-white"></i>
+                                    <div class="stat-icon gradient-primary md me-3" style="border-radius: 50%;">
+                                        <i class="fas fa-map-marker-alt"></i>
                                     </div>
                                 </div>
                                 <div>
@@ -420,8 +406,8 @@
                         <div class="card border-0 shadow-sm" style="border-radius: 12px;">
                             <div class="card-body p-3 d-flex align-items-center">
                                 <div class="flex-shrink-0 me-3">
-                                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--success-color) 0%, #1e7e34 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-phone text-white"></i>
+                                    <div class="stat-icon gradient-success md me-3" style="border-radius: 50%;">
+                                        <i class="fas fa-phone"></i>
                                     </div>
                                 </div>
                                 <div>
@@ -435,8 +421,8 @@
                         <div class="card border-0 shadow-sm" style="border-radius: 12px;">
                             <div class="card-body p-3 d-flex align-items-center">
                                 <div class="flex-shrink-0 me-3">
-                                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--info-color) 0%, #138496 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-envelope text-white"></i>
+                                    <div class="stat-icon gradient-info md me-3" style="border-radius: 50%;">
+                                        <i class="fas fa-envelope"></i>
                                     </div>
                                 </div>
                                 <div>

@@ -13,8 +13,8 @@
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div class="d-flex align-items-center">
                 <div class="flex-shrink-0">
-                    <div class="profile-icon-wrapper" style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59,122,140,0.3);">
-                        <i class="fas fa-user-edit fa-lg text-white"></i>
+                    <div class="stats-icon bg-gradient-primary text-white me-3" style="width: 56px; height: 56px;">
+                        <i class="fas fa-user-edit fa-lg"></i>
                     </div>
                 </div>
                 <div class="ms-3">
@@ -37,8 +37,8 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59,122,140,0.25);">
-                            <i class="fas fa-calendar-check fa-lg text-white"></i>
+                        <div class="stat-icon primary">
+                            <i class="fas fa-calendar-check fa-lg"></i>
                         </div>
                     </div>
                     <div class="ms-3">
@@ -54,8 +54,8 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(40,167,69,0.25);">
-                            <i class="fas fa-trophy fa-lg text-white"></i>
+                        <div class="stat-icon success">
+                            <i class="fas fa-trophy fa-lg"></i>
                         </div>
                     </div>
                     <div class="ms-3">
@@ -71,8 +71,8 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(255,193,7,0.25);">
-                            <i class="fas fa-star fa-lg text-white"></i>
+                        <div class="stat-icon warning">
+                            <i class="fas fa-star fa-lg"></i>
                         </div>
                     </div>
                     <div class="ms-3">
@@ -88,8 +88,8 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
-                        <div class="stat-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(220,53,69,0.25);">
-                            <i class="fas fa-medal fa-lg text-white"></i>
+                        <div class="stat-icon danger">
+                            <i class="fas fa-medal fa-lg"></i>
                         </div>
                     </div>
                     <div class="ms-3">
@@ -134,12 +134,13 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-5">
-                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
                             <i class="fas fa-calendar-times fa-2x text-muted"></i>
                         </div>
-                        <p class="text-muted mb-3">No upcoming reservations</p>
-                        <a href="{% url 'court_list' %}" class="btn btn-primary px-4" style="border-radius: 10px;">
+                        <h5 class="empty-state-title">No upcoming reservations</h5>
+                        <p class="empty-state-text">Start by booking a court!</p>
+                        <a href="{% url 'court_list' %}" class="btn btn-primary mt-3 px-4">
                             <i class="fas fa-plus me-2"></i>Reserve a Court
                         </a>
                     </div>
@@ -178,12 +179,13 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-5">
-                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
                             <i class="fas fa-gamepad fa-2x text-muted"></i>
                         </div>
-                        <p class="text-muted mb-3">No matches played yet</p>
-                        <a href="{% url 'court_list' %}" class="btn btn-success px-4" style="border-radius: 10px;">
+                        <h5 class="empty-state-title">No matches played yet</h5>
+                        <p class="empty-state-text">Start by booking a court and playing!</p>
+                        <a href="{% url 'court_list' %}" class="btn btn-success mt-3 px-4">
                             <i class="fas fa-play me-2"></i>Start Playing
                         </a>
                     </div>
