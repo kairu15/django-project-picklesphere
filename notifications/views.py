@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from accounts.decorators import admin_required
 from .models import Notification, BroadcastMessage
 
 
@@ -70,10 +71,8 @@ def delete_notification_view(request, notification_id):
 
 
 @login_required
+@admin_required
 def broadcast_message_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to send broadcast messages.')
-        return redirect('dashboard')
     
     if request.method == 'POST':
         title = request.POST.get('title')
@@ -105,10 +104,8 @@ def broadcast_message_view(request):
 
 
 @login_required
+@admin_required
 def broadcast_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     broadcasts = BroadcastMessage.objects.all().order_by('-sent_at')
     return render(request, 'staff/notifications/broadcast_list.html', {

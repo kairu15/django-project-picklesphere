@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
+from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Equipment, EquipmentRental, EquipmentMaintenance
 from reservations.models import Reservation
 from .forms import EquipmentForm
@@ -30,6 +31,7 @@ def equipment_list_view(request):
 
 
 @login_required
+@user_required
 def equipment_rental_create_view(request):
     if request.method == 'POST':
         equipment_id = request.POST.get('equipment_id')
@@ -81,10 +83,8 @@ def equipment_detail_view(request, equipment_id):
 
 
 @login_required
+@staff_or_admin_required
 def staff_equipment_view(request):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     equipment = Equipment.objects.all().order_by('type', 'name')
     
@@ -105,10 +105,8 @@ def staff_equipment_view(request):
 
 
 @login_required
+@staff_or_admin_required
 def check_out_equipment_view(request, rental_id):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
     
     rental = get_object_or_404(EquipmentRental, id=rental_id, status='reserved')
     
@@ -131,6 +129,7 @@ def check_out_equipment_view(request, rental_id):
 
 
 @login_required
+@user_required
 def cancel_equipment_rental_view(request, rental_id):
     """Cancel an equipment rental reservation and restore quantities."""
     rental = get_object_or_404(EquipmentRental, id=rental_id, rented_by=request.user, status='reserved')
@@ -152,10 +151,8 @@ def cancel_equipment_rental_view(request, rental_id):
 
 
 @login_required
+@staff_or_admin_required
 def check_in_equipment_view(request, rental_id):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
 
     rental = get_object_or_404(EquipmentRental, id=rental_id, status='rented')
     
@@ -190,10 +187,8 @@ from django.utils import timezone
 # Admin CRUD Views
 
 @login_required
+@admin_required
 def admin_equipment_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     equipment = Equipment.objects.all().order_by('-created_at')
 
@@ -224,10 +219,8 @@ def admin_equipment_list_view(request):
 
 
 @login_required
+@admin_required
 def admin_equipment_create_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     if request.method == 'POST':
         form = EquipmentForm(request.POST, request.FILES)
@@ -245,10 +238,8 @@ def admin_equipment_create_view(request):
 
 
 @login_required
+@admin_required
 def admin_equipment_edit_view(request, equipment_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     equipment = get_object_or_404(Equipment, id=equipment_id)
     if request.method == 'POST':
@@ -268,10 +259,8 @@ def admin_equipment_edit_view(request, equipment_id):
 
 
 @login_required
+@admin_required
 def admin_equipment_delete_view(request, equipment_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
 
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')

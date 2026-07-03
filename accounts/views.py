@@ -12,6 +12,7 @@ from .forms import (
     AdminUserUpdateForm,
 )
 from .models import User, UserActivity
+from .decorators import admin_required, staff_or_admin_required, user_required
 from notifications.models import Notification
 
 
@@ -101,10 +102,8 @@ def profile_view(request):
 
 
 @login_required
+@admin_required
 def user_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     users = User.objects.all().order_by('-created_at')
     
@@ -131,10 +130,8 @@ def user_list_view(request):
 
 
 @login_required
+@admin_required
 def user_edit_view(request, user_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     user = get_object_or_404(User, id=user_id)
     
@@ -154,10 +151,8 @@ def user_edit_view(request, user_id):
 
 
 @login_required
+@admin_required
 def user_create_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     if request.method == 'POST':
         form = AdminUserCreateForm(request.POST)
@@ -172,10 +167,8 @@ def user_create_view(request):
 
 
 @login_required
+@admin_required
 def user_delete_view(request, user_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
@@ -198,10 +191,8 @@ def user_delete_view(request, user_id):
 
 
 @login_required
+@staff_or_admin_required
 def user_activity_log(request):
-    if not request.user.is_admin() and not request.user.is_staff_user():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     activities = UserActivity.objects.all().order_by('-created_at')[:100]
     return render(request, 'admin/activity_log.html', {'activities': activities})

@@ -6,6 +6,7 @@ from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django.http import HttpResponse, Http404
 from datetime import datetime, timedelta
+from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
 from reservations.models import Reservation, CancellationRequest
@@ -131,10 +132,8 @@ def payment_status_view(request, payment_id):
 
 
 @login_required
+@staff_or_admin_required
 def staff_payments_view(request):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     payments = Payment.objects.all().order_by('-created_at')
     
@@ -177,10 +176,8 @@ def staff_payments_view(request):
 
 
 @login_required
+@staff_or_admin_required
 def verify_payment_view(request, payment_id):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
 
     payment = get_object_or_404(Payment, id=payment_id)
 
@@ -236,6 +233,7 @@ def verify_payment_view(request, payment_id):
 
 
 @login_required
+@user_required
 def payment_history_view(request):
     payments = Payment.objects.filter(reservation__user=request.user).order_by('-created_at')
     
@@ -302,11 +300,9 @@ def serve_payment_proof_image(request, payment_id):
 
 
 @login_required
+@admin_required
 def admin_payments_view(request):
     """Admin-only payment management with enhanced features"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     payments = Payment.objects.all().order_by('-created_at')
 
@@ -414,11 +410,9 @@ def admin_payments_view(request):
 
 
 @login_required
+@admin_required
 def admin_cancellation_refunds_view(request):
     """Admin page for reviewing cancellation refund details and marking payments refunded."""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     cancellations = CancellationRequest.objects.select_related(
         'reservation',
@@ -496,10 +490,8 @@ def admin_cancellation_refunds_view(request):
 
 
 @login_required
+@admin_required
 def revenue_report_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     # Date range
     date_from = request.GET.get('date_from', (timezone.now() - timedelta(days=30)).strftime('%Y-%m-%d'))
@@ -770,14 +762,11 @@ def revenue_report_view(request):
 
 
 @login_required
+@admin_required
 def revenue_report_export_view(request):
     """Export revenue report as CSV"""
     import csv
     from django.http import HttpResponse
-
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to export this report.')
-        return redirect('dashboard')
 
     # Get filters
     date_from = request.GET.get('date_from', (timezone.now() - timedelta(days=30)).strftime('%Y-%m-%d'))

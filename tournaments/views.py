@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count, Q, Sum, F
 from django.views.decorators.http import require_POST
+from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from courts.models import Court
 from accounts.models import UserActivity
 from .models import Tournament, Registration, Match, Team, Leaderboard
@@ -98,6 +99,7 @@ def tournament_detail(request, pk):
 
 
 @login_required
+@user_required
 def tournament_register(request, pk):
     """Register for a tournament"""
     tournament = get_object_or_404(Tournament, pk=pk)
@@ -148,6 +150,7 @@ def tournament_register(request, pk):
 
 
 @login_required
+@user_required
 def my_tournaments(request):
     """View user's tournament registrations"""
     registrations = Registration.objects.filter(
@@ -162,6 +165,7 @@ def my_tournaments(request):
 
 
 @login_required
+@user_required
 def my_matches(request):
     """View user's upcoming and past matches"""
     # Singles matches
@@ -196,11 +200,9 @@ def my_matches(request):
 # ==================== ADMIN / STAFF VIEWS ====================
 
 @login_required
+@staff_or_admin_required
 def admin_tournament_list(request):
     """Admin view for managing tournaments"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournaments = Tournament.objects.all().order_by('-created_at')
     
@@ -222,11 +224,9 @@ def admin_tournament_list(request):
 
 
 @login_required
+@staff_or_admin_required
 def admin_tournament_create(request):
     """Create a new tournament"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     if request.method == 'POST':
         form = TournamentForm(request.POST)
@@ -254,11 +254,9 @@ def admin_tournament_create(request):
 
 
 @login_required
+@staff_or_admin_required
 def admin_tournament_edit(request, pk):
     """Edit an existing tournament"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -280,11 +278,9 @@ def admin_tournament_edit(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_tournament_manage(request, pk):
     """Main management view for a tournament"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -316,11 +312,9 @@ def admin_tournament_manage(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_registration_list(request, pk):
     """View and manage all registrations"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
 
     tournament = get_object_or_404(Tournament, pk=pk)
     status_filter = request.GET.get('status', 'all')
@@ -349,11 +343,9 @@ def admin_registration_list(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_registration_review(request, pk, reg_id):
     """Review a single registration"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     registration = get_object_or_404(Registration, id=reg_id, tournament=tournament)
@@ -399,11 +391,10 @@ def admin_registration_review(request, pk, reg_id):
 
 
 @login_required
+@staff_or_admin_required
 @require_POST
 def admin_bulk_approve(request, pk):
     """Bulk approve pending registrations"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        return JsonResponse({'error': 'Access denied'}, status=403)
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -421,11 +412,9 @@ def admin_bulk_approve(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_generate_matches(request, pk):
     """Generate matches using the randomizer"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -468,11 +457,9 @@ def admin_generate_matches(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_match_list(request, pk):
     """List and manage all matches"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
 
     tournament = get_object_or_404(Tournament, pk=pk)
     matches = Match.objects.filter(tournament=tournament).order_by('round_name', 'match_number')
@@ -495,11 +482,9 @@ def admin_match_list(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_match_edit(request, pk, match_id):
     """Edit a match (scores and status)"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     match = get_object_or_404(Match, id=match_id, tournament=tournament)
@@ -554,11 +539,9 @@ def admin_match_edit(request, pk, match_id):
 
 
 @login_required
+@staff_or_admin_required
 def admin_schedule_matches(request, pk):
     """Schedule matches with courts and times"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -624,11 +607,9 @@ def admin_schedule_matches(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_leaderboard(request, pk):
     """View and manage leaderboard"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -653,11 +634,9 @@ def admin_leaderboard(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_team_list(request, pk):
     """View and manage teams for doubles tournaments"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     teams = tournament.teams.all().select_related('player1', 'player2')
@@ -671,11 +650,9 @@ def admin_team_list(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_team_create(request, pk):
     """Create a new team"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -700,11 +677,9 @@ def admin_team_create(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_tournament_bracket(request, pk):
     """View tournament bracket (for elimination formats)"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -724,11 +699,9 @@ def admin_tournament_bracket(request, pk):
 
 
 @login_required
+@staff_or_admin_required
 def admin_change_status(request, pk):
     """Change tournament status"""
-    if not request.user.is_admin and not request.user.is_staff_user:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     
     tournament = get_object_or_404(Tournament, pk=pk)
     
@@ -771,7 +744,7 @@ def api_update_score(request, match_id):
     
     match = get_object_or_404(Match, id=match_id)
     
-    if not request.user.is_admin and not request.user.is_staff_user:
+    if not request.user.is_admin() and not request.user.is_staff_user():
         return JsonResponse({'error': 'Access denied'}, status=403)
     
     try:

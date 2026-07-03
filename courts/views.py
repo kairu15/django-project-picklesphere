@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from accounts.decorators import admin_required
 from .models import Site, Court
 from .forms import CourtForm, SiteForm
 from reservations.models import Reservation
@@ -111,10 +112,8 @@ def court_availability_view(request, court_id):
 
 
 @login_required
+@admin_required
 def admin_court_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     courts = Court.objects.select_related('site').all().order_by('-created_at')
     
@@ -140,10 +139,8 @@ def admin_court_list_view(request):
 
 
 @login_required
+@admin_required
 def admin_court_create_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     if request.method == 'POST':
         form = CourtForm(request.POST, request.FILES)
@@ -161,10 +158,8 @@ def admin_court_create_view(request):
 
 
 @login_required
+@admin_required
 def admin_court_edit_view(request, court_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     court = get_object_or_404(Court, id=court_id)
 
@@ -185,10 +180,8 @@ def admin_court_edit_view(request, court_id):
 
 
 @login_required
+@admin_required
 def admin_court_delete_view(request, court_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
@@ -206,20 +199,16 @@ def admin_court_delete_view(request, court_id):
 
 
 @login_required
+@admin_required
 def admin_site_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     sites = Site.objects.all().order_by('-created_at')
     return render(request, 'admin/sites/site_list.html', {'sites': sites})
 
 
 @login_required
+@admin_required
 def admin_site_create_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     if request.method == 'POST':
         form = SiteForm(request.POST)
@@ -234,10 +223,8 @@ def admin_site_create_view(request):
 
 
 @login_required
+@admin_required
 def admin_site_edit_view(request, site_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     site = get_object_or_404(Site, id=site_id)
     if request.method == 'POST':
@@ -253,10 +240,8 @@ def admin_site_edit_view(request, site_id):
 
 
 @login_required
+@admin_required
 def admin_site_delete_view(request, site_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')

@@ -5,6 +5,7 @@ from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from django.http import JsonResponse
 from datetime import datetime, timedelta
+from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
 from payments.models import Payment
@@ -15,6 +16,7 @@ from courts.models import Court
 
 
 @login_required
+@user_required
 def reservation_list_view(request):
     reservations = Reservation.objects.filter(user=request.user).order_by('-created_at')
     
@@ -40,6 +42,7 @@ def reservation_list_view(request):
 
 
 @login_required
+@user_required
 def reservation_create_view(request):
     # Fetch active match settings from database
     from scoring.models import MatchSettings
@@ -154,10 +157,8 @@ def reservation_detail_view(request, reservation_id):
 
 
 @login_required
+@staff_or_admin_required
 def staff_reservations_view(request):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     reservations = Reservation.objects.select_related('user', 'court', 'court__site', 'payment').all().order_by('-created_at')
     
@@ -179,10 +180,8 @@ def staff_reservations_view(request):
 
 
 @login_required
+@staff_or_admin_required
 def approve_reservation_view(request, reservation_id):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
     
     reservation = get_object_or_404(Reservation, id=reservation_id)
     
@@ -212,6 +211,7 @@ def approve_reservation_view(request, reservation_id):
 
 
 @login_required
+@user_required
 def cancel_reservation_view(request, reservation_id):
     reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
 
@@ -383,10 +383,8 @@ def calendar_view(request):
 # Admin CRUD Views
 
 @login_required
+@admin_required
 def admin_reservation_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     reservations = Reservation.objects.select_related('user', 'court').all().order_by('-created_at')
 
@@ -420,10 +418,8 @@ def admin_reservation_list_view(request):
 
 
 @login_required
+@admin_required
 def admin_reservation_create_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     if request.method == 'POST':
         form = AdminReservationForm(request.POST)
@@ -455,10 +451,8 @@ def admin_reservation_create_view(request):
 
 
 @login_required
+@admin_required
 def admin_reservation_edit_view(request, reservation_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     reservation = get_object_or_404(Reservation, id=reservation_id)
     if request.method == 'POST':
@@ -483,10 +477,8 @@ def admin_reservation_edit_view(request, reservation_id):
 
 
 @login_required
+@admin_required
 def admin_reservation_delete_view(request, reservation_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to perform this action.')
-        return redirect('dashboard')
 
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')

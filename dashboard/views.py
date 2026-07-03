@@ -5,6 +5,7 @@ from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 from accounts.models import User, UserActivity
+from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from courts.models import Court, Site
 from courts.views import court_list_view
 from reservations.models import Reservation
@@ -164,6 +165,7 @@ def dashboard_view(request):
 
 
 @login_required
+@user_required
 def user_dashboard_view(request):
     """User dashboard"""
     today = timezone.now().date()
@@ -208,11 +210,9 @@ def user_dashboard_view(request):
 
 
 @login_required
+@staff_or_admin_required
 def staff_dashboard_view(request):
     """Staff dashboard"""
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     today = timezone.now().date()
     
@@ -312,11 +312,9 @@ def court_view_view(request, court_id):
 
 
 @login_required
+@admin_required
 def admin_dashboard_view(request):
     """Admin dashboard with full analytics"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     today = timezone.now().date()
     
@@ -788,11 +786,9 @@ def contact_view(request):
 
 
 @login_required
+@admin_required
 def homepage_management(request):
     """Homepage content management page"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
 
     from .models import Amenity, GalleryImage, HomePageContent
 
@@ -810,11 +806,9 @@ def homepage_management(request):
 
 
 @login_required
+@admin_required
 def populate_homepage_content(request):
     """Create or reactivate the default homepage text content."""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
 
     if request.method != 'POST':
         return redirect('homepage_management')
@@ -854,11 +848,9 @@ def populate_homepage_content(request):
 
 
 @login_required
+@admin_required
 def toggle_featured_rating(request, rating_id):
     """Toggle featured status of a rating for homepage display"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Rating
     rating = get_object_or_404(Rating, id=rating_id)
@@ -876,11 +868,9 @@ def toggle_featured_rating(request, rating_id):
 
 
 @login_required
+@admin_required
 def homepage_edit_testimonial(request, testimonial_id=None):
     """Edit or create a testimonial"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Testimonial
     
@@ -929,11 +919,9 @@ def homepage_edit_testimonial(request, testimonial_id=None):
 
 
 @login_required
+@admin_required
 def homepage_edit_amenity(request, amenity_id=None):
     """Edit or create an amenity"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Amenity
     
@@ -974,11 +962,9 @@ def homepage_edit_amenity(request, amenity_id=None):
 
 
 @login_required
+@admin_required
 def homepage_edit_gallery(request, gallery_id=None):
     """Edit or create a gallery image"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import GalleryImage
     
@@ -1027,11 +1013,9 @@ def homepage_edit_gallery(request, gallery_id=None):
 
 
 @login_required
+@admin_required
 def homepage_delete_testimonial(request, testimonial_id):
     """Delete a testimonial"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Testimonial
     testimonial = get_object_or_404(Testimonial, id=testimonial_id)
@@ -1041,11 +1025,9 @@ def homepage_delete_testimonial(request, testimonial_id):
 
 
 @login_required
+@admin_required
 def homepage_delete_amenity(request, amenity_id):
     """Delete an amenity"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Amenity
     amenity = get_object_or_404(Amenity, id=amenity_id)
@@ -1055,11 +1037,9 @@ def homepage_delete_amenity(request, amenity_id):
 
 
 @login_required
+@admin_required
 def homepage_delete_gallery(request, gallery_id):
     """Delete a gallery image"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import GalleryImage
     gallery = get_object_or_404(GalleryImage, id=gallery_id)
@@ -1201,11 +1181,9 @@ def faq_view(request):
 # ============================================================================
 
 @login_required
+@admin_required
 def pricing_management(request):
     """Pricing page content management"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingContent, PricingTier, PricingFAQ
     
@@ -1223,11 +1201,9 @@ def pricing_management(request):
 
 
 @login_required
+@admin_required
 def pricing_edit_content(request, content_id=None):
     """Edit or create pricing page content"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingContent
     
@@ -1265,11 +1241,9 @@ def pricing_edit_content(request, content_id=None):
 
 
 @login_required
+@admin_required
 def pricing_delete_content(request, content_id):
     """Delete pricing content"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingContent
     content = get_object_or_404(PricingContent, id=content_id)
@@ -1279,11 +1253,9 @@ def pricing_delete_content(request, content_id):
 
 
 @login_required
+@admin_required
 def pricing_edit_tier(request, tier_id=None):
     """Edit or create pricing tier"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingTier
     import json
@@ -1341,11 +1313,9 @@ def pricing_edit_tier(request, tier_id=None):
 
 
 @login_required
+@admin_required
 def pricing_delete_tier(request, tier_id):
     """Delete pricing tier"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingTier
     tier = get_object_or_404(PricingTier, id=tier_id)
@@ -1355,11 +1325,9 @@ def pricing_delete_tier(request, tier_id):
 
 
 @login_required
+@admin_required
 def pricing_edit_faq(request, faq_id=None):
     """Edit or create pricing FAQ"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingFAQ
     
@@ -1399,11 +1367,9 @@ def pricing_edit_faq(request, faq_id=None):
 
 
 @login_required
+@admin_required
 def pricing_delete_faq(request, faq_id):
     """Delete pricing FAQ"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import PricingFAQ
     faq = get_object_or_404(PricingFAQ, id=faq_id)
@@ -1417,11 +1383,9 @@ def pricing_delete_faq(request, faq_id):
 # ============================================================================
 
 @login_required
+@admin_required
 def about_management(request):
     """About page content management"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
 
     from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem, AboutGalleryImage
 
@@ -1445,11 +1409,9 @@ def about_management(request):
 
 
 @login_required
+@admin_required
 def about_edit_content(request, content_id=None):
     """Edit or create about page content"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import AboutContent
     
@@ -1487,11 +1449,9 @@ def about_edit_content(request, content_id=None):
 
 
 @login_required
+@admin_required
 def about_delete_content(request, content_id):
     """Delete about content"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import AboutContent
     content = get_object_or_404(AboutContent, id=content_id)
@@ -1501,11 +1461,9 @@ def about_delete_content(request, content_id):
 
 
 @login_required
+@admin_required
 def about_edit_milestone(request, milestone_id=None):
     """Edit or create milestone"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Milestone
     
@@ -1552,11 +1510,9 @@ def about_edit_milestone(request, milestone_id=None):
 
 
 @login_required
+@admin_required
 def about_delete_milestone(request, milestone_id):
     """Delete milestone"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Milestone
     milestone = get_object_or_404(Milestone, id=milestone_id)
@@ -1566,11 +1522,9 @@ def about_delete_milestone(request, milestone_id):
 
 
 @login_required
+@admin_required
 def about_edit_team_member(request, member_id=None):
     """Edit or create team member"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import TeamMember
     
@@ -1626,11 +1580,9 @@ def about_edit_team_member(request, member_id=None):
 
 
 @login_required
+@admin_required
 def about_delete_team_member(request, member_id):
     """Delete team member"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import TeamMember
     member = get_object_or_404(TeamMember, id=member_id)
@@ -1640,11 +1592,9 @@ def about_delete_team_member(request, member_id):
 
 
 @login_required
+@admin_required
 def about_edit_facility(request, facility_id=None):
     """Edit or create facility"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Facility
     
@@ -1691,11 +1641,9 @@ def about_edit_facility(request, facility_id=None):
 
 
 @login_required
+@admin_required
 def about_delete_facility(request, facility_id):
     """Delete facility"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import Facility
     facility = get_object_or_404(Facility, id=facility_id)
@@ -1705,11 +1653,9 @@ def about_delete_facility(request, facility_id):
 
 
 @login_required
+@admin_required
 def about_edit_why_item(request, item_id=None):
     """Edit or create why choose item"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import WhyChooseItem
     
@@ -1756,11 +1702,9 @@ def about_edit_why_item(request, item_id=None):
 
 
 @login_required
+@admin_required
 def about_delete_why_item(request, item_id):
     """Delete why choose item"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import WhyChooseItem
     item = get_object_or_404(WhyChooseItem, id=item_id)
@@ -1770,11 +1714,9 @@ def about_delete_why_item(request, item_id):
 
 
 @login_required
+@admin_required
 def about_add_gallery_image(request):
     """Add gallery image for about page"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import AboutGalleryImage
     
@@ -1801,11 +1743,9 @@ def about_add_gallery_image(request):
 
 
 @login_required
+@admin_required
 def about_delete_gallery_image(request, image_id):
     """Delete gallery image"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import AboutGalleryImage
     image = get_object_or_404(AboutGalleryImage, id=image_id)
@@ -1819,11 +1759,9 @@ def about_delete_gallery_image(request, image_id):
 # ============================================================================
 
 @login_required
+@admin_required
 def contact_management(request):
     """Contact page content management"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
     
@@ -1845,11 +1783,9 @@ def contact_management(request):
 
 
 @login_required
+@admin_required
 def contact_edit_content(request, content_id=None):
     """Edit or create contact page content"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import ContactContent
     
@@ -1887,11 +1823,9 @@ def contact_edit_content(request, content_id=None):
 
 
 @login_required
+@admin_required
 def contact_delete_content(request, content_id):
     """Delete contact content"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import ContactContent
     content = get_object_or_404(ContactContent, id=content_id)
@@ -1901,11 +1835,9 @@ def contact_delete_content(request, content_id):
 
 
 @login_required
+@admin_required
 def contact_edit_info(request):
     """Edit contact information"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import ContactInfo
     
@@ -1946,11 +1878,9 @@ def contact_edit_info(request):
 
 
 @login_required
+@admin_required
 def contact_edit_business_hour(request, hour_id=None):
     """Edit or create business hour"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import BusinessHour
     
@@ -1994,11 +1924,9 @@ def contact_edit_business_hour(request, hour_id=None):
 
 
 @login_required
+@admin_required
 def contact_delete_business_hour(request, hour_id):
     """Delete business hour"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import BusinessHour
     hour = get_object_or_404(BusinessHour, id=hour_id)
@@ -2008,11 +1936,9 @@ def contact_delete_business_hour(request, hour_id):
 
 
 @login_required
+@admin_required
 def contact_edit_faq(request, faq_id=None):
     """Edit or create contact FAQ"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import ContactFAQ
     
@@ -2056,11 +1982,9 @@ def contact_edit_faq(request, faq_id=None):
 
 
 @login_required
+@admin_required
 def contact_delete_faq(request, faq_id):
     """Delete contact FAQ"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import ContactFAQ
     faq = get_object_or_404(ContactFAQ, id=faq_id)
@@ -2070,11 +1994,9 @@ def contact_delete_faq(request, faq_id):
 
 
 @login_required
+@admin_required
 def contact_edit_social_link(request, link_id=None):
     """Edit or create social link"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import SocialLink
     
@@ -2115,11 +2037,9 @@ def contact_edit_social_link(request, link_id=None):
 
 
 @login_required
+@admin_required
 def contact_delete_social_link(request, link_id):
     """Delete social link"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     from .models import SocialLink
     link = get_object_or_404(SocialLink, id=link_id)
@@ -2129,6 +2049,7 @@ def contact_delete_social_link(request, link_id):
 
 
 @login_required
+@user_required
 def submit_rating_view(request, reservation_id):
     """User view for submitting a rating for a completed reservation"""
     from .models import Rating
@@ -2182,6 +2103,7 @@ def submit_rating_view(request, reservation_id):
 
 
 @login_required
+@user_required
 def check_pending_rating_view(request):
     """AJAX view to check if user has any unrated completed reservations"""
     from .models import Rating
@@ -2239,11 +2161,9 @@ def admin_approve_testimonial_view(request, testimonial_id):
 
 
 @login_required
+@admin_required
 def contact_messages_view(request):
     """Admin view to display all contact messages"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     messages_list = ContactMessage.objects.all().order_by('-created_at')
     
@@ -2263,11 +2183,9 @@ def contact_messages_view(request):
 
 
 @login_required
+@admin_required
 def contact_message_detail_view(request, message_id):
     """Admin view to view and reply to a specific contact message"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
     
     message = get_object_or_404(ContactMessage, id=message_id)
     
@@ -2332,6 +2250,7 @@ def contact_message_detail_view(request, message_id):
 
 
 @login_required
+@user_required
 def user_messages_view(request):
     """User view to display their contact messages and admin replies"""
     # Get messages sent by this user (matched by email)
@@ -2366,11 +2285,9 @@ def admin_reject_testimonial_view(request, testimonial_id):
 
 
 @login_required
+@admin_required
 def rating_list_view(request):
     """Admin view to display all customer ratings with overview statistics"""
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('dashboard')
 
     from .models import Rating
     from django.db.models import Avg, Count

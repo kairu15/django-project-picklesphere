@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
+from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Match, Game, ScorePoint, PlayerStats, MatchSettings
 from .forms import MatchSetupForm, ScoreUpdateForm, MatchSettingsForm
 from reservations.models import Reservation
@@ -34,10 +35,8 @@ def match_detail_view(request, match_id):
 
 
 @login_required
+@staff_or_admin_required
 def start_match_view(request, reservation_id):
-    if not request.user.is_staff_user() and not request.user.is_admin():
-        messages.error(request, 'You do not have permission to start matches.')
-        return redirect('dashboard')
     
     reservation = get_object_or_404(Reservation, id=reservation_id)
     
@@ -192,6 +191,7 @@ def update_score_view(request, game_id):
 
 
 @login_required
+@user_required
 def player_stats_view(request):
     try:
         stats = request.user.stats
@@ -294,20 +294,16 @@ def match_score_api(request, match_id):
 
 
 @login_required
+@admin_required
 def match_settings_list_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     settings = MatchSettings.objects.all().order_by('-is_active', '-created_at')
     return render(request, 'admin/match_settings/match_settings_list.html', {'settings': settings})
 
 
 @login_required
+@admin_required
 def match_settings_create_view(request):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     if request.method == 'POST':
         form = MatchSettingsForm(request.POST)
@@ -322,10 +318,8 @@ def match_settings_create_view(request):
 
 
 @login_required
+@admin_required
 def match_settings_edit_view(request, settings_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     settings = get_object_or_404(MatchSettings, id=settings_id)
     
@@ -342,10 +336,8 @@ def match_settings_edit_view(request, settings_id):
 
 
 @login_required
+@admin_required
 def match_settings_delete_view(request, settings_id):
-    if not request.user.is_admin():
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
