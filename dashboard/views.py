@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, Avg
+from django.db.models.functions import ExtractHour
 from django.utils import timezone
 from datetime import datetime, timedelta
 from accounts.models import User, UserActivity
@@ -317,6 +318,7 @@ def admin_dashboard_view(request):
     """Admin dashboard with full analytics"""
     
     today = timezone.now().date()
+    now = timezone.now()
     
     # Key metrics
     metrics = {
@@ -372,6 +374,109 @@ def admin_dashboard_view(request):
         ).count()
         user_counts.append(count)
     
+    # ========== PEAK HOURS CHART ==========
+    # Get hourly distribution of reservations (last 30 days)
+    thirty_days_ago = today - timedelta(days=30)
+    hourly_bookings = Reservation.objects.filter(
+        created_at__date__gte=thirty_days_ago,
+        status__in=['confirmed', 'completed', 'pending']
+    ).annotate(
+        hour=ExtractHour('start_time')
+    ).values('hour').annotate(
+        count=Count('id'),
+        revenue=Sum('total_amount')
+    ).order_by('hour')
+    
+    peak_hours_labels = []
+    peak_hours_counts = []
+    peak_hours_revenue = []
+    for h in range(8, 23):  # 8 AM to 10 PM
+        peak_hours_labels.append(f"{h}:00")
+        found = next((item for item in hourly_bookings if item['hour'] == h), None)
+        peak_hours_counts.append(found['count'] if found else 0)
+        peak_hours_revenue.append(float(found['revenue'] or 0) if found else 0)
+    
+    # ========== REVENUE TREND (last 14 days) ==========
+    fourteen_days_ago = today - timedelta(days=13)
+    daily_revenues = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=fourteen_days_ago
+    ).extra(
+        select={'day': 'DATE(created_at)'}
+    ).values('day').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('day')
+    
+    # Build 14-day array with zeros for days with no transactions
+    revenue_trend_labels = []
+    revenue_trend_values = []
+    booking_trend_values = []
+    for i in range(13, -1, -1):
+        day = today - timedelta(days=i)
+        revenue_trend_labels.append(day.strftime('%b %d'))
+        found = next((item for item in daily_revenues if item['day'] == day), None)
+        revenue_trend_values.append(float(found['total'] or 0) if found else 0)
+        booking_trend_values.append(found['count'] if found else 0)
+    
+    # ========== EQUIPMENT UTILIZATION ==========
+    total_equipment = Equipment.objects.filter(is_active=True).count()
+    total_capacity = Equipment.objects.filter(is_active=True).aggregate(
+        total=Sum('quantity_total')
+    )['total'] or 0
+    total_available = Equipment.objects.filter(is_active=True).aggregate(
+        total=Sum('quantity_available')
+    )['total'] or 0
+    total_rented = EquipmentRental.objects.filter(
+        status__in=['reserved', 'rented']
+    ).aggregate(total=Sum('quantity'))['total'] or 0
+    
+    # Most rented equipment
+    most_rented = EquipmentRental.objects.values(
+        'equipment__name', 'equipment__type'
+    ).annotate(
+        total_rented=Sum('quantity'),
+        total_revenue=Sum('rental_fee')
+    ).order_by('-total_rented')[:5]
+    
+    # Active rentals today
+    today_rentals = EquipmentRental.objects.filter(
+        created_at__date=today
+    ).count()
+    
+    equipment_utilization = {
+        'total_items': total_equipment,
+        'total_capacity': total_capacity,
+        'total_available': total_available,
+        'in_use': total_capacity - total_available,
+        'utilization_rate': round((total_capacity - total_available) / total_capacity * 100, 1) if total_capacity > 0 else 0,
+        'total_rented': total_rented,
+        'today_rentals': today_rentals,
+        'most_rented': most_rented,
+        'labels': [item['equipment__name'] for item in most_rented],
+        'counts': [item['total_rented'] for item in most_rented],
+    }
+    
+    # ========== REVENUE COMPARISON (this month vs last month) ==========
+    this_month_revenue = Payment.objects.filter(
+        status='paid',
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    last_month = today.month - 1 if today.month > 1 else 12
+    last_month_year = today.year if today.month > 1 else today.year - 1
+    last_month_revenue = Payment.objects.filter(
+        status='paid',
+        created_at__year=last_month_year,
+        created_at__month=last_month
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    revenue_growth = round(
+        ((this_month_revenue - last_month_revenue) / last_month_revenue * 100) if last_month_revenue > 0 else 0,
+        1
+    )
+    
     return render(request, 'admin/dashboard.html', {
         'metrics': metrics,
         'revenue_stats': revenue_stats,
@@ -380,7 +485,21 @@ def admin_dashboard_view(request):
         'recent_users': recent_users,
         'court_usage': court_usage,
         'months': months,
-        'user_counts': user_counts
+        'user_counts': user_counts,
+        # Peak hours
+        'peak_hours_labels': peak_hours_labels,
+        'peak_hours_counts': peak_hours_counts,
+        'peak_hours_revenue': peak_hours_revenue,
+        # Revenue trend
+        'revenue_trend_labels': revenue_trend_labels,
+        'revenue_trend_values': revenue_trend_values,
+        'booking_trend_values': booking_trend_values,
+        # Equipment utilization
+        'equipment_utilization': equipment_utilization,
+        # Revenue comparison
+        'this_month_revenue': this_month_revenue,
+        'last_month_revenue': last_month_revenue,
+        'revenue_growth': revenue_growth,
     })
 
 
@@ -2282,6 +2401,75 @@ def admin_reject_testimonial_view(request, testimonial_id):
     """DEPRECATED: Testimonials replaced by rating system"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
     return redirect('homepage_management')
+
+
+@login_required
+@admin_required
+def dashboard_export_view(request):
+    """Export dashboard analytics data as CSV"""
+    import csv
+    from django.http import HttpResponse
+
+    today = timezone.now().date()
+    thirty_days_ago = today - timedelta(days=30)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="dashboard_report_{today.isoformat()}.csv"'
+
+    writer = csv.writer(response)
+
+    # Header
+    writer.writerow(['PickleSphere Dashboard Report'])
+    writer.writerow([f'Generated: {timezone.now().strftime("%Y-%m-%d %H:%M")}'])
+    writer.writerow([])
+
+    # Key Metrics
+    writer.writerow(['KEY METRICS'])
+    writer.writerow(['Metric', 'Value'])
+    writer.writerow(['Total Users', User.objects.count()])
+    writer.writerow(['Active Users', User.objects.filter(is_active=True).count()])
+    writer.writerow(['Total Courts', Court.objects.filter(is_active=True).count()])
+    writer.writerow(['Total Reservations', Reservation.objects.exclude(status='cancelled').count()])
+    writer.writerow(['Today Reservations', Reservation.objects.filter(date=today).count()])
+    writer.writerow(['Pending Reservations', Reservation.objects.filter(status='pending').count()])
+    writer.writerow([])
+
+    # Revenue
+    writer.writerow(['REVENUE'])
+    writer.writerow(['Metric', 'Value'])
+    total_rev = Payment.objects.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    today_rev = Payment.objects.filter(status='paid', created_at__date=today).aggregate(Sum('amount'))['amount__sum'] or 0
+    writer.writerow(['Total Revenue', f'₱{total_rev:.2f}'])
+    writer.writerow(['Today Revenue', f'₱{today_rev:.2f}'])
+    writer.writerow([])
+
+    # Court Usage
+    writer.writerow(['COURT USAGE (Top 10)'])
+    writer.writerow(['Court', 'Reservations'])
+    court_usage_data = Reservation.objects.filter(
+        status__in=['confirmed', 'completed']
+    ).values('court__name').annotate(total=Count('id')).order_by('-total')[:10]
+    for item in court_usage_data:
+        writer.writerow([item['court__name'], item['total']])
+    writer.writerow([])
+
+    # Equipment
+    writer.writerow(['EQUIPMENT UTILIZATION'])
+    writer.writerow(['Metric', 'Value'])
+    total_cap = Equipment.objects.filter(is_active=True).aggregate(total=Sum('quantity_total'))['total'] or 0
+    total_avail = Equipment.objects.filter(is_active=True).aggregate(total=Sum('quantity_available'))['total'] or 0
+    writer.writerow(['Total Capacity', total_cap])
+    writer.writerow(['Currently Available', total_avail])
+    writer.writerow(['Currently In Use', total_cap - total_avail])
+    writer.writerow([])
+
+    # Recent Reservations
+    writer.writerow(['RECENT RESERVATIONS (Last 10)'])
+    writer.writerow(['ID', 'User', 'Court', 'Date', 'Status'])
+    for res in Reservation.objects.all().order_by('-created_at')[:10]:
+        writer.writerow([res.id, res.user.username, res.court.name, res.date, res.status])
+
+    return response
 
 
 @login_required

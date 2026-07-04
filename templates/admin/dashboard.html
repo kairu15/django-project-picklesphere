@@ -5,10 +5,33 @@
 {% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
+<!-- Quick Actions Row -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'admin_reservation_list' %}" class="btn btn-primary" style="border-radius: 10px;">
+                <i class="fas fa-calendar-check me-2"></i>Reservations
+            </a>
+            <a href="{% url 'admin_payments' %}" class="btn btn-success" style="border-radius: 10px;">
+                <i class="fas fa-money-bill-wave me-2"></i>Payments
+            </a>
+            <a href="{% url 'user_list' %}" class="btn btn-info" style="border-radius: 10px;">
+                <i class="fas fa-users me-2"></i>Users
+            </a>
+            <a href="{% url 'revenue_report' %}" class="btn btn-warning" style="border-radius: 10px;">
+                <i class="fas fa-chart-bar me-2"></i>Revenue Report
+            </a>
+            <a href="{% url 'dashboard_export' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                <i class="fas fa-download me-2"></i>Export CSV
+            </a>
+        </div>
+    </div>
+</div>
+
 <!-- Key Metrics Row -->
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100">
+        <div class="card stats-card h-100" style="animation-delay: 0.1s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-primary text-white me-3">
                     <i class="fas fa-users fa-lg"></i>
@@ -16,12 +39,13 @@
                 <div>
                     <div class="stats-value">{{ metrics.total_users }}</div>
                     <div class="stats-label text-muted">Total Users</div>
+                    <small class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ metrics.active_users }} active</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100">
+        <div class="card stats-card h-100" style="animation-delay: 0.2s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-success text-white me-3">
                     <i class="fas fa-calendar-check fa-lg"></i>
@@ -29,12 +53,13 @@
                 <div>
                     <div class="stats-value">{{ metrics.total_reservations }}</div>
                     <div class="stats-label text-muted">Total Reservations</div>
+                    <small class="text-info"><i class="fas fa-calendar-day me-1"></i>{{ metrics.today_reservations }} today</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100">
+        <div class="card stats-card h-100" style="animation-delay: 0.3s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-warning text-white me-3">
                     <i class="fas fa-map-marker-alt fa-lg"></i>
@@ -42,12 +67,13 @@
                 <div>
                     <div class="stats-value">{{ metrics.total_courts }}</div>
                     <div class="stats-label text-muted">Active Courts</div>
+                    <small class="text-muted"><i class="fas fa-check me-1"></i>All operational</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100">
+        <div class="card stats-card h-100" style="animation-delay: 0.4s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-primary text-white me-3">
                     <i class="fas fa-money-bill-wave fa-lg"></i>
@@ -55,182 +81,159 @@
                 <div>
                     <div class="stats-value">₱{{ revenue_stats.total_revenue|floatformat:0 }}</div>
                     <div class="stats-label text-muted">Total Revenue</div>
+                    <small class="text-success"><i class="fas fa-calendar-day me-1"></i>₱{{ revenue_stats.today_revenue|floatformat:0 }} today</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Secondary Metrics Row -->
+<!-- Revenue Growth + Month Comparison -->
 <div class="row g-4 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Today's Reservations</h6>
-                        <h4 class="fw-bold mb-0 text-success">{{ metrics.today_reservations }}</h4>
-                    </div>
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                        <i class="fas fa-calendar-day text-success fa-lg"></i>
-                    </div>
+    <div class="col-xl-6">
+        <div class="card stats-card h-100" style="animation-delay: 0.5s;">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-chart-line fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ this_month_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">This Month Revenue</div>
+                    <small class="{% if revenue_growth > 0 %}text-success{% elif revenue_growth < 0 %}text-danger{% else %}text-muted{% endif %}">
+                        <i class="fas fa-{% if revenue_growth > 0 %}arrow-up{% elif revenue_growth < 0 %}arrow-down{% else %}minus{% endif %} me-1"></i>
+                        {{ revenue_growth }}% vs last month (₱{{ last_month_revenue|floatformat:0 }})
+                    </small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Pending Approval</h6>
-                        <h4 class="fw-bold mb-0 text-warning">{{ metrics.pending_reservations }}</h4>
-                    </div>
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                        <i class="fas fa-clock text-warning fa-lg"></i>
-                    </div>
+        <div class="card stats-card h-100" style="animation-delay: 0.6s;">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.pending_reservations }}</div>
+                    <div class="stats-label text-muted">Pending Approval</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting action</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Today's Revenue</h6>
-                        <h4 class="fw-bold mb-0 text-primary">₱{{ revenue_stats.today_revenue|floatformat:0 }}</h4>
-                    </div>
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                        <i class="fas fa-coins text-primary fa-lg"></i>
-                    </div>
+        <div class="card stats-card h-100" style="animation-delay: 0.7s;">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-tools fa-lg"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Pending Payments</h6>
-                        <h4 class="fw-bold mb-0 text-danger">₱{{ revenue_stats.pending_amount|floatformat:0 }}</h4>
-                    </div>
-                    <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                        <i class="fas fa-wallet text-danger fa-lg"></i>
-                    </div>
+                <div>
+                    <div class="stats-value">{{ equipment_utilization.utilization_rate }}%</div>
+                    <div class="stats-label text-muted">Equipment Utilization</div>
+                    <small class="text-info"><i class="fas fa-boxes me-1"></i>{{ equipment_utilization.in_use }}/{{ equipment_utilization.total_capacity }} in use</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Data Tables Section -->
-<div class="row g-4">
-    <!-- Recent Reservations -->
-    <div class="col-lg-6">
-        <div class="admin-card h-100">
+<!-- Charts Row 1: User Registrations + Revenue Trend -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-6">
+        <div class="admin-card h-100" style="animation-delay: 0.9s;">
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
-                    <i class="fas fa-calendar-alt text-primary"></i>
-                    Recent Reservations
+                    <i class="fas fa-chart-line text-primary"></i>
+                    User Registrations (6 Months)
                 </h5>
-                <a href="{% url 'admin_reservation_list' %}" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-list me-1"></i>View All
-                </a>
             </div>
-            <div class="card-body p-0">
-                {% if recent_reservations %}
-                <div class="admin-table-container">
-                    <table class="table admin-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>User</th>
-                                <th>Court</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for reservation in recent_reservations %}
-                            <tr>
-                                <td class="fw-semibold">#{{ reservation.id }}</td>
-                                <td>{{ reservation.user.username }}</td>
-                                <td>{{ reservation.court.name }}</td>
-                                <td>{{ reservation.date|date:"M d, Y" }}</td>
-                                <td>
-                                    <span class="status-badge {{ reservation.status }}">
-                                        {{ reservation.get_status_display }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-calendar-alt fa-2x text-muted"></i>
-                    </div>
-                    <h5 class="empty-state-title">No reservations found</h5>
-                    <p class="empty-state-text">New reservations will appear here.</p>
-                </div>
-                {% endif %}
+            <div class="card-body">
+                <canvas id="userRegistrationChart" height="140"></canvas>
             </div>
         </div>
     </div>
-    
-    <!-- Recent Payments -->
-    <div class="col-lg-6">
-        <div class="admin-card h-100">
+    <div class="col-xl-6">
+        <div class="admin-card h-100" style="animation-delay: 0.9s;">
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
-                    <i class="fas fa-credit-card text-primary"></i>
-                    Recent Payments
+                    <i class="fas fa-chart-area text-success"></i>
+                    Revenue Trend (14 Days)
                 </h5>
-                <a href="{% url 'admin_payments' %}" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-list me-1"></i>View All
-                </a>
             </div>
-            <div class="card-body p-0">
-                {% if recent_payments %}
-                <div class="admin-table-container">
-                    <table class="table admin-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>User</th>
-                                <th>Amount</th>
-                                <th>Method</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in recent_payments %}
-                            <tr>
-                                <td class="fw-semibold">#{{ payment.id }}</td>
-                                <td>{{ payment.reservation.user.username }}</td>
-                                <td>₱{{ payment.amount|floatformat:2 }}</td>
-                                <td>{{ payment.get_method_display|default:"N/A" }}</td>
-                                <td>
-                                    <span class="status-badge {{ payment.status }}">
-                                        {{ payment.get_status_display }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-credit-card fa-2x text-muted"></i>
+            <div class="card-body">
+                <canvas id="revenueTrendChart" height="140"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2: Peak Hours + Equipment Utilization -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-7">
+        <div class="admin-card h-100" style="animation-delay: 1s;">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-clock text-warning"></i>
+                    Peak Hours Distribution (Last 30 Days)
+                </h5>
+                <span class="badge bg-primary">{{ peak_hours_counts|length }} hours</span>
+            </div>
+            <div class="card-body">
+                <canvas id="peakHoursChart" height="140"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="admin-card h-100" style="animation-delay: 1s;">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-tools text-info"></i>
+                    Equipment Utilization
+                </h5>
+                <span class="badge bg-info">{{ equipment_utilization.total_items }} items</span>
+            </div>
+            <div class="card-body">
+                <!-- Utilization Gauge -->
+                <div class="text-center mb-3">
+                    <div style="position: relative; display: inline-block;">
+                        <canvas id="utilizationGauge" width="140" height="140"></canvas>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div class="fw-bold fs-4" style="color: #3B7A8C;">{{ equipment_utilization.utilization_rate }}%</div>
+                            <small class="text-muted">in use</small>
+                        </div>
                     </div>
-                    <h5 class="empty-state-title">No payments found</h5>
-                    <p class="empty-state-text">Payment records will appear here.</p>
+                </div>
+                <!-- Quick Stats -->
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <div class="fw-bold">{{ equipment_utilization.total_capacity }}</div>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <div class="fw-bold text-success">{{ equipment_utilization.total_available }}</div>
+                            <small class="text-muted">Available</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <div class="fw-bold text-warning">{{ equipment_utilization.in_use }}</div>
+                            <small class="text-muted">In Use</small>
+                        </div>
+                    </div>
+                </div>
+                {% if equipment_utilization.most_rented %}
+                <hr>
+                <h6 class="fw-bold small text-muted text-uppercase mb-2">Most Rented Equipment</h6>
+                <div style="max-height: 120px; overflow-y: auto;">
+                    {% for item in equipment_utilization.most_rented %}
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <span><small>{{ item.equipment__name }}</small></span>
+                        <span class="badge bg-light text-dark border">{{ item.total_rented }} rentals</span>
+                    </div>
+                    {% endfor %}
                 </div>
                 {% endif %}
             </div>
@@ -238,10 +241,43 @@
     </div>
 </div>
 
-<!-- Court Usage Section -->
-<div class="row g-4 mt-2">
-    <div class="col-12">
-        <div class="admin-card">
+<!-- Row 3: Revenue Summary + Court Usage -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-4">
+        <div class="admin-card h-100" style="animation-delay: 0.9s;">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-wallet text-primary"></i>
+                    Revenue Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Total Revenue</span>
+                    <span class="fw-bold">₱{{ revenue_stats.total_revenue|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">This Month</span>
+                    <span class="fw-bold text-success">₱{{ revenue_stats.month_revenue|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Today</span>
+                    <span class="fw-bold text-info">₱{{ revenue_stats.today_revenue|floatformat:0 }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Confirmed</span>
+                    <span class="fw-bold text-success">{{ metrics.confirmed_reservations }}</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">Pending</span>
+                    <span class="fw-bold text-warning">{{ metrics.pending_reservations }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="admin-card h-100" style="animation-delay: 1.1s;">
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
                     <i class="fas fa-chart-bar text-primary"></i>
@@ -270,8 +306,8 @@
                                 <td>
                                     <span class="badge bg-info">{{ court.total }}</span>
                                 </td>
-                                <td style="width: 30%;">
-                                    <div class="progress progress-thin">
+                                <td style="width: 40%;">
+                                    <div class="progress" style="height: 8px; border-radius: 4px;">
                                         <div class="progress-bar bg-primary court-utilization-bar" role="progressbar"
                                              data-court-total="{{ court.total }}"
                                              data-total-reservations="{{ metrics.total_reservations }}"></div>
@@ -296,14 +332,319 @@
     </div>
 </div>
 
+<!-- Recent Data Section -->
+<div class="row g-4 mb-4">
+    <!-- Recent Reservations -->
+    <div class="col-lg-6">
+        <div class="admin-card h-100" style="animation-delay: 1s;">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                    Recent Reservations
+                </h5>
+                <a href="{% url 'admin_reservation_list' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_reservations %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Court</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in recent_reservations %}
+                            <tr>
+                                <td class="fw-semibold"><span class="badge bg-light text-dark">#{{ reservation.id }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
+                                            {{ reservation.user.username|first|upper }}
+                                        </div>
+                                        <span>{{ reservation.user.username }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ reservation.court.name }}</td>
+                                <td><small>{{ reservation.date|date:"M d, Y" }}</small></td>
+                                <td>
+                                    <span class="status-badge {{ reservation.status }}">
+                                        {% if reservation.status == 'confirmed' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
+                                        {{ reservation.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-calendar-alt fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No reservations found</h5>
+                    <p class="empty-state-text">New reservations will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Payments -->
+    <div class="col-lg-6">
+        <div class="admin-card h-100" style="animation-delay: 1s;">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-credit-card text-primary"></i>
+                    Recent Payments
+                </h5>
+                <a href="{% url 'admin_payments' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_payments %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td class="fw-semibold"><span class="badge bg-light text-dark">#{{ payment.id }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
+                                            {{ payment.reservation.user.username|first|upper }}
+                                        </div>
+                                        <span>{{ payment.reservation.user.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="fw-semibold">₱{{ payment.amount|floatformat:2 }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ payment.get_method_display|default:"N/A" }}</span></td>
+                                <td>
+                                    <span class="status-badge {{ payment.status }}">
+                                        {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
+                                        {{ payment.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-credit-card fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No payments found</h5>
+                    <p class="empty-state-text">Payment records will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Calculate and set court utilization progress bars
+// Calculate court utilization progress bars
 document.querySelectorAll('.court-utilization-bar').forEach(function(bar) {
     var courtTotal = parseInt(bar.getAttribute('data-court-total')) || 0;
     var totalReservations = parseInt(bar.getAttribute('data-total-reservations')) || 0;
     var percentage = totalReservations > 0 ? (courtTotal / totalReservations * 100) : 0;
-    bar.style.width = percentage + '%';
+    bar.style.width = Math.min(percentage, 100) + '%';
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart default colors
+    const primaryColor = '#3B7A8C';
+    const successColor = '#28a745';
+    const warningColor = '#ffc107';
+    const dangerColor = '#dc3545';
+    const infoColor = '#17a2b8';
+
+    // ===== 1. User Registration Chart =====
+    var months = {{ months|safe }};
+    var userCounts = {{ user_counts|safe }};
+    var ctx = document.getElementById('userRegistrationChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'New Users',
+                    data: userCounts,
+                    borderColor: primaryColor,
+                    backgroundColor: 'rgba(59, 122, 140, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: primaryColor,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+
+    // ===== 2. Revenue Trend Chart (14 days) =====
+    var revLabels = {{ revenue_trend_labels|safe }};
+    var revValues = {{ revenue_trend_values|safe }};
+    var bookingValues = {{ booking_trend_values|safe }};
+    var revCtx = document.getElementById('revenueTrendChart');
+    if (revCtx) {
+        new Chart(revCtx, {
+            type: 'bar',
+            data: {
+                labels: revLabels,
+                datasets: [
+                    {
+                        label: 'Revenue (₱)',
+                        data: revValues,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: successColor,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Bookings',
+                        data: bookingValues,
+                        type: 'line',
+                        borderColor: primaryColor,
+                        backgroundColor: 'rgba(59, 122, 140, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: primaryColor,
+                        pointRadius: 3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } } },
+                scales: {
+                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Revenue (₱)' } },
+                    y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Bookings' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // ===== 3. Peak Hours Chart =====
+    var peakLabels = {{ peak_hours_labels|safe }};
+    var peakCounts = {{ peak_hours_counts|safe }};
+    var peakRevenue = {{ peak_hours_revenue|safe }};
+    var peakCtx = document.getElementById('peakHoursChart');
+    if (peakCtx) {
+        new Chart(peakCtx, {
+            type: 'bar',
+            data: {
+                labels: peakLabels,
+                datasets: [
+                    {
+                        label: 'Bookings',
+                        data: peakCounts,
+                        backgroundColor: peakCounts.map(function(v) {
+                            var max = Math.max.apply(null, peakCounts);
+                            return v === max ? 'rgba(220, 53, 69, 0.8)' : 'rgba(59, 122, 140, 0.6)';
+                        }),
+                        borderColor: peakCounts.map(function(v) {
+                            var max = Math.max.apply(null, peakCounts);
+                            return v === max ? dangerColor : primaryColor;
+                        }),
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Revenue (₱)',
+                        data: peakRevenue,
+                        type: 'line',
+                        borderColor: successColor,
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: successColor,
+                        pointRadius: 3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } },
+                    tooltip: {
+                        callbacks: {
+                            afterTitle: function(items) {
+                                var idx = items[0].dataIndex;
+                                return 'Revenue: ₱' + peakRevenue[idx].toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Bookings' }, ticks: { stepSize: 1 } },
+                    y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Revenue (₱)' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // ===== 4. Equipment Utilization Doughnut =====
+    var utilCtx = document.getElementById('utilizationGauge');
+    if (utilCtx) {
+        var inUse = {{ equipment_utilization.in_use }};
+        var available = {{ equipment_utilization.total_available }};
+        new Chart(utilCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['In Use', 'Available'],
+                datasets: [{
+                    data: [inUse, available],
+                    backgroundColor: [infoColor, '#e9ecef'],
+                    borderWidth: 0,
+                    cutout: '75%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false }, tooltip: { enabled: true } }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
-

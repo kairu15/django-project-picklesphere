@@ -67,6 +67,49 @@
     </div>
 </div>
 
+<!-- Filter Bar -->
+<div class="filter-bar animate-fadeInUp" style="animation-delay: 0.4s;">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-filter me-1"></i>Status</label>
+            <select name="status" class="form-select" style="border-radius: 10px;">
+                <option value="">All Status</option>
+                <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>Refunded</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-credit-card me-1"></i>Method</label>
+            <select name="method" class="form-select" style="border-radius: 10px;">
+                <option value="">All Methods</option>
+                <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
+                <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-calendar me-1"></i>From</label>
+            <input type="date" name="date_from" class="form-control" value="{{ date_from }}" style="border-radius: 10px;">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-calendar me-1"></i>To</label>
+            <input type="date" name="date_to" class="form-control" value="{{ date_to }}" style="border-radius: 10px;">
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+        <div class="col-md-2">
+            {% if status_filter or method_filter or date_from or date_to %}
+            <a href="{% url 'staff_payments' %}" class="btn btn-outline-secondary w-100" style="border-radius: 10px;">
+                <i class="fas fa-times me-1"></i> Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
 
 <!-- Payments Table -->
 <div class="staff-card animate-fadeInUp" style="animation-delay: 0.1s;">
@@ -78,13 +121,13 @@
             <table class="staff-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th><a href="?sort_by=id&amp;sort_order={% if sort_by == 'id' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}" class="sort-link">ID {% if sort_by == 'id' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>{% elif sort_by == '-id' %}<i class="fas fa-sort-down"></i>{% endif %}</a></th>
                         <th>User</th>
                         <th>Reservation</th>
-                        <th>Amount</th>
-                        <th>Method</th>
-                        <th>Status</th>
-                        <th>Date</th>
+                        <th><a href="?sort_by=amount&amp;sort_order={% if sort_by == 'amount' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}" class="sort-link">Amount {% if sort_by == 'amount' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>{% elif sort_by == '-amount' %}<i class="fas fa-sort-down"></i>{% endif %}</a></th>
+                        <th><a href="?sort_by=method&amp;sort_order={% if sort_by == 'method' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}" class="sort-link">Method {% if sort_by == 'method' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>{% elif sort_by == '-method' %}<i class="fas fa-sort-down"></i>{% endif %}</a></th>
+                        <th><a href="?sort_by=status&amp;sort_order={% if sort_by == 'status' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}" class="sort-link">Status {% if sort_by == 'status' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>{% elif sort_by == '-status' %}<i class="fas fa-sort-down"></i>{% endif %}</a></th>
+                        <th><a href="?sort_by=created_at&amp;sort_order={% if sort_by == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}" class="sort-link">Date {% if sort_by == 'created_at' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>{% elif sort_by == '-created_at' %}<i class="fas fa-sort-down"></i>{% endif %}</a></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -144,6 +187,35 @@
                 </tbody>
             </table>
         </div>
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="px-3 py-3 border-top">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}{% if sort_by %}&amp;sort_by={{ sort_by }}{% endif %}{% if sort_order %}&amp;sort_order={{ sort_order }}{% endif %}"><i class="fas fa-angle-double-left"></i></a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}{% if sort_by %}&amp;sort_by={{ sort_by }}{% endif %}{% if sort_order %}&amp;sort_order={{ sort_order }}{% endif %}"><i class="fas fa-angle-left"></i></a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}{% if sort_by %}&amp;sort_by={{ sort_by }}{% endif %}{% if sort_order %}&amp;sort_order={{ sort_order }}{% endif %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}{% if sort_by %}&amp;sort_by={{ sort_by }}{% endif %}{% if sort_order %}&amp;sort_order={{ sort_order }}{% endif %}"><i class="fas fa-angle-right"></i></a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}{% if method_filter %}&amp;method={{ method_filter }}{% endif %}{% if date_from %}&amp;date_from={{ date_from }}{% endif %}{% if date_to %}&amp;date_to={{ date_to }}{% endif %}{% if sort_by %}&amp;sort_by={{ sort_by }}{% endif %}{% if sort_order %}&amp;sort_order={{ sort_order }}{% endif %}"><i class="fas fa-angle-double-right"></i></a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

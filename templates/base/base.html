@@ -1915,6 +1915,62 @@
             }
         }
 
+        /* ===== ENHANCED DESIGN ADDITIONS - Loading, Skeleton, Scrollbar ===== */
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            backdrop-filter: blur(4px);
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .loading-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .loading-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer-loading 1.5s infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes shimmer-loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Inline Loading Spinner */
+        .spinner-sm {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        
         /* Enhanced Selection */
         ::selection {
             background: var(--primary-color);
@@ -1925,6 +1981,274 @@
         *:focus-visible {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
+        }
+        
+        /* Focus ring for interactive elements */
+        a:focus-visible,
+        button:focus-visible,
+        .btn:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        
+        /* Enhanced scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.15);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.25);
+        }
+        
+        /* ===== ENHANCED TRANSITIONS & HOVER EFFECTS ===== */
+        .hover-lift {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .hover-glow:hover {
+            box-shadow: 0 0 20px rgba(59,122,140,0.2);
+        }
+        
+        /* ===== STEPPER/PROGRESS INDICATOR ===== */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        .stepper-step:not(:last-child)::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: #e0e0e0;
+            margin: 0 12px;
+        }
+        .stepper-step.active:not(:last-child)::after {
+            background: var(--primary-color);
+        }
+        .stepper-step.completed:not(:last-child)::after {
+            background: var(--success-color);
+        }
+        .stepper-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: #e0e0e0;
+            color: #666;
+            flex-shrink: 0;
+        }
+        .stepper-step.active .stepper-number {
+            background: var(--primary-color);
+            color: white;
+        }
+        .stepper-step.completed .stepper-number {
+            background: var(--success-color);
+            color: white;
+        }
+        .stepper-label {
+            font-size: 0.8125rem;
+            color: #999;
+        }
+        .stepper-step.active .stepper-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .stepper-step.completed .stepper-label {
+            color: var(--success-color);
+        }
+        
+        /* ===== ENHANCED ALERT TOAST ANIMATIONS ===== */
+        .toast-enter {
+            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast-exit {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        /* ===== SKELETON LOADING STATES ===== */
+        .skeleton-text {
+            height: 14px;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        .skeleton-text:last-child {
+            width: 60%;
+        }
+        .skeleton-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        .skeleton-card {
+            height: 150px;
+            border-radius: var(--border-radius);
+            background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        
+        /* ===== SEARCH INPUT ENHANCEMENTS ===== */
+        .search-wrapper {
+            position: relative;
+        }
+        .search-wrapper .form-control {
+            padding-left: 40px;
+        }
+        .search-wrapper .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 0.875rem;
+            pointer-events: none;
+        }
+        .search-wrapper .clear-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            display: none;
+            padding: 4px;
+            font-size: 0.75rem;
+        }
+        .search-wrapper .form-control:not(:placeholder-shown) ~ .clear-btn {
+            display: block;
+        }
+        
+        /* ===== TAB BADGE ===== */
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        
+        /* ===== FILTER PILLS ===== */
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            border: 1px solid #e0e0e0;
+            background: white;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .filter-pill:hover {
+            border-color: var(--primary-color);
+            background: rgba(59,122,140,0.05);
+        }
+        .filter-pill.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* ===== RESPONSIVE TABLE ENHANCEMENTS ===== */
+        .table-responsive-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        @media (max-width: 767.98px) {
+            .table-card thead {
+                display: none !important;
+            }
+            .table-card tbody tr {
+                display: block !important;
+                margin-bottom: 12px !important;
+                border: 1px solid var(--border-color) !important;
+                border-radius: 10px !important;
+                background: white !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+            }
+            .table-card tbody td {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 10px 14px !important;
+                text-align: right !important;
+                border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+            }
+            .table-card tbody td:last-child {
+                border-bottom: none !important;
+            }
+            .table-card tbody td::before {
+                content: attr(data-label);
+                float: left !important;
+                font-weight: 600 !important;
+                text-transform: uppercase !important;
+                font-size: 0.6875rem !important;
+                color: var(--text-muted) !important;
+                letter-spacing: 0.5px !important;
+            }
+        }
+        
+        /* ===== TOUCH FRIENDLY TOOLTIP ===== */
+        .touch-tooltip {
+            position: relative;
+            display: inline-flex;
+        }
+        .touch-tooltip .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+        .touch-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
 
         /* Normalized Display Headings - Web/App Standard Sizes */

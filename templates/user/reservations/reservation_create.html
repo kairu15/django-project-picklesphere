@@ -4,276 +4,2032 @@
 {% block title %}Reserve a Court{% endblock %}
 {% block page_title %}Reserve a Court{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== STEPPER ===== */
+.wizard-stepper {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 2rem;
+    position: relative;
+}
+.wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: #f8f9fa;
+    position: relative;
+    flex: 1;
+    max-width: 220px;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+.wizard-step:first-child {
+    border-radius: 12px 0 0 12px;
+}
+.wizard-step:last-child {
+    border-radius: 0 12px 12px 0;
+}
+.wizard-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: #f8f9fa;
+    border-radius: 0 4px 0 0;
+    z-index: 1;
+    clip-path: polygon(0 0, 0% 100%, 100% 50%);
+}
+.wizard-step.active {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: white;
+}
+.wizard-step.active::after {
+    background: #3B7A8C;
+}
+.wizard-step.completed {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.wizard-step.completed::after {
+    background: #e8f5e9;
+}
+.wizard-step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+.wizard-step.active .wizard-step-number {
+    background: rgba(255,255,255,0.25);
+    color: white;
+}
+.wizard-step.completed .wizard-step-number {
+    background: #4caf50;
+    color: white;
+}
+.wizard-step-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* ===== STEP SECTIONS ===== */
+.step-section {
+    display: none;
+    animation: fadeSlideIn 0.4s ease forwards;
+}
+.step-section.active {
+    display: block;
+}
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== CALENDAR ===== */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.calendar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+.calendar-nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.calendar-nav-btn:hover {
+    background: #f8f9fa;
+    border-color: #3B7A8C;
+    color: #3B7A8C;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 0.5rem;
+}
+.calendar-day-header {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6c757d;
+    padding: 0.5rem 0;
+    text-transform: uppercase;
+}
+.calendar-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    position: relative;
+}
+.calendar-day:hover:not(.past):not(.other-month) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.calendar-day.available {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.calendar-day.available:hover {
+    background: #c8e6c9;
+}
+.calendar-day.full {
+    background: #ffebee;
+    color: #c62828;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.calendar-day.past {
+    background: #f5f5f5;
+    color: #bdbdbd;
+    cursor: not-allowed;
+}
+.calendar-day.other-month {
+    visibility: hidden;
+}
+.calendar-day.selected {
+    border-color: #3B7A8C;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(59,122,140,0.4);
+}
+.calendar-day.selected .slot-dot {
+    background: rgba(255,255,255,0.7);
+}
+.calendar-day.today:not(.selected) {
+    border-color: #3B7A8C;
+    border-style: dashed;
+}
+.slot-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-top: 2px;
+}
+.slot-dot.available {
+    background: #4caf50;
+}
+.slot-dot.full {
+    background: #e53935;
+}
+.slot-count {
+    font-size: 0.6rem;
+    font-weight: 700;
+    margin-top: 1px;
+}
+
+/* ===== TIME SLOTS ===== */
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.time-slots-grid::-webkit-scrollbar {
+    width: 4px;
+}
+.time-slots-grid::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+.time-slot-card {
+    border: 2px solid #e8f5e9;
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f1f8e9;
+}
+.time-slot-card:hover:not(.occupied) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.time-slot-card.occupied {
+    border-color: #ffcdd2;
+    background: #ffebee;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.time-slot-card.selected {
+    border-color: #3B7A8C;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59,122,140,0.3);
+}
+.time-slot-time {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+.time-slot-status {
+    font-size: 0.7rem;
+    margin-top: 2px;
+}
+
+/* ===== CONFIRMATION CARD ===== */
+.confirm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.confirm-row:last-child {
+    border-bottom: none;
+}
+.confirm-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.confirm-value {
+    font-weight: 600;
+    text-align: right;
+}
+.price-breakdown {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+/* ===== EQUIPMENT SELECTION ===== */
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+.equipment-card {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.equipment-card:hover {
+    border-color: #3B7A8C;
+}
+.equipment-card.selected {
+    border-color: #3B7A8C;
+    background: rgba(59,122,140,0.05);
+    box-shadow: 0 2px 8px rgba(59,122,140,0.15);
+}
+.equipment-check {
+    display: none;
+}
+.equipment-card.selected .equipment-check {
+    display: inline;
+}
+
+/* ===== ANIMATIONS ===== */
+.step-transition {
+    animation: fadeSlideIn 0.4s ease forwards;
+}
+
+/* ===== SKIP TO REVIEW BANNER ===== */
+.skip-banner {
+    display: none;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: 1px solid #a5d6a7;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    animation: fadeSlideIn 0.4s ease forwards;
+}
+.skip-banner.show {
+    display: flex;
+}
+.skip-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: #2e7d32;
+}
+.skip-banner-text i {
+    font-size: 1.1rem;
+}
+.skip-banner-link {
+    white-space: nowrap;
+    font-weight: 600;
+    background: #2e7d32;
+    color: white !important;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    border: none;
+}
+.skip-banner-link:hover {
+    background: #1b5e20;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(46,125,50,0.3);
+}
+.skip-banner-dismiss {
+    background: none;
+    border: none;
+    color: #558b2f;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.skip-banner-dismiss:hover {
+    background: rgba(0,0,0,0.08);
+}
+
+@media (max-width: 576px) {
+    .skip-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+    .skip-banner-text {
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== VERIFICATION ALERT ===== */
+.slot-verification-alert {
+    display: none;
+    animation: fadeSlideIn 0.3s ease forwards;
+}
+.slot-verification-alert.show {
+    display: flex;
+}
+.slot-verification-alert .btn-sm {
+    white-space: nowrap;
+}
+
+/* ===== SUBMIT OVERLAY ===== */
+.submit-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    animation: overlayFadeIn 0.25s ease forwards;
+}
+.submit-overlay.active {
+    display: flex;
+    cursor: wait;
+}
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.submit-overlay-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem 3rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: overlayCardIn 0.35s ease forwards;
+    max-width: 90vw;
+}
+@keyframes overlayCardIn {
+    from { opacity: 0; transform: scale(0.9) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.submit-overlay-spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid #e8f5e9;
+    border-top-color: #28a745;
+    border-radius: 50%;
+    animation: spinner 0.8s linear infinite;
+    margin: 0 auto 1.25rem;
+}
+@keyframes spinner {
+    to { transform: rotate(360deg); }
+}
+.submit-overlay-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a3a42;
+    margin-bottom: 0.35rem;
+}
+.submit-overlay-sub {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+.submit-overlay-progress {
+    margin-top: 1.25rem;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.submit-overlay-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 2px;
+    animation: progressAnim 2s ease-in-out infinite;
+}
+@keyframes progressAnim {
+    0% { width: 0%; margin-left: 0; }
+    50% { width: 70%; margin-left: 0; }
+    100% { width: 0%; margin-left: 100%; }
+}
+
+@media (max-width: 480px) {
+    .submit-overlay-card {
+        padding: 1.5rem 1.5rem;
+    }
+    .submit-overlay-spinner {
+        width: 44px;
+        height: 44px;
+        border-width: 3px;
+        margin-bottom: 1rem;
+    }
+    .submit-overlay-title {
+        font-size: 1rem;
+    }
+    .submit-overlay-sub {
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== SWIPE ANIMATION ===== */
+.calendar-grid {
+    will-change: transform, opacity;
+    touch-action: pan-y;
+}
+.calendar-grid.swipe-settling {
+    transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.35s ease;
+}
+
+/* ===== AVAILABILITY LEGEND ===== */
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* ===== RESPONSIVE: TABLETS & BELOW ===== */
+@media (max-width: 768px) {
+    .wizard-step {
+        padding: 0.5rem 0.75rem;
+        max-width: none;
+    }
+    .wizard-step-label {
+        font-size: 0.7rem;
+    }
+    .wizard-step-number {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+    .time-slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-height: 260px;
+    }
+    .calendar-grid {
+        gap: 2px;
+    }
+    .calendar-day {
+        font-size: 0.8rem;
+    }
+}
+
+/* ===== RESPONSIVE: LARGE PHONES (576px & BELOW) ===== */
+@media (max-width: 576px) {
+    .wizard-step {
+        padding: 0.4rem 0.5rem;
+        gap: 0.4rem;
+    }
+    .wizard-step:not(:last-child)::after {
+        right: -8px;
+        width: 16px;
+        height: 16px;
+    }
+    .wizard-step-label {
+        font-size: 0.6rem;
+    }
+    .wizard-step-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+    }
+    .calendar-grid {
+        gap: 2px;
+    }
+    .calendar-day-header {
+        font-size: 0.65rem;
+        padding: 0.35rem 0;
+    }
+    .calendar-day {
+        font-size: 0.8rem;
+        border-radius: 8px;
+        border-width: 1.5px;
+    }
+    .calendar-day.selected {
+        border-width: 2px;
+    }
+    .slot-dot {
+        width: 4px;
+        height: 4px;
+        margin-top: 1px;
+    }
+    .time-slots-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        max-height: 240px;
+    }
+    .time-slot-card {
+        padding: 0.5rem;
+    }
+    .time-slot-time {
+        font-size: 0.8rem;
+    }
+    .equipment-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+    .calendar-title {
+        font-size: 0.95rem;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+/* ===== RESPONSIVE: SMALL PHONES (480px & BELOW) ===== */
+@media (max-width: 480px) {
+    .wizard-stepper {
+        gap: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+    }
+    .wizard-stepper::-webkit-scrollbar {
+        display: none;
+    }
+    .wizard-step {
+        flex: 0 0 auto;
+        padding: 0.4rem 0.6rem;
+        gap: 0.3rem;
+        min-width: 0;
+    }
+    .wizard-step:not(:last-child)::after {
+        right: -6px;
+        width: 12px;
+        height: 12px;
+    }
+    .wizard-step-label {
+        font-size: 0.55rem;
+    }
+    .wizard-step-number {
+        width: 18px;
+        height: 18px;
+        font-size: 0.55rem;
+    }
+
+    .calendar-grid {
+        gap: 2px;
+    }
+    .calendar-day {
+        min-height: 38px;
+        aspect-ratio: auto;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        border-width: 1.5px;
+        padding: 1px;
+    }
+    .calendar-day.selected {
+        border-width: 2px;
+    }
+    .calendar-day:hover:not(.past):not(.other-month) {
+        transform: none;
+        box-shadow: none;
+    }
+    .calendar-day.available:hover {
+        background: #e8f5e9;
+    }
+    .calendar-day-header {
+        font-size: 0.6rem;
+        padding: 0.25rem 0;
+    }
+    .slot-dot {
+        width: 3px;
+        height: 3px;
+        margin-top: 1px;
+    }
+    .slot-count {
+        font-size: 0.5rem;
+    }
+
+    .calendar-title {
+        font-size: 0.9rem;
+    }
+    .calendar-nav-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+    }
+
+    .time-slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.35rem;
+        max-height: 220px;
+    }
+    .time-slot-card {
+        padding: 0.45rem;
+        border-radius: 8px;
+        border-width: 1.5px;
+    }
+    .time-slot-time {
+        font-size: 0.75rem;
+    }
+    .time-slot-status {
+        font-size: 0.6rem;
+    }
+
+    .equipment-grid {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+    }
+    .equipment-card {
+        padding: 0.6rem;
+        border-radius: 8px;
+    }
+
+    .confirm-row {
+        padding: 0.5rem 0;
+        font-size: 0.85rem;
+    }
+    .confirm-label {
+        font-size: 0.8rem;
+    }
+    .confirm-value {
+        font-size: 0.85rem;
+    }
+    .price-breakdown {
+        padding: 0.75rem;
+        border-radius: 10px;
+    }
+
+    .card-body {
+        padding: 0.75rem;
+    }
+    .card-header {
+        padding: 0.75rem !important;
+    }
+
+    /* Stack date display vertically on very small screens */
+    #selected-date-display {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.4rem;
+    }
+    #selected-date-display .btn {
+        align-self: flex-end;
+    }
+
+    /* Stack action buttons */
+    .d-flex.justify-content-between.mt-4 {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .d-flex.justify-content-between.mt-4 .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    /* Full-width confirm button */
+    .btn-success.px-5 {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+    }
+
+    /* Legend compact */
+    .d-flex.gap-3.flex-wrap {
+        gap: 0.5rem !important;
+    }
+    .d-flex.gap-3.flex-wrap small {
+        font-size: 0.65rem;
+    }
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+/* ===== RESPONSIVE: VERY SMALL PHONES (360px & BELOW) ===== */
+@media (max-width: 360px) {
+    .wizard-step {
+        padding: 0.3rem 0.4rem;
+    }
+    .wizard-step-label {
+        font-size: 0.5rem;
+    }
+    .wizard-step-number {
+        width: 16px;
+        height: 16px;
+        font-size: 0.5rem;
+    }
+
+    .calendar-grid {
+        gap: 1px;
+    }
+    .calendar-day {
+        min-height: 32px;
+        font-size: 0.65rem;
+        border-radius: 4px;
+    }
+    .calendar-day-header {
+        font-size: 0.5rem;
+        padding: 0.2rem 0;
+    }
+    .slot-dot {
+        display: none;
+    }
+
+    .calendar-title {
+        font-size: 0.8rem;
+    }
+    .calendar-nav-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+    }
+
+    .time-slots-grid {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+        max-height: 200px;
+    }
+    .time-slot-card {
+        padding: 0.4rem;
+    }
+
+    .equipment-grid {
+        gap: 0.3rem;
+    }
+    .equipment-card {
+        padding: 0.5rem;
+    }
+
+    .card-body {
+        padding: 0.6rem;
+    }
+
+    .confirm-row {
+        padding: 0.4rem 0;
+        font-size: 0.8rem;
+    }
+
+    .d-flex.justify-content-between.mt-4 .btn {
+        font-size: 0.8rem;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Always show slot availability info on far right of cards */
+    .time-slot-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        padding: 0.4rem 0.6rem;
+    }
+    .time-slot-time {
+        font-size: 0.8rem;
+    }
+    .time-slot-status {
+        margin-top: 0;
+        font-size: 0.65rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
             <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
                 <div class="d-flex align-items-center">
                     <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-calendar-check fa-lg text-white"></i>
                     </div>
                     <div class="ms-3">
-                        <h5 class="mb-0 fw-bold">Reservation Details</h5>
-                        <p class="mb-0 opacity-75">Select your court and time slot</p>
+                        <h5 class="mb-0 fw-bold">Reserve a Court</h5>
+                        <p class="mb-0 opacity-75">Follow the steps below to book your court</p>
                     </div>
                 </div>
             </div>
             <div class="card-body p-4">
-                <form method="post" action="{% url 'reservation_create' %}">
+
+                <!-- ===== STEPPER ===== -->
+                <div class="wizard-stepper">
+                    <div class="wizard-step active" id="step-indicator-1">
+                        <span class="wizard-step-number">1</span>
+                        <span class="wizard-step-label">Court &amp; Date</span>
+                    </div>
+                    <div class="wizard-step" id="step-indicator-2">
+                        <span class="wizard-step-number">2</span>
+                        <span class="wizard-step-label">Time &amp; Equipment</span>
+                    </div>
+                    <div class="wizard-step" id="step-indicator-3">
+                        <span class="wizard-step-number">3</span>
+                        <span class="wizard-step-label">Review &amp; Confirm</span>
+                    </div>
+                </div>
+
+                <!-- ===== SKIP TO REVIEW BANNER ===== -->
+                <div class="skip-banner" id="skip-banner">
+                    <div class="skip-banner-text">
+                        <i class="fas fa-check-circle"></i>
+                        <span>You already have a booking in progress.</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="skip-banner-link" id="skip-to-step-3">
+                            Skip to Review <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="button" class="skip-banner-dismiss" id="skip-banner-dismiss" title="Dismiss">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'reservation_create' %}" id="reservation-form">
                     {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Select Court <span class="text-danger">*</span></label>
-                        {{ form.court }}
-                        {% if form.court.errors %}
-                            <div class="text-danger small mt-1">{{ form.court.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+                    <!-- ===================== STEP 1: COURT & DATE ===================== -->
+                    <div class="step-section active" id="step-1">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-map-marker-alt text-primary me-2"></i>Choose Your Court</h5>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold"><i class="fas fa-calendar me-2 text-primary"></i>Date <span class="text-danger">*</span></label>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Select a court</label>
+                            <!-- Hidden native select (for form submission) -->
+                            <select name="court" id="{{ form.court.id_for_label }}" class="d-none">
+                                <option value="">—— Select a court ——</option>
+                                {% for court_choice in form.court.field.queryset %}
+                                <option value="{{ court_choice.id }}"
+                                    data-rate="{{ court_choice.hourly_rate|floatformat:0 }}"
+                                    data-description="{{ court_choice.description|default:''|escape }}"
+                                    data-amenities='{{ court_choice.amenities|safe }}'
+                                    data-type="{{ court_choice.court_type }}"
+                                    data-site="{{ court_choice.site.name }}"
+                                    {% if form.court.value|add:'0' == court_choice.id %} selected{% endif %}>
+                                    {{ court_choice.name }} ({{ court_choice.site.name }}) — ₱{{ court_choice.hourly_rate|floatformat:0 }}/hr
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <!-- Custom dropdown -->
+                            <div class="court-select-wrapper" id="court-select-wrapper">
+                                <button type="button" class="court-select-trigger" id="court-select-trigger">
+                                    <span class="court-select-text" id="court-select-text">—— Select a court ——</span>
+                                    <i class="fas fa-chevron-down court-select-arrow"></i>
+                                </button>
+                                <div class="court-dropdown" id="court-dropdown">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+
+                            {% if form.court.errors %}
+                                <div class="text-danger small mt-1">{{ form.court.errors.0 }}</div>
+                            {% endif %}
+
+                            <!-- Court detail tooltip -->
+                            <div class="court-tooltip" id="court-tooltip">
+                                <div class="court-tooltip-arrow"></div>
+                                <div class="court-tooltip-body">
+                                    <div class="court-tooltip-header">
+                                        <strong class="court-tooltip-name"></strong>
+                                        <span class="court-tooltip-type-badge"></span>
+                                    </div>
+                                    <div class="court-tooltip-desc"></div>
+                                    <div class="court-tooltip-amenities-section">
+                                        <small class="text-muted fw-semibold">Amenities</small>
+                                        <div class="court-tooltip-amenities-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="fw-bold mb-3"><i class="fas fa-calendar-alt text-primary me-2"></i>Pick Your Date</h5>
+
+                        <!-- Monthly Calendar -->
+                        <div class="mb-3">
+                            <div class="calendar-header">
+                                <button type="button" class="calendar-nav-btn" id="prev-month" aria-label="Previous month">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="calendar-title" id="calendar-title"></span>
+                                <button type="button" class="calendar-nav-btn" id="next-month" aria-label="Next month">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="calendar-grid" id="calendar-grid">
+                                <div class="calendar-day-header">Sun</div>
+                                <div class="calendar-day-header">Mon</div>
+                                <div class="calendar-day-header">Tue</div>
+                                <div class="calendar-day-header">Wed</div>
+                                <div class="calendar-day-header">Thu</div>
+                                <div class="calendar-day-header">Fri</div>
+                                <div class="calendar-day-header">Sat</div>
+                            </div>
+                            <!-- Legend -->
+                            <div class="d-flex gap-3 mt-2 flex-wrap">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="legend-dot" style="background:#4caf50;"></span>
+                                    <small class="text-muted">Available</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="legend-dot" style="background:#e53935;"></span>
+                                    <small class="text-muted">Fully Booked</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="legend-dot" style="background:#e0e0e0;"></span>
+                                    <small class="text-muted">Past</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden date input (synced with calendar selection) -->
                         {{ form.date }}
+                        <input type="hidden" id="calendar-date-store" value="">
+
                         {% if form.date.errors %}
                             <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
                         {% endif %}
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-primary px-4" id="step-1-next" disabled style="border-radius: 10px;">
+                                Next Step <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Hidden time fields -->
-                    {{ form.start_time }}
-                    {{ form.end_time }}
-                    {{ form.time_slot }}
+                    <!-- ===================== STEP 2: TIME & EQUIPMENT ===================== -->
+                    <div class="step-section" id="step-2">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-clock text-primary me-2"></i>Select Time Slot</h5>
 
-                    <!-- Time Slot Selection -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold"><i class="fas fa-clock me-2 text-primary"></i>Select Time Slot <span class="text-danger">*</span></label>
-                        <div id="time-slots-container" class="row g-2">
-                            <div class="col-12">
-                                <div class="alert alert-info mb-0">
-                                    <i class="fas fa-info-circle me-2"></i>Please select a court and date to view available time slots.
-                                </div>
+                        <!-- Selected date display -->
+                        <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between" id="selected-date-display">
+                            <span><i class="fas fa-calendar-check me-2"></i>Date: <strong id="display-date-label">Not selected</strong></span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="back-to-date-btn" style="border-radius: 8px;">
+                                <i class="fas fa-edit me-1"></i>Change
+                            </button>
+                        </div>
+
+                        {{ form.start_time }}
+                        {{ form.end_time }}
+                        {{ form.time_slot }}
+
+                        <div id="time-slots-container" class="mb-4">
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-spinner fa-spin me-2"></i>Loading available slots...
                             </div>
                         </div>
-                        <div id="selected-slot-display" class="mt-2 d-none">
-                            <span class="badge bg-success p-2">
-                                <i class="fas fa-check me-1"></i>Selected: <span id="selected-slot-label"></span>
-                            </span>
+
+                        <div id="selected-slot-display" class="d-none mb-4">
+                            <div class="alert alert-success py-2 d-flex align-items-center justify-content-between">
+                                <span><i class="fas fa-check-circle me-2"></i>Selected: <strong id="selected-slot-label"></strong></span>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="clear-slot-btn" style="border-radius: 8px;">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- Inline verification alert (shown when slot was just taken) -->
+                        <div class="alert alert-danger slot-verification-alert" id="slot-verification-alert">
+                            <div class="d-flex align-items-start gap-2 w-100">
+                                <i class="fas fa-exclamation-triangle mt-1"></i>
+                                <div class="flex-grow-1">
+                                    <strong class="d-block">Slot No Longer Available</strong>
+                                    <span id="slot-verification-message"></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="reload-slots-btn" style="border-radius: 6px;">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                                </button>
+                            </div>
+                        </div>
+
                         {% if form.time_slot.errors %}
                             <div class="text-danger small mt-1">{{ form.time_slot.errors.0 }}</div>
                         {% endif %}
-                    </div>
 
-                    <!-- Legend -->
-                    <div class="mb-3 d-flex gap-3">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-success me-2">&nbsp;&nbsp;</span>
-                            <small>Available</small>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-danger me-2">&nbsp;&nbsp;</span>
-                            <small>Occupied</small>
-                        </div>
-                    </div>
+                        <hr class="my-4">
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold"><i class="fas fa-tools me-2 text-primary"></i>Equipment (Optional)</label>
-                        <div class="row g-2">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-tools text-primary me-2"></i>Equipment (Optional)</h5>
+                        <div class="equipment-grid mb-4">
                             {% for equipment in equipment_list %}
-                            <div class="col-md-6">
-                                <div class="form-check border rounded p-3" style="border-radius: 10px; transition: all 0.3s ease;">
-                                    <input type="checkbox" name="equipment" value="{{ equipment.id }}"
-                                           class="form-check-input" id="eq{{ equipment.id }}">
-                                    <label class="form-check-label w-100" for="eq{{ equipment.id }}">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-bold">{{ equipment.name }}</span>
-                                            <span class="text-primary fw-bold">₱{{ equipment.rental_price|floatformat:0 }}</span>
-                                        </div>
-                                        <small class="text-muted">{{ equipment.type }}</small>
-                                    </label>
+                            <div class="equipment-card" data-eq-id="{{ equipment.id }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold">{{ equipment.name }}</div>
+                                        <small class="text-muted">{{ equipment.get_type_display }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold text-primary">₱{{ equipment.rental_price|floatformat:0 }}</div>
+                                        <small class="equipment-check text-success"><i class="fas fa-check-circle"></i></small>
+                                    </div>
                                 </div>
+                                <input type="checkbox" name="equipment" value="{{ equipment.id }}" class="equipment-check-input" id="eq{{ equipment.id }}" hidden>
                             </div>
                             {% endfor %}
                         </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="fw-bold mb-3"><i class="fas fa-sticky-note text-primary me-2"></i>Notes (Optional)</h5>
+                        <div class="mb-4">
+                            {{ form.notes }}
+                        </div>
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary px-4" id="step-2-back" style="border-radius: 10px;">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </button>
+                            <button type="button" class="btn btn-primary px-4" id="step-2-next" disabled style="border-radius: 10px;">
+                                Review Booking <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold"><i class="fas fa-sticky-note me-2 text-primary"></i>Notes (Optional)</label>
-                        {{ form.notes }}
-                    </div>
+                    <!-- ===================== STEP 3: REVIEW & CONFIRM ===================== -->
+                    <div class="step-section" id="step-3">
+                        <div class="text-center mb-4">
+                            <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                <i class="fas fa-check-circle fa-2x" style="color: #2e7d32;"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Almost Done!</h5>
+                            <p class="text-muted mb-0">Please review your booking details below</p>
+                        </div>
 
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {{ form.non_field_errors.0 }}
-                    </div>
-                    {% endif %}
+                        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; background: #f8f9fa;">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Booking Summary</h6>
+                                <div class="confirm-row">
+                                    <span class="confirm-label"><i class="fas fa-map-marker-alt me-2 text-muted"></i>Court</span>
+                                    <span class="confirm-value" id="confirm-court">—</span>
+                                </div>
+                                <div class="confirm-row">
+                                    <span class="confirm-label"><i class="fas fa-calendar me-2 text-muted"></i>Date</span>
+                                    <span class="confirm-value" id="confirm-date">—</span>
+                                </div>
+                                <div class="confirm-row">
+                                    <span class="confirm-label"><i class="fas fa-clock me-2 text-muted"></i>Time</span>
+                                    <span class="confirm-value" id="confirm-time">—</span>
+                                </div>
+                                <div class="confirm-row">
+                                    <span class="confirm-label"><i class="fas fa-hourglass-half me-2 text-muted"></i>Duration</span>
+                                    <span class="confirm-value" id="confirm-duration">—</span>
+                                </div>
+                                <div class="confirm-row">
+                                    <span class="confirm-label"><i class="fas fa-tools me-2 text-muted"></i>Equipment</span>
+                                    <span class="confirm-value" id="confirm-equipment">None selected</span>
+                                </div>
+                                <div class="confirm-row">
+                                    <span class="confirm-label"><i class="fas fa-sticky-note me-2 text-muted"></i>Notes</span>
+                                    <span class="confirm-value" id="confirm-notes">—</span>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="d-flex justify-content-between pt-2">
-                        <a href="{% url 'court_list' %}" class="btn btn-outline-secondary px-4" style="border-radius: 10px;">
-                            <i class="fas fa-arrow-left me-2"></i>Cancel
-                        </a>
-                        <button type="submit" class="btn btn-success px-5" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none;">
-                            <i class="fas fa-calendar-check me-2"></i>Continue to Payment
-                        </button>
+                        <div class="price-breakdown mb-4">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-receipt text-primary me-2"></i>Price Breakdown</h6>
+                            <div class="confirm-row">
+                                <span class="confirm-label">Court Rate</span>
+                                <span class="confirm-value" id="confirm-rate">₱0.00/hr</span>
+                            </div>
+                            <div class="confirm-row">
+                                <span class="confirm-label">Duration</span>
+                                <span class="confirm-value" id="confirm-duration-price">0 hrs</span>
+                            </div>
+                            <div class="confirm-row">
+                                <span class="confirm-label">Subtotal (Court)</span>
+                                <span class="confirm-value" id="confirm-subtotal">₱0.00</span>
+                            </div>
+                            <div class="confirm-row">
+                                <span class="confirm-label">Equipment Fee</span>
+                                <span class="confirm-value" id="confirm-equipment-fee">₱0.00</span>
+                            </div>
+                            <div class="confirm-row border-bottom-0">
+                                <span class="fw-bold">Total</span>
+                                <span class="fw-bold fs-5" id="confirm-total" style="color: #3B7A8C;">₱0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary px-4" id="step-3-back" style="border-radius: 10px;">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </button>
+                            <button type="submit" class="btn btn-success px-5" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none; box-shadow: 0 4px 15px rgba(40,167,69,0.3);">
+                                <i class="fas fa-check-circle me-2"></i>Confirm &amp; Proceed to Payment
+                            </button>
+                        </div>
                     </div>
                 </form>
+
+                <!-- ===== SUBMIT LOADING OVERLAY ===== -->
+                <div class="submit-overlay" id="submit-overlay">
+                    <div class="submit-overlay-card">
+                        <div class="submit-overlay-spinner"></div>
+                        <h6 class="submit-overlay-title">Processing Your Booking</h6>
+                        <p class="submit-overlay-sub">Please wait while we process your reservation…</p>
+                        <div class="submit-overlay-progress">
+                            <div class="submit-overlay-progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
 <script>
-document.querySelectorAll('select').forEach(function(select) {
-    select.classList.add('form-select');
-    select.style.borderRadius = '10px';
-});
-document.querySelectorAll('input[type="date"], input[type="time"], input[type="text"], input[type="number"], textarea').forEach(function(input) {
-    input.style.borderRadius = '10px';
-});
+(function() {
+    'use strict';
 
-// Time slot selection functionality
-const courtSelect = document.getElementById('{{ form.court.id_for_label }}');
-const dateInput = document.getElementById('{{ form.date.id_for_label }}');
-const timeSlotInput = document.getElementById('{{ form.time_slot.id_for_label }}');
-const startTimeInput = document.getElementById('{{ form.start_time.id_for_label }}');
-const endTimeInput = document.getElementById('{{ form.end_time.id_for_label }}');
-const slotsContainer = document.getElementById('time-slots-container');
-const selectedSlotDisplay = document.getElementById('selected-slot-display');
-const selectedSlotLabel = document.getElementById('selected-slot-label');
+    // ===== STATE =====
+    const state = {
+        currentStep: 1,
+        selectedCourtId: null,
+        selectedDate: null,
+        selectedSlot: null,
+        selectedCourtName: '',
+        selectedCourtRate: 0,
+        selectedEquipment: [],
+        selectedNotes: '',
+        calendarMonth: new Date().getMonth() + 1,
+        calendarYear: new Date().getFullYear(),
+    };
 
-let selectedSlot = null;
+    // ===== DOM REFS =====
+    const courtSelect = document.getElementById('{{ form.court.id_for_label }}');
+    const dateInput = document.getElementById('{{ form.date.id_for_label }}');
+    const timeSlotInput = document.getElementById('{{ form.time_slot.id_for_label }}');
+    const startTimeInput = document.getElementById('{{ form.start_time.id_for_label }}');
+    const endTimeInput = document.getElementById('{{ form.end_time.id_for_label }}');
+    const calendarGrid = document.getElementById('calendar-grid');
+    const calendarTitle = document.getElementById('calendar-title');
+    const slotsContainer = document.getElementById('time-slots-container');
+    const selectedSlotDisplay = document.getElementById('selected-slot-display');
+    const selectedSlotLabel = document.getElementById('selected-slot-label');
 
-function fetchTimeSlots() {
-    const courtId = courtSelect.value;
-    const date = dateInput.value;
-
-    if (!courtId || !date) {
-        slotsContainer.innerHTML = `
-            <div class="col-12">
-                <div class="alert alert-info mb-0">
-                    <i class="fas fa-info-circle me-2"></i>Please select a court and date to view available time slots.
-                </div>
-            </div>
-        `;
-        return;
+    // ===== HELPERS =====
+    function getDayHeaders() {
+        return window.innerWidth < 576
+            ? ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+            : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     }
 
-    slotsContainer.innerHTML = `
-        <div class="col-12 text-center py-3">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+    function renderDayHeaders() {
+        return getDayHeaders().map(h => `<div class="calendar-day-header">${h}</div>`).join('\n');
+    }
+
+    function formatDateDisplay(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr + 'T12:00:00');
+        return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatTimeDisplay(timeStr) {
+        if (!timeStr) return '—';
+        const [h, m] = timeStr.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const hour12 = h % 12 || 12;
+        return `${hour12}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+
+    function getDurationHours(start, end) {
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        return ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+    }
+
+    // ===== STEP MANAGEMENT =====
+    function goToStep(step) {
+        state.currentStep = step;
+        document.querySelectorAll('.step-section').forEach((el, i) => {
+            el.classList.toggle('active', i + 1 === step);
+        });
+        document.querySelectorAll('.wizard-step').forEach((el, i) => {
+            const num = i + 1;
+            el.classList.remove('active', 'completed');
+            if (num === step) el.classList.add('active');
+            else if (num < step) el.classList.add('completed');
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ===== STEP 1: CALENDAR =====
+    async function loadCalendar() {
+        const courtId = courtSelect.value;
+        state.selectedCourtId = courtId;
+
+        if (!courtId) {
+            renderCalendarEmpty();
+            document.getElementById('step-1-next').disabled = true;
+            return;
+        }
+
+        const month = state.calendarMonth;
+        const year = state.calendarYear;
+
+        calendarGrid.innerHTML = `
+            ${renderDayHeaders()}
+            <div class="text-center py-4" style="grid-column: 1 / -1;">
+                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
             </div>
-            <p class="text-muted mt-2">Loading time slots...</p>
-        </div>
-    `;
+        `;
 
-    fetch(`/reservations/api/time-slots/?court_id=${courtId}&date=${date}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                slotsContainer.innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-danger mb-0">
-                            <i class="fas fa-exclamation-circle me-2"></i>${data.error}
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            renderTimeSlots(data.slots);
-        })
-        .catch(error => {
-            slotsContainer.innerHTML = `
-                <div class="col-12">
-                    <div class="alert alert-danger mb-0">
-                        <i class="fas fa-exclamation-circle me-2"></i>Failed to load time slots. Please try again.
-                    </div>
+        try {
+            const resp = await fetch(`/reservations/api/monthly-availability/?court_id=${courtId}&month=${month}&year=${year}`);
+            const data = await resp.json();
+            renderCalendar(data);
+            calendarTitle.textContent = `${data.month_name} ${data.year}`;
+        } catch (e) {
+            calendarGrid.innerHTML = `
+                ${renderDayHeaders()}
+                <div class="text-center py-4 text-danger" style="grid-column: 1 / -1;">
+                    <i class="fas fa-exclamation-circle me-2"></i>Failed to load calendar
                 </div>
             `;
-        });
-}
+        }
+    }
 
-function renderTimeSlots(slots) {
-    if (slots.length === 0) {
+    function renderCalendarEmpty() {
+        calendarGrid.innerHTML = renderDayHeaders();
+        calendarTitle.textContent = 'Select a court first';
+    }
+
+    function renderCalendar(data) {
+        calendarGrid.innerHTML = renderDayHeaders();
+
+        const firstDay = new Date(data.year, data.month - 1, 1).getDay();
+        const daysInMonth = new Date(data.year, data.month, 0).getDate();
+
+        // Empty cells for days before 1st
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day other-month';
+            calendarGrid.appendChild(empty);
+        }
+
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${data.year}-${String(data.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            cell.dataset.date = dateStr;
+
+            const dayInfo = data.availability[dateStr] || 'past';
+
+            if (dayInfo === 'past') {
+                cell.classList.add('past');
+            } else if (dayInfo === 'available') {
+                cell.classList.add('available');
+            } else if (dayInfo === 'full') {
+                cell.classList.add('full');
+            }
+
+            if (dateStr === todayStr && dayInfo !== 'past') {
+                cell.classList.add('today');
+            }
+
+            if (dateStr === state.selectedDate) {
+                cell.classList.add('selected');
+            }
+
+            // Slot indicator dot
+            const dot = document.createElement('span');
+            dot.className = `slot-dot ${dayInfo === 'available' ? 'available' : dayInfo === 'full' ? 'full' : ''}`;
+            cell.appendChild(document.createTextNode(String(day)));
+            cell.appendChild(dot);
+
+            if (dayInfo === 'available') {
+                cell.addEventListener('click', () => selectDate(dateStr));
+            }
+
+            calendarGrid.appendChild(cell);
+        }
+    }
+
+    function selectDate(dateStr) {
+        state.selectedDate = dateStr;
+        dateInput.value = dateStr;
+        document.getElementById('calendar-date-store').value = dateStr;
+
+        // Update calendar UI
+        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+        document.querySelector(`.calendar-day[data-date="${dateStr}"]`)?.classList.add('selected');
+
+        document.getElementById('step-1-next').disabled = false;
+
+        // Show selected date display in step 2
+        document.getElementById('display-date-label').textContent = formatDateDisplay(dateStr);
+
+        // Pre-load time slots for step 2
+        loadTimeSlots();
+    }
+
+    // ===== CALENDAR NAVIGATION =====
+    function goToPrevMonth() {
+        if (state.calendarMonth <= 1) {
+            state.calendarMonth = 12;
+            state.calendarYear--;
+        } else {
+            state.calendarMonth--;
+        }
+        loadCalendar();
+    }
+
+    function goToNextMonth() {
+        if (state.calendarMonth >= 12) {
+            state.calendarMonth = 1;
+            state.calendarYear++;
+        } else {
+            state.calendarMonth++;
+        }
+        loadCalendar();
+    }
+
+    document.getElementById('prev-month').addEventListener('click', goToPrevMonth);
+    document.getElementById('next-month').addEventListener('click', goToNextMonth);
+
+    // ===== SWIPE GESTURE SUPPORT =====
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    let swipeStartTime = 0;
+
+    calendarGrid.addEventListener('touchstart', function(e) {
+        // Only enable on single-finger touches
+        if (e.touches.length !== 1) return;
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+        swipeStartTime = Date.now();
+    }, { passive: true });
+
+    calendarGrid.addEventListener('touchmove', function(e) {
+        if (swipeStartX === 0 || e.touches.length !== 1) return;
+
+        const deltaX = e.touches[0].clientX - swipeStartX;
+        const deltaY = e.touches[0].clientY - swipeStartY;
+
+        // Only apply visual feedback if the gesture is primarily horizontal
+        if (Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+        // Smoothly clamp the displacement so it doesn't fly off screen
+        const clamped = Math.sign(deltaX) * Math.min(Math.abs(deltaX), 120);
+        calendarGrid.style.transform = `translateX(${clamped}px)`;
+
+        // Subtle opacity fade as displacement increases (fades to 0.65 at 120px)
+        const progress = Math.min(Math.abs(deltaX) / 120, 1);
+        calendarGrid.style.opacity = String(1 - progress * 0.35);
+    }, { passive: true });
+
+    calendarGrid.addEventListener('touchend', function(e) {
+        if (swipeStartX === 0) return;
+
+        const deltaX = e.changedTouches[0].clientX - swipeStartX;
+        const deltaY = e.changedTouches[0].clientY - swipeStartY;
+        const elapsed = Date.now() - swipeStartTime;
+
+        // Determine if this qualifies as a swipe before we reset tracking
+        const isHorizontal = Math.abs(deltaX) >= Math.abs(deltaY) * 1.5;
+        const isFastEnough = elapsed <= 500;
+        const isFarEnough = Math.abs(deltaX) >= 50;
+        const isSwipe = isHorizontal && isFastEnough && isFarEnough;
+
+        // Animate back to neutral position
+        calendarGrid.classList.add('swipe-settling');
+        calendarGrid.style.transform = 'translateX(0px)';
+        calendarGrid.style.opacity = '1';
+
+        // Clean up after the transition completes
+        function onSettleComplete() {
+            calendarGrid.classList.remove('swipe-settling');
+            calendarGrid.style.removeProperty('transform');
+            calendarGrid.style.removeProperty('opacity');
+        }
+
+        function finishSwipe() {
+            // Reset tracking
+            swipeStartX = 0;
+            swipeStartY = 0;
+
+            if (isSwipe) {
+                // Prevent the click on any day cell from firing
+                e.preventDefault();
+
+                if (deltaX < 0) {
+                    goToNextMonth();
+                } else {
+                    goToPrevMonth();
+                }
+                // Remove transition after a short delay so the new calendar renders cleanly
+                setTimeout(onSettleComplete, 50);
+            } else {
+                onSettleComplete();
+            }
+        }
+
+        // Wait for the snap-back animation to finish before navigating
+        calendarGrid.addEventListener('transitionend', function handler() {
+            calendarGrid.removeEventListener('transitionend', handler);
+            finishSwipe();
+        });
+
+        // Safety timeout in case transitionend doesn't fire
+        setTimeout(function() {
+            if (swipeStartX !== 0 || isSwipe) {
+                finishSwipe();
+            }
+        }, 400);
+    }, { passive: false });
+
+    // ===== STEP 1 -> 2 =====
+    document.getElementById('step-1-next').addEventListener('click', () => {
+        if (state.selectedDate) {
+            goToStep(2);
+        }
+    });
+
+    document.getElementById('back-to-date-btn').addEventListener('click', () => {
+        goToStep(1);
+    });
+
+    // ===== STEP 2: TIME SLOTS =====
+    async function loadTimeSlots() {
+        const courtId = courtSelect.value;
+        const date = state.selectedDate;
+
+        if (!courtId || !date) {
+            slotsContainer.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-info-circle me-2"></i>Please select a court and date first.
+                </div>
+            `;
+            return;
+        }
+
         slotsContainer.innerHTML = `
-            <div class="col-12">
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                <p class="text-muted mt-2 mb-0">Loading available slots...</p>
+            </div>
+        `;
+
+        try {
+            const resp = await fetch(`/reservations/api/time-slots/?court_id=${courtId}&date=${date}`);
+            const data = await resp.json();
+            renderTimeSlots(data.slots);
+        } catch (e) {
+            slotsContainer.innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>Failed to load time slots.
+                </div>
+            `;
+        }
+    }
+
+    function renderTimeSlots(slots) {
+        if (!slots || slots.length === 0) {
+            slotsContainer.innerHTML = `
                 <div class="alert alert-warning mb-0">
                     <i class="fas fa-exclamation-triangle me-2"></i>No time slots available for this date.
                 </div>
-            </div>
-        `;
-        return;
+            `;
+            return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'time-slots-grid';
+
+        slots.forEach(slot => {
+            const card = document.createElement('div');
+            card.className = `time-slot-card ${slot.available ? '' : 'occupied'}`;
+            card.dataset.start = slot.start;
+            card.dataset.end = slot.end;
+            card.dataset.label = slot.label;
+            card.dataset.available = slot.available;
+
+            if (state.selectedSlot && state.selectedSlot.start === slot.start && state.selectedSlot.end === slot.end) {
+                card.classList.add('selected');
+            }
+
+            card.innerHTML = `
+                <div class="time-slot-time">${formatTimeDisplay(slot.start)}</div>
+                <div class="time-slot-status">
+                    ${slot.available
+                        ? '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Available</span>'
+                        : '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Occupied</span>'}
+                </div>
+            `;
+
+            if (slot.available) {
+                card.addEventListener('click', () => selectTimeSlot(card, slot));
+            }
+
+            grid.appendChild(card);
+        });
+
+        slotsContainer.innerHTML = '';
+        slotsContainer.appendChild(grid);
     }
 
-    slotsContainer.innerHTML = '';
-    slots.forEach(slot => {
-        const slotDiv = document.createElement('div');
-        slotDiv.className = 'col-md-3 col-6';
+    function selectTimeSlot(card, slot) {
+        // Deselect all
+        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
 
-        const isAvailable = slot.available;
-        const btnClass = isAvailable ? 'btn-success' : 'btn-danger';
-        const disabledAttr = isAvailable ? '' : 'disabled';
-        const icon = isAvailable ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="fas fa-times-circle me-1"></i>';
+        card.classList.add('selected');
 
-        slotDiv.innerHTML = `
-            <button type="button"
-                    class="btn ${btnClass} w-100 py-3 time-slot-btn"
-                    data-start="${slot.start}"
-                    data-end="${slot.end}"
-                    data-label="${slot.label}"
-                    data-available="${isAvailable}"
-                    ${disabledAttr}
-                    style="border-radius: 10px; font-size: 0.875rem;">
-                ${icon}
-                <div>${slot.label}</div>
-            </button>
-        `;
+        state.selectedSlot = {
+            start: slot.start,
+            end: slot.end,
+            label: slot.label,
+        };
 
-        slotsContainer.appendChild(slotDiv);
+        // Update hidden fields
+        timeSlotInput.value = `${slot.start}-${slot.end}`;
+        startTimeInput.value = slot.start;
+        endTimeInput.value = slot.end;
+
+        // Show selected display
+        selectedSlotLabel.textContent = slot.label;
+        selectedSlotDisplay.classList.remove('d-none');
+
+        // Enable step 2 -> 3
+        document.getElementById('step-2-next').disabled = false;
+    }
+
+    document.getElementById('clear-slot-btn')?.addEventListener('click', () => {
+        state.selectedSlot = null;
+        timeSlotInput.value = '';
+        startTimeInput.value = '';
+        endTimeInput.value = '';
+        selectedSlotDisplay.classList.add('d-none');
+        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('step-2-next').disabled = true;
     });
 
-    // Add click handlers for available slots
-    document.querySelectorAll('.time-slot-btn[data-available="true"]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            selectTimeSlot(this);
+    // ===== EQUIPMENT SELECTION =====
+    document.querySelectorAll('.equipment-card').forEach(card => {
+        card.addEventListener('click', function() {
+            this.classList.toggle('selected');
+            const checkbox = this.querySelector('.equipment-check-input');
+            checkbox.checked = !checkbox.checked;
+            updateEquipmentState();
         });
     });
-}
 
-function selectTimeSlot(btn) {
-    // Remove selection from previous slot
-    document.querySelectorAll('.time-slot-btn').forEach(b => {
-        b.classList.remove('ring-3', 'ring-offset-2', 'ring-primary');
-        b.style.boxShadow = '';
+    function updateEquipmentState() {
+        state.selectedEquipment = [];
+        document.querySelectorAll('.equipment-card.selected').forEach(card => {
+            const id = card.dataset.eqId;
+            const name = card.querySelector('.fw-semibold').textContent;
+            const price = parseFloat(card.querySelector('.fw-bold.text-primary').textContent.replace(/[₱,]/g, ''));
+            state.selectedEquipment.push({ id, name, price });
+        });
+    }
+
+    // ===== STEP 2 -> 3 BACK =====
+    document.getElementById('step-2-back').addEventListener('click', () => {
+        goToStep(1);
     });
 
-    // Highlight selected slot
-    btn.style.boxShadow = '0 0 0 3px #3B7A8C, 0 0 0 5px white';
+    // ===== VERIFY SLOT AVAILABILITY =====
+    async function verifySlot() {
+        if (!state.selectedSlot) return false;
 
-    // Update hidden fields
-    const start = btn.dataset.start;
-    const end = btn.dataset.end;
-    const label = btn.dataset.label;
+        const btn = document.getElementById('step-2-next');
+        const alertEl = document.getElementById('slot-verification-alert');
+        const msgEl = document.getElementById('slot-verification-message');
 
-    timeSlotInput.value = `${start}-${end}`;
-    startTimeInput.value = start;
-    endTimeInput.value = end;
+        // Hide any previous alert
+        alertEl.classList.remove('show');
 
-    // Update display
-    selectedSlotLabel.textContent = label;
-    selectedSlotDisplay.classList.remove('d-none');
-    selectedSlot = { start, end, label };
-}
+        // Show loading state
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Verifying...';
 
-// Event listeners
-courtSelect.addEventListener('change', fetchTimeSlots);
-dateInput.addEventListener('change', fetchTimeSlots);
+        try {
+            const courtId = courtSelect.value;
+            const date = state.selectedDate;
+            const start = state.selectedSlot.start;
+            const end = state.selectedSlot.end;
 
-// Initialize on page load if values are pre-selected
-if (courtSelect.value && dateInput.value) {
-    fetchTimeSlots();
-}
+            const resp = await fetch(`/reservations/api/verify-slot/?court_id=${courtId}&date=${date}&start=${start}&end=${end}`);
+            const data = await resp.json();
+
+            if (data.available) {
+                // Slot is still available — proceed
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                updateConfirmation();
+                goToStep(3);
+                return true;
+            } else {
+                // Slot was just taken — show inline error
+                verificationFailed = true;
+                msgEl.textContent = data.message || 'This time slot is no longer available. Please select a different time.';
+                alertEl.classList.add('show');
+
+                // Mark the selected card as occupied
+                document.querySelectorAll('.time-slot-card.selected').forEach(c => {
+                    c.classList.remove('selected');
+                    c.classList.add('occupied');
+                    c.dataset.available = 'false';
+                    c.style.cursor = 'not-allowed';
+                    // Remove click listeners by replacing with clone
+                    const clone = c.cloneNode(true);
+                    c.parentNode.replaceChild(clone, c);
+                });
+
+                // Clear the selection state
+                state.selectedSlot = null;
+                timeSlotInput.value = '';
+                startTimeInput.value = '';
+                endTimeInput.value = '';
+                selectedSlotDisplay.classList.add('d-none');
+
+                // Restore button text but keep it disabled
+                btn.innerHTML = originalText;
+                btn.disabled = true;
+                return false;
+            }
+        } catch (e) {
+            // Network error — still allow proceeding, the server will validate on submit
+            msgEl.textContent = 'Could not verify availability. Your reservation will be validated when submitted.';
+            alertEl.classList.add('show');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            updateConfirmation();
+            goToStep(3);
+            return true;
+        }
+    }
+
+    // ===== STEP 2 -> 3 =====
+    document.getElementById('step-2-next').addEventListener('click', () => {
+        if (state.selectedSlot) {
+            verifySlot();
+        }
+    });
+
+    // ===== RELOAD SLOTS AFTER VERIFICATION FAILURE =====
+    document.getElementById('reload-slots-btn')?.addEventListener('click', () => {
+        document.getElementById('slot-verification-alert').classList.remove('show');
+        loadTimeSlots();
+    });
+
+    // ===== FORM SUBMIT — SHOW OVERLAY =====
+    const form = document.getElementById('reservation-form');
+    const overlay = document.getElementById('submit-overlay');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    form.addEventListener('submit', function(e) {
+        // Only show overlay if form is valid (step 3 submit)
+        if (state.currentStep === 3) {
+            // Brief delay so the browser paints the overlay before navigation
+            overlay.classList.add('active');
+            submitBtn.disabled = true;
+        }
+    });
+
+    // ===== STEP 3 BACK =====
+    document.getElementById('step-3-back').addEventListener('click', () => {
+        goToStep(2);
+    });
+
+    // ===== CONFIRMATION SUMMARY =====
+    function updateConfirmation() {
+        // Court
+        const courtName = courtSelect.options[courtSelect.selectedIndex]?.text || '—';
+        document.getElementById('confirm-court').textContent = courtName;
+
+        // Date
+        document.getElementById('confirm-date').textContent = formatDateDisplay(state.selectedDate);
+
+        // Time
+        if (state.selectedSlot) {
+            const startFmt = formatTimeDisplay(state.selectedSlot.start);
+            const endFmt = formatTimeDisplay(state.selectedSlot.end);
+            document.getElementById('confirm-time').textContent = `${startFmt} — ${endFmt}`;
+
+            // Duration
+            const dur = getDurationHours(state.selectedSlot.start, state.selectedSlot.end);
+            document.getElementById('confirm-duration').textContent = `${dur} hour${dur !== 1 ? 's' : ''}`;
+            document.getElementById('confirm-duration-price').textContent = `${dur} hr${dur !== 1 ? 's' : ''}`;
+
+            // Court rate & subtotal
+            const rate = state.selectedCourtRate || 500;
+            const subtotal = rate * dur;
+            document.getElementById('confirm-rate').textContent = `₱${rate.toLocaleString()}/hr`;
+            document.getElementById('confirm-subtotal').textContent = `₱${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            // Equipment fee
+            let equipFee = 0;
+            const equipNames = [];
+            state.selectedEquipment.forEach(eq => {
+                equipFee += eq.price;
+                equipNames.push(eq.name);
+            });
+            document.getElementById('confirm-equipment').textContent = equipNames.length > 0 ? equipNames.join(', ') : 'None selected';
+            document.getElementById('confirm-equipment-fee').textContent = `₱${equipFee.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            // Total
+            const total = subtotal + equipFee;
+            document.getElementById('confirm-total').textContent = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Notes
+        const notes = document.querySelector('[name="notes"]')?.value || '';
+        document.getElementById('confirm-notes').textContent = notes || '—';
+    }
+
+    // ===== COURT RATE LOOKUP =====
+    courtSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            // Store court info - get rate from data-rate attribute
+            state.selectedCourtName = selectedOption.text;
+            state.selectedCourtRate = parseFloat(selectedOption.getAttribute('data-rate')) || 500;
+            state.selectedDate = null;
+            dateInput.value = '';
+            document.getElementById('calendar-date-store').value = '';
+            document.getElementById('step-1-next').disabled = true;
+            loadCalendar();
+        } else {
+            renderCalendarEmpty();
+            calendarTitle.textContent = 'Select a court first';
+        }
+    });
+
+    // ===== NOTES =====
+    document.querySelector('[name="notes"]')?.addEventListener('input', function() {
+        state.selectedNotes = this.value;
+    });
+
+    // ===== WIZARD STATE RESTORATION =====
+    // After form validation errors, restore the wizard to the correct step
+    function restoreWizardState() {
+        const hasCourt = courtSelect.value && courtSelect.value !== '';
+        const hasDate = dateInput.value && dateInput.value !== '';
+        const hasTimeSlot = timeSlotInput.value && timeSlotInput.value !== '';
+        const hasNonFieldErrors = document.querySelector('.alert-danger') !== null;
+        
+        // Check which form fields have errors
+        const hasCourtError = document.querySelector('[name="court"] ~ .text-danger') !== null;
+        const hasDateError = document.querySelector('[name="date"] ~ .text-danger') !== null;
+        const hasTimeSlotError = document.querySelector('[name="time_slot"] ~ .text-danger') !== null;
+        
+        // Restore calendar and court state first
+        if (hasCourt) {
+            state.selectedCourtId = courtSelect.value;
+            const selectedOption = courtSelect.options[courtSelect.selectedIndex];
+            state.selectedCourtRate = parseFloat(selectedOption.getAttribute('data-rate')) || 500;
+            state.selectedCourtName = selectedOption?.text || '';
+            
+            // Load calendar for the selected court
+            loadCalendar().then(() => {
+                if (hasDate) {
+                    state.selectedDate = dateInput.value;
+                    document.querySelector(`.calendar-day[data-date="${dateInput.value}"]`)?.classList.add('selected');
+                    document.getElementById('display-date-label').textContent = formatDateDisplay(dateInput.value);
+                    document.getElementById('step-1-next').disabled = false;
+                    
+                    // Load time slots for the selected date
+                    loadTimeSlots().then(() => {
+                        if (hasTimeSlot) {
+                            // Find and select the matching time slot card
+                            const parts = timeSlotInput.value.split('-');
+                            if (parts.length === 2) {
+                                const startVal = parts[0];
+                                const endVal = parts[1];
+                                const matchingCard = document.querySelector(
+                                    `.time-slot-card[data-start="${startVal}"][data-end="${endVal}"]`
+                                );
+                                if (matchingCard && matchingCard.dataset.available === 'true') {
+                                    const slot = {
+                                        start: startVal,
+                                        end: endVal,
+                                        label: matchingCard.dataset.label
+                                    };
+                                    selectTimeSlot(matchingCard, slot);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            renderCalendarEmpty();
+            calendarTitle.textContent = 'Select a court first';
+        }
+        
+        // Restore equipment selections (checkboxes persist through form re-render)
+        document.querySelectorAll('.equipment-check-input:checked').forEach(function(cb) {
+            const card = cb.closest('.equipment-card');
+            if (card) {
+                card.classList.add('selected');
+            }
+        });
+        updateEquipmentState();
+        
+        // Determine which step to show
+        if (hasNonFieldErrors || hasTimeSlotError) {
+            // Non-field errors (like overlapping reservation) or time slot errors → show step 2
+            if (hasTimeSlot) {
+                // If we already have a time slot selected, go to step 2
+                goToStep(2);
+                document.getElementById('step-2-next').disabled = false;
+            }
+        } else if (hasCourtError || hasDateError) {
+            goToStep(1);
+        } else if (hasTimeSlot) {
+            // All fields have values and no errors → go to step 3 (review step)
+            updateConfirmation();
+            goToStep(3);
+        }
+        // Default: stay on step 1
+    }
+
+    // ===== SKIP TO REVIEW BANNER =====
+    const skipBanner = document.getElementById('skip-banner');
+    const skipBtn = document.getElementById('skip-to-step-3');
+    const dismissBtn = document.getElementById('skip-banner-dismiss');
+
+    function showSkipBanner() {
+        const hasCourt = courtSelect.value && courtSelect.value !== '';
+        const hasDate = dateInput.value && dateInput.value !== '';
+        const hasTimeSlot = timeSlotInput.value && timeSlotInput.value !== '';
+        // Only show on steps 1 or 2 when all data is pre-filled
+        if (hasCourt && hasDate && hasTimeSlot && state.currentStep < 3) {
+            skipBanner.classList.add('show');
+        } else {
+            skipBanner.classList.remove('show');
+        }
+    }
+
+    skipBtn.addEventListener('click', function() {
+        // Verify the slot is still available before skipping
+        if (state.selectedSlot) {
+            verifySlot();
+        } else {
+            updateConfirmation();
+            goToStep(3);
+        }
+        skipBanner.classList.remove('show');
+    });
+
+    dismissBtn.addEventListener('click', function() {
+        skipBanner.classList.remove('show');
+    });
+
+    // Re-check banner visibility when step changes
+    const origGoToStep = goToStep;
+    goToStep = function(step) {
+        origGoToStep(step);
+        // Hide banner when user navigates to step 3 or changes selections
+        if (step === 3) {
+            skipBanner.classList.remove('show');
+        } else {
+            showSkipBanner();
+        }
+    };
+
+    // ===== RESPONSIVE DAY HEADERS =====
+    // Update day headers when viewport crosses the 576px threshold
+    let lastHeaderWidth = window.innerWidth;
+    window.addEventListener('resize', function() {
+        const newWidth = window.innerWidth;
+        const wasSmall = lastHeaderWidth < 576;
+        const isSmall = newWidth < 576;
+        if (wasSmall !== isSmall) {
+            lastHeaderWidth = newWidth;
+            // Re-render the current calendar state with new headers
+            const existingHeaders = calendarGrid.querySelectorAll('.calendar-day-header');
+            if (existingHeaders.length > 0) {
+                const newHeadersHTML = renderDayHeaders();
+                // Only replace the header row, leave day cells intact
+                const temp = document.createElement('div');
+                temp.innerHTML = newHeadersHTML;
+                const newHeaders = temp.children;
+                existingHeaders.forEach(function(old, i) {
+                    if (newHeaders[i]) {
+                        old.textContent = newHeaders[i].textContent;
+                    }
+                });
+            }
+        }
+    });
+
+    // ===== INITIALIZE =====
+    // Hide the date input (we use calendar instead)
+    dateInput.style.display = 'none';
+
+    // Style form selects
+    document.querySelectorAll('select').forEach(s => {
+        s.classList.add('form-select');
+        s.style.borderRadius = '10px';
+    });
+    document.querySelectorAll('input[type="date"], input[type="time"], input[type="text"], input[type="number"], textarea').forEach(i => {
+        i.style.borderRadius = '10px';
+    });
+
+    // Restore wizard state if there are pre-filled values (from validation errors or re-render)
+    if (courtSelect.value || dateInput.value || timeSlotInput.value) {
+        // showSkipBanner is called at the end of restoreWizardState
+        restoreWizardState();
+    } else {
+        // Fresh page load, initialize normally
+        if (courtSelect.value) {
+            courtSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+            renderCalendarEmpty();
+            calendarTitle.textContent = 'Select a court first';
+            dateInput.style.display = 'block';
+        }
+        
+        // If there's already a date selected (from GET param), highlight it
+        if (dateInput.value && courtSelect.value) {
+            state.selectedDate = dateInput.value;
+            document.getElementById('display-date-label').textContent = formatDateDisplay(dateInput.value);
+            document.getElementById('step-1-next').disabled = false;
+            setTimeout(() => {
+                loadTimeSlots();
+                showSkipBanner();
+            }, 300);
+        } else {
+            showSkipBanner();
+        }
+    }
+
+})();
 </script>
 {% endblock %}
-

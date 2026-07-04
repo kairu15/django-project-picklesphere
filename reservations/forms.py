@@ -71,6 +71,9 @@ class ReservationForm(forms.ModelForm):
         self.fields['points_per_game'].required = False
         self.fields['games_to_win'].required = False
         self.fields['win_by_two'].required = False
+        # start_time and end_time are populated from time_slot in clean(), not from POST data directly
+        self.fields['start_time'].required = False
+        self.fields['end_time'].required = False
         # Set default values
         self.fields['points_per_game'].initial = 11
         self.fields['games_to_win'].initial = 2

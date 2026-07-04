@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q
 from .forms import (
     UserRegistrationForm,
@@ -122,10 +123,30 @@ def user_list_view(request):
     if role_filter:
         users = users.filter(role=role_filter)
     
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['username', 'email', 'role', 'is_active', 'created_at', 'first_name', 'last_name']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        users = users.order_by(sort_by)
+    
+    # Pagination
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'admin/users/user_list.html', {
-        'users': users,
+        'users': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'search_query': search_query,
-        'role_filter': role_filter
+        'role_filter': role_filter,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     })
 
 

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.utils import timezone
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
@@ -210,11 +211,31 @@ def admin_equipment_list_view(request):
     elif status_filter == 'inactive':
         equipment = equipment.filter(is_active=False)
 
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['name', 'type', 'quantity_available', 'rental_price', 'created_at']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        equipment = equipment.order_by(sort_by)
+
+    # Pagination
+    paginator = Paginator(equipment, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'admin/equipment/equipment_list.html', {
-        'equipment': equipment,
+        'equipment': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'search_query': search_query,
         'type_filter': type_filter,
         'status_filter': status_filter,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     })
 
 

@@ -2,6 +2,7 @@ import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django.http import HttpResponse, Http404
@@ -155,6 +156,22 @@ def staff_payments_view(request):
     if date_to:
         payments = payments.filter(created_at__date__lte=date_to)
     
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['id', 'amount', 'method', 'status', 'created_at']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        payments = payments.order_by(sort_by)
+    
+    # Pagination
+    paginator = Paginator(payments, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     # Statistics
     total_paid = Payment.objects.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
     total_pending = Payment.objects.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0
@@ -164,11 +181,15 @@ def staff_payments_view(request):
     ).aggregate(Sum('amount'))['amount__sum'] or 0
     
     return render(request, 'staff/payments/staff_payments.html', {
-        'payments': payments,
+        'payments': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'status_filter': status_filter,
         'method_filter': method_filter,
         'date_from': date_from,
         'date_to': date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
         'total_paid': total_paid,
         'total_pending': total_pending,
         'today_revenue': today_revenue
@@ -237,8 +258,20 @@ def verify_payment_view(request, payment_id):
 def payment_history_view(request):
     payments = Payment.objects.filter(reservation__user=request.user).order_by('-created_at')
     
+    # Compute stats
+    total_spent = payments.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
+    paid_count = payments.filter(status='paid').count()
+    pending_count = payments.filter(status='pending').count()
+    refunded_count = payments.filter(status='refunded').count()
+    total_count = payments.count()
+    
     return render(request, 'user/payments/payment_history.html', {
-        'payments': payments
+        'payments': payments,
+        'total_spent': total_spent,
+        'paid_count': paid_count,
+        'pending_count': pending_count,
+        'refunded_count': refunded_count,
+        'total_count': total_count,
     })
 
 
@@ -378,11 +411,31 @@ def admin_payments_view(request):
     pending_gcash = Payment.objects.filter(status='pending', method='gcash').count()
     pending_cash = Payment.objects.filter(status='pending', method='cash').count()
 
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['id', 'amount', 'method', 'status', 'created_at']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        payments = payments.order_by(sort_by)
+
+    # Pagination
+    paginator = Paginator(payments, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     # Recent payment logs
     recent_logs = PaymentLog.objects.select_related('payment', 'performed_by').order_by('-created_at')[:10]
 
     context = {
-        'payments': payments,
+        'payments': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'sort_by': sort_by,
+        'sort_order': sort_order,
         'status_filter': status_filter,
         'method_filter': method_filter,
         'date_from': date_from,

@@ -12,6 +12,8 @@ urlpatterns = [
     path('dashboard/homepage/', views.homepage_management, name='homepage_management'),
     path('dashboard/homepage/populate/', views.populate_homepage_content, name='populate_homepage_content'),
     path('dashboard/homepage/ratings/<int:rating_id>/toggle-featured/', views.toggle_featured_rating, name='toggle_featured_rating'),
+    path('dashboard/admin/export/', views.dashboard_export_view, name='dashboard_export'),
+
     # Testimonial URLs removed - replaced by rating system
     # path('submit-testimonial/', views.submit_testimonial_view, name='submit_testimonial'),
     # path('my-testimonials/', views.my_testimonials_view, name='my_testimonials'),

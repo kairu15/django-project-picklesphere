@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q
 from accounts.decorators import admin_required
 from .models import Site, Court
@@ -131,10 +132,30 @@ def admin_court_list_view(request):
     elif status_filter == 'inactive':
         courts = courts.filter(is_active=False)
     
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['name', 'site__name', 'court_type', 'hourly_rate', 'created_at']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        courts = courts.order_by(sort_by)
+    
+    # Pagination
+    paginator = Paginator(courts, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'admin/courts/court_list.html', {
-        'courts': courts,
+        'courts': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'search_query': search_query,
-        'status_filter': status_filter
+        'status_filter': status_filter,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     })
 
 

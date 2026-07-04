@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from django.http import JsonResponse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date as date_type
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
@@ -162,6 +163,15 @@ def staff_reservations_view(request):
     
     reservations = Reservation.objects.select_related('user', 'court', 'court__site', 'payment').all().order_by('-created_at')
     
+    # Search
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        reservations = reservations.filter(
+            Q(id__icontains=search_query) |
+            Q(user__email__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+    
     # Filter by status
     status_filter = request.GET.get('status', '')
     if status_filter:
@@ -172,10 +182,35 @@ def staff_reservations_view(request):
     if date_filter:
         reservations = reservations.filter(date=date_filter)
     
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    
+    # Validate sort field to prevent injection
+    allowed_sort_fields = ['id', 'date', 'start_time', 'duration_hours', 'total_amount', 'status', 'created_at', 'user__username']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        reservations = reservations.order_by(sort_by)
+    else:
+        reservations = reservations.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(reservations, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'staff/reservations.html', {
-        'reservations': reservations,
+        'reservations': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
         'status_filter': status_filter,
-        'date_filter': date_filter
+        'date_filter': date_filter,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     })
 
 
@@ -408,12 +443,32 @@ def admin_reservation_list_view(request):
     if date_to:
         reservations = reservations.filter(date__lte=date_to)
 
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['id', 'date', 'duration_hours', 'total_amount', 'status', 'created_at', 'user__username', 'court__name']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        reservations = reservations.order_by(sort_by)
+
+    # Pagination
+    paginator = Paginator(reservations, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'admin/reservations/reservation_list.html', {
-        'reservations': reservations,
+        'reservations': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'search_query': search_query,
         'status_filter': status_filter,
         'date_from': date_from,
         'date_to': date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     })
 
 
@@ -536,3 +591,97 @@ def get_time_slots_api(request):
         })
 
     return JsonResponse({'slots': serializable_slots})
+
+
+@login_required
+def get_monthly_availability_api(request):
+    """API endpoint to check which dates in a month have available slots."""
+    court_id = request.GET.get('court_id')
+    month = int(request.GET.get('month', timezone.now().month))
+    year = int(request.GET.get('year', timezone.now().year))
+
+    if not court_id:
+        return JsonResponse({'error': 'Court ID is required'}, status=400)
+
+    try:
+        court = Court.objects.get(id=court_id, is_active=True)
+    except Court.DoesNotExist:
+        return JsonResponse({'error': 'Court not found'}, status=404)
+
+    import calendar
+    cal = calendar.Calendar()
+    month_days = [d for d in cal.itermonthdates(year, month) if d.month == month]
+
+    # Get reservations for this court and month
+    from .models import Reservation
+    reservations = Reservation.objects.filter(
+        court=court,
+        date__year=year,
+        date__month=month,
+        status__in=['confirmed', 'pending']
+    ).values_list('date', flat=True).distinct()
+
+    # Skip past dates and check availability for future dates
+    today = timezone.now().date()
+    availability = {}
+    for d in month_days:
+        if d < today:
+            availability[d.isoformat()] = 'past'
+        else:
+            slots = court.get_time_slots(d)
+            has_available = any(s['available'] for s in slots)
+            availability[d.isoformat()] = 'available' if has_available else 'full'
+
+    return JsonResponse({
+        'availability': availability,
+        'month': month,
+        'year': year,
+        'month_name': calendar.month_name[month],
+        'today': today.isoformat(),
+    })
+
+
+@login_required
+def verify_slot_api(request):
+    """API endpoint to verify a specific time slot is still available.
+    Called inline before allowing user to proceed to confirmation step."""
+    court_id = request.GET.get('court_id')
+    date_str = request.GET.get('date')
+    start_str = request.GET.get('start')
+    end_str = request.GET.get('end')
+
+    if not all([court_id, date_str, start_str, end_str]):
+        return JsonResponse({'available': False, 'message': 'Missing required parameters.'}, status=400)
+
+    try:
+        court = Court.objects.get(id=court_id, is_active=True)
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        start = datetime.strptime(start_str, '%H:%M').time()
+        end = datetime.strptime(end_str, '%H:%M').time()
+    except (Court.DoesNotExist, ValueError):
+        return JsonResponse({'available': False, 'message': 'Invalid court or date/time format.'}, status=400)
+
+    # Check if slot is in the past
+    slot_datetime = timezone.make_aware(datetime.combine(date, start))
+    if slot_datetime < timezone.now():
+        return JsonResponse({'available': False, 'message': 'This time slot has already passed.'})
+
+    # Check for overlapping reservations
+    from .models import Reservation
+    overlapping = Reservation.objects.filter(
+        court=court,
+        date=date,
+        status__in=['confirmed', 'pending']
+    ).exclude(
+        start_time__gte=end
+    ).exclude(
+        end_time__lte=start
+    )
+
+    if overlapping.exists():
+        return JsonResponse({
+            'available': False,
+            'message': 'Sorry, this time slot was just booked by another user. Please select a different slot.'
+        })
+
+    return JsonResponse({'available': True, 'message': 'Slot is available.'})
