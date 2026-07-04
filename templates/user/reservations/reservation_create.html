@@ -502,12 +502,90 @@
 }
 
 /* ===== SWIPE ANIMATION ===== */
+.calendar-wrapper {
+    position: relative;
+}
 .calendar-grid {
     will-change: transform, opacity;
     touch-action: pan-y;
 }
 .calendar-grid.swipe-settling {
     transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.35s ease;
+}
+
+/* ===== CALENDAR SLIDE TRANSITION ===== */
+.calendar-grid.slide-from-left {
+    animation: slideFromLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+.calendar-grid.slide-from-right {
+    animation: slideFromRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes slideFromLeft {
+    from { transform: translateX(-20px); opacity: 0.6; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideFromRight {
+    from { transform: translateX(20px); opacity: 0.6; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ===== SWIPE INDICATOR ARROWS ===== */
+.swipe-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(59, 122, 140, 0.12);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3B7A8C;
+    font-size: 0.9rem;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.swipe-indicator.show {
+    opacity: 1;
+}
+.swipe-indicator.left {
+    left: -8px;
+    animation: indicatorPulseLeft 2.4s ease-in-out infinite;
+}
+.swipe-indicator.right {
+    right: -8px;
+    animation: indicatorPulseRight 2.4s ease-in-out infinite;
+}
+@keyframes indicatorPulseLeft {
+    0%, 100% {
+        transform: translateY(-50%) translateX(0);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateY(-50%) translateX(-4px);
+        opacity: 1;
+    }
+}
+@keyframes indicatorPulseRight {
+    0%, 100% {
+        transform: translateY(-50%) translateX(0);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateY(-50%) translateX(4px);
+        opacity: 1;
+    }
+}
+
+@media (min-width: 769px) {
+    .swipe-indicator {
+        display: none;
+    }
 }
 
 /* ===== AVAILABILITY LEGEND ===== */
@@ -981,14 +1059,18 @@
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             </div>
-                            <div class="calendar-grid" id="calendar-grid">
-                                <div class="calendar-day-header">Sun</div>
-                                <div class="calendar-day-header">Mon</div>
-                                <div class="calendar-day-header">Tue</div>
-                                <div class="calendar-day-header">Wed</div>
-                                <div class="calendar-day-header">Thu</div>
-                                <div class="calendar-day-header">Fri</div>
-                                <div class="calendar-day-header">Sat</div>
+                            <div class="calendar-wrapper" id="calendar-wrapper">
+                                <div class="swipe-indicator left" id="swipe-indicator-left"><i class="fas fa-chevron-left"></i></div>
+                                <div class="calendar-grid" id="calendar-grid">
+                                    <div class="calendar-day-header">Sun</div>
+                                    <div class="calendar-day-header">Mon</div>
+                                    <div class="calendar-day-header">Tue</div>
+                                    <div class="calendar-day-header">Wed</div>
+                                    <div class="calendar-day-header">Thu</div>
+                                    <div class="calendar-day-header">Fri</div>
+                                    <div class="calendar-day-header">Sat</div>
+                                </div>
+                                <div class="swipe-indicator right" id="swipe-indicator-right"><i class="fas fa-chevron-right"></i></div>
                             </div>
                             <!-- Legend -->
                             <div class="d-flex gap-3 mt-2 flex-wrap">
@@ -1232,7 +1314,10 @@
     const startTimeInput = document.getElementById('{{ form.start_time.id_for_label }}');
     const endTimeInput = document.getElementById('{{ form.end_time.id_for_label }}');
     const calendarGrid = document.getElementById('calendar-grid');
+    const calendarWrapper = document.getElementById('calendar-wrapper');
     const calendarTitle = document.getElementById('calendar-title');
+    const swipeIndicatorLeft = document.getElementById('swipe-indicator-left');
+    const swipeIndicatorRight = document.getElementById('swipe-indicator-right');
     const slotsContainer = document.getElementById('time-slots-container');
     const selectedSlotDisplay = document.getElementById('selected-slot-display');
     const selectedSlotLabel = document.getElementById('selected-slot-label');
@@ -1285,6 +1370,9 @@
 
     // ===== STEP 1: CALENDAR =====
     async function loadCalendar() {
+        // Reset slide direction so non-navigation renders don't animate
+        slideDirection = null;
+
         const courtId = courtSelect.value;
         state.selectedCourtId = courtId;
 
@@ -1322,6 +1410,8 @@
     function renderCalendarEmpty() {
         calendarGrid.innerHTML = renderDayHeaders();
         calendarTitle.textContent = 'Select a court first';
+        // Show swipe indicators on the empty state too (mobile only, once)
+        showSwipeIndicators();
     }
 
     function renderCalendar(data) {
@@ -1376,6 +1466,22 @@
 
             calendarGrid.appendChild(cell);
         }
+
+        // Apply directional slide-in animation
+        if (slideDirection === 'left') {
+            calendarGrid.classList.add('slide-from-left');
+        } else if (slideDirection === 'right') {
+            calendarGrid.classList.add('slide-from-right');
+        }
+        slideDirection = null;
+
+        // Clean up animation class after it completes
+        calendarGrid.addEventListener('animationend', function() {
+            calendarGrid.classList.remove('slide-from-left', 'slide-from-right');
+        }, { once: true });
+
+        // Show swipe indicators when calendar renders (mobile only, once)
+        showSwipeIndicators();
     }
 
     function selectDate(dateStr) {
@@ -1397,7 +1503,10 @@
     }
 
     // ===== CALENDAR NAVIGATION =====
+    let slideDirection = null; // 'left' or 'right'
+
     function goToPrevMonth() {
+        slideDirection = 'right';
         if (state.calendarMonth <= 1) {
             state.calendarMonth = 12;
             state.calendarYear--;
@@ -1408,6 +1517,7 @@
     }
 
     function goToNextMonth() {
+        slideDirection = 'left';
         if (state.calendarMonth >= 12) {
             state.calendarMonth = 1;
             state.calendarYear++;
@@ -1419,6 +1529,44 @@
 
     document.getElementById('prev-month').addEventListener('click', goToPrevMonth);
     document.getElementById('next-month').addEventListener('click', goToNextMonth);
+
+    // ===== SWIPE INDICATOR ARROWS =====
+    let swipeIndicatorsDismissed = false;
+    let swipeIndicatorTimeout = null;
+
+    function showSwipeIndicators() {
+        if (swipeIndicatorsDismissed) return;
+        if (window.innerWidth > 768) return;
+        swipeIndicatorLeft.classList.add('show');
+        swipeIndicatorRight.classList.add('show');
+
+        // Auto-dismiss after 4 seconds (only set once)
+        if (!swipeIndicatorTimeout) {
+            swipeIndicatorTimeout = setTimeout(function() {
+                dismissSwipeIndicators();
+                swipeIndicatorTimeout = null;
+            }, 4000);
+        }
+    }
+
+    function dismissSwipeIndicators() {
+        if (swipeIndicatorTimeout) {
+            clearTimeout(swipeIndicatorTimeout);
+            swipeIndicatorTimeout = null;
+        }
+        swipeIndicatorsDismissed = true;
+        swipeIndicatorLeft.classList.remove('show');
+        swipeIndicatorRight.classList.remove('show');
+    }
+
+    // Dismiss when user navigates via buttons (only once calendar has day cells rendered)
+    function dismissIfCalendarActive() {
+        if (calendarGrid.children.length > 7) {
+            dismissSwipeIndicators();
+        }
+    }
+    document.getElementById('prev-month').addEventListener('click', dismissIfCalendarActive);
+    document.getElementById('next-month').addEventListener('click', dismissIfCalendarActive);
 
     // ===== SWIPE GESTURE SUPPORT =====
     let swipeStartX = 0;
@@ -1464,27 +1612,36 @@
         const isFarEnough = Math.abs(deltaX) >= 50;
         const isSwipe = isHorizontal && isFastEnough && isFarEnough;
 
-        // Animate back to neutral position
-        calendarGrid.classList.add('swipe-settling');
+        // If it's a qualifying swipe, prevent day-cell clicks synchronously            if (isSwipe) {
+                e.preventDefault();
+            }
+
+            // Dismiss swipe indicators on any meaningful touch end
+            dismissSwipeIndicators();
+
+            // Animate back to neutral position
+            calendarGrid.classList.add('swipe-settling');
         calendarGrid.style.transform = 'translateX(0px)';
         calendarGrid.style.opacity = '1';
 
-        // Clean up after the transition completes
+        // Clean up inline styles after animation
         function onSettleComplete() {
             calendarGrid.classList.remove('swipe-settling');
             calendarGrid.style.removeProperty('transform');
             calendarGrid.style.removeProperty('opacity');
         }
 
+        let swipeProcessed = false;
+
         function finishSwipe() {
+            if (swipeProcessed) return;
+            swipeProcessed = true;
+
             // Reset tracking
             swipeStartX = 0;
             swipeStartY = 0;
 
             if (isSwipe) {
-                // Prevent the click on any day cell from firing
-                e.preventDefault();
-
                 if (deltaX < 0) {
                     goToNextMonth();
                 } else {
@@ -1498,14 +1655,11 @@
         }
 
         // Wait for the snap-back animation to finish before navigating
-        calendarGrid.addEventListener('transitionend', function handler() {
-            calendarGrid.removeEventListener('transitionend', handler);
-            finishSwipe();
-        });
+        calendarGrid.addEventListener('transitionend', finishSwipe, { once: true });
 
         // Safety timeout in case transitionend doesn't fire
         setTimeout(function() {
-            if (swipeStartX !== 0 || isSwipe) {
+            if (swipeStartX !== 0) {
                 finishSwipe();
             }
         }, 400);

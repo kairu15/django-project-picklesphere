@@ -14,12 +14,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u)8z%#-sdlu@&bzp-8*q6k^o1$+^e0k1cut%tt^=aihi1**2m-'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production-u)8z%#-sdlu@&bzp-8*q6k^o1$+^e0k1cut%tt^=aihi1**2m-')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.*,*.ngrok-free.app,*.ngrok-free.dev,*.ngrok.io').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8001',
@@ -122,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
@@ -157,9 +157,22 @@ SESSION_WARNING_BEFORE = 300
 # Session cookie settings
 SESSION_COOKIE_AGE = 3600  # 1 hour max session age
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 SESSION_COOKIE_SAMESITE = 'Lax'
 # Save session on every request to track activity
 SESSION_SAVE_EVERY_REQUEST = True
 # Use database-backed sessions for reliability
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# CSRF settings
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript POST
+
+# Email settings (configure in .env for production)
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='picklesphere@gmail.com')

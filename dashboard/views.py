@@ -8,16 +8,29 @@ from datetime import datetime, timedelta
 from accounts.models import User, UserActivity
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from courts.models import Court, Site
-from courts.views import court_list_view
+
 from reservations.models import Reservation
 from payments.models import Payment
 from scoring.models import Match, PlayerStats
 from equipment.models import Equipment, EquipmentRental
 from notifications.models import Notification
-from .models import ContactMessage
+from .models import ContactMessage, ContactInfo as CI
 
 STATIC_CONTACT_PHONE = '09455470173'
 STATIC_CONTACT_EMAIL = 'picklesphere@gmail.com'
+
+# Helper to get contact info from DB or fallback to static defaults
+def _get_contact_info():
+    ci = CI.objects.first()
+    if ci:
+        return {
+            'phone': ci.phone or STATIC_CONTACT_PHONE,
+            'email': ci.email or STATIC_CONTACT_EMAIL,
+            'address': ci.address or '123 Sports Avenue, Makati City',
+            'city_country': ci.city_country or 'Metro Manila, Philippines',
+            'google_maps_url': getattr(ci, 'google_maps_url', ''),
+        }
+    return None
 
 
 def home_view(request):
@@ -627,7 +640,7 @@ def about_view(request):
         return content.content if content else default
 
     # Get contact info from database or use defaults
-    contact_info = ContactInfo.objects.first()
+    contact_info = _get_contact_info()
     if not contact_info:
         contact_info = {
             'phone': STATIC_CONTACT_PHONE,
@@ -635,9 +648,6 @@ def about_view(request):
             'address': '123 Sports Avenue, Makati City',
             'city_country': 'Metro Manila, Philippines',
         }
-    else:
-        contact_info.phone = STATIC_CONTACT_PHONE
-        contact_info.email = STATIC_CONTACT_EMAIL
 
     content = {
         'hero_badge': get_content('hero_badge', 'Our Story'),
