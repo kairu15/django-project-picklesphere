@@ -1,0 +1,336 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Manage Staff — {{ organization.name }}{% endblock %}
+{% block page_title %}Manage Staff{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+    animation: fadeSlideUp 0.35s ease forwards;
+    opacity: 0;
+}
+.animate-in-d1 { animation-delay: 0.05s; }
+.animate-in-d2 { animation-delay: 0.1s; }
+.animate-in-d3 { animation-delay: 0.15s; }
+.animate-in-d4 { animation-delay: 0.2s; }
+
+.staff-card {
+    border-radius: 14px;
+    border: 1.5px solid #e9ecef;
+    transition: all 0.25s ease;
+    background: #fff;
+    height: 100%;
+}
+.staff-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    transform: translateY(-2px);
+}
+
+.staff-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.staff-avatar.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.staff-avatar.teal { background: linear-gradient(135deg, #17a2b8 0%, #0d7a8c 100%); }
+.staff-avatar.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.staff-avatar.orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.staff-avatar.blue { background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); }
+
+.stat-dashboard-card {
+    border-radius: 16px;
+    border: none;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+.stat-dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.btn-remove-staff {
+    border-radius: 10px;
+    background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    font-size: 0.78rem;
+    transition: all 0.25s;
+    box-shadow: 0 3px 10px rgba(220,53,69,0.25);
+}
+.btn-remove-staff:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(220,53,69,0.35);
+    color: white;
+}
+.btn-add-staff {
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3B7A8C 0%, #2c5f6e 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.65rem 1.5rem;
+    transition: all 0.25s;
+    box-shadow: 0 3px 12px rgba(59,122,140,0.3);
+}
+.btn-add-staff:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 18px rgba(59,122,140,0.4);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+.empty-state-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: #6c757d;
+    font-size: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Staff Management</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- ===== HEADER ===== -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 animate-in">
+    <div>
+        <h5 class="fw-bold mb-1"><i class="fas fa-users-gear text-primary me-2"></i>Staff Management</h5>
+        <p class="text-muted mb-0 small">
+            Manage who has access to manage <strong>{{ organization.name }}</strong>'s operations
+        </p>
+    </div>
+    <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+    </a>
+</div>
+
+<!-- ===== STAT CARDS ===== -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4 animate-in animate-in-d1">
+        <div class="card stat-dashboard-card h-100" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <div>
+                    <div class="text-white" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">{{ current_staff_count }}</div>
+                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.78); letter-spacing: 0.3px;">Current Staff</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 animate-in animate-in-d2">
+        <div class="card stat-dashboard-card h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-user-plus text-white"></i>
+                </div>
+                <div>
+                    <div class="text-white" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">{% widthratio current_staff_count staff_limit 100 %}%</div>
+                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.78); letter-spacing: 0.3px;">Capacity Used ({{ current_staff_count }}/{{ staff_limit }})</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 animate-in animate-in-d3">
+        <div class="card stat-dashboard-card h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-user-tie text-white"></i>
+                </div>
+                <div>
+                    <div class="text-white" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">{{ staff_limit|add:"0" }}</div>
+                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.78); letter-spacing: 0.3px;">Max Staff Limit</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- ===== LEFT: Current Staff ===== -->
+    <div class="col-lg-7 animate-in animate-in-d2">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-users me-2 text-primary"></i>Current Staff Members</h6>
+                <span class="badge bg-light text-dark px-3 py-2" style="border-radius: 20px;">{{ staff_members|length }} active</span>
+            </div>
+            <div class="card-body p-4">
+                {% if staff_members %}
+                <div class="d-flex flex-column gap-3">
+                    {% for staff in staff_members %}
+                    {% with colors="purple,teal,green,orange,blue" %}
+                    {% with color_list=colors|cut:" " %}
+                    <div class="staff-card p-3">
+                        <div class="d-flex align-items-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="staff-avatar {% cycle 'purple' 'teal' 'green' 'orange' 'blue' %}">
+                                    <span class="text-white">{{ staff.get_full_name|default:staff.username|first|upper }}</span>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ staff.get_full_name|default:staff.username }}</div>
+                                    <div class="small text-muted">{{ staff.email }}</div>
+                                    <div>
+                                        <span class="badge bg-light text-dark" style="border-radius: 20px; font-size: 0.65rem;">
+                                            <i class="fas fa-user-tag me-1"></i>Staff
+                                        </span>
+                                        {% if staff.last_login %}
+                                        <small class="text-muted ms-2">Last login: {{ staff.last_login|date:"M d, Y" }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <form method="post" onsubmit="return confirm('Remove {{ staff.get_full_name|default:staff.username }} from staff? They will become a regular user.')" style="flex-shrink: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <input type="hidden" name="user_id" value="{{ staff.id }}">
+                                <button type="submit" class="btn-remove-staff btn-sm">
+                                    <i class="fas fa-user-minus me-1"></i>Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-users-slash"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">No staff members yet</h6>
+                    <p class="text-muted small mb-0">Staff members help manage reservations, courts, and equipment.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== RIGHT: Add Staff + Settings ===== -->
+    <div class="col-lg-5 animate-in animate-in-d3">
+        <!-- Add Staff -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h6 class="fw-bold mb-0"><i class="fas fa-user-plus me-2 text-success"></i>Add Staff Member</h6>
+            </div>
+            <div class="card-body p-4">
+                {% if can_add %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Select User</label>
+                        {{ form.user }}
+                        {% if form.user.errors %}
+                        <div class="text-danger small mt-1">{{ form.user.errors }}</div>
+                        {% endif %}
+                        {% if form.user.queryset.count == 0 %}
+                        <div class="alert alert-info rounded-3 small mt-2 mb-0 py-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            No eligible users available. All users are already staff or affiliated with your organization.
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-info rounded-3 small mb-3 py-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Only regular users with no organization affiliation can be assigned as staff.
+                    </div>
+
+                    {% if form.user.queryset.count > 0 %}
+                    <button type="submit" class="btn-add-staff w-100">
+                        <i class="fas fa-user-plus me-2"></i>Assign as Staff
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-secondary w-100" style="border-radius: 10px;" disabled>
+                        <i class="fas fa-ban me-2"></i>No Eligible Users
+                    </button>
+                    {% endif %}
+                </form>
+                {% else %}
+                <div class="alert alert-warning rounded-3 small mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Staff limit reached ({{ current_staff_count }}/{{ staff_limit }}). 
+                    Remove an existing staff member or increase the limit below.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Staff Limit Settings -->
+        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h6 class="fw-bold mb-0"><i class="fas fa-sliders me-2 text-warning"></i>Staff Limit</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" class="row g-2 align-items-end">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_max">
+                    <div class="col-8">
+                        <label class="form-label fw-semibold small">Maximum Staff Accounts</label>
+                        <input type="number" name="max_staff_accounts" class="form-control" 
+                               value="{{ staff_limit }}" min="1" max="100"
+                               style="border-radius: 10px;">
+                    </div>
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-outline-primary w-100" style="border-radius: 10px;">
+                            <i class="fas fa-save me-1"></i>Save
+                        </button>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Set the maximum number of staff accounts allowed for your organization.
+                            Current usage: <strong>{{ current_staff_count }} / {{ staff_limit }}</strong>
+                        </small>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card border-0 shadow-sm mt-4" style="border-radius: 16px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2"><i class="fas fa-lightbulb text-warning me-2"></i>About Staff Roles</h6>
+                <ul class="small text-muted mb-0" style="padding-left: 1.2rem; line-height: 1.8;">
+                    <li>Staff members can manage reservations, payments, and equipment.</li>
+                    <li>Staff cannot change organization settings or manage other staff.</li>
+                    <li>Removing a staff member demotes them to a regular user.</li>
+                    <li>Users must have a regular user account before becoming staff.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

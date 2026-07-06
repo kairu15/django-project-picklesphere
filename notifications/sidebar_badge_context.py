@@ -1,4 +1,4 @@
-from reservations.models import Reservation
+from reservations.models import Reservation, CancellationRequest
 from equipment.models import EquipmentRental
 from payments.models import Payment
 from tournaments.models import Registration
@@ -21,6 +21,8 @@ def sidebar_badges(request):
         'badge_my_tournaments': 0,
         'badge_user_messages': 0,
         'badge_pending_organizations': 0,
+        'badge_pending_cancellations': 0,
+        'badge_pending_refunds': 0,
     }
     
     if not request.user.is_authenticated:
@@ -33,6 +35,17 @@ def sidebar_badges(request):
     if user.is_super_admin():
         context['badge_pending_organizations'] = Organization.objects.filter(status='pending').count()
         
+        # Pending cancellations (awaiting staff approval)
+        context['badge_pending_cancellations'] = CancellationRequest.objects.filter(
+            approved__isnull=True
+        ).count()
+
+        # Pending refunds (approved cancellation, not yet refunded)
+        context['badge_pending_refunds'] = CancellationRequest.objects.filter(
+            approved=True,
+            refund_processed=False
+        ).count()
+
         # Pending reservations (pending status)
         context['badge_pending_reservations'] = Reservation.objects.filter(
             status='pending'
@@ -70,7 +83,20 @@ def sidebar_badges(request):
             court_id__in=org_court_ids,
             status='pending'
         ).count()
-        
+
+        # Pending cancellations in the org's courts
+        context['badge_pending_cancellations'] = CancellationRequest.objects.filter(
+            reservation__court_id__in=org_court_ids,
+            approved__isnull=True
+        ).count()
+
+        # Pending refunds in the org's courts
+        context['badge_pending_refunds'] = CancellationRequest.objects.filter(
+            reservation__court_id__in=org_court_ids,
+            approved=True,
+            refund_processed=False
+        ).count()
+
         # Pending payments for the org's reservations
         context['badge_pending_payments'] = Payment.objects.filter(
             reservation__court_id__in=org_court_ids,
@@ -106,7 +132,20 @@ def sidebar_badges(request):
             court_id__in=org_court_ids,
             status='pending'
         ).count()
-        
+
+        # Pending cancellations in the org's courts
+        context['badge_pending_cancellations'] = CancellationRequest.objects.filter(
+            reservation__court_id__in=org_court_ids,
+            approved__isnull=True
+        ).count()
+
+        # Pending refunds in the org's courts
+        context['badge_pending_refunds'] = CancellationRequest.objects.filter(
+            reservation__court_id__in=org_court_ids,
+            approved=True,
+            refund_processed=False
+        ).count()
+
         # Payments needing verification (pending GCash)
         context['badge_pending_payments'] = Payment.objects.filter(
             reservation__court_id__in=org_court_ids,

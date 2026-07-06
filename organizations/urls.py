@@ -20,4 +20,7 @@ urlpatterns = [
     # Org Admin URLs
     path('org-admin/dashboard/', views.org_admin_dashboard, name='org_admin_dashboard'),
     path('org-admin/profile/', views.org_admin_profile, name='org_admin_profile'),
+    path('org-admin/staff/', views.org_admin_manage_staff, name='org_admin_manage_staff'),
+    path('org-admin/location/', views.org_admin_location_setup, name='org_admin_location_setup'),
+    path('org-admin/api/reverse-geocode/', views.reverse_geocode_api, name='reverse_geocode_api'),
 ]

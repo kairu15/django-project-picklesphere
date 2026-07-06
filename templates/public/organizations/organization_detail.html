@@ -207,6 +207,21 @@
                         </div>
                     </div>
                 </div>
+
+                {% if organization.latitude and organization.longitude %}
+                <!-- Map Card -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: var(--border-radius-lg); overflow: hidden;">
+                    <div class="card-body p-0">
+                        <div id="orgMap" style="height: 200px; width: 100%;"></div>
+                    </div>
+                    <div class="card-footer bg-transparent p-3 text-center border-0">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ organization.latitude }},{{ organization.longitude }}" target="_blank" rel="noopener" class="btn btn-success w-100" style="border-radius: 10px; font-weight: 600;">
+                            <i class="fas fa-directions me-2"></i>Get Directions
+                        </a>
+                        <small class="text-muted d-block mt-2">Opens in Google Maps</small>
+                    </div>
+                </div>
+                {% endif %}
                 
                 <div class="card border-0 shadow-sm" style="border-radius: var(--border-radius-lg);">
                     <div class="card-body p-4 text-center">
@@ -227,6 +242,30 @@
         </div>
     </div>
 </section>
+
+{% if organization.latitude and organization.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    var lat = {{ organization.latitude }};
+    var lng = {{ organization.longitude }};
+    var map = L.map('orgMap', {
+        center: [lat, lng],
+        zoom: 15,
+        zoomControl: false,
+        scrollWheelZoom: false,
+        dragging: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup('<strong>{{ organization.name|escapejs }}</strong>')
+        .openPopup();
+})();
+</script>
+{% endif %}
 
 {% include 'components/footer.html' %}
 {% endblock %}

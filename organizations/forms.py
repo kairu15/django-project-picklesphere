@@ -52,6 +52,32 @@ class OrganizationProfileForm(forms.ModelForm):
         }
 
 
+class OrgStaffAssignmentForm(forms.Form):
+    """Form for org admin to assign a user as staff member."""
+    user = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=True,
+        label='Select User',
+        widget=forms.Select(attrs={'class': 'form-select', 'style': 'border-radius: 10px;'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        org = kwargs.pop('org', None)
+        super().__init__(*args, **kwargs)
+        if org:
+            # Show users who are NOT already staff/admin of this org, and not super_admin
+            existing_staff = User.objects.filter(
+                organization=org,
+                role__in=['org_admin', 'org_staff']
+            ).values_list('id', flat=True)
+            self.fields['user'].queryset = User.objects.filter(
+                role='user',
+                is_active=True
+            ).exclude(id__in=existing_staff).order_by('username')
+            if not self.fields['user'].queryset.exists():
+                self.fields['user'].empty_label = "No eligible users available"
+    
+    
 class OrganizationApprovalForm(forms.ModelForm):
     """Form for super admin to approve/reject organizations"""
     

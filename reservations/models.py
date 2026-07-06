@@ -129,6 +129,7 @@ class CancellationRequest(models.Model):
     paypal_email = models.EmailField(blank=True, null=True)
     refund_processed = models.BooleanField(default=False)
     refund_processed_at = models.DateTimeField(null=True, blank=True)
+    processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_refunds')
 
     # Cancellation policy fields
     deduction_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)

@@ -85,11 +85,14 @@
                         </div>
                     </div>
                     
-                    <div class="mt-4">
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-2"></i>Save Changes
                         </button>
                         <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <a href="{% url 'org_admin_location_setup' %}" class="btn btn-outline-info">
+                            <i class="fas fa-map-marker-alt me-2"></i>Set Facility Location
+                        </a>
                     </div>
                 </form>
             </div>

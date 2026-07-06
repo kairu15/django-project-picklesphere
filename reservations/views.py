@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, date as date_type
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
-from payments.models import Payment
+from payments.models import Payment, PaymentLog
 from notifications.models import Notification
 from equipment.models import Equipment
 from accounts.models import User
@@ -519,6 +519,350 @@ def cancel_reservation_view(request, reservation_id):
         'deduction_percentage': deduction_percentage,
         'deduction_amount': deduction_amount,
         'refund_amount': refund_amount,
+    })
+
+
+@login_required
+@staff_or_admin_required
+def staff_refund_processing_view(request):
+    """Dedicated page for staff to process refunds (mark as sent) for approved cancellations."""
+    cancellations = CancellationRequest.objects.select_related(
+        'reservation', 'reservation__user', 'reservation__court',
+        'reservation__court__site', 'requested_by'
+    ).filter(
+        approved=True,
+        refund_processed=False
+    ).order_by('-approved_at')
+
+    # Org-scoping
+    if request.user.organization:
+        cancellations = cancellations.filter(reservation__court__organization=request.user.organization)
+
+    # Search
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        cancellations = cancellations.filter(
+            Q(reservation__id__icontains=search_query) |
+            Q(reservation__user__username__icontains=search_query) |
+            Q(reservation__user__email__icontains=search_query) |
+            Q(reservation__court__name__icontains=search_query)
+        )
+
+    # Filter by refund method
+    method_filter = request.GET.get('method', '')
+    if method_filter:
+        cancellations = cancellations.filter(refund_method=method_filter)
+
+    # Filter by date range
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        cancellations = cancellations.filter(approved_at__date__gte=date_from)
+    if date_to:
+        cancellations = cancellations.filter(approved_at__date__lte=date_to)
+
+    # Stats
+    total_pending = cancellations.count()
+    if request.user.organization:
+        base_qs = CancellationRequest.objects.filter(reservation__court__organization=request.user.organization)
+    else:
+        base_qs = CancellationRequest.objects.all()
+    total_approved_all = base_qs.filter(approved=True).count()
+    total_processed = base_qs.filter(refund_processed=True).count()
+    gcash_count = cancellations.filter(refund_method='gcash').count()
+    paypal_count = cancellations.filter(refund_method='paypal').count()
+
+    # Handle POST
+    if request.method == 'POST':
+        cancellation_id = request.POST.get('cancellation_id')
+        refund_notes = request.POST.get('refund_notes', '').strip()
+
+        c_qs = CancellationRequest.objects.all()
+        if request.user.organization:
+            c_qs = c_qs.filter(reservation__court__organization=request.user.organization)
+        cancellation = get_object_or_404(c_qs, id=cancellation_id)
+
+        if cancellation.approved and not cancellation.refund_processed:
+            cancellation.refund_processed = True
+            cancellation.refund_processed_at = timezone.now()
+            cancellation.processed_by = request.user
+            cancellation.save()
+
+            # Update payment
+            try:
+                payment = cancellation.reservation.payment
+                payment.status = 'refunded'
+                payment.payment_notes = refund_notes or payment.payment_notes
+                payment.save()
+
+                # Log
+                PaymentLog.objects.create(
+                    payment=payment,
+                    action='Refund Processed via Counter',
+                    details=f'Refund for cancellation #{cancellation.id} processed by {request.user.get_full_name() or request.user.username}. Notes: {refund_notes or "-"}',
+                    performed_by=request.user
+                )
+            except:
+                pass
+
+            Notification.objects.create(
+                user=cancellation.requested_by,
+                message=f"Your refund of ₱{cancellation.reservation.total_amount - cancellation.deduction_amount:,.2f} for Reservation #{cancellation.reservation.id} has been sent. "
+            )
+
+            messages.success(request, f'Refund for cancellation #{cancellation.id} (Reservation #{cancellation.reservation.id}) marked as processed.')
+            return redirect('staff_refund_processing')
+        else:
+            messages.error(request, 'This cancellation is not eligible for refund processing.')
+            return redirect('staff_refund_processing')
+
+    # Pagination
+    paginator = Paginator(cancellations, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'staff/refund_processing.html', {
+        'cancellations': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
+        'method_filter': method_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_pending': total_pending,
+        'total_approved_all': total_approved_all,
+        'total_processed': total_processed,
+        'gcash_count': gcash_count,
+        'paypal_count': paypal_count,
+    })
+
+
+@login_required
+@staff_or_admin_required
+def staff_refund_history_view(request):
+    """Staff view showing all processed refunds with date, amount, method, and staff who processed them."""
+    cancellations = CancellationRequest.objects.select_related(
+        'reservation', 'reservation__user', 'reservation__court',
+        'reservation__court__site', 'approved_by', 'processed_by'
+    ).filter(
+        refund_processed=True
+    ).order_by('-refund_processed_at')
+
+    # Org-scoping
+    if request.user.organization:
+        cancellations = cancellations.filter(reservation__court__organization=request.user.organization)
+
+    # Search
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        cancellations = cancellations.filter(
+            Q(reservation__id__icontains=search_query) |
+            Q(reservation__user__username__icontains=search_query) |
+            Q(reservation__user__email__icontains=search_query) |
+            Q(reservation__court__name__icontains=search_query) |
+            Q(processed_by__username__icontains=search_query)
+        )
+
+    # Filter by refund method
+    method_filter = request.GET.get('method', '')
+    if method_filter:
+        cancellations = cancellations.filter(refund_method=method_filter)
+
+    # Filter by date range
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        cancellations = cancellations.filter(refund_processed_at__date__gte=date_from)
+    if date_to:
+        cancellations = cancellations.filter(refund_processed_at__date__lte=date_to)
+
+    # Stats summary
+    total_refunds = cancellations.count()
+    total_refund_amount = sum(float(c.reservation.total_amount - c.deduction_amount) for c in cancellations)
+    gcash_count = cancellations.filter(refund_method='gcash').count()
+    paypal_count = cancellations.filter(refund_method='paypal').count()
+
+    # Pagination
+    paginator = Paginator(cancellations, 15)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # Annotate each cancellation with pre-calculated refund amount
+    cancellations_list = list(page_obj.object_list)
+    for c in cancellations_list:
+        c.refund_amount = c.reservation.total_amount - c.deduction_amount
+
+    return render(request, 'staff/refund_history.html', {
+        'cancellations': cancellations_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
+        'method_filter': method_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_refunds': total_refunds,
+        'total_refund_amount': total_refund_amount,
+        'gcash_count': gcash_count,
+        'paypal_count': paypal_count,
+    })
+
+
+@login_required
+@staff_or_admin_required
+def staff_cancellations_view(request):
+    """Staff view to list, filter, and process cancellation requests."""
+    cancellations = CancellationRequest.objects.select_related(
+        'reservation', 'reservation__user', 'reservation__court',
+        'reservation__court__site', 'requested_by'
+    ).all()
+
+    # Org-scoping
+    if request.user.organization:
+        cancellations = cancellations.filter(reservation__court__organization=request.user.organization)
+
+    # Search
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        cancellations = cancellations.filter(
+            Q(reservation__id__icontains=search_query) |
+            Q(reservation__user__username__icontains=search_query) |
+            Q(reservation__user__email__icontains=search_query) |
+            Q(reservation__court__name__icontains=search_query)
+        )
+
+    # Filter by status (approved/rejected/pending)
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'pending':
+        cancellations = cancellations.filter(approved__isnull=True)
+    elif status_filter == 'approved':
+        cancellations = cancellations.filter(approved=True)
+    elif status_filter == 'rejected':
+        cancellations = cancellations.filter(approved=False)
+
+    # Filter by refund status
+    refund_filter = request.GET.get('refund', '')
+    if refund_filter == 'processed':
+        cancellations = cancellations.filter(refund_processed=True)
+    elif refund_filter == 'pending':
+        cancellations = cancellations.filter(refund_processed=False, approved=True)
+
+    # Filter by date range
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        cancellations = cancellations.filter(requested_at__date__gte=date_from)
+    if date_to:
+        cancellations = cancellations.filter(requested_at__date__lte=date_to)
+
+    # Sort
+    sort_by = request.GET.get('sort_by', '-requested_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['id', 'requested_at', 'approved_at', 'deduction_amount', 'refund_method']
+    # For sorting by reservation fields
+    if sort_by == 'reservation__user__username':
+        cancellations = cancellations.order_by(f"{'-' if sort_order == 'desc' else ''}reservation__user__username")
+    elif sort_by == 'reservation__total_amount':
+        cancellations = cancellations.order_by(f"{'-' if sort_order == 'desc' else ''}reservation__total_amount")
+    elif sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        cancellations = cancellations.order_by(sort_by)
+    else:
+        cancellations = cancellations.order_by('-requested_at')
+
+    # Stats for summary cards
+    total = CancellationRequest.objects.count()
+    if request.user.organization:
+        total_qs = CancellationRequest.objects.filter(reservation__court__organization=request.user.organization)
+    else:
+        total_qs = CancellationRequest.objects.all()
+    pending_count = total_qs.filter(approved__isnull=True).count()
+    approved_count = total_qs.filter(approved=True).count()
+    refund_pending = total_qs.filter(approved=True, refund_processed=False).count()
+
+    # Handle POST: approve/reject cancellation or mark refund as processed
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        cancellation_id = request.POST.get('cancellation_id')
+
+        if not action or not cancellation_id:
+            messages.error(request, 'Missing action or cancellation ID.')
+            return redirect('staff_cancellations')
+
+        c_qs = CancellationRequest.objects.all()
+        if request.user.organization:
+            c_qs = c_qs.filter(reservation__court__organization=request.user.organization)
+        cancellation = get_object_or_404(c_qs, id=cancellation_id)
+
+        if action == 'approve':
+            cancellation.approved = True
+            cancellation.approved_by = request.user
+            cancellation.approved_at = timezone.now()
+            cancellation.save()
+
+            # Notify user
+            Notification.objects.create(
+                user=cancellation.requested_by,
+                message=f"Your cancellation request for Reservation #{cancellation.reservation.id} has been approved. Refund of ₱{cancellation.reservation.total_amount - cancellation.deduction_amount:,.2f} will be processed within 24-48 hours."
+            )
+            messages.success(request, f'Cancellation #{cancellation.id} approved successfully.')
+
+        elif action == 'reject':
+            cancellation.approved = False
+            cancellation.approved_by = request.user
+            cancellation.approved_at = timezone.now()
+            cancellation.save()
+
+            Notification.objects.create(
+                user=cancellation.requested_by,
+                message=f"Your cancellation request for Reservation #{cancellation.reservation.id} has been reviewed and was not approved. Please contact support for more details."
+            )
+            messages.warning(request, f'Cancellation #{cancellation.id} rejected.')
+
+        elif action == 'mark_refunded':
+            cancellation.refund_processed = True
+            cancellation.refund_processed_at = timezone.now()
+            cancellation.processed_by = request.user
+            cancellation.save()
+
+            # Update payment
+            try:
+                payment = cancellation.reservation.payment
+                payment.status = 'refunded'
+                payment.save()
+            except:
+                pass
+
+            Notification.objects.create(
+                user=cancellation.requested_by,
+                message=f"Your refund of ₱{cancellation.reservation.total_amount - cancellation.deduction_amount:,.2f} for Reservation #{cancellation.reservation.id} has been processed."
+            )
+            messages.success(request, f'Refund for cancellation #{cancellation.id} marked as processed.')
+
+        return redirect('staff_cancellations')
+
+    # Pagination
+    paginator = Paginator(cancellations, 15)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'staff/cancellations.html', {
+        'cancellations': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'refund_filter': refund_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'refund_pending': refund_pending,
+        'total_count': total,
     })
 
 

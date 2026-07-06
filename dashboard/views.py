@@ -312,7 +312,7 @@ def all_courts_view(request):
     from datetime import datetime
     from organizations.models import Organization
 
-    courts = Court.objects.filter(is_active=True)
+    courts = Court.objects.filter(is_active=True).select_related('organization')
     sites = Site.objects.filter(is_active=True)
     organizations = Organization.objects.filter(status='approved', is_active=True)
 

@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
+from django.http import JsonResponse
 from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
 from .models import Organization
-from .forms import OrganizationRegistrationForm, OrganizationProfileForm, OrganizationApprovalForm, SuperAdminOrganizationForm
+from .forms import OrganizationRegistrationForm, OrganizationProfileForm, OrganizationApprovalForm, SuperAdminOrganizationForm, OrgStaffAssignmentForm
 from accounts.models import User
 from django.core.paginator import Paginator
 
@@ -480,6 +481,91 @@ def org_admin_dashboard(request):
 @login_required
 @org_admin_required
 @org_required
+def org_admin_manage_staff(request):
+    """Organization Admin manages staff members for their organization."""
+    org = request.user.organization
+
+    # Get current staff (org_staff role, belonging to this org)
+    staff_members = User.objects.filter(
+        organization=org,
+        role='org_staff'
+    ).order_by('username')
+
+    # Handle POST: add or remove staff
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add':
+            form = OrgStaffAssignmentForm(request.POST, org=org)
+            if form.is_valid():
+                user = form.cleaned_data['user']
+                user.organization = org
+                user.role = 'org_staff'
+                user.save()
+                staff_name = user.get_full_name() or user.username
+                messages.success(
+                    request,
+                    f'"{staff_name}" has been added as a staff member.'
+                )
+                return redirect('org_admin_manage_staff')
+            else:
+                messages.error(request, 'Please select a valid user to add.')
+
+        elif action == 'remove':
+            user_id = request.POST.get('user_id')
+            if user_id:
+                user = get_object_or_404(User, id=user_id, organization=org, role='org_staff')
+                username = user.get_full_name() or user.username
+                user.organization = None
+                user.role = 'user'
+                user.save()
+                messages.success(
+                    request,
+                    f'"{username}" has been removed from staff and is now a regular user.'
+                )
+                return redirect('org_admin_manage_staff')
+
+        elif action == 'update_max':
+            max_staff = request.POST.get('max_staff_accounts')
+            if max_staff and max_staff.isdigit():
+                val = int(max_staff)
+                if 1 <= val <= 100:
+                    org.max_staff_accounts = val
+                    org.save(update_fields=['max_staff_accounts'])
+                    messages.success(request, f'Maximum staff accounts updated to {val}.')
+                else:
+                    messages.error(request, 'Maximum staff accounts must be between 1 and 100.')
+            return redirect('org_admin_manage_staff')
+
+    else:
+        form = OrgStaffAssignmentForm(org=org)
+
+    # Get eligible regular users (role='user', no org affiliation or with this org only)
+    eligible_users = User.objects.filter(
+        role='user',
+        is_active=True
+    ).exclude(
+        organization=org,
+        role__in=['org_admin', 'org_staff']
+    ).order_by('username')[:50]
+
+    can_add = org.can_add_staff()
+    staff_limit = org.max_staff_accounts
+
+    return render(request, 'admin/organizations/org_admin_staff.html', {
+        'organization': org,
+        'staff_members': staff_members,
+        'form': form,
+        'eligible_users': eligible_users,
+        'can_add': can_add,
+        'staff_limit': staff_limit,
+        'current_staff_count': staff_members.count(),
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
 def org_admin_profile(request):
     """Edit organization profile"""
     org = request.user.organization
@@ -497,3 +583,88 @@ def org_admin_profile(request):
         'form': form,
         'organization': org,
     })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_location_setup(request):
+    """Interactive map page for org admin to set facility location."""
+    org = request.user.organization
+    
+    if request.method == 'POST':
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
+        address = request.POST.get('location_address', '').strip()
+        city = request.POST.get('city', '').strip()
+        province = request.POST.get('province', '').strip()
+        
+        if lat and lng:
+            try:
+                org.latitude = float(lat)
+                org.longitude = float(lng)
+                org.location_address = address or org.location_address
+                if city:
+                    org.city = city
+                if province:
+                    org.province = province
+                org.save(update_fields=['latitude', 'longitude', 'location_address', 'city', 'province'])
+                messages.success(request, 'Location saved successfully!')
+                return redirect('org_admin_location_setup')
+            except (ValueError, TypeError):
+                messages.error(request, 'Invalid coordinates. Please place the pin on the map.')
+        else:
+            messages.error(request, 'Please place a pin on the map to set the location.')
+    
+    return render(request, 'admin/organizations/org_admin_location.html', {
+        'organization': org,
+        'org_lat': float(org.latitude) if org.latitude else None,
+        'org_lng': float(org.longitude) if org.longitude else None,
+        'org_address': org.location_address or '',
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def reverse_geocode_api(request):
+    """Proxy endpoint for Nominatim reverse geocoding to avoid CORS issues."""
+    import urllib.request, urllib.parse, json
+    
+    lat = request.GET.get('lat')
+    lng = request.GET.get('lng')
+    
+    if not lat or not lng:
+        return JsonResponse({'error': 'lat and lng parameters required'}, status=400)
+    
+    try:
+        params = urllib.parse.urlencode({
+            'format': 'jsonv2',
+            'lat': lat,
+            'lon': lng,
+            'addressdetails': 1,
+        })
+        url = f'https://nominatim.openstreetmap.org/reverse?{params}'
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'PickleSphere/1.0 (organization location picker)',
+        })
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            
+        if 'display_name' in data:
+            address = data['display_name']
+            # Also extract city/province if available
+            addr_details = data.get('address', {})
+            city = addr_details.get('city', addr_details.get('town', addr_details.get('village', '')))
+            province = addr_details.get('state', addr_details.get('province', ''))
+            return JsonResponse({
+                'display_name': address,
+                'city': city,
+                'province': province,
+                'lat': data.get('lat', lat),
+                'lon': data.get('lon', lng),
+            })
+        else:
+            return JsonResponse({'display_name': f'{lat}, {lng}', 'city': '', 'province': ''})
+    except Exception as e:
+        return JsonResponse({'display_name': f'{lat}, {lng}', 'city': '', 'province': '', 'error': str(e)})

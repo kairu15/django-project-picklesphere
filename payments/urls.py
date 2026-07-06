@@ -7,6 +7,7 @@ urlpatterns = [
     path('history/', views.payment_history_view, name='payment_history'),
     path('staff/', views.staff_payments_view, name='staff_payments'),
     path('staff/verify/<int:payment_id>/', views.verify_payment_view, name='verify_payment'),
+    path('staff/cash-confirm/<int:payment_id>/', views.cash_payment_confirmation_view, name='cash_payment_confirm'),
     path('admin/', views.admin_payments_view, name='admin_payments'),
     path('admin/cancellation-refunds/', views.admin_cancellation_refunds_view, name='admin_cancellation_refunds'),
     path('admin/verify/<int:payment_id>/', views.verify_payment_view, name='admin_verify_payment'),

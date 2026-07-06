@@ -25,6 +25,11 @@ class Organization(models.Model):
     contact_phone = models.CharField(max_length=20, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     
+    # Map Location
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, help_text='Latitude coordinate from map picker')
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, help_text='Longitude coordinate from map picker')
+    location_address = models.TextField(blank=True, null=True, help_text='Full address resolved from map coordinates')
+    
     # Registration / Approval
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     registration_notes = models.TextField(blank=True, null=True, help_text="Why the organization wants to join the platform")

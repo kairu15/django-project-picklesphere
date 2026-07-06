@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 
 def court_list_view(request):
-    courts = Court.objects.filter(is_active=True)
+    courts = Court.objects.filter(is_active=True).select_related('organization')
     sites = Site.objects.filter(is_active=True)
     
     # Filter by site

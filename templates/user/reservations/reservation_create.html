@@ -391,6 +391,210 @@
     }
 }
 
+/* ===== COURT SELECT CUSTOM DROPDOWN ===== */
+.court-select-wrapper {
+    position: relative;
+}
+.court-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    background: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    text-align: left;
+    transition: all 0.2s ease;
+    color: #495057;
+    font-family: inherit;
+}
+.court-select-trigger:hover {
+    border-color: #3B7A8C;
+}
+.court-select-trigger:focus {
+    outline: none;
+    border-color: #3B7A8C;
+    box-shadow: 0 0 0 3px rgba(59,122,140,0.15);
+}
+.court-select-trigger.open {
+    border-color: #3B7A8C;
+    box-shadow: 0 0 0 3px rgba(59,122,140,0.15);
+}
+.court-select-text {
+    flex: 1;
+}
+.court-select-text.placeholder {
+    color: #adb5bd;
+}
+.court-select-arrow {
+    margin-left: 0.75rem;
+    color: #adb5bd;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+.court-select-trigger.open .court-select-arrow {
+    transform: rotate(180deg);
+    color: #3B7A8C;
+}
+.court-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    z-index: 100;
+    max-height: 280px;
+    overflow-y: auto;
+    animation: fadeSlideIn 0.2s ease forwards;
+}
+.court-dropdown.open {
+    display: block;
+}
+.court-dropdown::-webkit-scrollbar {
+    width: 4px;
+}
+.court-dropdown::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+.court-dropdown-option {
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid #f5f5f5;
+}
+.court-dropdown-option:last-child {
+    border-bottom: none;
+}
+.court-dropdown-option:hover {
+    background: rgba(59,122,140,0.06);
+}
+.court-dropdown-option.selected {
+    background: rgba(59,122,140,0.1);
+    border-left: 3px solid #3B7A8C;
+}
+.court-dropdown-option-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #212529;
+}
+.court-dropdown-option-detail {
+    font-size: 0.78rem;
+    color: #6c757d;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.court-dropdown-option-detail .badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+}
+.court-dropdown-option-rate {
+    font-weight: 700;
+    color: #3B7A8C;
+}
+.court-dropdown-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* ===== COURT TOOLTIP ===== */
+.court-tooltip {
+    display: none;
+    margin-top: 0.75rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    animation: fadeSlideIn 0.3s ease forwards;
+}
+.court-tooltip.show {
+    display: block;
+}
+.court-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+.court-tooltip-name {
+    font-size: 1rem;
+}
+.court-tooltip-type-badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 20px;
+    background: #e3f2fd;
+    color: #1565c0;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.court-tooltip-desc {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+.court-tooltip-amenities-section {
+    border-top: 1px solid #e9ecef;
+    padding-top: 0.5rem;
+}
+.court-tooltip-amenities-section small {
+    display: block;
+    margin-bottom: 0.35rem;
+}
+.court-tooltip-amenities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+.court-tooltip-amenities-list .amenity-tag {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.court-tooltip-amenities-list .empty-amenities {
+    color: #adb5bd;
+    font-size: 0.78rem;
+    font-style: italic;
+}
+
+@media (max-width: 576px) {
+    .court-dropdown {
+        max-height: 220px;
+    }
+    .court-dropdown-option {
+        padding: 0.55rem 0.85rem;
+    }
+    .court-dropdown-option-name {
+        font-size: 0.85rem;
+    }
+    .court-dropdown-option-detail {
+        font-size: 0.72rem;
+    }
+    .court-select-trigger {
+        padding: 0.5rem 0.85rem;
+        font-size: 0.9rem;
+    }
+    .court-tooltip {
+        padding: 0.6rem 0.85rem;
+    }
+}
+
 /* ===== VERIFICATION ALERT ===== */
 .slot-verification-alert {
     display: none;
@@ -1029,17 +1233,14 @@
 
                             <!-- Court detail tooltip -->
                             <div class="court-tooltip" id="court-tooltip">
-                                <div class="court-tooltip-arrow"></div>
-                                <div class="court-tooltip-body">
-                                    <div class="court-tooltip-header">
-                                        <strong class="court-tooltip-name"></strong>
-                                        <span class="court-tooltip-type-badge"></span>
-                                    </div>
-                                    <div class="court-tooltip-desc"></div>
-                                    <div class="court-tooltip-amenities-section">
-                                        <small class="text-muted fw-semibold">Amenities</small>
-                                        <div class="court-tooltip-amenities-list"></div>
-                                    </div>
+                                <div class="court-tooltip-header">
+                                    <strong class="court-tooltip-name"></strong>
+                                    <span class="court-tooltip-type-badge"></span>
+                                </div>
+                                <div class="court-tooltip-desc"></div>
+                                <div class="court-tooltip-amenities-section">
+                                    <small class="text-muted fw-semibold">Amenities</small>
+                                    <div class="court-tooltip-amenities-list"></div>
                                 </div>
                             </div>
                         </div>
@@ -1612,7 +1813,8 @@
         const isFarEnough = Math.abs(deltaX) >= 50;
         const isSwipe = isHorizontal && isFastEnough && isFarEnough;
 
-        // If it's a qualifying swipe, prevent day-cell clicks synchronously            if (isSwipe) {
+        // If it's a qualifying swipe, prevent day-cell clicks synchronously
+        if (isSwipe) {
                 e.preventDefault();
             }
 
@@ -1966,7 +2168,176 @@
         document.getElementById('confirm-notes').textContent = notes || '—';
     }
 
-    // ===== COURT RATE LOOKUP =====
+    // ===== COURT DROPDOWN & TOOLTIP =====
+    const courtTrigger = document.getElementById('court-select-trigger');
+    const courtDropdown = document.getElementById('court-dropdown');
+    const courtSelectText = document.getElementById('court-select-text');
+    const courtTooltip = document.getElementById('court-tooltip');
+
+    function populateCourtDropdown() {
+        const options = courtSelect.options;
+        let html = '';
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            if (!opt.value) {
+                // Skip the placeholder for now
+                continue;
+            }
+            const site = opt.getAttribute('data-site') || '';
+            const type = opt.getAttribute('data-type') || 'standard';
+            const rate = opt.getAttribute('data-rate') || '0';
+            const selected = opt.selected ? ' selected' : '';
+            html += `
+                <div class="court-dropdown-option${selected}" data-value="${opt.value}" tabindex="0" role="option">
+                    <div class="court-dropdown-option-name">${opt.text.split(' — ')[0]}</div>
+                    <div class="court-dropdown-option-detail">
+                        ${site ? `<span>${site}</span>` : ''}
+                        <span class="badge bg-light text-dark">${type}</span>
+                        <span class="court-dropdown-option-rate">₱${rate}/hr</span>
+                    </div>
+                </div>
+            `;
+        }
+        if (!html) {
+            html = `<div class="court-dropdown-empty"><i class="fas fa-info-circle me-2"></i>No courts available</div>`;
+        }
+        courtDropdown.innerHTML = html;
+
+        // Click handlers on each option
+        courtDropdown.querySelectorAll('.court-dropdown-option').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const val = this.dataset.value;
+                courtSelect.value = val;
+                closeCourtDropdown();
+                // Trigger the change event on the hidden select
+                courtSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+    }
+
+    function openCourtDropdown() {
+        courtDropdown.classList.add('open');
+        courtTrigger.classList.add('open');
+        courtTrigger.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeCourtDropdown() {
+        courtDropdown.classList.remove('open');
+        courtTrigger.classList.remove('open');
+        courtTrigger.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleCourtDropdown() {
+        if (courtDropdown.classList.contains('open')) {
+            closeCourtDropdown();
+        } else {
+            openCourtDropdown();
+        }
+    }
+
+    function updateCourtDisplay() {
+        const selectedOption = courtSelect.options[courtSelect.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            const text = selectedOption.text.split(' — ')[0];
+            courtSelectText.textContent = text;
+            courtSelectText.classList.remove('placeholder');
+            showCourtTooltip(selectedOption);
+        } else {
+            courtSelectText.textContent = '—— Select a court ——';
+            courtSelectText.classList.add('placeholder');
+            courtTooltip.classList.remove('show');
+        }
+    }
+
+    function showCourtTooltip(option) {
+        const name = option.text.split(' — ')[0];
+        const type = option.getAttribute('data-type') || 'standard';
+        const description = option.getAttribute('data-description') || '';
+        const amenitiesAttr = option.getAttribute('data-amenities') || '[]';
+
+        let amenities = [];
+        try {
+            amenities = JSON.parse(amenitiesAttr);
+            if (!Array.isArray(amenities)) amenities = [];
+        } catch (e) {
+            amenities = [];
+        }
+
+        document.querySelector('.court-tooltip-name').textContent = name;
+        document.querySelector('.court-tooltip-type-badge').textContent = type.replace(/_/g, ' ');
+
+        const descEl = document.querySelector('.court-tooltip-desc');
+        if (description) {
+            descEl.textContent = description;
+            descEl.style.display = 'block';
+        } else {
+            descEl.style.display = 'none';
+        }
+
+        const amenitiesList = document.querySelector('.court-tooltip-amenities-list');
+        if (amenities.length > 0) {
+            amenitiesList.innerHTML = amenities.map(a =>
+                `<span class="amenity-tag"><i class="fas fa-check-circle me-1" style="font-size:0.6rem;"></i>${a}</span>`
+            ).join('');
+        } else {
+            amenitiesList.innerHTML = '<span class="empty-amenities">No amenities listed</span>';
+        }
+
+        courtTooltip.classList.add('show');
+    }
+
+    // Toggle dropdown on trigger click
+    courtTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleCourtDropdown();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!courtTrigger.contains(e.target) && !courtDropdown.contains(e.target)) {
+            closeCourtDropdown();
+        }
+    });
+
+    // Close dropdown on Escape
+    courtTrigger.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCourtDropdown();
+            courtTrigger.focus();
+        }
+        if (e.key === 'ArrowDown' && !courtDropdown.classList.contains('open')) {
+            e.preventDefault();
+            populateCourtDropdown();
+            openCourtDropdown();
+        }
+    });
+
+    // Keyboard navigation within dropdown
+    courtDropdown.addEventListener('keydown', function(e) {
+        const items = courtDropdown.querySelectorAll('.court-dropdown-option');
+        const currentIndex = Array.from(items).indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const next = currentIndex + 1;
+            if (next < items.length) items[next].focus();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prev = currentIndex - 1;
+            if (prev >= 0) items[prev].focus();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeCourtDropdown();
+            courtTrigger.focus();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (document.activeElement && document.activeElement.classList.contains('court-dropdown-option')) {
+                document.activeElement.click();
+            }
+        }
+    });
+
+    // ===== COURT RATE LOOKUP (native select change) =====
     courtSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (selectedOption && selectedOption.value) {
@@ -1977,12 +2348,20 @@
             dateInput.value = '';
             document.getElementById('calendar-date-store').value = '';
             document.getElementById('step-1-next').disabled = true;
+            updateCourtDisplay();
             loadCalendar();
         } else {
+            updateCourtDisplay();
             renderCalendarEmpty();
             calendarTitle.textContent = 'Select a court first';
         }
     });
+
+    // Initial populate of dropdown (silent) — data is ready for toggling
+    populateCourtDropdown();
+    // Attach aria attributes to trigger
+    courtTrigger.setAttribute('aria-haspopup', 'listbox');
+    courtTrigger.setAttribute('aria-expanded', 'false');
 
     // ===== NOTES =====
     document.querySelector('[name="notes"]')?.addEventListener('input', function() {
@@ -2008,6 +2387,7 @@
             const selectedOption = courtSelect.options[courtSelect.selectedIndex];
             state.selectedCourtRate = parseFloat(selectedOption.getAttribute('data-rate')) || 500;
             state.selectedCourtName = selectedOption?.text || '';
+            updateCourtDisplay();
             
             // Load calendar for the selected court
             loadCalendar().then(() => {
@@ -2163,11 +2543,12 @@
     } else {
         // Fresh page load, initialize normally
         if (courtSelect.value) {
+            updateCourtDisplay();
             courtSelect.dispatchEvent(new Event('change', { bubbles: true }));
         } else {
             renderCalendarEmpty();
             calendarTitle.textContent = 'Select a court first';
-            dateInput.style.display = 'block';
+            courtSelectText.classList.add('placeholder');
         }
         
         // If there's already a date selected (from GET param), highlight it

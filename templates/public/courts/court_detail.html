@@ -91,6 +91,26 @@
                 </div>
             </div>
         </div>
+
+        <!-- Location Map -->
+        {% if court.organization and court.organization.latitude and court.organization.longitude %}
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="fw-bold mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Location</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="courtDetailMap" style="height: 220px; width: 100%;"></div>
+            </div>
+            <div class="card-footer bg-transparent p-3 text-center border-0">
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ court.organization.latitude }},{{ court.organization.longitude }}" target="_blank" rel="noopener" class="btn btn-success w-100" style="border-radius: 10px; font-weight: 600;">
+                    <i class="fas fa-directions me-2"></i>Get Directions
+                </a>
+                {% if court.organization.location_address %}
+                <small class="text-muted d-block mt-2">{{ court.organization.location_address|truncatechars:80 }}</small>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
     
     <!-- Reservation Sidebar -->
@@ -152,5 +172,28 @@
     background-color: #f8f9fa;
 }
 </style>
+{% if court.organization and court.organization.latitude and court.organization.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    var lat = {{ court.organization.latitude }};
+    var lng = {{ court.organization.longitude }};
+    var map = L.map('courtDetailMap', {
+        center: [lat, lng],
+        zoom: 15,
+        zoomControl: false,
+        scrollWheelZoom: false,
+        dragging: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup('<strong>{{ court.organization.name|escapejs }}</strong>')
+        .openPopup();
+})();
+</script>
+{% endif %}
 {% endblock %}
 

@@ -266,6 +266,89 @@ def verify_payment_view(request, payment_id):
 
 
 @login_required
+@staff_or_admin_required
+def cash_payment_confirmation_view(request, payment_id):
+    """
+    Dedicated cash payment counter confirmation page for staff.
+    Provides a streamlined, polished interface for staff to mark cash payments
+    as received and confirm the reservation in one action.
+    """
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    # Ensure it's a cash payment and still pending
+    if payment.method != 'cash':
+        messages.error(request, 'This is not a cash payment.')
+        return redirect('staff_payments')
+
+    if payment.status != 'pending':
+        messages.error(request, 'This payment has already been processed.')
+        return redirect('staff_payments')
+
+    # Check org-scoping
+    if request.user.organization and payment.reservation.court.organization != request.user.organization:
+        messages.error(request, 'You do not have permission to process this payment.')
+        return redirect('staff_payments')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'confirm':
+            old_status = payment.status
+
+            # Mark payment as paid
+            payment.status = 'paid'
+            payment.cash_received_by = request.user
+            payment.cash_received_at = timezone.now()
+            payment.transaction_id = f"CASH-{payment.id}-{timezone.now().strftime('%Y%m%d%H%M')}"
+            payment.save()
+
+            # Confirm the reservation
+            reservation = payment.reservation
+            reservation.status = 'confirmed'
+            reservation.save()
+
+            # Log the action
+            PaymentLog.objects.create(
+                payment=payment,
+                action='Cash Payment Confirmed at Counter',
+                details=f'Cash payment of ₱{payment.amount} received by {request.user.get_full_name() or request.user.username}. Reservation #{reservation.id} confirmed.',
+                performed_by=request.user
+            )
+
+            # Notify the user
+            Notification.objects.create(
+                user=reservation.user,
+                message=f"Your cash payment for reservation #{reservation.id} has been received and confirmed at the counter. Your reservation is confirmed!"
+            )
+
+            messages.success(
+                request,
+                f'Cash payment of ₱{payment.amount} received successfully! Reservation #{reservation.id} is now confirmed.'
+            )
+            return redirect('staff_payments')
+
+        elif action == 'reject':
+            # Mark as failed/cancelled
+            payment.status = 'failed'
+            payment.save()
+
+            PaymentLog.objects.create(
+                payment=payment,
+                action='Cash Payment Rejected',
+                details=f'Cash payment rejected by {request.user.get_full_name() or request.user.username}.',
+                performed_by=request.user
+            )
+
+            messages.warning(request, f'Cash payment #{payment.id} has been marked as not received.')
+            return redirect('staff_payments')
+
+    return render(request, 'staff/payments/cash_confirmation.html', {
+        'payment': payment,
+        'reservation': payment.reservation,
+    })
+
+
+@login_required
 @user_required
 def payment_history_view(request):
     payments = Payment.objects.filter(reservation__user=request.user).order_by('-created_at')

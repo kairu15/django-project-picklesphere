@@ -1,0 +1,527 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Location Setup{% endblock %}
+{% block page_title %}Location Setup{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<style>
+/* ===== LEAFLET OVERRIDES ===== */
+#locationMap {
+    height: 450px;
+    width: 100%;
+    border-radius: 16px;
+    z-index: 1;
+}
+.leaflet-container {
+    border-radius: 16px;
+    font-family: inherit;
+}
+.leaflet-control-geocoder {
+    border-radius: 10px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+}
+.leaflet-control-geocoder input {
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-size: 0.9rem !important;
+}
+.leaflet-control-geocoder-form input:focus {
+    outline: none !important;
+}
+.leaflet-popup-content-wrapper {
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+.leaflet-popup-content {
+    margin: 12px 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+}
+.leaflet-popup-tip {
+    box-shadow: none !important;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.animate-in {
+    animation: fadeSlideUp 0.4s ease forwards;
+    opacity: 0;
+}
+.animate-in-d1 { animation-delay: 0.05s; }
+.animate-in-d2 { animation-delay: 0.1s; }
+.animate-in-d3 { animation-delay: 0.15s; }
+.animate-in-d4 { animation-delay: 0.2s; }
+
+/* ===== LOCATION PREVIEW ===== */
+.location-preview {
+    border-radius: 16px;
+    border: 1.5px solid #e9ecef;
+    background: white;
+    transition: all 0.3s ease;
+}
+.location-preview:hover {
+    border-color: #dee2e6;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.location-preview-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.location-preview-body {
+    padding: 1.25rem;
+}
+
+/* ===== COORDINATES DISPLAY ===== */
+.coord-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    background: rgba(59,122,140,0.08);
+    color: #2c5f6e;
+    border: 1px solid rgba(59,122,140,0.15);
+}
+
+/* ===== STATUS ALERT ===== */
+.status-alert {
+    border-radius: 12px;
+    border: none;
+    padding: 1rem 1.25rem;
+}
+.status-alert i {
+    font-size: 1.1rem;
+}
+
+/* ===== BUTTON STYLES ===== */
+.btn-save-location {
+    background: linear-gradient(135deg, #3B7A8C 0%, #2c5f6e 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    transition: all 0.25s;
+    box-shadow: 0 4px 15px rgba(59,122,140,0.3);
+}
+.btn-save-location:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59,122,140,0.4);
+    color: white;
+}
+.btn-save-location:disabled {
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    #locationMap { height: 300px; }
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_profile' %}">Settings</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Location Setup</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Main Map Column -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm animate-in animate-in-d1" style="border-radius: 16px;">
+            <div class="card-header bg-transparent d-flex align-items-center justify-content-between p-4 border-0">
+                <div>
+                    <h5 class="fw-bold mb-1"><i class="fas fa-map-marker-alt me-2" style="color: #e74c3c;"></i>Set Facility Location</h5>
+                    <p class="text-muted small mb-0">Click on the map or drag the marker to pin your facility's exact location</p>
+                </div>
+                {% if org_lat and org_lng %}
+                <span class="coord-badge">
+                    <i class="fas fa-crosshairs"></i>{{ org_lat|floatformat:4 }}, {{ org_lng|floatformat:4 }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-body p-3">
+                <div id="locationMap"></div>
+                
+                <div class="d-flex gap-3 mt-3 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;" onclick="centerMapPhilippines()">
+                        <i class="fas fa-globe-asia me-1"></i>Center Philippines
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;" onclick="useCurrentLocation()">
+                        <i class="fas fa-location-dot me-1"></i>Use My Location
+                    </button>
+                    <small class="text-muted ms-auto align-self-center">
+                        <i class="fas fa-info-circle me-1"></i>Drag the pin or click the map to adjust
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Card -->
+        <div class="location-preview animate-in animate-in-d3 mt-4">
+            <div class="location-preview-header">
+                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-map-pin" style="color: #2e7d32;"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Selected Location Preview</h6>
+                    <small class="text-muted" id="preview-status">No location selected yet</small>
+                </div>
+            </div>
+            <div class="location-preview-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-latitude fas fa-arrow-up" style="color: #3B7A8C; width: 18px;"></i>
+                            <span class="text-muted small">Latitude:</span>
+                            <span class="fw-semibold small font-monospace" id="preview-lat">—</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-longitude-alt fas fa-arrow-right" style="color: #3B7A8C; width: 18px;"></i>
+                            <span class="text-muted small">Longitude:</span>
+                            <span class="fw-semibold small font-monospace" id="preview-lng">—</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                            <div class="small text-muted mb-1"><i class="fas fa-map-marked-alt me-1"></i>Resolved Address:</div>
+                            <div class="fw-semibold small" id="preview-address">
+                                <em class="text-muted">Place a pin to see the address</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Save Form -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm animate-in animate-in-d2" style="border-radius: 16px;">
+            <div class="card-header bg-transparent p-4 border-0">
+                <h5 class="fw-bold mb-1"><i class="fas fa-save me-2 text-primary"></i>Save Location</h5>
+                <p class="text-muted small mb-0">Confirm and save the pinned location</p>
+            </div>
+            <div class="card-body p-4 pt-0">
+                <form method="post" id="locationForm">
+                    {% csrf_token %}
+                    
+                    <!-- Hidden coordinate fields -->
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ org_lat|default:'' }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ org_lng|default:'' }}">
+                    <input type="hidden" name="location_address" id="id_location_address" value="{{ org_address }}">
+
+                    <!-- Auto-filled City & Province -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-uppercase text-muted"><i class="fas fa-city me-1"></i>City</label>
+                        <input type="text" name="city" id="id_city" class="form-control" value="{{ organization.city|default:'' }}" placeholder="Auto-filled from map..." readonly style="border-radius: 10px; background: #f8f9fa; cursor: default;">
+                        <small class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-info-circle me-1"></i>Auto-populated from map location</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-uppercase text-muted"><i class="fas fa-map me-1"></i>Province / State</label>
+                        <input type="text" name="province" id="id_province" class="form-control" value="{{ organization.province|default:'' }}" placeholder="Auto-filled from map..." readonly style="border-radius: 10px; background: #f8f9fa; cursor: default;">
+                        <small class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-info-circle me-1"></i>Auto-populated from map location</small>
+                    </div>
+                    
+                    <!-- Current Saved Location Info -->
+                    {% if org_lat and org_lng %}
+                    <div class="status-alert mb-3" style="background: #e8f5e9; border-left: 4px solid #2e7d32;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fas fa-check-circle mt-1" style="color: #2e7d32;"></i>
+                            <div>
+                                <strong class="small">Location Saved</strong>
+                                <p class="small mb-0 text-muted" style="font-size: 0.78rem;">
+                                    {{ org_address|truncatechars:60|default:"Coordinates saved" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="status-alert mb-3" style="background: #fff8e1; border-left: 4px solid #ff9800;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fas fa-exclamation-triangle mt-1" style="color: #ff9800;"></i>
+                            <div>
+                                <strong class="small">No Location Set</strong>
+                                <p class="small mb-0 text-muted" style="font-size: 0.78rem;">
+                                    Click the map to place a pin for your facility.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Summary Preview -->
+                    <div class="p-3 rounded-3 mb-3" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                        <h6 class="fw-bold small mb-2" style="text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                            <i class="fas fa-info-circle me-1"></i>Location Summary
+                        </h6>
+                        <div class="small" id="summary-org-name">{{ organization.name }}</div>
+                        <div class="small text-muted" id="summary-address">
+                            {% if org_address %}
+                                {{ org_address|truncatechars:80 }}
+                            {% else %}
+                                <em>No address set</em>
+                            {% endif %}
+                        </div>
+                        {% if org_lat and org_lng %}
+                        <div class="small text-muted mt-1 font-monospace">
+                            {{ org_lat|floatformat:5 }}, {{ org_lng|floatformat:5 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Validation info -->
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fas fa-check-circle" id="validation-icon" style="color: {% if org_lat %}#2e7d32{% else %}#ccc{% endif %};"></i>
+                        <span class="small" id="validation-text" style="color: {% if org_lat %}#2e7d32{% else %}#6c757d{% endif %};">
+                            {% if org_lat %}Location selected ✓{% else %}Click the map to select a location{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Public Page Preview -->
+                    <div class="p-3 rounded-3 mb-3" style="background: #e3f2fd; border: 1px solid #bbdefb;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fas fa-eye mt-1" style="color: #1565c0;"></i>
+                            <div>
+                                <strong class="small">Public Preview</strong>
+                                <p class="small mb-0 text-muted" style="font-size: 0.78rem;">
+                                    Once saved, this location will appear on your 
+                                    <a href="{% url 'organization_public_detail' organization.slug %}" target="_blank" class="text-decoration-none">public profile page</a>
+                                    with a map and "Get Directions" button.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-save-location w-100" id="saveBtn" {% if not org_lat %}disabled{% endif %}>
+                        <i class="fas fa-map-pin me-2"></i>Save Location
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    // ===== Default Center: Philippines =====
+    const PH_CENTER = [12.8797, 121.7740];
+    const PH_ZOOM = 6;
+    const DEFAULT_ZOOM = 16;
+
+    // ===== Current org location (if any) =====
+    const orgLat = {{ org_lat|default:'null' }};
+    const orgLng = {{ org_lng|default:'null' }};
+    const hasSavedLocation = orgLat !== null && orgLng !== null;
+
+    // ===== Initialize Map =====
+    var initialCenter = hasSavedLocation ? [orgLat, orgLng] : PH_CENTER;
+    var initialZoom = hasSavedLocation ? DEFAULT_ZOOM : PH_ZOOM;
+
+    var map = L.map('locationMap', {
+        center: initialCenter,
+        zoom: initialZoom,
+        zoomControl: true,
+        scrollWheelZoom: true,
+    });
+
+    // OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+    }).addTo(map);
+
+    // ===== Marker =====
+    var marker;
+    if (hasSavedLocation) {
+        marker = L.marker([orgLat, orgLng], { draggable: true }).addTo(map);
+        marker.bindPopup('<strong>{{ organization.name|escapejs }}</strong><br>{{ org_address|escapejs|default:"" }}').openPopup();
+    }
+
+    // ===== Search (Geocoder) =====
+    var geocoder = L.Control.Geocoder.nominatim();
+    L.Control.geocoder({
+        geocoder: geocoder,
+        placeholder: 'Search address...',
+        errorMessage: 'Not found',
+        showResultIcons: true,
+        collapsed: false,
+        position: 'topright',
+    }).addTo(map).on('markgeocode', function(e) {
+        var center = e.geocode.center;
+        placeMarker(center.lat, center.lng);
+        reverseGeocode(center.lat, center.lng);
+        map.setView(center, DEFAULT_ZOOM);
+    });
+
+    // ===== Click on Map =====
+    map.on('click', function(e) {
+        placeMarker(e.latlng.lat, e.latlng.lng);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+
+    // ===== Drag Marker =====
+    map.on('dragend', function() {
+        // Only handle if marker exists and was dragged
+    });
+
+    // ===== Place/Drag Marker =====
+    function placeMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.on('dragend', function(e) {
+                var pos = e.target.getLatLng();
+                reverseGeocode(pos.lat, pos.lng);
+                updateForm(pos.lat, pos.lng);
+            });
+        }
+        updateForm(lat, lng);
+    }
+
+    // ===== Reverse Geocode via Django Proxy =====
+    function reverseGeocode(lat, lng) {
+        var url = '{% url "reverse_geocode_api" %}?lat=' + lat + '&lng=' + lng;
+        
+        // Update preview to show loading
+        document.getElementById('preview-address').innerHTML = '<em class="text-muted">Resolving address...</em>';
+
+        fetch(url)
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                var address = data.display_name || (lat.toFixed(5) + ', ' + lng.toFixed(5));
+                var city = data.city || '';
+                var province = data.province || '';
+                
+                // Update address fields
+                document.getElementById('id_location_address').value = address;
+                document.getElementById('preview-address').innerHTML = address;
+                document.getElementById('summary-address').textContent = address.length > 80 ? address.substring(0, 80) + '...' : address;
+                document.getElementById('preview-status').textContent = 'Location selected';
+                document.getElementById('preview-status').style.color = '#2e7d32';
+                
+                // Auto-fill city and province fields
+                if (city) {
+                    var cityField = document.getElementById('id_city');
+                    cityField.value = city;
+                    cityField.style.background = '#e8f5e9';
+                }
+                if (province) {
+                    var provinceField = document.getElementById('id_province');
+                    provinceField.value = province;
+                    provinceField.style.background = '#e8f5e9';
+                }
+                
+                if (marker) {
+                    marker.bindPopup('<strong>{{ organization.name|escapejs }}</strong><br>' + address).openPopup();
+                }
+            })
+            .catch(function() {
+                var fallback = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                document.getElementById('id_location_address').value = fallback;
+                document.getElementById('preview-address').innerHTML = fallback;
+                document.getElementById('summary-address').textContent = fallback;
+            });
+    }
+
+    // ===== Update Form Fields =====
+    function updateForm(lat, lng) {
+        document.getElementById('id_latitude').value = lat.toFixed(6);
+        document.getElementById('id_longitude').value = lng.toFixed(6);
+        document.getElementById('preview-lat').textContent = lat.toFixed(6);
+        document.getElementById('preview-lng').textContent = lng.toFixed(6);
+        
+        // Enable save button & update validation
+        document.getElementById('saveBtn').disabled = false;
+        document.getElementById('validation-icon').style.color = '#2e7d32';
+        document.getElementById('validation-text').textContent = 'Location selected ✓';
+        document.getElementById('validation-text').style.color = '#2e7d32';
+    }
+
+    // ===== If marker exists, set up its drag handler =====
+    if (marker) {
+        marker.on('dragend', function(e) {
+            var pos = e.target.getLatLng();
+            reverseGeocode(pos.lat, pos.lng);
+            updateForm(pos.lat, pos.lng);
+        });
+        // Show initial preview
+        document.getElementById('preview-lat').textContent = orgLat.toFixed(6);
+        document.getElementById('preview-lng').textContent = orgLng.toFixed(6);
+        document.getElementById('preview-address').innerHTML = '{{ org_address|escapejs|default:"<em class=\"text-muted\">No address resolved</em>" }}';
+        document.getElementById('preview-status').textContent = 'Saved location';
+        document.getElementById('preview-status').style.color = '#2e7d32';
+        
+        // Auto-resolve city/province if they're empty from a previous save
+        if (!document.getElementById('id_city').value && !document.getElementById('id_province').value) {
+            reverseGeocode(orgLat, orgLng);
+        }
+    }
+
+    // ===== Center Philippines =====
+    window.centerMapPhilippines = function() {
+        map.setView(PH_CENTER, PH_ZOOM);
+    };
+
+    // ===== Use My Location =====
+    window.useCurrentLocation = function() {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser.');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                var lat = pos.coords.latitude;
+                var lng = pos.coords.longitude;
+                placeMarker(lat, lng);
+                reverseGeocode(lat, lng);
+                map.setView([lat, lng], DEFAULT_ZOOM);
+            },
+            function() {
+                alert('Unable to retrieve your location. Please click on the map instead.');
+            }
+        );
+    };
+
+    // ===== Fix map rendering after sidebar toggle =====
+    // Invalidate map size when tab becomes visible or after sidebar toggle
+    setTimeout(function() { map.invalidateSize(); }, 500);
+    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+        setTimeout(function() { map.invalidateSize(); }, 400);
+    });
+
+})();
+</script>
+{% endblock %}

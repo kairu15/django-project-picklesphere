@@ -16,9 +16,9 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <!-- Reservation Summary Card -->
-        <div class="card border-0 shadow-lg mb-4 summary-card" style="border-radius: 16px; overflow: hidden;">
+    <div class="col-lg-10">
+        <!-- ===== RESERVATION SUMMARY CARD ===== -->
+        <div class="card border-0 shadow-lg mb-4" style="border-radius: 16px; overflow: hidden;">
             <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
                 <div class="d-flex align-items-center">
                     <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
@@ -32,60 +32,111 @@
             </div>
             <div class="card-body p-4">
                 <div class="row g-4">
+                    <!-- Left: Booking Info -->
                     <div class="col-md-7">
-                        <div class="summary-details">
-                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
-                                <div class="stat-icon primary" style="width: 40px; height: 40px;">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block">Court</small>
-                                    <span class="fw-semibold">{{ reservation.court.name }}</span>
-                                </div>
+                        <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-map-marker-alt" style="color: #3B7A8C;"></i>
                             </div>
-                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
-                                <div class="stat-icon success" style="width: 40px; height: 40px;">
-                                    <i class="fas fa-calendar"></i>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block">Date</small>
-                                    <span class="fw-semibold">{{ reservation.date|date:"l, M d, Y" }}</span>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
-                                <div class="stat-icon warning" style="width: 40px; height: 40px;">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block">Time</small>
-                                    <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</span>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
-                                <div class="stat-icon" style="width: 40px; height: 40px; background: rgba(23,162,184,0.1); color: #17a2b8;">
-                                    <i class="fas fa-hourglass-half"></i>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block">Duration</small>
-                                    <span class="fw-semibold">{{ reservation.duration_hours }} hours</span>
-                                </div>
+                            <div>
+                                <small class="text-muted d-block">Court</small>
+                                <span class="fw-semibold">{{ reservation.court.name }}</span>
+                                {% if reservation.court.site %}
+                                <small class="text-muted d-block">{{ reservation.court.site.name }}</small>
+                                {% endif %}
                             </div>
                         </div>
+                        <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                            <div style="width: 40px; height: 40px; background: rgba(40,167,69,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-calendar" style="color: #28a745;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Date</small>
+                                <span class="fw-semibold">{{ reservation.date|date:"l, M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(255,193,7,0.08); border-radius: 10px;">
+                            <div style="width: 40px; height: 40px; background: rgba(255,193,7,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock" style="color: #ff9800;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Time</small>
+                                <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} — {{ reservation.end_time|time:"g:i A" }}</span>
+                                <small class="text-muted d-block">{{ reservation.duration_hours|floatformat:0 }} hour{{ reservation.duration_hours|floatformat:0|pluralize }}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 p-3" style="background: rgba(23,162,184,0.06); border-radius: 10px;">
+                            <div style="width: 40px; height: 40px; background: rgba(23,162,184,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-tools" style="color: #17a2b8;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Equipment</small>
+                                {% with rented=reservation.rented_equipment.all %}
+                                {% if rented %}
+                                <div class="mt-1">
+                                    {% for item in rented %}
+                                    <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+                                        <i class="fas fa-check-circle text-success me-1" style="font-size: 0.6rem;"></i>{{ item.equipment.name }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">None selected</span>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+
+                        {% if reservation.match_name or reservation.match_format %}
+                        <div class="d-flex align-items-center gap-3 mt-3 p-3" style="background: rgba(102,51,153,0.06); border-radius: 10px;">
+                            <div style="width: 40px; height: 40px; background: rgba(102,51,153,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-gamepad" style="color: #663399;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Match Info</small>
+                                <span class="fw-semibold">
+                                    {% if reservation.match_name %}{{ reservation.match_name }} — {% endif %}
+                                    {{ reservation.get_match_format_display|default:'' }}
+                                    {% if reservation.get_game_type_display %} · {{ reservation.get_game_type_display }}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
+
+                    <!-- Right: Price Summary -->
                     <div class="col-md-5">
-                        <div class="price-summary p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 12px; border: 1px solid #e9ecef;">
-                            <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Price Breakdown</h6>
-                            <div class="d-flex justify-content-between mb-2">
+                        <div class="p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 12px; border: 1px solid #e9ecef; height: 100%;">
+                            <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fas fa-receipt me-2"></i>Price Breakdown
+                            </h6>
+                            <div class="d-flex justify-content-between mb-2 py-1">
+                                <span class="text-muted">Court Rate</span>
+                                <span class="fw-medium">₱{{ reservation.hourly_rate|floatformat:0 }}/hr × {{ reservation.duration_hours|floatformat:0 }} hr{{ reservation.duration_hours|floatformat:0|pluralize }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 py-1">
                                 <span class="text-muted">Court Fee</span>
                                 <span class="fw-medium">₱{{ reservation.subtotal|floatformat:2 }}</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
+                            <div class="d-flex justify-content-between mb-2 py-1">
                                 <span class="text-muted">Equipment Fee</span>
                                 <span class="fw-medium">₱{{ reservation.equipment_fee|floatformat:2 }}</span>
                             </div>
+
+                            {% if reservation.rented_equipment.all %}
+                            <div class="ps-3 mb-2 py-1" style="font-size: 0.75rem;">
+                                {% for item in reservation.rented_equipment.all %}
+                                <div class="d-flex justify-content-between text-muted">
+                                    <span>{{ item.equipment.name }} × {{ item.quantity }}</span>
+                                    <span>₱{{ item.rental_fee|floatformat:2 }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
                             <hr class="my-3">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">Total Amount</span>
+                                <span class="fw-bold fs-6">Total Amount</span>
                                 <span class="fw-bold fs-4" style="color: #3B7A8C;">₱{{ reservation.total_amount|floatformat:2 }}</span>
                             </div>
                         </div>
@@ -93,9 +144,9 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Payment Method Card -->
-        <div class="card border-0 shadow-lg payment-method-card" style="border-radius: 16px; overflow: hidden;">
+
+        <!-- ===== PAYMENT METHOD CARD ===== -->
+        <div class="card border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-4 px-4">
                 <h5 class="fw-bold mb-0 d-flex align-items-center">
                     <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; box-shadow: 0 4px 12px rgba(40,167,69,0.25);">
@@ -105,55 +156,150 @@
                 </h5>
             </div>
             <div class="card-body p-4">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="payment-form">
                     {% csrf_token %}
-                    
+
+                    <!-- ===== Payment Method Cards ===== -->
                     <div class="row g-3 mb-4">
+                        <!-- GCash -->
                         <div class="col-md-4">
-                            <div class="payment-option form-check border rounded p-3 h-100" data-method="gcash" style="border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: #fff;">
-                                <input type="radio" name="method" value="gcash" id="gcash" class="form-check-input" required>
-                                <label class="form-check-label w-100" for="gcash">
-                                    <div class="text-center">
-                                        <div class="payment-icon gcash-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(59,122,140,0.3); transition: transform 0.3s ease;">
-                                            <i class="fas fa-mobile-alt fa-lg text-white"></i>
-                                        </div>
-                                        <h6 class="mb-1 fw-bold text-dark">GCash</h6>
-                                        <small class="text-muted">Mobile Wallet Payment</small>
+                            <div class="payment-option" data-method="gcash">
+                                <input type="radio" name="method" value="gcash" id="method-gcash" class="payment-radio" required>
+                                <label class="payment-label" for="method-gcash">
+                                    <div class="payment-icon-wrapper gcash-bg">
+                                        <i class="fas fa-mobile-alt text-white fa-lg"></i>
                                     </div>
+                                    <h6 class="mb-1 fw-bold">GCash</h6>
+                                    <small class="text-muted">Mobile Wallet</small>
+                                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Cash -->
+                        <div class="col-md-4">
+                            <div class="payment-option" data-method="cash">
+                                <input type="radio" name="method" value="cash" id="method-cash" class="payment-radio">
+                                <label class="payment-label" for="method-cash">
+                                    <div class="payment-icon-wrapper cash-bg">
+                                        <i class="fas fa-money-bill-wave text-white fa-lg"></i>
+                                    </div>
+                                    <h6 class="mb-1 fw-bold">Cash</h6>
+                                    <small class="text-muted">Pay at Counter</small>
+                                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="col-md-4">
+                            <div class="payment-option" data-method="card">
+                                <input type="radio" name="method" value="card" id="method-card" class="payment-radio">
+                                <label class="payment-label" for="method-card">
+                                    <div class="payment-icon-wrapper card-bg">
+                                        <i class="fas fa-credit-card text-white fa-lg"></i>
+                                    </div>
+                                    <h6 class="mb-1 fw-bold">Card</h6>
+                                    <small class="text-muted">Credit / Debit</small>
+                                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
                                 </label>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- GCash Details -->
-                    <div id="gcashDetails" class="d-none mb-4">
+
+                    <!-- ===== GCash Details ===== -->
+                    <div id="gcash-details" class="payment-details d-none">
                         <div class="card border-0" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f9ff 100%); border-radius: 12px;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
                                         <i class="fas fa-info-circle text-primary"></i>
                                     </div>
-                                    <span class="fw-bold">Please send payment to GCash number: <span style="color: #3B7A8C;">09123456789</span></span>
+                                    <span class="fw-bold">Send payment to: <span style="color: #3B7A8C;">09123456789</span></span>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold"><i class="fas fa-hashtag me-2 text-primary"></i>GCash Reference Number <span class="text-danger">*</span></label>
-                                    {{ gcash_form.gcash_reference }}
-                                </div>
-                                <div class="mb-0">
-                                    <label class="form-label fw-bold"><i class="fas fa-image me-2 text-primary"></i>Upload Proof of Payment <span class="text-danger">*</span></label>
-                                    {{ gcash_form.gcash_proof_image }}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold" for="{{ gcash_form.gcash_reference.id_for_label }}"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
+                                        {{ gcash_form.gcash_reference }}
+                                        <div class="invalid-feedback gcash-error-msg" id="gcash-ref-error">Please enter your GCash Reference Number</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold" for="{{ gcash_form.gcash_proof_image.id_for_label }}"><i class="fas fa-image me-2 text-primary"></i>Upload Proof <span class="text-danger">*</span></label>
+                                        <div class="file-upload-wrapper">
+                                            {{ gcash_form.gcash_proof_image }}
+                                            <div class="invalid-feedback gcash-error-msg" id="gcash-proof-error">Please upload proof of payment</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-4 border-top">
+
+                    <!-- ===== Cash Details ===== -->
+                    <div id="cash-details" class="payment-details d-none">
+                        <div class="card border-0" style="background: linear-gradient(135deg, #fff3e0 0%, #fff8e1 100%); border-radius: 12px;">
+                            <div class="card-body p-4 text-center">
+                                <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; box-shadow: 0 4px 15px rgba(255,152,0,0.3);">
+                                    <i class="fas fa-money-bill-wave text-white fa-2x"></i>
+                                </div>
+                                <h6 class="fw-bold mb-2">Pay at Counter</h6>
+                                <p class="text-muted mb-3" style="max-width: 400px; margin: 0 auto;">
+                                    Please proceed to the front desk to complete your cash payment.
+                                    Our staff will assist you and confirm your reservation.
+                                </p>
+                                <div class="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill" style="background: rgba(255,152,0,0.1);">
+                                    <i class="fas fa-clock text-warning"></i>
+                                    <span class="small fw-medium text-warning">Payment must be completed within 1 hour</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Card Details ===== -->
+                    <div id="card-details" class="payment-details d-none">
+                        <div class="card border-0" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-radius: 12px;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div style="width: 30px; height: 30px; background: rgba(40,167,69,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-lock text-success"></i>
+                                    </div>
+                                    <span class="fw-bold" style="color: #1e7e34;">Secure Card Payment — <span style="font-weight: 400;">Your payment will be processed automatically</span></span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold">Card Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text" style="border-radius: 10px 0 0 10px; background: #fff; border: 2px solid #dee2e6; border-right: none;">
+                                                <i class="fas fa-credit-card text-muted"></i>
+                                            </span>
+                                            <input type="text" class="form-control" id="card-number" placeholder="•••• •••• •••• ••••" maxlength="19" style="border-radius: 0 10px 10px 0; border: 2px solid #dee2e6; border-left: none; font-family: 'Courier New', monospace; letter-spacing: 1px;">
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label fw-bold">MM/YY</label>
+                                        <input type="text" class="form-control" id="card-expiry" placeholder="MM/YY" maxlength="5" style="border-radius: 10px; border: 2px solid #dee2e6; font-family: 'Courier New', monospace; text-align: center;">
+                                    </div>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label fw-bold">CVC</label>
+                                        <input type="text" class="form-control" id="card-cvc" placeholder="•••" maxlength="4" style="border-radius: 10px; border: 2px solid #dee2e6; font-family: 'Courier New', monospace; text-align: center;">
+                                    </div>
+                                </div>
+                                <div class="mt-3 d-flex align-items-center gap-2">
+                                    <i class="fas fa-shield-alt" style="color: #28a745; font-size: 0.85rem;"></i>
+                                    <small class="text-muted">Your card details are encrypted and processed securely. For demo, payment is auto-approved.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Actions ===== -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-4 border-top mt-4">
                         <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 500;">
-                            <i class="fas fa-arrow-left me-2"></i>Cancel Payment
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
                         </a>
-                        <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none; font-weight: 500; box-shadow: 0 4px 15px rgba(40,167,69,0.35);">
-                            <i class="fas fa-lock me-2"></i>Complete Payment
+                        <button type="submit" class="btn btn-success px-5 py-2" id="submit-btn" style="border-radius: 10px; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border: none; font-weight: 500; box-shadow: 0 4px 15px rgba(40,167,69,0.35);">
+                            <span class="btn-text"><i class="fas fa-lock me-2"></i>Complete Payment</span>
+                            <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing...</span>
                         </button>
                     </div>
                 </form>
@@ -162,7 +308,35 @@
     </div>
 </div>
 
+<!-- ===== Loading Overlay ===== -->
+<div class="submit-overlay" id="submit-overlay">
+    <div class="submit-overlay-card">
+        <div class="submit-overlay-spinner"></div>
+        <h6 class="submit-overlay-title">Processing Your Payment</h6>
+        <p class="submit-overlay-sub">Please wait while we process your transaction…</p>
+        <div class="submit-overlay-progress">
+            <div class="submit-overlay-progress-bar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Success Toast ===== -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="success-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <span id="toast-message">Payment submitted successfully!</span>
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
 <style>
+/* ===== BREADCRUMB ===== */
 .breadcrumb {
     background: transparent;
     padding: 0;
@@ -171,128 +345,473 @@
 .breadcrumb-item a {
     color: #3B7A8C;
     transition: color 0.2s ease;
+    text-decoration: none;
 }
 .breadcrumb-item a:hover {
     color: #1a3a42;
+    text-decoration: underline;
 }
-.summary-card {
-    transition: all 0.3s ease;
-}
-.summary-card:hover {
-    box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
-}
-.payment-method-card {
-    transition: all 0.3s ease;
-}
-.payment-method-card:hover {
-    box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
-}
+
+/* ===== PAYMENT OPTIONS ===== */
 .payment-option {
-    border: 2px solid #e9ecef !important;
+    position: relative;
+    cursor: pointer;
     transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
 }
-.payment-option:hover {
-    border-color: #3B7A8C !important;
-    box-shadow: 0 4px 15px rgba(59,122,140,0.15);
+.payment-option .payment-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
 }
-.payment-option:hover .payment-icon {
+.payment-option .payment-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.payment-option:hover .payment-label {
+    border-color: #3B7A8C;
+    box-shadow: 0 4px 15px rgba(59,122,140,0.1);
+    transform: translateY(-2px);
+}
+.payment-option .payment-radio:checked + .payment-label {
+    border-color: #3B7A8C;
+    background: linear-gradient(135deg, rgba(59,122,140,0.04) 0%, rgba(59,122,140,0.02) 100%);
+    box-shadow: 0 4px 20px rgba(59,122,140,0.2);
+    transform: translateY(-2px);
+}
+
+/* Payment Icon */
+.payment-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    transition: transform 0.3s ease;
+}
+.payment-option:hover .payment-icon-wrapper {
     transform: scale(1.1);
 }
-.payment-option.selected {
-    border-color: #3B7A8C !important;
-    background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%) !important;
-    box-shadow: 0 4px 15px rgba(59,122,140,0.2);
+.payment-option .payment-radio:checked + .payment-label .payment-icon-wrapper {
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
-.payment-option.selected .gcash-icon {
-    box-shadow: 0 4px 20px rgba(59,122,140,0.4);
+.gcash-bg {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
 }
-.form-check-input:checked {
-    background-color: #3B7A8C;
+.cash-bg {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+.card-bg {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+/* Payment Check Circle */
+.payment-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.3s ease;
+}
+.payment-check i {
+    font-size: 1.1rem;
+    color: #28a745;
+}
+.payment-option .payment-radio:checked + .payment-label .payment-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ===== PAYMENT DETAILS ===== */
+.payment-details {
+    animation: fadeSlideIn 0.4s ease forwards;
+}
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== FORM CONTROLS ===== */
+.form-control, .form-control:focus {
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+    padding: 0.55rem 0.9rem;
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-control:focus {
     border-color: #3B7A8C;
+    box-shadow: 0 0 0 3px rgba(59,122,140,0.1);
+}
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220,53,69,0.1);
+}
+.form-label {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+}
+
+/* File Input Styling */
+.file-upload-wrapper input[type="file"] {
+    padding: 0.4rem;
+}
+.file-upload-wrapper input[type="file"]::file-selector-button {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: white;
+    font-weight: 500;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 0.75rem;
+}
+.file-upload-wrapper input[type="file"]::file-selector-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* ===== CARD INPUT GROUP ===== */
+#card-number, #card-expiry, #card-cvc {
+    transition: all 0.25s ease;
+}
+#card-number:focus, #card-expiry:focus, #card-cvc:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40,167,69,0.12);
+}
+
+/* ===== SUBMIT OVERLAY ===== */
+.submit-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+}
+.submit-overlay.active {
+    display: flex;
+    cursor: wait;
+    animation: overlayFadeIn 0.25s ease forwards;
+}
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.submit-overlay-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem 3rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: overlayCardIn 0.35s ease forwards;
+    max-width: 90vw;
+}
+@keyframes overlayCardIn {
+    from { opacity: 0; transform: scale(0.9) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.submit-overlay-spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid #e8f5e9;
+    border-top-color: #28a745;
+    border-radius: 50%;
+    animation: spinner 0.8s linear infinite;
+    margin: 0 auto 1.25rem;
+}
+@keyframes spinner {
+    to { transform: rotate(360deg); }
+}
+.submit-overlay-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a3a42;
+    margin-bottom: 0.35rem;
+}
+.submit-overlay-sub {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+.submit-overlay-progress {
+    margin-top: 1.25rem;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.submit-overlay-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 2px;
+    animation: progressAnim 2s ease-in-out infinite;
+}
+@keyframes progressAnim {
+    0% { width: 0%; margin-left: 0; }
+    50% { width: 70%; margin-left: 0; }
+    100% { width: 0%; margin-left: 100%; }
+}
+
+/* ===== CARD HOVER SHADOWS ===== */
+.summary-card:hover, .payment-method-card:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12) !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .payment-icon-wrapper {
+        width: 50px;
+        height: 50px;
+    }
+    .payment-option .payment-label {
+        padding: 1rem 0.75rem;
+    }
+    .submit-overlay-card {
+        padding: 1.5rem 2rem;
+    }
+}
+@media (max-width: 576px) {
+    .payment-option .payment-label {
+        padding: 1rem 0.5rem;
+    }
+    .payment-icon-wrapper {
+        width: 44px;
+        height: 44px;
+    }
+    .payment-option .payment-label h6 {
+        font-size: 0.85rem;
+    }
+    .payment-option .payment-label small {
+        font-size: 0.7rem;
+    }
+}
+@media (max-width: 480px) {
+    .submit-overlay-card {
+        padding: 1.5rem 1.5rem;
+    }
+    .submit-overlay-spinner {
+        width: 44px;
+        height: 44px;
+        border-width: 3px;
+        margin-bottom: 1rem;
+    }
 }
 </style>
-
-<script>
-    document.querySelectorAll('input[name="method"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Hide all payment details
-            document.getElementById('gcashDetails').classList.add('d-none');
-            
-            // Remove selected class from all options
-            document.querySelectorAll('.payment-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            
-            // Add selected class to current option and show details
-            const selectedOption = this.closest('.payment-option');
-            if (selectedOption) {
-                selectedOption.classList.add('selected');
-            }
-            
-            if (this.value === 'gcash') {
-                document.getElementById('gcashDetails').classList.remove('d-none');
-            }
-        });
-    });
-    
-    // Click on payment option div to select radio
-    document.querySelectorAll('.payment-option').forEach(option => {
-        option.addEventListener('click', function(e) {
-            if (e.target.tagName !== 'INPUT') {
-                const radio = this.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change'));
-                }
-            }
-        });
-    });
-
-    // Form validation for GCash payment
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const selectedMethod = document.querySelector('input[name="method"]:checked');
-
-        if (selectedMethod && selectedMethod.value === 'gcash') {
-            const referenceField = document.querySelector('input[name="gcash_reference"], #id_gcash_reference');
-            const proofField = document.querySelector('input[type="file"][name="gcash_proof_image"], #id_gcash_proof_image');
-
-            let hasError = false;
-
-            // Remove existing error messages
-            document.querySelectorAll('.gcash-error-msg').forEach(el => el.remove());
-
-            if (!referenceField || !referenceField.value.trim()) {
-                hasError = true;
-                if (referenceField) {
-                    referenceField.classList.add('is-invalid');
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'gcash-error-msg invalid-feedback d-block';
-                    errorMsg.textContent = 'Please enter your GCash Reference Number';
-                    referenceField.parentNode.appendChild(errorMsg);
-                }
-            } else if (referenceField) {
-                referenceField.classList.remove('is-invalid');
-            }
-
-            if (!proofField || !proofField.files || proofField.files.length === 0) {
-                hasError = true;
-                if (proofField) {
-                    proofField.classList.add('is-invalid');
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'gcash-error-msg invalid-feedback d-block';
-                    errorMsg.textContent = 'Please upload proof of payment';
-                    proofField.parentNode.appendChild(errorMsg);
-                }
-            } else if (proofField) {
-                proofField.classList.remove('is-invalid');
-            }
-
-            if (hasError) {
-                e.preventDefault();
-                return false;
-            }
-        }
-    });
-</script>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    const paymentRadios = document.querySelectorAll('.payment-radio');
+    const gcashDetails = document.getElementById('gcash-details');
+    const cashDetails = document.getElementById('cash-details');
+    const cardDetails = document.getElementById('card-details');
+    const paymentForm = document.getElementById('payment-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const overlay = document.getElementById('submit-overlay');
+
+    // ===== Payment Method Selection =====
+    function showPaymentDetails(method) {
+        // Hide all
+        [gcashDetails, cashDetails, cardDetails].forEach(el => el.classList.add('d-none'));
+
+        // Show selected
+        if (method === 'gcash') gcashDetails.classList.remove('d-none');
+        else if (method === 'cash') cashDetails.classList.remove('d-none');
+        else if (method === 'card') cardDetails.classList.remove('d-none');
+    }
+
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                showPaymentDetails(this.value);
+            }
+        });
+    });
+
+    // Click on card to select
+    document.querySelectorAll('.payment-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+            // Don't interfere with label clicks
+            if (e.target.closest('label') || e.target.tagName === 'INPUT') return;
+            const radio = this.querySelector('.payment-radio');
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // ===== GCash File Preview =====
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const wrapper = this.closest('.file-upload-wrapper');
+            // Remove existing preview
+            const existingPreview = wrapper?.querySelector('.file-preview');
+            if (existingPreview) existingPreview.remove();
+
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const size = (file.size / 1024).toFixed(1);
+                const preview = document.createElement('div');
+                preview.className = 'file-preview mt-2 d-flex align-items-center gap-2';
+                preview.style.fontSize = '0.8rem';
+                preview.style.color = '#28a745';
+                preview.innerHTML = `<i class="fas fa-check-circle"></i> ${file.name} (${size} KB)`;
+                wrapper?.appendChild(preview);
+            }
+        });
+    }
+
+    // ===== Card Input Formatting =====
+    const cardNumber = document.getElementById('card-number');
+    const cardExpiry = document.getElementById('card-expiry');
+    const cardCvc = document.getElementById('card-cvc');
+
+    if (cardNumber) {
+        cardNumber.addEventListener('input', function() {
+            let val = this.value.replace(/[^\d]/g, '');
+            let formatted = '';
+            for (let i = 0; i < val.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += val[i];
+            }
+            this.value = formatted;
+        });
+    }
+
+    if (cardExpiry) {
+        cardExpiry.addEventListener('input', function() {
+            let val = this.value.replace(/[^\d]/g, '');
+            if (val.length >= 2) {
+                this.value = val.slice(0, 2) + '/' + val.slice(2, 4);
+            } else {
+                this.value = val;
+            }
+        });
+    }
+
+    if (cardCvc) {
+        cardCvc.addEventListener('input', function() {
+            this.value = this.value.replace(/[^\d]/g, '');
+        });
+    }
+
+    // ===== Form Validation =====
+    paymentForm.addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('.payment-radio:checked');
+        if (!selectedMethod) {
+            e.preventDefault();
+            showToast('Please select a payment method.');
+            return;
+        }
+
+        if (selectedMethod.value === 'gcash') {
+            let valid = true;
+            // Clear previous errors
+            document.querySelectorAll('.gcash-error-msg').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            const refInput = document.querySelector('input[name="gcash_reference"]');
+            const proofInput = document.querySelector('input[type="file"][name="gcash_proof_image"]');
+
+            if (!refInput || !refInput.value.trim()) {
+                valid = false;
+                if (refInput) {
+                    refInput.classList.add('is-invalid');
+                    document.getElementById('gcash-ref-error').style.display = 'block';
+                }
+            }
+
+            if (!proofInput || !proofInput.files || proofInput.files.length === 0) {
+                valid = false;
+                if (proofInput) {
+                    proofInput.classList.add('is-invalid');
+                    document.getElementById('gcash-proof-error').style.display = 'block';
+                }
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                return;
+            }
+        }
+
+        // Show loading overlay
+        overlay.classList.add('active');
+        submitBtn.querySelector('.btn-text').classList.add('d-none');
+        submitBtn.querySelector('.btn-loading').classList.remove('d-none');
+        submitBtn.disabled = true;
+
+        // For card payment, show a brief simulated processing (the form will submit naturally)
+        if (selectedMethod.value === 'card') {
+            // The server will handle card processing; we just show the overlay
+        }
+    });
+
+    // ===== Toast Notification =====
+    function showToast(message) {
+        const toastEl = document.getElementById('success-toast');
+        const msgEl = document.getElementById('toast-message');
+        if (msgEl) msgEl.textContent = message;
+        if (toastEl) {
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+    }
+
+    // ===== Card input focus styling =====
+    document.querySelectorAll('#card-number, #card-expiry, #card-cvc').forEach(input => {
+        input.addEventListener('focus', function() {
+            const inputGroup = this.closest('.input-group');
+            if (inputGroup) {
+                inputGroup.querySelector('.input-group-text')?.style.setProperty('border-color', '#28a745');
+            }
+        });
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                const inputGroup = this.closest('.input-group');
+                if (inputGroup) {
+                    inputGroup.querySelector('.input-group-text')?.style.setProperty('border-color', '#dee2e6');
+                }
+            }
+        });
+    });
+
+})();
+</script>
+{% endblock %}
