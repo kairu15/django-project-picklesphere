@@ -1,5 +1,7 @@
 from django import forms
+from django.db.models import Q
 from .models import Organization
+from accounts.models import User
 
 
 class OrganizationRegistrationForm(forms.ModelForm):
@@ -61,3 +63,64 @@ class OrganizationApprovalForm(forms.ModelForm):
             'rejection_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for rejection (if applicable)'}),
             'max_staff_accounts': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 50}),
         }
+
+
+class SuperAdminOrganizationForm(forms.ModelForm):
+    """Full organization management form for Super Admin"""
+    
+    org_admin = forms.ModelChoiceField(
+        queryset=User.objects.filter(role='org_admin', is_active=True).order_by('username'),
+        required=False,
+        label='Organization Administrator',
+        widget=forms.Select(attrs={'class': 'form-select select2-enhanced'})
+    )
+    
+    class Meta:
+        model = Organization
+        fields = [
+            'name', 'description', 'address', 'city', 'province',
+            'contact_email', 'contact_phone', 'website',
+            'logo', 'banner', 'operating_hours',
+            'status', 'is_active', 'max_staff_accounts',
+            'registration_notes', 'rejection_reason',
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Organization name'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Describe the organization'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Street address'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
+            'province': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Province/State'}),
+            'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contact@organization.com'}),
+            'contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact phone number'}),
+            'website': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://website.com'}),
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
+            'banner': forms.FileInput(attrs={'class': 'form-control'}),
+            'operating_hours': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'e.g. Mon-Fri: 6:00 AM - 10:00 PM\nSat: 6:00 AM - 10:00 PM\nSun: 7:00 AM - 9:00 PM'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'max_staff_accounts': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 100}),
+            'registration_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Registration notes'}),
+            'rejection_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Reason for rejection'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter org_admin dropdown to only unassigned users (or the current assigned one)
+        admin_qs = User.objects.filter(role='org_admin', is_active=True)
+        if self.instance.pk:
+            # When editing, include the currently assigned admin
+            admin_qs = admin_qs.filter(
+                Q(organization=self.instance) |
+                Q(organization__isnull=True)
+            ).distinct()
+        else:
+            admin_qs = admin_qs.filter(organization__isnull=True)
+        self.fields['org_admin'].queryset = admin_qs.order_by('username')
+        
+        # Set initial value if editing
+        if self.instance.pk:
+            current_admin = User.objects.filter(
+                organization=self.instance, role='org_admin'
+            ).first()
+            if current_admin:
+                self.fields['org_admin'].initial = current_admin.id

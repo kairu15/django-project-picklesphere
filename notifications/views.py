@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from accounts.decorators import admin_required
+from accounts.decorators import admin_required, super_admin_required
 from .models import Notification, BroadcastMessage
 
 
@@ -71,7 +71,7 @@ def delete_notification_view(request, notification_id):
 
 
 @login_required
-@admin_required
+@super_admin_required
 def broadcast_message_view(request):
     
     if request.method == 'POST':
@@ -104,7 +104,7 @@ def broadcast_message_view(request):
 
 
 @login_required
-@admin_required
+@super_admin_required
 def broadcast_list_view(request):
     
     broadcasts = BroadcastMessage.objects.all().order_by('-sent_at')

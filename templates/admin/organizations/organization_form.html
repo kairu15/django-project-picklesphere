@@ -1,0 +1,217 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{% if edit_mode %}Edit: {{ organization.name }}{% else %}Create Organization{% endif %}{% endblock %}
+{% block page_title %}{% if edit_mode %}Edit Organization{% else %}Create New Organization{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'super_admin_organization_list' %}">Organizations</a></li>
+        <li class="breadcrumb-item active">{% if edit_mode %}Edit: {{ organization.name }}{% else %}Create{% endif %}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+.form-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.form-section h5 {
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-light);
+    color: var(--primary-color);
+}
+.form-section h5 i {
+    margin-right: 0.5rem;
+}
+.preview-thumb {
+    width: 80px; height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for org_admin dropdown for searchable experience
+    const adminSelect = document.querySelector('#{{ form.org_admin.id_for_label }}');
+    if (adminSelect) {
+        $(adminSelect).select2({
+            placeholder: 'Search for an Organization Administrator...',
+            allowClear: true,
+            width: '100%'
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 col-xl-8 mx-auto">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h5><i class="fas fa-info-circle"></i>Basic Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">{{ form.name.label }} <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{{ form.status.label }}</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Location -->
+            <div class="form-section">
+                <h5><i class="fas fa-map-marker-alt"></i>Contact & Location</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.contact_email.label }}</label>
+                        {{ form.contact_email }}
+                        {% if form.contact_email.errors %}<div class="text-danger small mt-1">{{ form.contact_email.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.contact_phone.label }}</label>
+                        {{ form.contact_phone }}
+                        {% if form.contact_phone.errors %}<div class="text-danger small mt-1">{{ form.contact_phone.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">{{ form.address.label }}</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{{ form.website.label }}</label>
+                        {{ form.website }}
+                        {% if form.website.errors %}<div class="text-danger small mt-1">{{ form.website.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">{{ form.city.label }}</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}<div class="text-danger small mt-1">{{ form.city.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">{{ form.province.label }}</label>
+                        {{ form.province }}
+                        {% if form.province.errors %}<div class="text-danger small mt-1">{{ form.province.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media & Hours -->
+            <div class="form-section">
+                <h5><i class="fas fa-image"></i>Media & Operating Hours</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{{ form.logo.label }}</label>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if edit_mode and organization.logo %}
+                            <img src="{{ organization.logo.url }}" alt="Logo" class="preview-thumb">
+                            {% endif %}
+                            <div class="flex-grow-1">{{ form.logo }}</div>
+                        </div>
+                        {% if form.logo.errors %}<div class="text-danger small mt-1">{{ form.logo.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{{ form.banner.label }}</label>
+                        {{ form.banner }}
+                        {% if form.banner.errors %}<div class="text-danger small mt-1">{{ form.banner.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{{ form.operating_hours.label }}</label>
+                        {{ form.operating_hours }}
+                        <small class="text-muted">Describe operating hours for display</small>
+                        {% if form.operating_hours.errors %}<div class="text-danger small mt-1">{{ form.operating_hours.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Administration -->
+            <div class="form-section">
+                <h5><i class="fas fa-user-shield"></i>Administration</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.org_admin.label }}</label>
+                        {{ form.org_admin }}
+                        <small class="text-muted">Assign an existing Organization Administrator to this organization. Only unassigned org_admins are shown.</small>
+                        {% if form.org_admin.errors %}<div class="text-danger small mt-1">{{ form.org_admin.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">{{ form.max_staff_accounts.label }}</label>
+                        {{ form.max_staff_accounts }}
+                        <small class="text-muted">Max staff accounts allowed</small>
+                        {% if form.max_staff_accounts.errors %}<div class="text-danger small mt-1">{{ form.max_staff_accounts.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check mb-3">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-section">
+                <h5><i class="fas fa-sticky-note"></i>Notes</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.registration_notes.label }}</label>
+                        {{ form.registration_notes }}
+                        {% if form.registration_notes.errors %}<div class="text-danger small mt-1">{{ form.registration_notes.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.rejection_reason.label }}</label>
+                        {{ form.rejection_reason }}
+                        {% if form.rejection_reason.errors %}<div class="text-danger small mt-1">{{ form.rejection_reason.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex gap-2 justify-content-end mt-4 mb-5">
+                <a href="{% url 'super_admin_organization_list' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-1"></i>{% if edit_mode %}Update Organization{% else %}Create Organization{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

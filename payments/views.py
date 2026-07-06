@@ -138,6 +138,10 @@ def staff_payments_view(request):
     
     payments = Payment.objects.all().order_by('-created_at')
     
+    # Org-scoping for org_admin and org_staff users
+    if request.user.organization:
+        payments = payments.filter(reservation__court__organization=request.user.organization)
+    
     # Filter by status
     status_filter = request.GET.get('status', '')
     if status_filter:
@@ -172,13 +176,21 @@ def staff_payments_view(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
-    # Statistics
-    total_paid = Payment.objects.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_pending = Payment.objects.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0
-    today_revenue = Payment.objects.filter(
-        status='paid',
+    # Statistics (scoped for org)
+    base_paid = Payment.objects.filter(status='paid')
+    base_pending = Payment.objects.filter(status='pending')
+    if request.user.organization:
+        org_filter = Q(reservation__court__organization=request.user.organization)
+        base_paid = base_paid.filter(org_filter)
+        base_pending = base_pending.filter(org_filter)
+    
+    total_paid = base_paid.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_pending = base_pending.aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    today_paid = base_paid.filter(
         created_at__date=timezone.now().date()
-    ).aggregate(Sum('amount'))['amount__sum'] or 0
+    )
+    today_revenue = today_paid.aggregate(Sum('amount'))['amount__sum'] or 0
     
     return render(request, 'staff/payments/staff_payments.html', {
         'payments': page_obj.object_list,
@@ -338,6 +350,10 @@ def admin_payments_view(request):
     """Admin-only payment management with enhanced features"""
 
     payments = Payment.objects.all().order_by('-created_at')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        payments = payments.filter(reservation__court__organization=request.user.organization)
 
     # Filter by status
     status_filter = request.GET.get('status', '')
@@ -558,6 +574,10 @@ def revenue_report_view(request):
         created_at__date__gte=date_from,
         created_at__date__lte=date_to
     ).select_related('reservation', 'reservation__court', 'reservation__user')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        payments = payments.filter(reservation__court__organization=request.user.organization)
 
     if court_filter:
         payments = payments.filter(reservation__court_id=court_filter)
@@ -580,26 +600,28 @@ def revenue_report_view(request):
     daily_revenue = payments.count()
     avg_revenue_per_day = total_revenue / days_in_range if days_in_range > 0 else 0
 
+    # Org-scoped base paid queryset for all downstream stats
+    base_paid_qs = Payment.objects.filter(status='paid')
+    if request.user.is_org_admin() and request.user.organization:
+        base_paid_qs = base_paid_qs.filter(reservation__court__organization=request.user.organization)
+
     # Weekly revenue (current week)
     week_start = today - timedelta(days=today.weekday())
-    weekly_revenue = Payment.objects.filter(
-        status='paid',
+    weekly_revenue = base_paid_qs.filter(
         created_at__date__gte=week_start,
         created_at__date__lte=today
     ).aggregate(Sum('amount'))['amount__sum'] or 0
 
     # Monthly revenue (current month)
     month_start = today.replace(day=1)
-    monthly_revenue = Payment.objects.filter(
-        status='paid',
+    monthly_revenue = base_paid_qs.filter(
         created_at__date__gte=month_start,
         created_at__date__lte=today
     ).aggregate(Sum('amount'))['amount__sum'] or 0
 
     # Yearly revenue (current year)
     year_start = today.replace(month=1, day=1)
-    yearly_revenue = Payment.objects.filter(
-        status='paid',
+    yearly_revenue = base_paid_qs.filter(
         created_at__date__gte=year_start,
         created_at__date__lte=today
     ).aggregate(Sum('amount'))['amount__sum'] or 0
@@ -607,8 +629,7 @@ def revenue_report_view(request):
     # Revenue growth comparison (previous period)
     prev_date_from = date_from_obj - timedelta(days=days_in_range)
     prev_date_to = date_from_obj - timedelta(days=1)
-    prev_payments = Payment.objects.filter(
-        status='paid',
+    prev_payments = base_paid_qs.filter(
         created_at__date__gte=prev_date_from,
         created_at__date__lte=prev_date_to
     )
@@ -684,20 +705,23 @@ def revenue_report_view(request):
     for item in revenue_by_method_list:
         item['percentage'] = (float(item['total'] or 0) / float(total_rev) * 100) if total_rev > 0 else 0
 
-    # Payment status breakdown
-    payment_status_breakdown = Payment.objects.filter(
+    # Org-scoped base all-status queryset for breakdown stats
+    base_all_qs = Payment.objects.filter(
         created_at__date__gte=date_from,
         created_at__date__lte=date_to
-    ).values('status').annotate(
+    )
+    if request.user.is_org_admin() and request.user.organization:
+        base_all_qs = base_all_qs.filter(reservation__court__organization=request.user.organization)
+
+    # Payment status breakdown
+    payment_status_breakdown = base_all_qs.values('status').annotate(
         total=Sum('amount'),
         count=Count('id')
     ).order_by('-total')
 
     # Pending payments
-    pending_payments = Payment.objects.filter(
-        status='pending',
-        created_at__date__gte=date_from,
-        created_at__date__lte=date_to
+    pending_payments = base_all_qs.filter(
+        status='pending'
     ).aggregate(total=Sum('amount'))['total'] or 0
 
     payment_info = {
@@ -734,17 +758,21 @@ def revenue_report_view(request):
         processed_at__date__gte=date_from,
         processed_at__date__lte=date_to
     )
+    if request.user.is_org_admin() and request.user.organization:
+        refunds = refunds.filter(payment__reservation__court__organization=request.user.organization)
     total_refunds = refunds.aggregate(total=Sum('amount'))['total'] or 0
     refund_count = refunds.count()
 
     # Cancelled reservations (no-show or cancelled)
-    cancelled_reservations = Payment.objects.filter(
+    cancelled_base_qs = Payment.objects.filter(
         reservation__status__in=['cancelled', 'rejected'],
         created_at__date__gte=date_from,
         created_at__date__lte=date_to
     )
-    cancelled_revenue = cancelled_reservations.aggregate(total=Sum('amount'))['total'] or 0
-    cancelled_count = cancelled_reservations.count()
+    if request.user.is_org_admin() and request.user.organization:
+        cancelled_base_qs = cancelled_base_qs.filter(reservation__court__organization=request.user.organization)
+    cancelled_revenue = cancelled_base_qs.aggregate(total=Sum('amount'))['total'] or 0
+    cancelled_count = cancelled_base_qs.count()
 
     refunds_data = {
         'total_refunds': total_refunds,
@@ -834,6 +862,10 @@ def revenue_report_export_view(request):
         created_at__date__gte=date_from,
         created_at__date__lte=date_to
     ).select_related('reservation', 'reservation__court', 'reservation__user')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        payments = payments.filter(reservation__court__organization=request.user.organization)
 
     if court_filter:
         payments = payments.filter(reservation__court_id=court_filter)

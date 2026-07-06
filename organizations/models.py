@@ -35,6 +35,9 @@ class Organization(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     rejection_reason = models.TextField(blank=True, null=True)
     
+    # Operating details
+    operating_hours = models.TextField(blank=True, null=True, help_text="Operating hours description (e.g., Mon-Fri 6AM-10PM)")
+    
     # Settings
     is_active = models.BooleanField(default=True)
     max_staff_accounts = models.PositiveIntegerField(default=5, help_text="Maximum number of staff accounts allowed")

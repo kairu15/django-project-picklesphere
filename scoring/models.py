@@ -155,6 +155,10 @@ class MatchSettings(models.Model):
     )
 
     name = models.CharField(max_length=100, default="Default Match Settings")
+    organization = models.ForeignKey(
+        'organizations.Organization', on_delete=models.CASCADE,
+        related_name='match_settings', null=True, blank=True
+    )
     format = models.CharField(max_length=20, choices=FORMAT_CHOICES, default='singles')
     game_type = models.CharField(max_length=20, choices=GAME_TYPE_CHOICES, default='friendly')
     scoring_format = models.CharField(max_length=20, choices=SCORING_FORMAT_CHOICES, default='11')

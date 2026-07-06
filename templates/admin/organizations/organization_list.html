@@ -1,5 +1,6 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
+{% load dashboard_filters %}
 
 {% block title %}Manage Organizations{% endblock %}
 {% block page_title %}Manage Organizations{% endblock %}
@@ -13,47 +14,93 @@
 </nav>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; flex-shrink: 0;
+}
+.stat-icon.info { background: rgba(13,110,253,0.12); color: #0d6efd; }
+.stat-icon.warning { background: rgba(255,193,7,0.15); color: #b8860b; }
+.stat-icon.success { background: rgba(25,135,84,0.12); color: #198754; }
+.stat-icon.danger { background: rgba(220,53,69,0.12); color: #dc3545; }
+.stat-info h3 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+.stat-info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+
+.org-avatar {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--primary-lighter);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary-color);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.sort-link {
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.sort-link:hover {
+    color: var(--primary-color);
+}
+.sort-link i {
+    font-size: 0.7rem;
+    margin-left: 3px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Stats Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-md-3 col-6">
         <div class="stat-card">
-            <div class="stat-icon info">
-                <i class="fas fa-building"></i>
-            </div>
+            <div class="stat-icon info"><i class="fas fa-building"></i></div>
             <div class="stat-info">
                 <h3>{{ stats.total }}</h3>
-                <p>Total</p>
+                <p>Total Organizations</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-6">
         <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="fas fa-clock"></i>
-            </div>
+            <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
             <div class="stat-info">
                 <h3>{{ stats.pending }}</h3>
-                <p>Pending</p>
+                <p>Pending Approval</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-6">
         <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-check-circle"></i>
-            </div>
+            <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
             <div class="stat-info">
                 <h3>{{ stats.approved }}</h3>
                 <p>Approved</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-6">
         <div class="stat-card">
-            <div class="stat-icon danger">
-                <i class="fas fa-ban"></i>
-            </div>
+            <div class="stat-icon danger"><i class="fas fa-ban"></i></div>
             <div class="stat-info">
                 <h3>{{ stats.suspended }}</h3>
                 <p>Suspended</p>
@@ -62,39 +109,52 @@
     </div>
 </div>
 
-<!-- Filter & Search -->
+<!-- Toolbar: Search & Filters + Create Button -->
 <div class="card mb-4">
     <div class="card-body">
         <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label">Search</label>
-                <input type="text" name="search" class="form-control" placeholder="Search organizations..." value="{{ search_query }}">
-            </div>
             <div class="col-md-3">
-                <label class="form-label">Status</label>
+                <label class="form-label fw-semibold"><i class="fas fa-search me-1"></i>Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Name, email, city..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Status</label>
                 <select name="status" class="form-select">
-                    <option value="">All Status</option>
+                    <option value="">All Statuses</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
                     <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
                     <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
                     <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-2"></i>Filter</button>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Sort By</label>
+                <select name="sort_by" class="form-select">
+                    <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Oldest</option>
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
+                    <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name Z-A</option>
+                    <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status A-Z</option>
+                    <option value="city" {% if sort_by == 'city' %}selected{% endif %}>City</option>
+                </select>
             </div>
             <div class="col-md-2">
-                <a href="{% url 'super_admin_organization_list' %}" class="btn btn-outline-secondary w-100">Reset</a>
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i>Apply</button>
+            </div>
+            <div class="col-md-3 text-end">
+                <a href="{% url 'super_admin_organization_create' %}" class="btn btn-success w-100">
+                    <i class="fas fa-plus-circle me-1"></i>New Organization
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Organization List -->
+<!-- Organization Cards/Table -->
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5><i class="fas fa-list me-2"></i>All Organizations</h5>
-        <span class="badge bg-primary">{{ organizations|length }} orgs</span>
+    <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Organizations</h5>
+        <span class="badge bg-primary rounded-pill fs-6">{{ page_obj.paginator.count }} total</span>
     </div>
     <div class="card-body p-0">
         {% if organizations %}
@@ -103,24 +163,57 @@
                 <thead>
                     <tr>
                         <th>Organization</th>
-                        <th>Contact</th>
-                        <th>Courts</th>
+                        <th>Org Admin</th>
+                        <th class="text-center">Courts</th>
+                        <th class="text-center">Tournaments</th>
+                        <th class="text-center">Reservations</th>
                         <th>Status</th>
-                        <th>Registered</th>
-                        <th>Actions</th>
+                        <th>Created</th>
+                        <th class="text-center" style="min-width: 200px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for org in organizations %}
                     <tr>
                         <td data-label="Organization">
-                            <strong>{{ org.name }}</strong>
-                            {% if org.city %}<br><small class="text-muted">{{ org.city }}, {{ org.province }}</small>{% endif %}
+                            <div class="d-flex align-items-center gap-2">
+                                {% if org.logo %}
+                                <img src="{{ org.logo.url }}" alt="{{ org.name }}" class="org-avatar">
+                                {% else %}
+                                <div class="org-avatar"><i class="fas fa-building"></i></div>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ org.name }}</strong>
+                                    {% if org.city or org.province %}
+                                    <br><small class="text-muted">
+                                        <i class="fas fa-map-marker-alt" style="font-size:0.7rem;"></i>
+                                        {{ org.city|default:"" }}{% if org.city and org.province %}, {% endif %}{{ org.province|default:"" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </td>
-                        <td data-label="Contact">
-                            <small>{{ org.contact_email|default:"—" }}<br>{{ org.contact_phone|default:"—" }}</small>
+                        <td data-label="Org Admin">
+                            {% with admin=org_admins|get_item:org.id %}
+                                {% if admin %}
+                                    <div class="d-flex align-items-center gap-1">
+                                        <i class="fas fa-user-shield text-primary" style="font-size:0.8rem;"></i>
+                                        <small>{{ admin.get_full_name|default:admin.username }}</small>
+                                    </div>
+                                {% else %}
+                                    <small class="text-muted"><i class="fas fa-minus"></i> Not assigned</small>
+                                {% endif %}
+                            {% endwith %}
                         </td>
-                        <td data-label="Courts"><span class="badge bg-info">{{ org.court_count }}</span></td>
+                        <td data-label="Courts" class="text-center">
+                            <span class="badge bg-info rounded-pill">{{ org.court_count_prop }}</span>
+                        </td>
+                        <td data-label="Tournaments" class="text-center">
+                            <span class="badge bg-warning text-dark rounded-pill">{{ org.tournament_count_prop }}</span>
+                        </td>
+                        <td data-label="Reservations" class="text-center">
+                            <span class="badge bg-secondary rounded-pill">{{ org.reservation_count_prop|default:"0" }}</span>
+                        </td>
                         <td data-label="Status">
                             {% if org.status == 'approved' %}
                                 <span class="badge bg-success">Approved</span>
@@ -131,24 +224,31 @@
                             {% elif org.status == 'suspended' %}
                                 <span class="badge bg-secondary">Suspended</span>
                             {% endif %}
+                            {% if not org.is_active %}<span class="badge bg-dark ms-1">Inactive</span>{% endif %}
                         </td>
-                        <td data-label="Registered"><small>{{ org.created_at|date:"M d, Y" }}</small></td>
+                        <td data-label="Created"><small>{{ org.created_at|date:"M d, Y" }}</small></td>
                         <td data-label="Actions">
-                            <div class="d-flex gap-1">
-                                <a href="{% url 'super_admin_organization_detail' org.id %}" class="btn btn-sm btn-info" title="View">
+                            <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                <a href="{% url 'super_admin_organization_detail' org.id %}" class="btn btn-sm btn-info" title="View Details" data-bs-toggle="tooltip">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{% url 'super_admin_approve_organization' org.id %}" class="btn btn-sm btn-primary" title="Manage">
+                                <a href="{% url 'super_admin_organization_edit' org.id %}" class="btn btn-sm btn-primary" title="Edit Organization" data-bs-toggle="tooltip">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'super_admin_approve_organization' org.id %}" class="btn btn-sm btn-secondary" title="Manage Status" data-bs-toggle="tooltip">
                                     <i class="fas fa-cog"></i>
                                 </a>
                                 <form method="post" action="{% url 'super_admin_toggle_org_status' org.id %}" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm {% if org.is_active %}btn-warning{% else %}btn-success{% endif %}" 
+                                    <button type="submit" class="btn btn-sm {% if org.is_active %}btn-warning{% else %}btn-success{% endif %}"
                                             title="{% if org.is_active %}Deactivate{% else %}Activate{% endif %}"
                                             onclick="return confirm('{% if org.is_active %}Deactivate{% else %}Activate{% endif %} {{ org.name }}?')">
                                         <i class="fas {% if org.is_active %}fa-ban{% else %}fa-check{% endif %}"></i>
                                     </button>
                                 </form>
+                                <a href="{% url 'super_admin_organization_delete' org.id %}" class="btn btn-sm btn-danger" title="Delete Organization" data-bs-toggle="tooltip">
+                                    <i class="fas fa-trash"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -156,13 +256,79 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                ({{ page_obj.paginator.count }} total organizations)
+            </small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" title="First">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" title="Last">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
         {% else %}
         <div class="text-center py-5">
             <i class="fas fa-building fa-4x text-muted mb-3"></i>
             <h5 class="text-muted">No organizations found</h5>
-            <p class="text-muted">Organizations will appear here when they register on the platform.</p>
+            <p class="text-muted mb-3">
+                {% if search_query or status_filter %}
+                No organizations match your search criteria. Try different filters.
+                {% else %}
+                Organizations will appear here when they register on the platform, or you can create one.
+                {% endif %}
+            </p>
+            <a href="{% url 'super_admin_organization_create' %}" class="btn btn-success">
+                <i class="fas fa-plus-circle me-1"></i>Create Organization
+            </a>
         </div>
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
+});
+</script>
 {% endblock %}

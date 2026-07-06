@@ -23,13 +23,20 @@ def match_list_view(request):
         ).order_by('-created_at')
     else:
         matches = Match.objects.all().order_by('-created_at')
+        # Org-scoping for org_admin users
+        if request.user.is_org_admin() and request.user.organization:
+            matches = matches.filter(reservation__court__organization=request.user.organization)
     
     return render(request, 'scoring/match_list.html', {'matches': matches})
 
 
 @login_required
 def match_detail_view(request, match_id):
-    match = get_object_or_404(Match, id=match_id)
+    match_qs = Match.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        match_qs = match_qs.filter(reservation__court__organization=request.user.organization)
+    match = get_object_or_404(match_qs, id=match_id)
     
     return render(request, 'scoring/match_detail.html', {'match': match})
 
@@ -38,7 +45,10 @@ def match_detail_view(request, match_id):
 @staff_or_admin_required
 def start_match_view(request, reservation_id):
     
-    reservation = get_object_or_404(Reservation, id=reservation_id)
+    res_qs = Reservation.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        res_qs = res_qs.filter(court__organization=request.user.organization)
+    reservation = get_object_or_404(res_qs, id=reservation_id)
     
     # Check if match already exists
     try:
@@ -93,7 +103,10 @@ def start_match_view(request, reservation_id):
 
 @login_required
 def match_live_view(request, match_id):
-    match = get_object_or_404(Match, id=match_id)
+    match_qs = Match.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        match_qs = match_qs.filter(reservation__court__organization=request.user.organization)
+    match = get_object_or_404(match_qs, id=match_id)
     
     # Get current game
     current_game = match.games.filter(ended_at__isnull=True).first()
@@ -214,7 +227,11 @@ def player_stats_view(request):
 
 @login_required
 def leaderboard_view(request):
-    stats = PlayerStats.objects.filter(total_matches__gt=0).order_by('-win_rate', '-total_matches')[:50]
+    stats_qs = PlayerStats.objects.filter(total_matches__gt=0)
+    # Filter to show only org's players for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        stats_qs = stats_qs.filter(player__organization=request.user.organization)
+    stats = stats_qs.order_by('-win_rate', '-total_matches')[:50]
     
     return render(request, 'scoring/leaderboard.html', {
         'stats': stats
@@ -298,6 +315,11 @@ def match_score_api(request, match_id):
 def match_settings_list_view(request):
     
     settings = MatchSettings.objects.all().order_by('-is_active', '-created_at')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        settings = settings.filter(organization=request.user.organization)
+    
     return render(request, 'admin/match_settings/match_settings_list.html', {'settings': settings})
 
 
@@ -308,7 +330,11 @@ def match_settings_create_view(request):
     if request.method == 'POST':
         form = MatchSettingsForm(request.POST)
         if form.is_valid():
-            form.save()
+            settings = form.save(commit=False)
+            # Auto-assign organization for org_admin
+            if request.user.is_org_admin() and request.user.organization:
+                settings.organization = request.user.organization
+            settings.save()
             messages.success(request, 'Match settings created successfully.')
             return redirect('match_settings_list')
     else:
@@ -321,7 +347,12 @@ def match_settings_create_view(request):
 @admin_required
 def match_settings_edit_view(request, settings_id):
     
-    settings = get_object_or_404(MatchSettings, id=settings_id)
+    settings_qs = MatchSettings.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        settings_qs = settings_qs.filter(organization=request.user.organization)
+    
+    settings = get_object_or_404(settings_qs, id=settings_id)
     
     if request.method == 'POST':
         form = MatchSettingsForm(request.POST, instance=settings)
@@ -343,7 +374,12 @@ def match_settings_delete_view(request, settings_id):
         messages.error(request, 'Invalid request method.')
         return redirect('match_settings_list')
     
-    settings = get_object_or_404(MatchSettings, id=settings_id)
+    settings_qs = MatchSettings.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        settings_qs = settings_qs.filter(organization=request.user.organization)
+    
+    settings = get_object_or_404(settings_qs, id=settings_id)
     settings.delete()
     messages.success(request, 'Match settings deleted successfully.')
     return redirect('match_settings_list')

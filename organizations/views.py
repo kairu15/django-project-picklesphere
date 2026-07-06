@@ -5,7 +5,9 @@ from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
 from .models import Organization
-from .forms import OrganizationRegistrationForm, OrganizationProfileForm, OrganizationApprovalForm
+from .forms import OrganizationRegistrationForm, OrganizationProfileForm, OrganizationApprovalForm, SuperAdminOrganizationForm
+from accounts.models import User
+from django.core.paginator import Paginator
 
 
 # ==================== PUBLIC VIEWS ====================
@@ -71,19 +73,45 @@ def organization_register(request):
 @login_required
 @super_admin_required
 def super_admin_organization_list(request):
-    """Super admin list of all organizations"""
-    organizations = Organization.objects.all().order_by('-created_at')
+    """Super admin list of all organizations with full management controls"""
+    from reservations.models import Reservation
     
-    status_filter = request.GET.get('status', '')
-    if status_filter:
-        organizations = organizations.filter(status=status_filter)
+    organizations = Organization.objects.all().select_related('approved_by').annotate(
+        court_count_prop=Count('courts', filter=Q(courts__is_active=True)),
+        tournament_count_prop=Count('tournaments'),
+        reservation_count_prop=Count('courts__reservations', filter=~Q(courts__reservations__status='cancelled')),
+    )
     
+    # Search
     search_query = request.GET.get('search', '')
     if search_query:
         organizations = organizations.filter(
             Q(name__icontains=search_query) |
-            Q(contact_email__icontains=search_query)
+            Q(contact_email__icontains=search_query) |
+            Q(city__icontains=search_query) |
+            Q(province__icontains=search_query)
         )
+    
+    # Status filter
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        organizations = organizations.filter(status=status_filter)
+    
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['name', 'status', 'created_at', 'city', 'court_count_prop', 'tournament_count_prop', 'reservation_count_prop']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        organizations = organizations.order_by(sort_by)
+    
+    # Pagination
+    paginator = Paginator(organizations, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
     
     # Stats
     stats = {
@@ -93,11 +121,23 @@ def super_admin_organization_list(request):
         'suspended': Organization.objects.filter(status='suspended').count(),
     }
     
+    # Annotate each org with its admin for the template
+    org_list = page_obj.object_list
+    org_admins = {}
+    for org in org_list:
+        admin = User.objects.filter(organization=org, role='org_admin').first()
+        org_admins[org.id] = admin
+    
     return render(request, 'admin/organizations/organization_list.html', {
-        'organizations': organizations,
+        'organizations': org_list,
+        'org_admins': org_admins,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'stats': stats,
         'status_filter': status_filter,
         'search_query': search_query,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     })
 
 
@@ -105,11 +145,24 @@ def super_admin_organization_list(request):
 @super_admin_required
 def super_admin_organization_detail(request, pk):
     """Super admin view of a single organization"""
+    from reservations.models import Reservation
+    from payments.models import Payment
+    
     organization = get_object_or_404(Organization, pk=pk)
     courts = organization.courts.all()
     tournaments = organization.tournaments.all()
     staff_members = organization.members.filter(role__in=['org_admin', 'org_staff'])
     users = organization.members.filter(role='user')
+    org_admin_user = organization.members.filter(role='org_admin').first()
+    
+    # Stats
+    court_ids = organization.courts.values_list('id', flat=True)
+    reservation_count = Reservation.objects.filter(court_id__in=court_ids).exclude(status='cancelled').count()
+    revenue = Payment.objects.filter(
+        reservation__court_id__in=court_ids,
+        status='paid'
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+    active_tournaments = organization.tournaments.filter(status__in=['registration_open', 'in_progress']).count()
     
     return render(request, 'admin/organizations/organization_detail.html', {
         'organization': organization,
@@ -117,6 +170,11 @@ def super_admin_organization_detail(request, pk):
         'tournaments': tournaments,
         'staff_members': staff_members,
         'users': users,
+        'org_admin_user': org_admin_user,
+        'reservation_count': reservation_count,
+        'revenue': revenue,
+        'active_tournaments': active_tournaments,
+        'total_tournaments': tournaments.count(),
     })
 
 
@@ -126,10 +184,11 @@ def super_admin_approve_organization(request, pk):
     """Approve, reject, or suspend an organization"""
     organization = get_object_or_404(Organization, pk=pk)
     
+    old_status = organization.status
+    
     if request.method == 'POST':
         form = OrganizationApprovalForm(request.POST, instance=organization)
         if form.is_valid():
-            old_status = organization.status
             org = form.save(commit=False)
             
             if org.status == 'approved' and old_status != 'approved':
@@ -168,6 +227,159 @@ def super_admin_toggle_org_status(request, pk):
         messages.success(request, f'Organization "{organization.name}" has been {status}.')
     
     return redirect('super_admin_organization_list')
+
+
+@login_required
+@super_admin_required
+def super_admin_organization_create(request):
+    """Super Admin creates a new organization with all details"""
+    if request.method == 'POST':
+        form = SuperAdminOrganizationForm(request.POST, request.FILES)
+        if form.is_valid():
+            org = form.save(commit=False)
+            # If approving immediately, record approval
+            if org.status == 'approved':
+                org.approved_by = request.user
+                org.approved_at = timezone.now()
+            org.save()
+            
+            # Assign org admin if specified
+            org_admin_user = form.cleaned_data.get('org_admin')
+            if org_admin_user:
+                org_admin_user.organization = org
+                org_admin_user.save()
+            
+            messages.success(request, f'Organization "{org.name}" created successfully!')
+            return redirect('super_admin_organization_list')
+    else:
+        form = SuperAdminOrganizationForm()
+    
+    return render(request, 'admin/organizations/organization_form.html', {
+        'form': form,
+        'edit_mode': False,
+    })
+
+
+@login_required
+@super_admin_required
+def super_admin_organization_edit(request, pk):
+    """Super Admin edits an organization's full details"""
+    organization = get_object_or_404(Organization, pk=pk)
+    
+    old_status = organization.status
+    
+    if request.method == 'POST':
+        form = SuperAdminOrganizationForm(request.POST, request.FILES, instance=organization)
+        if form.is_valid():
+            org = form.save(commit=False)
+            
+            # If newly approved, record approval
+            if org.status == 'approved' and old_status != 'approved':
+                org.approved_by = request.user
+                org.approved_at = timezone.now()
+            
+            org.save()
+            
+            # Handle org admin reassignment
+            org_admin_user = form.cleaned_data.get('org_admin')
+            current_admin = User.objects.filter(organization=org, role='org_admin').first()
+            
+            if org_admin_user:
+                if current_admin and current_admin != org_admin_user:
+                    # Unassign old admin
+                    current_admin.organization = None
+                    current_admin.save()
+                # Assign new admin
+                org_admin_user.organization = org
+                org_admin_user.save()
+            elif current_admin:
+                # No admin selected, unassign current
+                current_admin.organization = None
+                current_admin.save()
+            
+            messages.success(request, f'Organization "{org.name}" updated successfully!')
+            return redirect('super_admin_organization_list')
+    else:
+        form = SuperAdminOrganizationForm(instance=organization)
+    
+    return render(request, 'admin/organizations/organization_form.html', {
+        'form': form,
+        'edit_mode': True,
+        'organization': organization,
+    })
+
+
+@login_required
+@super_admin_required
+def super_admin_organization_delete(request, pk):
+    """Delete an organization with validation for active reservations/tournaments"""
+    from reservations.models import Reservation
+    from tournaments.models import Tournament
+    from payments.models import Payment
+    
+    organization = get_object_or_404(Organization, pk=pk)
+    
+    # Check for active reservations
+    org_court_ids = organization.courts.values_list('id', flat=True)
+    active_reservation_statuses = ['pending', 'confirmed']
+    active_reservations = Reservation.objects.filter(
+        court_id__in=org_court_ids,
+        status__in=active_reservation_statuses
+    )
+    active_reservation_count = active_reservations.count()
+    
+    # Check for active tournaments
+    active_tournament_statuses = ['draft', 'registration_open', 'registration_closed', 'in_progress']
+    active_tournaments = organization.tournaments.filter(
+        status__in=active_tournament_statuses
+    )
+    active_tournament_count = active_tournaments.count()
+    
+    # Check for pending payments
+    pending_payments = Payment.objects.filter(
+        reservation__court_id__in=org_court_ids,
+        status='pending'
+    )
+    pending_payment_count = pending_payments.count()
+    
+    has_active_data = (
+        active_reservation_count > 0 or
+        active_tournament_count > 0 or
+        pending_payment_count > 0
+    )
+    
+    if request.method == 'POST':
+        if has_active_data:
+            reasons = []
+            if active_reservation_count:
+                reasons.append(f'{active_reservation_count} active reservation(s)')
+            if active_tournament_count:
+                reasons.append(f'{active_tournament_count} active tournament(s)')
+            if pending_payment_count:
+                reasons.append(f'{pending_payment_count} pending payment(s)')
+            messages.error(
+                request,
+                f'Cannot delete "{organization.name}": it has {", ".join(reasons)}. '
+                'Please cancel or complete them before deleting the organization.'
+            )
+            return redirect('super_admin_organization_list')
+        
+        org_name = organization.name
+        # Unassign all members
+        User.objects.filter(organization=organization).update(organization=None)
+        organization.delete()
+        messages.success(request, f'Organization "{org_name}" has been permanently deleted.')
+        return redirect('super_admin_organization_list')
+    
+    return render(request, 'admin/organizations/organization_confirm_delete.html', {
+        'organization': organization,
+        'active_reservations': active_reservations,
+        'active_reservation_count': active_reservation_count,
+        'active_tournaments': active_tournaments,
+        'active_tournament_count': active_tournament_count,
+        'pending_payment_count': pending_payment_count,
+        'has_active_data': has_active_data,
+    })
 
 
 @login_required

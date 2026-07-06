@@ -152,8 +152,72 @@
             </div>
         </div>
 
+        <!-- Revenue & Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="card text-center py-3">
+                    <div class="card-body">
+                        <h3 class="text-success mb-1">₱{{ revenue|floatformat:0|default:"0" }}</h3>
+                        <small class="text-muted">Total Revenue</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center py-3">
+                    <div class="card-body">
+                        <h3 class="text-info mb-1">{{ reservation_count }}</h3>
+                        <small class="text-muted">Reservations</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center py-3">
+                    <div class="card-body">
+                        <h3 class="text-warning mb-1">{{ active_tournaments }} / {{ total_tournaments }}</h3>
+                        <small class="text-muted">Active / Total Tournaments</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center py-3">
+                    <div class="card-body">
+                        <h3 class="text-primary mb-1">{{ staff_members|length }}</h3>
+                        <small class="text-muted">Staff Members</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Org Admin Info -->
+        {% if org_admin_user %}
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-shield me-2"></i>Organization Administrator</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: var(--primary-lighter);">
+                        <i class="fas fa-user fa-2x text-primary"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">{{ org_admin_user.get_full_name|default:org_admin_user.username }}</h5>
+                        <p class="mb-0 text-muted small">
+                            <i class="fas fa-envelope me-1"></i>{{ org_admin_user.email|default:"No email" }}<br>
+                            <i class="fas fa-calendar me-1"></i>Admin since {{ org_admin_user.created_at|date:"M Y" }}
+                        </p>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="{% url 'super_admin_organization_edit' organization.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-exchange-alt me-1"></i>Reassign
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Staff Members -->
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 <h5><i class="fas fa-users me-2 text-success"></i>Staff Members ({{ staff_members|length }})</h5>
             </div>

@@ -173,7 +173,12 @@ def dashboard_view(request):
     if request.user.is_super_admin():
         return redirect('super_admin_dashboard')
     elif request.user.is_org_admin():
-        return redirect('org_admin_dashboard')
+        # Check if they actually have an org to avoid redirect loops
+        # (org_required decorator would fail and loop back here)
+        if request.user.organization:
+            return redirect('org_admin_dashboard')
+        messages.warning(request, 'Your account is not associated with any organization. Please contact a super admin.')
+        return redirect('user_dashboard')
     elif request.user.is_org_staff():
         return redirect('staff_dashboard')
     else:
@@ -232,28 +237,45 @@ def staff_dashboard_view(request):
     
     today = timezone.now().date()
     
-    # Today's reservations
-    today_reservations = Reservation.objects.filter(
+    # Get user's organization for scoping
+    org = request.user.organization
+    
+    # Today's reservations (scoped to org for org_admin/org_staff)
+    today_reservations_qs = Reservation.objects.filter(
         date=today,
         status__in=['confirmed', 'pending']
-    ).order_by('start_time')
-    
-    # Pending approvals
-    pending_reservations = Reservation.objects.filter(
+    )
+    staff_reservations_qs = Reservation.objects.filter(
         status='pending'
-    ).count()
+    )
+    pending_payments_qs = Payment.objects.filter(status='pending')
     
-    # Pending payments
-    pending_payments = Payment.objects.filter(status='pending').count()
+    if org:
+        today_reservations_qs = today_reservations_qs.filter(court__organization=org)
+        staff_reservations_qs = staff_reservations_qs.filter(court__organization=org)
+        pending_payments_qs = pending_payments_qs.filter(reservation__court__organization=org)
     
-    # Active matches
-    active_matches = Match.objects.filter(status='ongoing').count()
+    today_reservations = today_reservations_qs.order_by('start_time')
+    pending_reservations = staff_reservations_qs.count()
+    pending_payments = pending_payments_qs.count()
     
-    # Equipment stats
+    # Active matches (scoped to org)
+    active_matches_qs = Match.objects.filter(status='ongoing')
+    if org:
+        active_matches_qs = active_matches_qs.filter(reservation__court__organization=org)
+    active_matches = active_matches_qs.count()
+    
+    # Equipment stats (scoped to org)
+    equipment_qs = Equipment.objects.filter(is_active=True)
+    equipment_rental_qs = EquipmentRental.objects.filter(status__in=['reserved', 'rented'])
+    if org:
+        equipment_qs = equipment_qs.filter(organization=org)
+        equipment_rental_qs = equipment_rental_qs.filter(equipment__organization=org)
+    
     equipment_stats = {
-        'total': Equipment.objects.filter(is_active=True).count(),
-        'low_stock': Equipment.objects.filter(quantity_available__lte=2, is_active=True).count(),
-        'active_rentals': EquipmentRental.objects.filter(status__in=['reserved', 'rented']).count(),
+        'total': equipment_qs.count(),
+        'low_stock': equipment_qs.filter(quantity_available__lte=2).count(),
+        'active_rentals': equipment_rental_qs.count(),
     }
     
     # Recent activity

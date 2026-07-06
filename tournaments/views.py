@@ -294,7 +294,10 @@ def admin_tournament_edit(request, pk):
 def admin_tournament_manage(request, pk):
     """Main management view for a tournament"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     # Get all registrations
     registrations = tournament.registrations.select_related('user').order_by('-registered_at')
@@ -328,7 +331,10 @@ def admin_tournament_manage(request, pk):
 def admin_registration_list(request, pk):
     """View and manage all registrations"""
 
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     status_filter = request.GET.get('status', 'all')
 
     all_registrations = tournament.registrations.select_related('user').order_by('-registered_at')
@@ -359,7 +365,10 @@ def admin_registration_list(request, pk):
 def admin_registration_review(request, pk, reg_id):
     """Review a single registration"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     registration = get_object_or_404(Registration, id=reg_id, tournament=tournament)
     
     if request.method == 'POST':
@@ -408,7 +417,10 @@ def admin_registration_review(request, pk, reg_id):
 def admin_bulk_approve(request, pk):
     """Bulk approve pending registrations"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     pending = tournament.registrations.filter(status='pending')
     count = pending.count()
@@ -428,7 +440,10 @@ def admin_bulk_approve(request, pk):
 def admin_generate_matches(request, pk):
     """Generate matches using the randomizer"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     if not tournament.can_generate_matches():
         messages.error(request, 'Not enough approved participants to generate matches.')
@@ -473,7 +488,10 @@ def admin_generate_matches(request, pk):
 def admin_match_list(request, pk):
     """List and manage all matches"""
 
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     matches = Match.objects.filter(tournament=tournament).order_by('round_name', 'match_number')
 
     # Calculate status counts
@@ -498,7 +516,10 @@ def admin_match_list(request, pk):
 def admin_match_edit(request, pk, match_id):
     """Edit a match (scores and status)"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     match = get_object_or_404(Match, id=match_id, tournament=tournament)
     
     if request.method == 'POST':
@@ -555,7 +576,10 @@ def admin_match_edit(request, pk, match_id):
 def admin_schedule_matches(request, pk):
     """Schedule matches with courts and times"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     # Get unscheduled matches
     unscheduled = Match.objects.filter(
@@ -623,7 +647,10 @@ def admin_schedule_matches(request, pk):
 def admin_leaderboard(request, pk):
     """View and manage leaderboard"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     # Get standings
     standings = LeaderboardManager.get_standings(tournament)
@@ -650,7 +677,10 @@ def admin_leaderboard(request, pk):
 def admin_team_list(request, pk):
     """View and manage teams for doubles tournaments"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     teams = tournament.teams.all().select_related('player1', 'player2')
     
     context = {
@@ -666,7 +696,10 @@ def admin_team_list(request, pk):
 def admin_team_create(request, pk):
     """Create a new team"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     if request.method == 'POST':
         form = TeamForm(request.POST, tournament=tournament)
@@ -693,7 +726,10 @@ def admin_team_create(request, pk):
 def admin_tournament_bracket(request, pk):
     """View tournament bracket (for elimination formats)"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     # Get matches organized by round
     matches_by_round = {}
@@ -715,7 +751,10 @@ def admin_tournament_bracket(request, pk):
 def admin_change_status(request, pk):
     """Change tournament status"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    t_qs = Tournament.objects.all()
+    if request.user.is_org_admin() and request.user.organization:
+        t_qs = t_qs.filter(organization=request.user.organization)
+    tournament = get_object_or_404(t_qs, pk=pk)
     
     if request.method == 'POST':
         form = TournamentStatusForm(request.POST, instance=tournament)

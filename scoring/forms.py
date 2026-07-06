@@ -35,7 +35,7 @@ class ScoreUpdateForm(forms.Form):
 class MatchSettingsForm(forms.ModelForm):
     class Meta:
         model = MatchSettings
-        fields = ['name', 'format', 'game_type', 'scoring_format', 'games_to_win', 'points_per_game', 'win_by_two', 'is_active']
+        fields = ['name', 'organization', 'format', 'game_type', 'scoring_format', 'games_to_win', 'points_per_game', 'win_by_two', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'format': forms.Select(attrs={'class': 'form-select'}),

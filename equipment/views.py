@@ -89,14 +89,24 @@ def staff_equipment_view(request):
     
     equipment = Equipment.objects.all().order_by('type', 'name')
     
-    # Equipment statistics
+    # Org-scoping for org_admin and org_staff users
+    if request.user.organization:
+        equipment = equipment.filter(organization=request.user.organization)
+    
+    # Equipment statistics (scoped to org)
+    equip_base = Equipment.objects.filter(is_active=True)
+    rental_base = EquipmentRental.objects.filter(status__in=['reserved', 'rented'])
+    if request.user.organization:
+        equip_base = equip_base.filter(organization=request.user.organization)
+        rental_base = rental_base.filter(equipment__organization=request.user.organization)
+    
     stats = {
-        'total_items': Equipment.objects.filter(is_active=True).aggregate(
+        'total_items': equip_base.aggregate(
             total=Count('id')
         )['total'],
-        'low_stock': Equipment.objects.filter(quantity_available__lte=2, is_active=True).count(),
-        'out_of_stock': Equipment.objects.filter(quantity_available=0, is_active=True).count(),
-        'active_rentals': EquipmentRental.objects.filter(status__in=['reserved', 'rented']).count(),
+        'low_stock': equip_base.filter(quantity_available__lte=2).count(),
+        'out_of_stock': equip_base.filter(quantity_available=0).count(),
+        'active_rentals': rental_base.count(),
     }
     
     return render(request, 'staff/equipment.html', {

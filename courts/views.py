@@ -253,6 +253,11 @@ def admin_court_delete_view(request, court_id):
 def admin_site_list_view(request):
     
     sites = Site.objects.all().order_by('-created_at')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        sites = sites.filter(organization=request.user.organization)
+    
     return render(request, 'admin/sites/site_list.html', {'sites': sites})
 
 
@@ -263,7 +268,11 @@ def admin_site_create_view(request):
     if request.method == 'POST':
         form = SiteForm(request.POST)
         if form.is_valid():
-            form.save()
+            site = form.save(commit=False)
+            # Auto-assign organization for org_admin
+            if request.user.is_org_admin() and request.user.organization:
+                site.organization = request.user.organization
+            site.save()
             messages.success(request, 'Site created successfully.')
             return redirect('admin_site_list')
     else:
@@ -276,7 +285,12 @@ def admin_site_create_view(request):
 @admin_required
 def admin_site_edit_view(request, site_id):
     
-    site = get_object_or_404(Site, id=site_id)
+    site_qs = Site.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        site_qs = site_qs.filter(organization=request.user.organization)
+    
+    site = get_object_or_404(site_qs, id=site_id)
     if request.method == 'POST':
         form = SiteForm(request.POST, instance=site)
         if form.is_valid():
@@ -297,7 +311,12 @@ def admin_site_delete_view(request, site_id):
         messages.error(request, 'Invalid request method.')
         return redirect('admin_site_list')
     
-    site = get_object_or_404(Site, id=site_id)
+    site_qs = Site.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        site_qs = site_qs.filter(organization=request.user.organization)
+    
+    site = get_object_or_404(site_qs, id=site_id)
     site.delete()
     messages.success(request, f'Site {site.name} deleted successfully.')
     return redirect('admin_site_list')

@@ -110,6 +110,10 @@ def user_list_view(request):
     
     users = User.objects.all().order_by('-created_at')
     
+    # Org-scoping for org_admin - only show users from their organization
+    if request.user.is_org_admin() and request.user.organization:
+        users = users.filter(organization=request.user.organization)
+    
     # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
@@ -156,7 +160,11 @@ def user_list_view(request):
 @admin_required
 def user_edit_view(request, user_id):
     
-    user = get_object_or_404(User, id=user_id)
+    user_qs = User.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        user_qs = user_qs.filter(organization=request.user.organization)
+    user = get_object_or_404(user_qs, id=user_id)
     
     if request.method == 'POST':
         form = AdminUserUpdateForm(request.POST, instance=user)
@@ -180,7 +188,11 @@ def user_create_view(request):
     if request.method == 'POST':
         form = AdminUserCreateForm(request.POST)
         if form.is_valid():
-            created_user = form.save()
+            created_user = form.save(commit=False)
+            # Auto-assign organization for org_admin
+            if request.user.is_org_admin() and request.user.organization:
+                created_user.organization = request.user.organization
+            created_user.save()
             messages.success(request, f'User {created_user.username} created successfully!')
             return redirect('user_list')
     else:
@@ -197,7 +209,11 @@ def user_delete_view(request, user_id):
         messages.error(request, 'Invalid request method.')
         return redirect('user_list')
     
-    user_to_delete = get_object_or_404(User, id=user_id)
+    user_qs = User.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        user_qs = user_qs.filter(organization=request.user.organization)
+    user_to_delete = get_object_or_404(user_qs, id=user_id)
     if user_to_delete == request.user:
         messages.error(request, 'You cannot delete your own account.')
         return redirect('user_list')
@@ -218,4 +234,7 @@ def user_delete_view(request, user_id):
 def user_activity_log(request):
     
     activities = UserActivity.objects.all().order_by('-created_at')[:100]
+    # Org-scoping for org_admin - only show activities from their organization's users
+    if request.user.is_org_admin() and request.user.organization:
+        activities = activities.filter(user__organization=request.user.organization)
     return render(request, 'admin/activity_log.html', {'activities': activities})

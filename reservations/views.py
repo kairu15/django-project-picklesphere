@@ -99,8 +99,15 @@ def reservation_create_view(request):
                 status='pending'
             )
             
-            # Notify staff
-            staff_users = User.objects.filter(role__in=['staff', 'admin'])
+            # Notify staff (scoped to organization)
+            court_org = reservation.court.organization
+            if court_org:
+                staff_users = User.objects.filter(
+                    Q(organization=court_org) | Q(role='super_admin'),
+                    role__in=['org_admin', 'org_staff', 'super_admin']
+                )
+            else:
+                staff_users = User.objects.filter(role__in=['staff', 'admin'])
             for staff in staff_users:
                 Notification.objects.create(
                     user=staff,
@@ -163,6 +170,10 @@ def staff_reservations_view(request):
     
     reservations = Reservation.objects.select_related('user', 'court', 'court__site', 'payment').all().order_by('-created_at')
     
+    # Org-scoping for org_admin and org_staff users
+    if request.user.organization:
+        reservations = reservations.filter(court__organization=request.user.organization)
+    
     # Search
     search_query = request.GET.get('search', '').strip()
     if search_query:
@@ -218,7 +229,10 @@ def staff_reservations_view(request):
 @staff_or_admin_required
 def approve_reservation_view(request, reservation_id):
     
-    reservation = get_object_or_404(Reservation, id=reservation_id)
+    res_qs = Reservation.objects.all()
+    if request.user.organization:
+        res_qs = res_qs.filter(court__organization=request.user.organization)
+    reservation = get_object_or_404(res_qs, id=reservation_id)
     
     if request.method == 'POST':
         form = ReservationApprovalForm(request.POST, instance=reservation)
@@ -387,6 +401,9 @@ def calendar_view(request):
             date__month=month,
             status__in=['confirmed', 'pending']
         )
+        # Org-scoping for org_admin and org_staff
+        if request.user.organization:
+            reservations = reservations.filter(court__organization=request.user.organization)
     
     # Group reservations by date
     reservation_dict = {}
@@ -422,6 +439,10 @@ def calendar_view(request):
 def admin_reservation_list_view(request):
 
     reservations = Reservation.objects.select_related('user', 'court').all().order_by('-created_at')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        reservations = reservations.filter(court__organization=request.user.organization)
 
     search_query = request.GET.get('search', '').strip()
     if search_query:
@@ -478,8 +499,14 @@ def admin_reservation_create_view(request):
 
     if request.method == 'POST':
         form = AdminReservationForm(request.POST)
+        # Filter court choices for org_admin BEFORE validation to prevent cross-org submissions
+        if request.user.is_org_admin() and request.user.organization:
+            form.fields['court'].queryset = Court.objects.filter(organization=request.user.organization, is_active=True)
         if form.is_valid():
             reservation = form.save(commit=False)
+            # Set user if not provided
+            if not reservation.user:
+                reservation.user = request.user
             # Calculate totals with proper None handling
             hourly_rate = float(reservation.hourly_rate) if reservation.hourly_rate else 0.0
             duration_hours = float(reservation.duration_hours) if reservation.duration_hours else 0.0
@@ -498,6 +525,9 @@ def admin_reservation_create_view(request):
             return redirect('admin_reservation_list')
     else:
         form = AdminReservationForm()
+        # Filter court choices for org_admin on GET for the dropdown
+        if request.user.is_org_admin() and request.user.organization:
+            form.fields['court'].queryset = Court.objects.filter(organization=request.user.organization, is_active=True)
 
     return render(request, 'admin/reservations/reservation_form.html', {
         'form': form,
@@ -509,7 +539,11 @@ def admin_reservation_create_view(request):
 @admin_required
 def admin_reservation_edit_view(request, reservation_id):
 
-    reservation = get_object_or_404(Reservation, id=reservation_id)
+    res_qs = Reservation.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        res_qs = res_qs.filter(court__organization=request.user.organization)
+    reservation = get_object_or_404(res_qs, id=reservation_id)
     if request.method == 'POST':
         form = AdminReservationForm(request.POST, instance=reservation)
         if form.is_valid():
@@ -539,7 +573,11 @@ def admin_reservation_delete_view(request, reservation_id):
         messages.error(request, 'Invalid request method.')
         return redirect('admin_reservation_list')
 
-    reservation = get_object_or_404(Reservation, id=reservation_id)
+    res_qs = Reservation.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        res_qs = res_qs.filter(court__organization=request.user.organization)
+    reservation = get_object_or_404(res_qs, id=reservation_id)
 
     if reservation.status == 'cancelled':
         messages.info(request, f'Reservation #{reservation.id} is already cancelled.')
