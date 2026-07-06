@@ -334,7 +334,7 @@
                                 </button>
                                 {% endif %}
                                 {% if payment.method == 'cash' %}
-                                <a href="{% url 'cash_payment_confirm' payment.id %}" class="btn-action-pay btn-cash-pay" title="Cash Counter">
+                                <a href="{% url 'staff_cash_payment_confirm' payment.id %}" class="btn-action-pay btn-cash-pay" title="Cash Counter">
                                     <i class="fas fa-money-bill-wave"></i>
                                 </a>
                                 {% endif %}
@@ -477,7 +477,7 @@
         var form = document.getElementById('action-form');
         var statusInput = document.getElementById('modal-status');
 
-        form.action = '{% url "verify_payment" 0 %}'.replace('0', paymentId);
+        form.action = '{% url "staff_verify_payment" 0 %}'.replace('0', paymentId);
         statusInput.value = action === 'approve' ? 'paid' : 'failed';
 
         if (action === 'approve') {

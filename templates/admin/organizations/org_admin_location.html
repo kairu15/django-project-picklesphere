@@ -413,7 +413,7 @@
 
     // ===== Reverse Geocode via Django Proxy =====
     function reverseGeocode(lat, lng) {
-        var url = '{% url "reverse_geocode_api" %}?lat=' + lat + '&lng=' + lng;
+        var url = '{% url "org_admin_reverse_geocode" %}?lat=' + lat + '&lng=' + lng;
         
         // Update preview to show loading
         document.getElementById('preview-address').innerHTML = '<em class="text-muted">Resolving address...</em>';

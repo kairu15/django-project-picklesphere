@@ -52,12 +52,8 @@
                             <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
-                            <div class="action-buttons justify-content-end">
-                                <a href="{% url 'admin_team_edit' team.id %}" class="action-btn edit" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </div>
+                        <td>
+                            <span class="text-muted small">—</span>
                         </td>
                     </tr>
                     {% empty %}

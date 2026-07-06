@@ -318,21 +318,21 @@ class OrgScopedCourtViewTests(TestCase):
 
     def test_super_admin_sees_all_courts(self):
         self.client.login(username='sa', password='test123')
-        response = self.client.get(reverse('admin_court_list'))
+        response = self.client.get(reverse('org_admin_court_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Court A')
         self.assertContains(response, 'Court B')
 
     def test_org1_admin_only_sees_own_courts(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.get(reverse('admin_court_list'))
+        response = self.client.get(reverse('org_admin_court_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Court A')
         self.assertNotContains(response, 'Court B')
 
     def test_org2_admin_only_sees_own_courts(self):
         self.client.login(username='oa2', password='test123')
-        response = self.client.get(reverse('admin_court_list'))
+        response = self.client.get(reverse('org_admin_court_list'))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'Court A')
         self.assertContains(response, 'Court B')
@@ -340,23 +340,23 @@ class OrgScopedCourtViewTests(TestCase):
     def test_org_admin_cannot_edit_other_org_court(self):
         self.client.login(username='oa1', password='test123')
         # Trying to edit court2 (belongs to org2) should 404
-        response = self.client.get(reverse('admin_court_edit', args=[self.court2.pk]))
+        response = self.client.get(reverse('org_admin_court_edit', args=[self.court2.pk]))
         self.assertEqual(response.status_code, 404)
 
     def test_org_admin_can_edit_own_court(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.get(reverse('admin_court_edit', args=[self.court1.pk]))
+        response = self.client.get(reverse('org_admin_court_edit', args=[self.court1.pk]))
         self.assertEqual(response.status_code, 200)
 
     def test_org_admin_cannot_delete_other_org_court(self):
         self.client.login(username='oa1', password='test123')
         # POST to delete court2
-        response = self.client.post(reverse('admin_court_delete', args=[self.court2.pk]))
+        response = self.client.post(reverse('org_admin_court_delete', args=[self.court2.pk]))
         self.assertEqual(response.status_code, 404)
 
     def test_super_admin_can_delete_any_court(self):
         self.client.login(username='sa', password='test123')
-        response = self.client.post(reverse('admin_court_delete', args=[self.court2.pk]))
+        response = self.client.post(reverse('org_admin_court_delete', args=[self.court2.pk]))
         # Should succeed (redirect after deactivation)
         self.assertEqual(response.status_code, 302)
         self.court2.refresh_from_db()
@@ -444,36 +444,36 @@ class OrgScopedEquipmentViewTests(TestCase):
 
     def test_super_admin_sees_all_equipment(self):
         self.client.login(username='sa', password='test123')
-        response = self.client.get(reverse('admin_equipment_list'))
+        response = self.client.get(reverse('super_admin_equipment_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Paddle Pro')
         self.assertContains(response, 'Premium Paddle')
 
     def test_org_admin_only_sees_own_equipment(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.get(reverse('admin_equipment_list'))
+        response = self.client.get(reverse('super_admin_equipment_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Paddle Pro')
         self.assertNotContains(response, 'Premium Paddle')
 
     def test_org_admin_cannot_edit_other_org_equipment(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.get(reverse('admin_equipment_edit', args=[self.eq2.pk]))
+        response = self.client.get(reverse('super_admin_equipment_edit', args=[self.eq2.pk]))
         self.assertEqual(response.status_code, 404)
 
     def test_org_admin_cannot_delete_other_org_equipment(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.post(reverse('admin_equipment_delete', args=[self.eq2.pk]))
+        response = self.client.post(reverse('super_admin_equipment_delete', args=[self.eq2.pk]))
         self.assertEqual(response.status_code, 404)
 
     def test_org_admin_can_edit_own_equipment(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.get(reverse('admin_equipment_edit', args=[self.eq1.pk]))
+        response = self.client.get(reverse('super_admin_equipment_edit', args=[self.eq1.pk]))
         self.assertEqual(response.status_code, 200)
 
     def test_org_admin_create_auto_assigns_org(self):
         self.client.login(username='oa1', password='test123')
-        response = self.client.post(reverse('admin_equipment_create'), {
+        response = self.client.post(reverse('super_admin_equipment_create'), {
             'name': 'New Paddle',
             'type': 'paddle',
             'quantity_total': 5,

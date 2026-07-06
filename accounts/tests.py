@@ -122,7 +122,7 @@ class SuperAdminRequiredDecoratorTests(TestCase):
         wrapped_view = super_admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('login'))
 
 
 class OrgAdminRequiredDecoratorTests(TestCase):
@@ -320,7 +320,7 @@ class AdminRequiredDecoratorTests(TestCase):
         wrapped_view = admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('login'))
 
     def test_error_message_is_set_for_non_admin(self):
         """Non-admin users should receive an error message."""
@@ -392,7 +392,7 @@ class StaffOrAdminRequiredDecoratorTests(TestCase):
         wrapped_view = staff_or_admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('user_dashboard'))
 
     def test_anonymous_user_is_redirected(self):
         """Anonymous (unauthenticated) users should be redirected."""
@@ -400,7 +400,7 @@ class StaffOrAdminRequiredDecoratorTests(TestCase):
         wrapped_view = staff_or_admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('login'))
 
     def test_error_message_is_set_for_regular_user(self):
         """Regular users should receive an error message."""
@@ -482,7 +482,7 @@ class UserRequiredDecoratorTests(TestCase):
         wrapped_view = user_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_staff_user_is_redirected(self):
         """Staff users should be redirected from user_required views."""
@@ -490,7 +490,7 @@ class UserRequiredDecoratorTests(TestCase):
         wrapped_view = user_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_anonymous_user_is_redirected(self):
         """Anonymous users should be redirected from user_required views."""
@@ -498,7 +498,7 @@ class UserRequiredDecoratorTests(TestCase):
         wrapped_view = user_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('login'))
 
     def test_error_message_is_set_for_admin(self):
         """Admin users should receive an error message."""
@@ -595,56 +595,56 @@ class IntegrationViewAccessTests(TestCase):
     def test_admin_dashboard_admin_access(self):
         """Admin can access admin dashboard."""
         self.client.login(username='admin_int', password='test123')
-        response = self.client.get(reverse('admin_dashboard'))
+        response = self.client.get(reverse('super_admin_dashboard'))
         self.assertEqual(response.status_code, 200)
 
     def test_admin_dashboard_staff_blocked(self):
         """Staff cannot access admin dashboard."""
         self.client.login(username='staff_int', password='test123')
-        response = self.client.get(reverse('admin_dashboard'))
-        # Redirects to /dashboard/ which then redirects to role-specific dashboard
+        response = self.client.get(reverse('super_admin_dashboard'))
+        # @super_admin_required redirects non-super_admins to dashboard
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('dashboard'))
 
     def test_admin_dashboard_user_blocked(self):
         """Regular user cannot access admin dashboard."""
         self.client.login(username='user_int', password='test123')
-        response = self.client.get(reverse('admin_dashboard'))
+        response = self.client.get(reverse('super_admin_dashboard'))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('dashboard'))
 
     def test_user_list_admin_access(self):
         """Admin can access user management list."""
         self.client.login(username='admin_int', password='test123')
-        response = self.client.get(reverse('user_list'))
+        response = self.client.get(reverse('super_admin_user_list'))
         self.assertEqual(response.status_code, 200)
 
     def test_user_list_staff_blocked(self):
-        """Staff cannot access user management list."""
+        """Staff cannot access user management list (@admin_required redirects staff to staff_dashboard)."""
         self.client.login(username='staff_int', password='test123')
-        response = self.client.get(reverse('user_list'))
+        response = self.client.get(reverse('super_admin_user_list'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_user_list_user_blocked(self):
-        """Regular user cannot access user management list."""
+        """Regular user cannot access user management list (@admin_required redirects user to user_dashboard)."""
         self.client.login(username='user_int', password='test123')
-        response = self.client.get(reverse('user_list'))
+        response = self.client.get(reverse('super_admin_user_list'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('user_dashboard'))
 
     def test_court_list_admin_access(self):
         """Admin can access court management."""
         self.client.login(username='admin_int', password='test123')
-        response = self.client.get(reverse('admin_court_list'))
+        response = self.client.get(reverse('org_admin_court_list'))
         self.assertEqual(response.status_code, 200)
 
     def test_court_list_user_blocked(self):
         """Regular user cannot access court management."""
         self.client.login(username='user_int', password='test123')
-        response = self.client.get(reverse('admin_court_list'))
+        response = self.client.get(reverse('org_admin_court_list'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('user_dashboard'))
 
     # ---- STAFF-ACCESSIBLE PAGE TESTS ----
 
@@ -665,7 +665,7 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='user_int', password='test123')
         response = self.client.get(reverse('staff_dashboard'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('user_dashboard'))
 
     def test_staff_reservations_staff_access(self):
         """Staff can access staff reservations."""
@@ -678,7 +678,7 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='user_int', password='test123')
         response = self.client.get(reverse('staff_reservations'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('user_dashboard'))
 
     def test_staff_payments_staff_access(self):
         """Staff can access staff payments."""
@@ -691,7 +691,7 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='user_int', password='test123')
         response = self.client.get(reverse('staff_payments'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('user_dashboard'))
 
     # ---- USER-ACCESSIBLE PAGE TESTS ----
 
@@ -706,14 +706,14 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('user_dashboard'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_user_dashboard_staff_blocked(self):
         """Staff cannot access user dashboard (user_required restriction)."""
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('user_dashboard'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_user_profile_user_access(self):
         """Regular user can access profile page."""
@@ -744,7 +744,7 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('reservation_list'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_user_payment_history_user_access(self):
         """Regular user can access payment history."""
@@ -757,7 +757,7 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('payment_history'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     # ---- TOURNAMENT USER VIEW TESTS ----
 
@@ -772,14 +772,14 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('my_tournaments'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_my_tournaments_admin_blocked(self):
         """Admin cannot access user's my tournaments."""
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('my_tournaments'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_my_matches_user_access(self):
         """Regular user can access their matches."""
@@ -792,14 +792,14 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('my_matches'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_my_matches_admin_blocked(self):
         """Admin cannot access user's my matches."""
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('my_matches'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_tournament_register_user_redirected(self):
         """Regular user redirected from tournament register (404 because no tournament would be found via GET, but user_required lets them through)."""
@@ -814,14 +814,14 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('tournament_register', args=[self.tournament.pk]))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_tournament_register_staff_blocked(self):
         """Staff is blocked from tournament register (user_required)."""
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('tournament_register', args=[self.tournament.pk]))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     # ---- EQUIPMENT USER VIEW TESTS ----
 
@@ -838,32 +838,32 @@ class IntegrationViewAccessTests(TestCase):
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('equipment_rental_create'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_equipment_rental_staff_blocked(self):
         """Staff is blocked from equipment rental (user_required)."""
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('equipment_rental_create'))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_cancel_equipment_rental_admin_blocked(self):
         """Admin is blocked from cancel equipment rental (user_required)."""
         self.client.login(username='admin_int', password='test123')
         response = self.client.get(reverse('cancel_equipment_rental', args=[999]))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_dashboard'))
 
     def test_cancel_equipment_rental_staff_blocked(self):
         """Staff is blocked from cancel equipment rental (user_required)."""
         self.client.login(username='staff_int', password='test123')
         response = self.client.get(reverse('cancel_equipment_rental', args=[999]))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
+        self.assertEqual(response.url, reverse('staff_dashboard'))
 
     def test_anonymous_redirected_to_login(self):
         """Anonymous users are redirected to login for protected pages."""
-        response = self.client.get(reverse('admin_dashboard'))
+        response = self.client.get(reverse('super_admin_dashboard'))
         # @login_required redirects to login page first
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('login'), response.url)

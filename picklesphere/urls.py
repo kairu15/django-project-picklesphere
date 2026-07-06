@@ -43,6 +43,7 @@ urlpatterns = [
     path('org-admin/', include('equipment.staff_urls')),
 
     # ========== STAFF ROUTES (/staff/) ==========
+    path('staff/', include('dashboard.staff_urls')),
     path('staff/', include('reservations.staff_urls')),
     path('staff/', include('payments.staff_urls')),
     path('staff/', include('equipment.staff_urls')),

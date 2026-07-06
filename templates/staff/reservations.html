@@ -216,7 +216,6 @@
             {% if search_query or status_filter or date_filter %}
             <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary" style="border-radius: 10px;"><i class="fas fa-times"></i></a>
             {% endif %}
-            <a href="{% url 'calendar' %}" class="btn btn-outline-primary" style="border-radius: 10px;"><i class="fas fa-calendar-alt"></i></a>
         </div>
     </form>
 </div>
@@ -299,9 +298,7 @@
                                     onclick="openModal({{ reservation.id }}, {{ reservation.user.id }}, '{{ reservation.user.username|escapejs }}')">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <a href="{% url 'admin_reservation_edit' reservation.id %}" class="btn-action-resv btn-action-view-resv" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
+
                             {% endif %}
                             {% if reservation.status == 'confirmed' %}
                             <a href="{% url 'start_match' reservation.id %}" class="btn-action-resv btn-action-play" title="Start Match">
@@ -381,7 +378,7 @@
         '      </div>' +
         '      <div class="modal-footer justify-content-center">' +
         '        <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" data-bs-dismiss="modal">Cancel</button>' +
-        '        <form method="post" action="{% url 'approve_reservation' 0 %}" id="approve-form" style="display: inline;">' +
+        '        <form method="post" action="{% url 'staff_approve_reservation' 0 %}" id="approve-form" style="display: inline;">' +
         '          {% csrf_token %}' +
         '          <input type="hidden" name="status" value="confirmed">' +
         '          <button type="submit" class="btn btn-success" style="border-radius: 10px; font-weight: 600;">' +
@@ -398,7 +395,7 @@
     window.openModal = function(reservationId, userId, username) {
         document.getElementById('modal-desc').innerHTML = 'Approve reservation for <strong>' + username + '</strong>?';
         var form = document.getElementById('approve-form');
-        form.action = "{% url 'approve_reservation' 999 %}".replace('999', reservationId);
+        form.action = "{% url 'staff_approve_reservation' 999 %}".replace('999', reservationId);
         var modal = new bootstrap.Modal(document.getElementById('actionModal'));
         modal.show();
     };

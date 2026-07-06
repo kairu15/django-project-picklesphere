@@ -14,7 +14,7 @@ def super_admin_required(view_func):
             return redirect('login')
         if not request.user.is_super_admin():
             messages.error(request, 'You do not have permission to access this page.')
-            return redirect('super_admin_dashboard')
+            return redirect('dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

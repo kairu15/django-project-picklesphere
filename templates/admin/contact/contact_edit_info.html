@@ -16,20 +16,20 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="phone" class="form-control" value="{{ contact_info.phone|default:site_contact_info.phone }}" required>
+                            <input type="text" name="phone" class="form-control" value="{% if contact_info %}{{ contact_info.phone }}{% else %}09455470173{% endif %}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" value="{{ contact_info.email|default:site_contact_info.email }}" required>
+                            <input type="email" name="email" class="form-control" value="{% if contact_info %}{{ contact_info.email }}{% else %}picklesphere@gmail.com{% endif %}" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Address</label>
-                        <textarea name="address" class="form-control" rows="2" required>{{ contact_info.address|default:site_contact_info.address }}</textarea>
+                        <textarea name="address" class="form-control" rows="2" required>{% if contact_info %}{{ contact_info.address }}{% else %}123 Sports Avenue, Makati City{% endif %}</textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">City/Country</label>
-                        <input type="text" name="city_country" class="form-control" value="{{ contact_info.city_country|default:site_contact_info.city_country }}" required>
+                        <input type="text" name="city_country" class="form-control" value="{% if contact_info %}{{ contact_info.city_country }}{% else %}Metro Manila, Philippines{% endif %}" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Google Maps URL</label>
