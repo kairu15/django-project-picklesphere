@@ -81,6 +81,10 @@ class ReservationForm(forms.ModelForm):
         self.fields['match_format'].initial = 'singles'
         self.fields['game_type'].initial = 'friendly'
         self.fields['scoring_format'].initial = '11'
+        
+        # If editing an existing reservation, pre-populate time_slot from instance
+        if self.instance and self.instance.pk and self.instance.start_time and self.instance.end_time:
+            self.fields['time_slot'].initial = f"{self.instance.start_time.strftime('%H:%M')}-{self.instance.end_time.strftime('%H:%M')}"
     
     def clean(self):
         cleaned_data = super().clean()

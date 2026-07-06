@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -92,16 +93,44 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    if request.method == 'POST':
-        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('profile')
-    else:
-        form = UserProfileForm(instance=request.user)
+    profile_form = UserProfileForm(instance=request.user)
+    password_form = PasswordChangeForm(request.user)
     
-    return render(request, 'auth/profile.html', {'form': form})
+    # Get reservation history
+    from reservations.models import Reservation
+    reservation_history = Reservation.objects.filter(
+        user=request.user
+    ).select_related('court', 'court__site').order_by('-date', '-start_time')[:10]
+    
+    # Get tournament participation
+    from tournaments.models import Registration
+    tournament_registrations = Registration.objects.filter(
+        user=request.user
+    ).select_related('tournament').order_by('-registered_at')[:10]
+    
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('profile')
+        elif 'change_password' in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Password changed successfully!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please correct the password errors below.')
+    
+    return render(request, 'auth/profile.html', {
+        'form': profile_form,
+        'password_form': password_form,
+        'reservation_history': reservation_history,
+        'tournament_registrations': tournament_registrations,
+    })
 
 
 @login_required

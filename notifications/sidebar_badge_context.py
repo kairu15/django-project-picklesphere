@@ -1,4 +1,3 @@
-from django.db.models import Q
 from reservations.models import Reservation
 from equipment.models import EquipmentRental
 from payments.models import Payment
@@ -29,12 +28,11 @@ def sidebar_badges(request):
     
     user = request.user
     
-    # Super Admin badges
+    # ========== SUPER ADMIN ==========
+    # Super Admin sees system-wide counts
     if user.is_super_admin():
         context['badge_pending_organizations'] = Organization.objects.filter(status='pending').count()
-    
-    # Admin badges
-    if user.is_admin():
+        
         # Pending reservations (pending status)
         context['badge_pending_reservations'] = Reservation.objects.filter(
             status='pending'
@@ -61,26 +59,69 @@ def sidebar_badges(request):
             is_read=False
         ).count()
     
-    # Staff badges
-    elif user.is_staff_user:
+    # ========== ORG ADMIN ==========
+    # Org Admin sees counts scoped to their organization
+    elif user.is_org_admin() and user.organization:
+        org = user.organization
+        org_court_ids = org.courts.values_list('id', flat=True)
+        
+        # Pending reservations in the org's courts
+        context['badge_pending_reservations'] = Reservation.objects.filter(
+            court_id__in=org_court_ids,
+            status='pending'
+        ).count()
+        
+        # Pending payments for the org's reservations
+        context['badge_pending_payments'] = Payment.objects.filter(
+            reservation__court_id__in=org_court_ids,
+            status='pending',
+            method='gcash'
+        ).count()
+        
+        # Pending equipment rentals for the org
+        context['badge_pending_equipment'] = EquipmentRental.objects.filter(
+            equipment__organization=org,
+            status='reserved'
+        ).count()
+        
+        # Tournament registrations pending for the org's tournaments
+        context['badge_pending_tournaments'] = Registration.objects.filter(
+            tournament__organization=org,
+            status='pending'
+        ).count()
+        
+        # Unread contact messages (system-wide, not org-scoped)
+        context['badge_contact_messages'] = ContactMessage.objects.filter(
+            is_read=False
+        ).count()
+    
+    # ========== ORG STAFF ==========
+    # Org Staff sees counts scoped to their organization
+    elif user.is_org_staff() and user.organization:
+        org = user.organization
+        org_court_ids = org.courts.values_list('id', flat=True)
+        
         # Pending reservations for staff verification
         context['badge_pending_reservations'] = Reservation.objects.filter(
+            court_id__in=org_court_ids,
             status='pending'
         ).count()
         
         # Payments needing verification (pending GCash)
         context['badge_pending_payments'] = Payment.objects.filter(
+            reservation__court_id__in=org_court_ids,
             status='pending',
             method='gcash'
         ).count()
         
         # Equipment rentals needing checkout
         context['badge_pending_equipment'] = EquipmentRental.objects.filter(
+            equipment__organization=org,
             status='reserved',
             payment_status='paid'
         ).count()
     
-    # Regular user badges
+    # ========== REGULAR USER ==========
     else:
         # User's pending reservations
         context['badge_my_pending_reservations'] = Reservation.objects.filter(

@@ -260,6 +260,9 @@
                 <div class="d-grid gap-2">
                     {% if reservation.status == 'pending' %}
                         {% if not user.is_staff_user and not user.is_admin %}
+                        <a href="{% url 'reservation_edit' reservation.id %}" class="btn btn-outline-primary" style="border-radius: 10px;">
+                            <i class="fas fa-edit me-2"></i>Edit Reservation
+                        </a>
                         <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-outline-danger" style="border-radius: 10px;">
                             <i class="fas fa-times me-2"></i>Cancel Reservation
                         </a>

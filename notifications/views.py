@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 from accounts.decorators import admin_required, super_admin_required
 from .models import Notification, BroadcastMessage
 
@@ -17,9 +18,20 @@ def notification_list_view(request):
     elif filter_type == 'read':
         notifications = notifications.filter(is_read=True)
 
+    # Count for badge
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    # Pagination
+    paginator = Paginator(notifications, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'user/notifications/notification_list.html', {
-        'notifications': notifications,
-        'filter_type': filter_type
+        'notifications': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'filter_type': filter_type,
+        'unread_count': unread_count
     })
 
 

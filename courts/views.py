@@ -38,8 +38,15 @@ def court_list_view(request):
         except ValueError:
             pass
     
+    # Pagination
+    paginator = Paginator(courts, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'public/courts/court_list.html', {
-        'courts': courts,
+        'courts': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'sites': sites,
         'selected_site': site_id,
         'selected_type': court_type,

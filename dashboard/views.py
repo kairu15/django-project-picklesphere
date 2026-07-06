@@ -214,6 +214,8 @@ def user_dashboard_view(request):
     
     # Quick stats
     total_reservations = Reservation.objects.filter(user=request.user).exclude(status='cancelled').count()
+    confirmed_reservations = Reservation.objects.filter(user=request.user, status='confirmed').count()
+    pending_reservations = Reservation.objects.filter(user=request.user, status='pending').count()
     total_matches = Match.objects.filter(
         Q(team1_player1=request.user) |
         Q(team1_player2=request.user) |
@@ -221,12 +223,25 @@ def user_dashboard_view(request):
         Q(team2_player2=request.user)
     ).count()
     
+    # Recent activity
+    recent_activities = UserActivity.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    # Unread notifications
+    from notifications.models import Notification
+    unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
     return render(request, 'user/dashboard.html', {
         'upcoming_reservations': upcoming_reservations,
         'recent_matches': recent_matches,
         'stats': stats,
         'total_reservations': total_reservations,
-        'total_matches': total_matches
+        'total_matches': total_matches,
+        'confirmed_reservations': confirmed_reservations,
+        'pending_reservations': pending_reservations,
+        'recent_activities': recent_activities,
+        'unread_notifications': unread_notifications,
+        'unread_count': unread_count,
     })
 
 

@@ -15,5 +15,6 @@ urlpatterns = [
     path('manage/<int:reservation_id>/edit/', views.admin_reservation_edit_view, name='admin_reservation_edit'),
     path('manage/<int:reservation_id>/delete/', views.admin_reservation_delete_view, name='admin_reservation_delete'),
     path('<int:reservation_id>/', views.reservation_detail_view, name='reservation_detail'),
+    path('<int:reservation_id>/edit/', views.reservation_edit_view, name='reservation_edit'),
     path('<int:reservation_id>/cancel/', views.cancel_reservation_view, name='cancel_reservation'),
 ]

@@ -21,6 +21,15 @@ from courts.models import Court
 def reservation_list_view(request):
     reservations = Reservation.objects.filter(user=request.user).order_by('-created_at')
     
+    # Search
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        reservations = reservations.filter(
+            Q(id__icontains=search_query) |
+            Q(court__name__icontains=search_query) |
+            Q(notes__icontains=search_query)
+        )
+    
     # Filter by status
     status_filter = request.GET.get('status', '')
     if status_filter:
@@ -34,11 +43,43 @@ def reservation_list_view(request):
     if date_to:
         reservations = reservations.filter(date__lte=date_to)
     
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['id', 'date', 'start_time', 'duration_hours', 'total_amount', 'status', 'created_at']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        reservations = reservations.order_by(sort_by)
+    
+    # Calculate stats from the FULL (unfiltered) queryset for summary cards
+    all_user_reservations = Reservation.objects.filter(user=request.user)
+    confirmed_count = all_user_reservations.filter(status='confirmed').count()
+    pending_count = all_user_reservations.filter(status='pending').count()
+    completed_count = all_user_reservations.filter(status='completed').count()
+    total_count = all_user_reservations.count()
+    
+    # Pagination
+    paginator = Paginator(reservations, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'user/reservations/reservation_list.html', {
-        'reservations': reservations,
+        'reservations': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
         'status_filter': status_filter,
         'date_from': date_from,
-        'date_to': date_to
+        'date_to': date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'total_count': total_count,
+        'confirmed_count': confirmed_count,
+        'pending_count': pending_count,
+        'completed_count': completed_count,
     })
 
 
@@ -256,6 +297,111 @@ def approve_reservation_view(request, reservation_id):
     return render(request, 'admin/reservations/approve_reservation.html', {
         'form': form,
         'reservation': reservation
+    })
+
+
+@login_required
+@user_required
+def reservation_edit_view(request, reservation_id):
+    """Allow users to edit their pending reservations (court, date, time, notes, equipment)"""
+    reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
+    
+    # Only pending reservations can be edited
+    if reservation.status not in ['pending']:
+        messages.error(request, 'Only pending reservations can be edited.')
+        return redirect('reservation_detail', reservation_id=reservation.id)
+    
+    # Get available equipment
+    equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+    
+    # Get currently rented equipment IDs
+    current_equipment_ids = list(reservation.rented_equipment.values_list('equipment_id', flat=True))
+    
+    if request.method == 'POST':
+        form = ReservationForm(request.POST, instance=reservation, user=request.user)
+        equipment_ids = request.POST.getlist('equipment')
+        
+        if form.is_valid():
+            updated_reservation = form.save(commit=False)
+            updated_reservation.hourly_rate = updated_reservation.court.hourly_rate
+            
+            # Recalculate duration from time slot (in case user changed it)
+            from datetime import datetime as dt_module
+            start_dt = dt_module.combine(updated_reservation.date, updated_reservation.start_time)
+            end_dt = dt_module.combine(updated_reservation.date, updated_reservation.end_time)
+            duration_hours = (end_dt - start_dt).total_seconds() / 3600
+            updated_reservation.duration_hours = duration_hours
+            
+            # Recalculate pricing
+            hourly_rate = float(updated_reservation.hourly_rate)
+            updated_reservation.subtotal = hourly_rate * duration_hours
+            
+            # Handle equipment changes
+            new_equipment_ids = [int(eid) for eid in equipment_ids if eid]
+            
+            # Return old equipment that was removed
+            for rental in reservation.rented_equipment.all():
+                if rental.equipment_id not in new_equipment_ids:
+                    rental.equipment.quantity_available += rental.quantity
+                    rental.equipment.save()
+                    rental.delete()
+            
+            # Add new equipment
+            equipment_fee = 0
+            for eq_id in new_equipment_ids:
+                if eq_id not in current_equipment_ids:
+                    try:
+                        equipment = Equipment.objects.get(id=eq_id, is_active=True)
+                        if equipment.quantity_available > 0:
+                            ReservationEquipment.objects.create(
+                                reservation=reservation,
+                                equipment=equipment,
+                                quantity=1,
+                                rental_fee=equipment.rental_price
+                            )
+                            equipment_fee += float(equipment.rental_price)
+                            equipment.quantity_available -= 1
+                            equipment.save()
+                    except Equipment.DoesNotExist:
+                        pass
+                else:
+                    # Keep existing equipment fee
+                    rental = reservation.rented_equipment.get(equipment_id=eq_id)
+                    equipment_fee += float(rental.rental_fee)
+            
+            # Recalculate totals
+            updated_reservation.equipment_fee = equipment_fee
+            updated_reservation.total_amount = updated_reservation.subtotal + equipment_fee
+            updated_reservation.save()
+            
+            # Update payment amount if still pending
+            try:
+                payment = reservation.payment
+                if payment.status == 'pending':
+                    payment.amount = updated_reservation.total_amount
+                    payment.save()
+            except:
+                pass
+            
+            # Notify user
+            Notification.objects.create(
+                user=request.user,
+                message=f"Your reservation #{reservation.id} has been updated."
+            )
+            
+            messages.success(request, 'Reservation updated successfully!')
+            return redirect('reservation_detail', reservation_id=reservation.id)
+    else:
+        initial_data = {}
+        if reservation.start_time and reservation.end_time:
+            initial_data['time_slot'] = f"{reservation.start_time.strftime('%H:%M')}-{reservation.end_time.strftime('%H:%M')}"
+        form = ReservationForm(instance=reservation, user=request.user, initial=initial_data)
+    
+    return render(request, 'user/reservations/reservation_edit.html', {
+        'form': form,
+        'reservation': reservation,
+        'equipment_list': equipment_list,
+        'current_equipment_ids': current_equipment_ids,
     })
 
 
