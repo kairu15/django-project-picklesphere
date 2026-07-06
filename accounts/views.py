@@ -62,9 +62,11 @@ def login_view(request):
             messages.success(request, f'Welcome back, {user.first_name}!')
             
             # Redirect based on role
-            if user.is_admin():
-                return redirect('admin_dashboard')
-            elif user.is_staff_user():
+            if user.is_super_admin():
+                return redirect('super_admin_dashboard')
+            elif user.is_org_admin():
+                return redirect('org_admin_dashboard')
+            elif user.is_org_staff():
                 return redirect('staff_dashboard')
             else:
                 return redirect('user_dashboard')

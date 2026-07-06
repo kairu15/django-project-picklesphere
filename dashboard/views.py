@@ -6,7 +6,7 @@ from django.db.models.functions import ExtractHour
 from django.utils import timezone
 from datetime import datetime, timedelta
 from accounts.models import User, UserActivity
-from accounts.decorators import admin_required, staff_or_admin_required, user_required
+from accounts.decorators import admin_required, staff_or_admin_required, user_required, super_admin_required
 from courts.models import Court, Site
 
 from reservations.models import Reservation
@@ -170,9 +170,11 @@ def home_view(request):
 @login_required
 def dashboard_view(request):
     """Redirect to appropriate dashboard based on user role"""
-    if request.user.is_admin():
-        return redirect('admin_dashboard')
-    elif request.user.is_staff_user():
+    if request.user.is_super_admin():
+        return redirect('super_admin_dashboard')
+    elif request.user.is_org_admin():
+        return redirect('org_admin_dashboard')
+    elif request.user.is_org_staff():
         return redirect('staff_dashboard')
     else:
         return redirect('user_dashboard')
@@ -271,13 +273,19 @@ def all_courts_view(request):
     """All courts page - accessible to all users"""
     from reservations.models import Reservation
     from datetime import datetime
+    from organizations.models import Organization
 
     courts = Court.objects.filter(is_active=True)
     sites = Site.objects.filter(is_active=True)
+    organizations = Organization.objects.filter(status='approved', is_active=True)
 
     site_id = request.GET.get('site', '')
     if site_id:
         courts = courts.filter(site_id=site_id)
+
+    org_slug = request.GET.get('organization', '')
+    if org_slug:
+        courts = courts.filter(organization__slug=org_slug)
 
     court_type = request.GET.get('type', '')
     if court_type:
@@ -298,9 +306,11 @@ def all_courts_view(request):
     return render(request, 'public/courts/all_courts.html', {
         'courts': courts,
         'sites': sites,
+        'organizations': organizations,
         'selected_site': site_id,
         'selected_type': court_type,
-        'selected_date': date
+        'selected_date': date,
+        'selected_org': org_slug,
     })
 
 
@@ -326,9 +336,9 @@ def court_view_view(request, court_id):
 
 
 @login_required
-@admin_required
+@super_admin_required
 def admin_dashboard_view(request):
-    """Admin dashboard with full analytics"""
+    """Super Admin dashboard with full system-wide analytics"""
     
     today = timezone.now().date()
     now = timezone.now()

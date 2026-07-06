@@ -3,62 +3,316 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
+from unittest.mock import patch
 
 from .models import User
-from .decorators import admin_required, staff_or_admin_required, user_required
+from .decorators import (
+    admin_required, staff_or_admin_required, user_required,
+    super_admin_required, org_admin_required, org_staff_or_admin_required,
+    org_required
+)
+from organizations.models import Organization
 
 
-class AdminRequiredDecoratorTests(TestCase):
-    """Tests for the @admin_required decorator."""
+class UserModelMethodTests(TestCase):
+    """Tests for User model role-checking methods."""
+
+    def setUp(self):
+        self.org = Organization.objects.create(
+            name='Test Org', status='approved', is_active=True
+        )
+        self.super_admin = User.objects.create_user(
+            username='sa', password='test123', role='super_admin'
+        )
+        self.org_admin = User.objects.create_user(
+            username='oa', password='test123', role='org_admin',
+            organization=self.org
+        )
+        self.org_staff = User.objects.create_user(
+            username='os', password='test123', role='org_staff',
+            organization=self.org
+        )
+        self.regular_user = User.objects.create_user(
+            username='user', password='test123', role='user'
+        )
+
+    def test_is_super_admin(self):
+        self.assertTrue(self.super_admin.is_super_admin())
+        self.assertFalse(self.org_admin.is_super_admin())
+        self.assertFalse(self.org_staff.is_super_admin())
+        self.assertFalse(self.regular_user.is_super_admin())
+
+    def test_is_org_admin(self):
+        self.assertFalse(self.super_admin.is_org_admin())
+        self.assertTrue(self.org_admin.is_org_admin())
+        self.assertFalse(self.org_staff.is_org_admin())
+        self.assertFalse(self.regular_user.is_org_admin())
+
+    def test_is_org_staff(self):
+        self.assertFalse(self.super_admin.is_org_staff())
+        self.assertFalse(self.org_admin.is_org_staff())
+        self.assertTrue(self.org_staff.is_org_staff())
+        self.assertFalse(self.regular_user.is_org_staff())
+
+    def test_is_normal_user(self):
+        self.assertFalse(self.super_admin.is_normal_user())
+        self.assertFalse(self.org_admin.is_normal_user())
+        self.assertFalse(self.org_staff.is_normal_user())
+        self.assertTrue(self.regular_user.is_normal_user())
+
+    def test_is_admin_includes_super_and_org_admin(self):
+        self.assertTrue(self.super_admin.is_admin())
+        self.assertTrue(self.org_admin.is_admin())
+        self.assertFalse(self.org_staff.is_admin())
+        self.assertFalse(self.regular_user.is_admin())
+
+    def test_is_staff_user_includes_all_admin_and_staff(self):
+        self.assertTrue(self.super_admin.is_staff_user())
+        self.assertTrue(self.org_admin.is_staff_user())
+        self.assertTrue(self.org_staff.is_staff_user())
+        self.assertFalse(self.regular_user.is_staff_user())
+
+
+class SuperAdminRequiredDecoratorTests(TestCase):
+    """Tests for the @super_admin_required decorator."""
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.request = self.factory.get('/some-admin-page/')
+        self.request = self.factory.get('/some-super-admin-page/')
         self.request.session = 'session'
-
-        # Mock messages storage
         self.messages = FallbackStorage(self.request)
         setattr(self.request, '_messages', self.messages)
-
-        # Create a simple test view that the decorator wraps
         self.test_view = lambda req: HttpResponse("Success")
 
-        # Create users of each role
-        self.admin_user = User.objects.create_user(
-            username='admin_test', password='test123', role='admin',
-            is_staff=True, is_superuser=True
+        self.super_admin = User.objects.create_user(
+            username='sa', password='test123', role='super_admin'
         )
-        self.staff_user = User.objects.create_user(
-            username='staff_test', password='test123', role='staff',
-            is_staff=True
+        self.org_admin = User.objects.create_user(
+            username='oa', password='test123', role='org_admin'
         )
         self.regular_user = User.objects.create_user(
-            username='user_test', password='test123', role='user'
+            username='user', password='test123', role='user'
         )
 
-    def test_admin_user_has_access(self):
-        """Admin users should be able to access admin_required views."""
-        self.request.user = self.admin_user
-        wrapped_view = admin_required(self.test_view)
+    def test_super_admin_has_access(self):
+        self.request.user = self.super_admin
+        wrapped_view = super_admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"Success")
 
-    def test_staff_user_is_redirected(self):
-        """Staff users should be redirected from admin_required views."""
-        self.request.user = self.staff_user
-        wrapped_view = admin_required(self.test_view)
+    def test_org_admin_is_redirected(self):
+        self.request.user = self.org_admin
+        wrapped_view = super_admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('dashboard'))
 
     def test_regular_user_is_redirected(self):
-        """Regular users should be redirected from admin_required views."""
+        self.request.user = self.regular_user
+        wrapped_view = super_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('dashboard'))
+
+    def test_anonymous_user_is_redirected(self):
+        self.request.user = AnonymousUser()
+        wrapped_view = super_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('dashboard'))
+
+
+class OrgAdminRequiredDecoratorTests(TestCase):
+    """Tests for the @org_admin_required decorator."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/some-org-admin-page/')
+        self.request.session = 'session'
+        self.messages = FallbackStorage(self.request)
+        setattr(self.request, '_messages', self.messages)
+        self.test_view = lambda req: HttpResponse("Success")
+
+        self.super_admin = User.objects.create_user(
+            username='sa', password='test123', role='super_admin'
+        )
+        self.org_admin = User.objects.create_user(
+            username='oa', password='test123', role='org_admin'
+        )
+        self.org_staff = User.objects.create_user(
+            username='os', password='test123', role='org_staff'
+        )
+        self.regular_user = User.objects.create_user(
+            username='user', password='test123', role='user'
+        )
+
+    def test_super_admin_has_access(self):
+        self.request.user = self.super_admin
+        wrapped_view = org_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_admin_has_access(self):
+        self.request.user = self.org_admin
+        wrapped_view = org_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_staff_is_redirected(self):
+        self.request.user = self.org_staff
+        wrapped_view = org_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+
+    def test_regular_user_is_redirected(self):
+        self.request.user = self.regular_user
+        wrapped_view = org_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+
+
+class OrgStaffOrAdminRequiredDecoratorTests(TestCase):
+    """Tests for the @org_staff_or_admin_required decorator."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/some-staff-page/')
+        self.request.session = 'session'
+        self.messages = FallbackStorage(self.request)
+        setattr(self.request, '_messages', self.messages)
+        self.test_view = lambda req: HttpResponse("Success")
+
+        self.super_admin = User.objects.create_user(
+            username='sa', password='test123', role='super_admin'
+        )
+        self.org_admin = User.objects.create_user(
+            username='oa', password='test123', role='org_admin'
+        )
+        self.org_staff = User.objects.create_user(
+            username='os', password='test123', role='org_staff'
+        )
+        self.regular_user = User.objects.create_user(
+            username='user', password='test123', role='user'
+        )
+
+    def test_super_admin_has_access(self):
+        self.request.user = self.super_admin
+        wrapped_view = org_staff_or_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_admin_has_access(self):
+        self.request.user = self.org_admin
+        wrapped_view = org_staff_or_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_staff_has_access(self):
+        self.request.user = self.org_staff
+        wrapped_view = org_staff_or_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_regular_user_is_redirected(self):
+        self.request.user = self.regular_user
+        wrapped_view = org_staff_or_admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+
+
+class OrgRequiredDecoratorTests(TestCase):
+    """Tests for the @org_required decorator."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/some-org-page/')
+        self.request.session = 'session'
+        self.messages = FallbackStorage(self.request)
+        setattr(self.request, '_messages', self.messages)
+        self.test_view = lambda req: HttpResponse("Success")
+
+        self.org = Organization.objects.create(
+            name='Test Org', status='approved'
+        )
+        self.org_admin_with_org = User.objects.create_user(
+            username='oa_org', password='test123', role='org_admin',
+            organization=self.org
+        )
+        self.org_admin_no_org = User.objects.create_user(
+            username='oa_no', password='test123', role='org_admin',
+            organization=None
+        )
+
+    def test_org_admin_with_org_has_access(self):
+        self.request.user = self.org_admin_with_org
+        wrapped_view = org_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_admin_without_org_is_redirected(self):
+        self.request.user = self.org_admin_no_org
+        wrapped_view = org_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+
+    def test_anonymous_is_redirected_to_login(self):
+        self.request.user = AnonymousUser()
+        wrapped_view = org_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response.url)
+
+
+class AdminRequiredDecoratorTests(TestCase):
+    """Tests for the @admin_required decorator with new roles."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/some-admin-page/')
+        self.request.session = 'session'
+        self.messages = FallbackStorage(self.request)
+        setattr(self.request, '_messages', self.messages)
+        self.test_view = lambda req: HttpResponse("Success")
+
+        self.super_admin = User.objects.create_user(
+            username='sa', password='test123', role='super_admin'
+        )
+        self.org_admin = User.objects.create_user(
+            username='oa', password='test123', role='org_admin'
+        )
+        self.org_staff = User.objects.create_user(
+            username='os', password='test123', role='org_staff'
+        )
+        self.regular_user = User.objects.create_user(
+            username='user', password='test123', role='user'
+        )
+
+    def test_super_admin_has_access(self):
+        self.request.user = self.super_admin
+        wrapped_view = admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_admin_has_access(self):
+        self.request.user = self.org_admin
+        wrapped_view = admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_org_staff_is_redirected(self):
+        self.request.user = self.org_staff
+        wrapped_view = admin_required(self.test_view)
+        response = wrapped_view(self.request)
+        self.assertEqual(response.status_code, 302)
+
+    def test_regular_user_is_redirected(self):
         self.request.user = self.regular_user
         wrapped_view = admin_required(self.test_view)
         response = wrapped_view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('dashboard'))
 
     def test_anonymous_user_is_redirected(self):
         """Anonymous (unauthenticated) users should be redirected."""
@@ -103,13 +357,13 @@ class StaffOrAdminRequiredDecoratorTests(TestCase):
         # Create a simple test view that the decorator wraps
         self.test_view = lambda req: HttpResponse("Success")
 
-        # Create users of each role
+        # Create users of each role (using new role names)
         self.admin_user = User.objects.create_user(
-            username='admin_test2', password='test123', role='admin',
+            username='admin_test2', password='test123', role='super_admin',
             is_staff=True, is_superuser=True
         )
         self.staff_user = User.objects.create_user(
-            username='staff_test2', password='test123', role='staff',
+            username='staff_test2', password='test123', role='org_staff',
             is_staff=True
         )
         self.regular_user = User.objects.create_user(
@@ -201,13 +455,13 @@ class UserRequiredDecoratorTests(TestCase):
         # Create a simple test view that the decorator wraps
         self.test_view = lambda req: HttpResponse("Success")
 
-        # Create users of each role
+        # Create users of each role (using new role names)
         self.admin_user = User.objects.create_user(
-            username='admin_test3', password='test123', role='admin',
+            username='admin_test3', password='test123', role='super_admin',
             is_staff=True, is_superuser=True
         )
         self.staff_user = User.objects.create_user(
-            username='staff_test3', password='test123', role='staff',
+            username='staff_test3', password='test123', role='org_staff',
             is_staff=True
         )
         self.regular_user = User.objects.create_user(
@@ -294,11 +548,11 @@ class IntegrationViewAccessTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin = User.objects.create_user(
-            username='admin_int', password='test123', role='admin',
+            username='admin_int', password='test123', role='super_admin',
             is_staff=True, is_superuser=True
         )
         cls.staff = User.objects.create_user(
-            username='staff_int', password='test123', role='staff',
+            username='staff_int', password='test123', role='org_staff',
             is_staff=True
         )
         cls.user = User.objects.create_user(
@@ -307,7 +561,6 @@ class IntegrationViewAccessTests(TestCase):
         
         # Create a test tournament for tournament_register view
         from tournaments.models import Tournament
-        from datetime import date, timedelta
         from django.utils import timezone
         from datetime import timedelta
         now = timezone.now()

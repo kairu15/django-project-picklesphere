@@ -206,6 +206,10 @@ def admin_tournament_list(request):
     
     tournaments = Tournament.objects.all().order_by('-created_at')
     
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        tournaments = tournaments.filter(organization=request.user.organization)
+    
     # Stats
     total_tournaments = tournaments.count()
     active_count = tournaments.filter(status__in=['registration_open', 'in_progress']).count()
@@ -233,6 +237,9 @@ def admin_tournament_create(request):
         if form.is_valid():
             tournament = form.save(commit=False)
             tournament.created_by = request.user
+            # Auto-assign organization for org_admin
+            if request.user.is_org_admin() and request.user.organization:
+                tournament.organization = request.user.organization
             tournament.save()
             
             UserActivity.objects.create(
@@ -258,7 +265,12 @@ def admin_tournament_create(request):
 def admin_tournament_edit(request, pk):
     """Edit an existing tournament"""
     
-    tournament = get_object_or_404(Tournament, pk=pk)
+    tournament_qs = Tournament.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        tournament_qs = tournament_qs.filter(organization=request.user.organization)
+    
+    tournament = get_object_or_404(tournament_qs, pk=pk)
     
     if request.method == 'POST':
         form = TournamentForm(request.POST, instance=tournament)

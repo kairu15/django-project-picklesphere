@@ -1,0 +1,232 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ organization.name }}{% endblock %}
+
+{% block body %}
+{% include 'components/header.html' %}
+
+<!-- Hero Banner -->
+<section style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); padding: 60px 0;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-4">
+                    {% if organization.logo %}
+                    <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" class="rounded-circle border border-3 border-white shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle border border-3 border-white shadow d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-building fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="text-white fw-bold mb-2">{{ organization.name }}</h1>
+                        <p class="text-white-50 mb-1">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ organization.city|default:"Location N/A" }}, {{ organization.province|default:"" }}
+                        </p>
+                        <p class="text-white-50 mb-0">
+                            <i class="fas fa-table-tennis me-2"></i>{{ courts|length }} Courts Available
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'all_courts' %}?organization={{ organization.slug }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-calendar-plus me-2"></i>Book a Court
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Organization Info -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- About -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: var(--border-radius-lg);">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>About</h4>
+                        <p class="text-muted">{{ organization.description|default:"No description available."|linebreaks }}</p>
+                        
+                        {% if organization.website or organization.contact_email or organization.contact_phone %}
+                        <hr>
+                        <div class="row g-3">
+                            {% if organization.contact_phone %}
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Phone</small>
+                                <strong><i class="fas fa-phone me-1 text-primary"></i>{{ organization.contact_phone }}</strong>
+                            </div>
+                            {% endif %}
+                            {% if organization.contact_email %}
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Email</small>
+                                <strong><i class="fas fa-envelope me-1 text-primary"></i>{{ organization.contact_email }}</strong>
+                            </div>
+                            {% endif %}
+                            {% if organization.website %}
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Website</small>
+                                <a href="{{ organization.website }}" target="_blank" class="text-decoration-none">
+                                    <strong><i class="fas fa-globe me-1 text-primary"></i>Visit Website</strong>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if organization.address %}
+                        <hr>
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-map-marker-alt fa-lg text-primary me-3 mt-1"></i>
+                            <div>
+                                <strong>{{ organization.address }}</strong><br>
+                                <span class="text-muted">{{ organization.city|default:"" }}, {{ organization.province|default:"" }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Courts -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: var(--border-radius-lg);">
+                    <div class="card-header bg-transparent p-4 border-0 d-flex justify-content-between align-items-center">
+                        <h4 class="fw-bold mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Courts ({{ courts|length }})</h4>
+                        <a href="{% url 'all_courts' %}?organization={{ organization.slug }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if courts %}
+                        <div class="row g-0">
+                            {% for court in courts|slice:":6" %}
+                            <div class="col-md-6 p-3 border-bottom">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0">
+                                        {% if court.image %}
+                                        <img src="{{ court.image.url }}" alt="{{ court.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                                        {% else %}
+                                        <div style="width: 80px; height: 80px; background: var(--bg-light); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-table-tennis fa-2x text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="fw-bold mb-1">{{ court.name }}</h6>
+                                        <p class="small text-muted mb-1">{{ court.get_court_type_display }} • {{ court.site.name }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong class="text-primary">₱{{ court.hourly_rate|floatformat:0 }}/hr</strong>
+                                            <a href="{% url 'court_view' court.id %}" class="btn btn-sm btn-primary">Book</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-table-tennis fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No courts available yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Tournaments -->
+                <div class="card border-0 shadow-sm" style="border-radius: var(--border-radius-lg);">
+                    <div class="card-header bg-transparent p-4 border-0">
+                        <h4 class="fw-bold mb-0"><i class="fas fa-trophy me-2 text-warning"></i>Tournaments ({{ tournaments|length }})</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if tournaments %}
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tournament</th>
+                                        <th>Category</th>
+                                        <th>Format</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tournament in tournaments %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ tournament.name }}</strong><br>
+                                            <small class="text-muted">{{ tournament.tournament_start|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>{{ tournament.get_category_display }}</td>
+                                        <td>{{ tournament.get_format_display }}</td>
+                                        <td>
+                                            {% if tournament.status == 'registration_open' %}
+                                                <span class="badge bg-success">Open</span>
+                                            {% elif tournament.status == 'in_progress' %}
+                                                <span class="badge bg-primary">In Progress</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ tournament.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No tournaments available.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: var(--border-radius-lg);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-chart-simple me-2 text-primary"></i>Quick Stats</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Total Courts</span>
+                            <strong>{{ courts|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Active Tournaments</span>
+                            <strong>{{ tournaments|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Location</span>
+                            <strong>{{ organization.city|default:"N/A" }}</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm" style="border-radius: var(--border-radius-lg);">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="fw-bold mb-3">Ready to Play?</h5>
+                        <p class="text-muted small mb-3">Book a court at {{ organization.name }} and experience top-quality pickleball facilities.</p>
+                        <a href="{% url 'all_courts' %}?organization={{ organization.slug }}" class="btn btn-primary w-100">
+                            <i class="fas fa-calendar-plus me-2"></i>Book a Court Now
+                        </a>
+                        {% if user.is_authenticated and user.is_normal_user %}
+                        <hr>
+                        <a href="{% url 'tournament_list' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-trophy me-2"></i>Join Tournaments
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include 'components/footer.html' %}
+{% endblock %}

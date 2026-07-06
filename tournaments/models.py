@@ -65,6 +65,12 @@ class Tournament(models.Model):
     # Prize
     prize_pool = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, blank=True)
     
+    # Organization
+    organization = models.ForeignKey(
+        'organizations.Organization', on_delete=models.CASCADE,
+        related_name='tournaments', null=True, blank=True
+    )
+    
     # Created by
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_tournaments')
     created_at = models.DateTimeField(auto_now_add=True)

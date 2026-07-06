@@ -116,14 +116,19 @@ def court_availability_view(request, court_id):
 @admin_required
 def admin_court_list_view(request):
     
-    courts = Court.objects.select_related('site').all().order_by('-created_at')
+    courts = Court.objects.select_related('site', 'organization').all().order_by('-created_at')
+    
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        courts = courts.filter(organization=request.user.organization)
     
     search_query = request.GET.get('search', '').strip()
     if search_query:
         courts = courts.filter(
             Q(name__icontains=search_query) |
             Q(site__name__icontains=search_query) |
-            Q(court_type__icontains=search_query)
+            Q(court_type__icontains=search_query) |
+            Q(organization__name__icontains=search_query)
         )
     
     status_filter = request.GET.get('status', '')
@@ -163,15 +168,28 @@ def admin_court_list_view(request):
 @admin_required
 def admin_court_create_view(request):
 
+    initial = {}
+    
+    # Auto-assign organization for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        initial['organization'] = request.user.organization_id
+    
     if request.method == 'POST':
-        form = CourtForm(request.POST, request.FILES)
+        form = CourtForm(request.POST, request.FILES, initial=initial)
         if form.is_valid():
-            created_court = form.save()
+            created_court = form.save(commit=False)
+            if request.user.is_org_admin() and request.user.organization:
+                created_court.organization = request.user.organization
+            created_court.save()
             messages.success(request, f'Court {created_court.name} created successfully.')
             return redirect('admin_court_list')
     else:
-        form = CourtForm()
-
+        form = CourtForm(initial=initial)
+    
+    # Filter site choices for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        form.fields['site'].queryset = Site.objects.filter(organization=request.user.organization)
+    
     return render(request, 'admin/courts/court_form.html', {
         'form': form,
         'edit_mode': False,
@@ -182,7 +200,12 @@ def admin_court_create_view(request):
 @admin_required
 def admin_court_edit_view(request, court_id):
 
-    court = get_object_or_404(Court, id=court_id)
+    court_qs = Court.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        court_qs = court_qs.filter(organization=request.user.organization)
+    
+    court = get_object_or_404(court_qs, id=court_id)
 
     if request.method == 'POST':
         form = CourtForm(request.POST, request.FILES, instance=court)
@@ -208,7 +231,13 @@ def admin_court_delete_view(request, court_id):
         messages.error(request, 'Invalid request method.')
         return redirect('admin_court_list')
     
-    court = get_object_or_404(Court, id=court_id)
+    court_qs = Court.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        court_qs = court_qs.filter(organization=request.user.organization)
+    
+    court = get_object_or_404(court_qs, id=court_id)
+    
     if not court.is_active:
         messages.info(request, f'Court {court.name} is already inactive.')
         return redirect('admin_court_list')

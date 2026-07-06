@@ -367,7 +367,7 @@
 
             <ul class="navbar-nav ms-auto align-items-center">
                 {% if user.is_authenticated %}
-                    {% if user.is_staff_user or user.is_admin %}
+                    {% if user.is_org_staff or user.is_admin %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="manageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-cog"></i>
@@ -381,7 +381,7 @@
                             <li><a class="dropdown-item" href="{% url 'staff_equipment' %}">
                                 <i class="fas fa-tools"></i>Equipment
                             </a></li>
-                            {% if user.is_admin %}
+                            {% if user.is_super_admin %}
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Admin Actions</h6></li>
                             <li><a class="dropdown-item" href="{% url 'admin_court_list' %}">
@@ -398,6 +398,16 @@
                             </a></li>
                             <li><a class="dropdown-item" href="{% url 'admin_reservation_list' %}">
                                 <i class="fas fa-chart-bar"></i>Reports
+                            </a></li>
+                            {% endif %}
+                            {% if user.is_org_admin %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Organization Admin</h6></li>
+                            <li><a class="dropdown-item" href="{% url 'org_admin_dashboard' %}">
+                                <i class="fas fa-building"></i>Org Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'org_admin_profile' %}">
+                                <i class="fas fa-cog"></i>Org Settings
                             </a></li>
                             {% endif %}
                         </ul>

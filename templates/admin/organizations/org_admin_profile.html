@@ -1,0 +1,127 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Organization Settings{% endblock %}
+{% block page_title %}Organization Settings{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Settings</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-cog me-2 text-primary"></i>Organization Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Organization Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Website</label>
+                            {{ form.website }}
+                            {% if form.website.errors %}<div class="text-danger small">{{ form.website.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Logo</label>
+                            {{ form.logo }}
+                            {% if form.logo.errors %}<div class="text-danger small">{{ form.logo.errors }}</div>{% endif %}
+                            {% if organization.logo %}
+                            <small class="text-muted">Current: <a href="{{ organization.logo.url }}" target="_blank">{{ organization.logo.name }}</a></small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Banner Image</label>
+                            {{ form.banner }}
+                            {% if form.banner.errors %}<div class="text-danger small">{{ form.banner.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Email</label>
+                            {{ form.contact_email }}
+                            {% if form.contact_email.errors %}<div class="text-danger small">{{ form.contact_email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Phone</label>
+                            {{ form.contact_phone }}
+                            {% if form.contact_phone.errors %}<div class="text-danger small">{{ form.contact_phone.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}<div class="text-danger small">{{ form.address.errors }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">City</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}<div class="text-danger small">{{ form.city.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Province/State</label>
+                            {{ form.province }}
+                            {% if form.province.errors %}<div class="text-danger small">{{ form.province.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2 text-info"></i>Organization Info</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if organization.logo %}
+                <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-lighter);">
+                {% else %}
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; background: var(--primary-lighter);">
+                    <i class="fas fa-building fa-3x" style="color: var(--primary-color);"></i>
+                </div>
+                {% endif %}
+                <h5>{{ organization.name }}</h5>
+                <p class="text-muted small mb-1">
+                    <span class="badge bg-success">{{ organization.get_status_display }}</span>
+                </p>
+                <hr>
+                <div class="text-start small">
+                    <p class="mb-2"><i class="fas fa-calendar me-2 text-primary"></i>Registered: {{ organization.created_at|date:"M d, Y" }}</p>
+                    <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ organization.city|default:"N/A" }}, {{ organization.province|default:"" }}</p>
+                    <p class="mb-2"><i class="fas fa-users me-2 text-primary"></i>{{ organization.staff_count }} staff</p>
+                    <p class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>{{ organization.court_count }} courts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -23,6 +23,7 @@ from . import session_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('dashboard.urls')),
+    path('organizations/', include('organizations.urls')),
     path('accounts/', include('accounts.urls')),
     path('courts/', include('courts.urls')),
     path('reservations/', include('reservations.urls')),

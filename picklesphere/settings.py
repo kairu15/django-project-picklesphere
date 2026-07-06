@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # PickleSphere Apps
     'accounts',
+    'organizations',
     'courts',
     'reservations',
     'payments',

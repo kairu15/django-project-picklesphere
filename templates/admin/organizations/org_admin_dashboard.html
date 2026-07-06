@@ -1,0 +1,243 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ organization.name }} Dashboard{% endblock %}
+{% block page_title %}{{ organization.name }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">{{ organization.name }} Dashboard</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<style>
+.org-dashboard-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-radius: var(--border-radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+    color: white;
+}
+.org-dashboard-header h1 { font-size: 1.5rem; font-weight: 700; }
+.org-dashboard-header p { opacity: 0.9; margin: 0; }
+</style>
+
+<!-- Header -->
+<div class="org-dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            {% if organization.logo %}
+            <img src="{{ organization.logo.url }}" alt="" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);">
+            {% else %}
+            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: rgba(255,255,255,0.2);">
+                <i class="fas fa-building fa-2x"></i>
+            </div>
+            {% endif %}
+            <div>
+                <h1><i class="fas fa-building me-2"></i>{{ organization.name }} Dashboard</h1>
+                <p>Manage your organization's courts, tournaments, and reservations</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'org_admin_profile' %}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-cog me-1"></i>Settings
+            </a>
+            <a href="{% url 'organization_public_detail' organization.slug %}" class="btn btn-light btn-sm">
+                <i class="fas fa-eye me-1"></i>View Public Page
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.total_courts }}</h3>
+                <p>Active Courts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.pending_reservations }}</h3>
+                <p>Pending Reservations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.active_tournaments }}</h3>
+                <p>Active Tournaments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.staff_count }}</h3>
+                <p>Staff Members</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.today_reservations }}</h3>
+                <p>Today's Bookings</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-medal"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.total_tournaments }}</h3>
+                <p>Total Tournaments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-info">
+                <h3>₱{{ org_revenue|floatformat:0 }}</h3>
+                <p>Total Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon secondary">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ metrics.total_reservations }}</h3>
+                <p>Total Reservations</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'admin_court_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Court
+                    </a>
+                    <a href="{% url 'admin_tournament_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Create Tournament
+                    </a>
+                    <a href="{% url 'admin_court_list' %}" class="btn btn-info text-white">
+                        <i class="fas fa-list me-2"></i>Manage Courts
+                    </a>
+                    <a href="{% url 'admin_tournament_list' %}" class="btn btn-warning text-dark">
+                        <i class="fas fa-list me-2"></i>Manage Tournaments
+                    </a>
+                    <a href="{% url 'staff_reservations' %}" class="btn btn-secondary">
+                        <i class="fas fa-calendar me-2"></i>View Reservations
+                    </a>
+                    <a href="{% url 'org_admin_profile' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-2"></i>Organization Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Reservations -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-calendar-check me-2 text-primary"></i>Recent Reservations</h5>
+                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_reservations %}
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Court</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for res in recent_reservations %}
+                            <tr>
+                                <td>{{ res.id }}</td>
+                                <td>{{ res.user.get_full_name|default:res.user.username }}</td>
+                                <td>{{ res.court.name }}</td>
+                                <td>{{ res.date|date:"M d, Y" }}</td>
+                                <td>{{ res.start_time|time:"g:i A" }} - {{ res.end_time|time:"g:i A" }}</td>
+                                <td>₱{{ res.total_amount|floatformat:2 }}</td>
+                                <td>
+                                    {% if res.status == 'confirmed' %}
+                                        <span class="badge bg-success">Confirmed</span>
+                                    {% elif res.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% elif res.status == 'completed' %}
+                                        <span class="badge bg-info">Completed</span>
+                                    {% elif res.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% elif res.status == 'rejected' %}
+                                        <span class="badge bg-secondary">Rejected</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No reservations yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

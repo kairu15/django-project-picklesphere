@@ -193,12 +193,17 @@ def admin_equipment_list_view(request):
 
     equipment = Equipment.objects.all().order_by('-created_at')
 
+    # Org-scoping for org_admin users
+    if request.user.is_org_admin() and request.user.organization:
+        equipment = equipment.filter(organization=request.user.organization)
+
     search_query = request.GET.get('search', '').strip()
     if search_query:
         equipment = equipment.filter(
             Q(name__icontains=search_query) |
             Q(brand__icontains=search_query) |
-            Q(type__icontains=search_query)
+            Q(type__icontains=search_query) |
+            Q(organization__name__icontains=search_query)
         )
 
     type_filter = request.GET.get('type', '')
@@ -214,7 +219,7 @@ def admin_equipment_list_view(request):
     # Sorting
     sort_by = request.GET.get('sort_by', '-created_at')
     sort_order = request.GET.get('sort_order', 'desc')
-    allowed_sort_fields = ['name', 'type', 'quantity_available', 'rental_price', 'created_at']
+    allowed_sort_fields = ['name', 'type', 'quantity_available', 'rental_price', 'created_at', 'organization__name']
     if sort_by.lstrip('-') in allowed_sort_fields:
         if sort_order == 'asc' and sort_by.startswith('-'):
             sort_by = sort_by[1:]
@@ -246,8 +251,12 @@ def admin_equipment_create_view(request):
     if request.method == 'POST':
         form = EquipmentForm(request.POST, request.FILES)
         if form.is_valid():
-            created_equipment = form.save()
-            messages.success(request, f'Equipment {created_equipment.name} created successfully.')
+            equipment = form.save(commit=False)
+            # Auto-assign organization for org_admin
+            if request.user.is_org_admin() and request.user.organization:
+                equipment.organization = request.user.organization
+            equipment.save()
+            messages.success(request, f'Equipment {equipment.name} created successfully.')
             return redirect('admin_equipment_list')
     else:
         form = EquipmentForm()
@@ -262,7 +271,13 @@ def admin_equipment_create_view(request):
 @admin_required
 def admin_equipment_edit_view(request, equipment_id):
 
-    equipment = get_object_or_404(Equipment, id=equipment_id)
+    equipment_qs = Equipment.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        equipment_qs = equipment_qs.filter(organization=request.user.organization)
+    
+    equipment = get_object_or_404(equipment_qs, id=equipment_id)
+    
     if request.method == 'POST':
         form = EquipmentForm(request.POST, request.FILES, instance=equipment)
         if form.is_valid():
@@ -287,7 +302,13 @@ def admin_equipment_delete_view(request, equipment_id):
         messages.error(request, 'Invalid request method.')
         return redirect('admin_equipment_list')
 
-    equipment = get_object_or_404(Equipment, id=equipment_id)
+    equipment_qs = Equipment.objects.all()
+    # Org-scoping for org_admin
+    if request.user.is_org_admin() and request.user.organization:
+        equipment_qs = equipment_qs.filter(organization=request.user.organization)
+    
+    equipment = get_object_or_404(equipment_qs, id=equipment_id)
+    
     if not equipment.is_active:
         messages.info(request, f'Equipment {equipment.name} is already inactive.')
         return redirect('admin_equipment_list')

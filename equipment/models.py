@@ -32,6 +32,12 @@ class Equipment(models.Model):
     rental_price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     purchase_price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     
+    # Organization
+    organization = models.ForeignKey(
+        'organizations.Organization', on_delete=models.CASCADE,
+        related_name='equipment', null=True, blank=True
+    )
+    
     # Status
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='good')
     is_active = models.BooleanField(default=True)

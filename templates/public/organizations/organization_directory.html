@@ -1,0 +1,132 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Pickleball Organizations{% endblock %}
+
+{% block body %}
+{% include 'components/header.html' %}
+
+<section class="py-5" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+    <div class="container py-4">
+        <div class="text-center mb-4">
+            <h1 class="display-4 fw-bold text-white mb-3">Pickleball Organizations</h1>
+            <p class="lead text-white-50 mb-0">Discover pickleball organizations, their courts, and tournaments near you</p>
+        </div>
+        
+        <!-- Search -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow border-0" style="border-radius: var(--border-radius-lg);">
+                    <div class="card-body p-4">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" name="search" class="form-control form-control-lg" placeholder="Search organizations by name, city, or keyword..." value="{{ search_query }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                            </div>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'organization_register' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>Register Your Organization
+                            </a>
+                            <a href="{% url 'all_courts' %}" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-map-marker-alt me-2"></i>Browse All Courts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        {% if organizations %}
+        <div class="row g-4">
+            {% for org in organizations %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow);">
+                    <!-- Banner -->
+                    <div style="height: 120px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                        {% if org.banner %}
+                        <img src="{{ org.banner.url }}" alt="" class="w-100 h-100" style="object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Logo -->
+                    <div class="text-center" style="margin-top: -40px;">
+                        {% if org.logo %}
+                        <img src="{{ org.logo.url }}" alt="{{ org.name }}" class="rounded-circle border border-4 border-white shadow" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle border border-4 border-white shadow d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background: var(--primary-lighter);">
+                            <i class="fas fa-building fa-2x" style="color: var(--primary-color);"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-body p-4 text-center">
+                        <h5 class="fw-bold mb-1">{{ org.name }}</h5>
+                        <p class="small text-muted mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ org.city|default:"Location N/A" }}, {{ org.province|default:"" }}
+                        </p>
+                        <p class="small text-muted mb-3">{{ org.description|truncatewords:20|default:"No description available." }}</p>
+                        
+                        <div class="d-flex justify-content-around mb-3">
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="color: var(--primary-color);">{{ org.court_count }}</h6>
+                                <small class="text-muted">Courts</small>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="color: var(--primary-color);">{{ org.tournament_count }}</h6>
+                                <small class="text-muted">Tournaments</small>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="color: var(--primary-color);">{{ org.staff_count }}</h6>
+                                <small class="text-muted">Staff</small>
+                            </div>
+                        </div>
+                        
+                        <a href="{% url 'organization_public_detail' org.slug %}" class="btn btn-primary w-100">
+                            <i class="fas fa-eye me-2"></i>View Organization
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-building fa-5x text-muted"></i>
+            </div>
+            <h3 class="text-muted mb-3">No Organizations Found</h3>
+            {% if search_query %}
+            <p class="text-muted mb-4">No organizations match your search criteria. Try a different search term.</p>
+            <a href="{% url 'organization_directory' %}" class="btn btn-primary">Clear Search</a>
+            {% else %}
+            <p class="text-muted mb-4">There are no organizations registered yet. Be the first!</p>
+            <a href="{% url 'organization_register' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Register Your Organization
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.hover-card {
+    transition: transform var(--transition-slow), box-shadow var(--transition-base);
+}
+.hover-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-lg) !important;
+}
+</style>
+
+{% include 'components/footer.html' %}
+{% endblock %}

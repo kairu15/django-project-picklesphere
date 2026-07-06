@@ -4,6 +4,7 @@ from equipment.models import EquipmentRental
 from payments.models import Payment
 from tournaments.models import Registration
 from dashboard.models import ContactMessage
+from organizations.models import Organization
 
 
 def sidebar_badges(request):
@@ -20,6 +21,7 @@ def sidebar_badges(request):
         'badge_my_rentals': 0,
         'badge_my_tournaments': 0,
         'badge_user_messages': 0,
+        'badge_pending_organizations': 0,
     }
     
     if not request.user.is_authenticated:
@@ -27,8 +29,12 @@ def sidebar_badges(request):
     
     user = request.user
     
+    # Super Admin badges
+    if user.is_super_admin():
+        context['badge_pending_organizations'] = Organization.objects.filter(status='pending').count()
+    
     # Admin badges
-    if user.is_admin:
+    if user.is_admin():
         # Pending reservations (pending status)
         context['badge_pending_reservations'] = Reservation.objects.filter(
             status='pending'

@@ -4,6 +4,10 @@ from django.db import models
 class Site(models.Model):
     name = models.CharField(max_length=100)  # e.g. 1st Floor, Outdoor
     description = models.TextField(blank=True, null=True)
+    organization = models.ForeignKey(
+        'organizations.Organization', on_delete=models.CASCADE,
+        related_name='sites', null=True, blank=True
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -29,6 +33,10 @@ class Court(models.Model):
     
     name = models.CharField(max_length=100)
     site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='courts')
+    organization = models.ForeignKey(
+        'organizations.Organization', on_delete=models.CASCADE,
+        related_name='courts', null=True, blank=True
+    )
     court_type = models.CharField(max_length=20, choices=COURT_TYPE_CHOICES, default='indoor')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, default=500.00)
@@ -44,7 +52,13 @@ class Court(models.Model):
         ordering = ['site', 'name']
     
     def __str__(self):
-        return f"{self.name} ({self.site.name})"
+        return f"{self.name} ({self.site.name})" 
+    
+    def save(self, *args, **kwargs):
+        # Auto-assign organization from site if not set
+        if not self.organization and self.site and self.site.organization:
+            self.organization = self.site.organization
+        super().save(*args, **kwargs)
     
     def is_available(self, date, start_time, end_time):
         from reservations.models import Reservation

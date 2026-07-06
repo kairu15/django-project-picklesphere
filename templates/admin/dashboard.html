@@ -5,6 +5,44 @@
 {% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
+<!-- Multi-Tenant Architecture Warning Banner -->
+<div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: var(--border-radius-lg); background: linear-gradient(135deg, #D1ECF1 0%, #BEE5EB 100%);">
+    <div class="d-flex align-items-start gap-3">
+        <div class="flex-shrink-0">
+            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(23, 162, 184, 0.2);">
+                <i class="fas fa-building fa-lg text-info"></i>
+            </div>
+        </div>
+        <div class="flex-grow-1">
+            <h5 class="fw-bold mb-2" style="color: #0C5460;">
+                <i class="fas fa-arrow-right me-2"></i>Multi-Tenant Architecture Now Active
+            </h5>
+            <p class="mb-2" style="color: #0C5460;">
+                PickleSphere has been upgraded to a multi-tenant organization-based system. 
+                Organizations now register and get approved before accessing the platform. 
+                Each organization has its own dedicated admin, courts, tournaments, and equipment.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a href="{% url 'super_admin_dashboard' %}" class="btn btn-info text-white btn-sm px-3">
+                    <i class="fas fa-crown me-1"></i>Go to Super Admin Dashboard
+                </a>
+                <a href="{% url 'super_admin_organization_list' %}" class="btn btn-outline-info btn-sm px-3">
+                    <i class="fas fa-building me-1"></i>Manage Organizations
+                </a>
+                <a href="{% url 'organization_register' %}" class="btn btn-outline-info btn-sm px-3">
+                    <i class="fas fa-plus me-1"></i>Register New Organization
+                </a>
+            </div>
+            <small class="d-block mt-2" style="color: #0C5460; opacity: 0.8;">
+                <i class="fas fa-info-circle me-1"></i>
+                This legacy dashboard is being replaced by the Super Admin Dashboard above.
+                Existing data has been migrated under the default "PickleSphere HQ" organization.
+            </small>
+        </div>
+        <button type="button" class="btn-close flex-shrink-0" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
 <!-- Quick Actions Row -->
 <div class="row g-3 mb-4">
     <div class="col-12">
