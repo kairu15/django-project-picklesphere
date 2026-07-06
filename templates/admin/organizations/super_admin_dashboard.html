@@ -23,6 +23,12 @@
 }
 .super-admin-header h1 { font-size: 1.75rem; font-weight: 700; }
 .super-admin-header p { opacity: 0.9; margin: 0; }
+@media (max-width: 767.98px) {
+    .super-admin-header { padding: 20px !important; margin-bottom: 20px !important; }
+    .super-admin-header h1 { font-size: 1.25rem !important; }
+    .super-admin-header > div { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+    .super-admin-header .btn { width: 100% !important; }
+}
 </style>
 
 <!-- Header -->
@@ -30,104 +36,143 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h1><i class="fas fa-crown me-2"></i>Super Admin Dashboard</h1>
-            <p>System-wide overview and organization management</p>
+            <p>System-wide overview and organization management — monitor all organizations, users, and platform activity from one central view.</p>
         </div>
-        <a href="{% url 'super_admin_organization_list' %}" class="btn btn-light">
-            <i class="fas fa-building me-2"></i>Manage Organizations
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'super_admin_organization_list' %}" class="btn btn-light">
+                <i class="fas fa-building me-2"></i>Manage Organizations
+            </a>
+            <a href="{% url 'super_admin_user_list' %}" class="btn btn-outline-light">
+                <i class="fas fa-users me-2"></i>Manage Users
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Key Metrics -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-building"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.approved_organizations }}</h3>
-                <p>Approved Orgs</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.pending_organizations }}</h3>
-                <p>Pending Approval</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.active_users }}</h3>
-                <p>Active Users</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon info">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.today_reservations }}</h3>
-                <p>Today's Bookings</p>
-            </div>
-        </div>
+<!-- Key Metrics - Row 1: Organizational Metrics -->
+<div class="card filter-card mb-4">
+    <div class="card-body">
+        <p class="text-muted small mb-0">
+            <i class="fas fa-info-circle me-1 text-primary"></i>
+            Summary of all key platform metrics across organizations, users, courts, and financials.
+        </p>
     </div>
 </div>
 
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-map-marker-alt"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.total_courts }}</h3>
-                <p>Total Courts</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.active_tournaments }}</h3>
-                <p>Active Tournaments</p>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-building fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.approved_organizations }}</div>
+                    <div class="stats-label text-muted">Approved Organizations</div>
+                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>Active on platform</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon danger">
-                <i class="fas fa-money-bill-wave"></i>
-            </div>
-            <div class="stat-info">
-                <h3>₱{{ revenue_stats.total_revenue|floatformat:0 }}</h3>
-                <p>Total Revenue</p>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.pending_organizations }}</div>
+                    <div class="stats-label text-muted">Pending Approval</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting review</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-hourglass"></i>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.active_users }}</div>
+                    <div class="stats-label text-muted">Active Users</div>
+                    <small class="text-success"><i class="fas fa-user-check me-1"></i>Currently active</small>
+                </div>
             </div>
-            <div class="stat-info">
-                <h3>₱{{ revenue_stats.pending_amount|floatformat:0 }}</h3>
-                <p>Pending Payments</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-calendar-check fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.today_reservations }}</div>
+                    <div class="stats-label text-muted">Today's Bookings</div>
+                    <small class="text-info"><i class="fas fa-calendar-day me-1"></i>{{ metrics.total_reservations }} total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics - Row 2: Performance Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-map-marker-alt fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_courts }}</div>
+                    <div class="stats-label text-muted">Total Courts</div>
+                    <small class="text-muted"><i class="fas fa-check me-1"></i>Across all orgs</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-trophy fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.active_tournaments }}</div>
+                    <div class="stats-label text-muted">Active Tournaments</div>
+                    <small class="text-info"><i class="fas fa-medal me-1"></i>{{ metrics.total_tournaments }} total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-danger text-white me-3">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ revenue_stats.total_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Total Revenue Collected</div>
+                    <small class="text-success"><i class="fas fa-coins me-1"></i>All-time earnings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-hourglass fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ revenue_stats.pending_amount|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Pending Payments</div>
+                    <small class="text-warning"><i class="fas fa-clock me-1"></i>Awaiting verification</small>
+                </div>
             </div>
         </div>
     </div>
@@ -136,33 +181,48 @@
 <div class="row g-4">
     <!-- Pending Organizations -->
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="fas fa-clock me-2 text-warning"></i>Pending Organizations</h5>
-                <a href="{% url 'super_admin_organization_list' %}?status=pending" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-clock text-warning"></i>
+                    Organizations Pending Approval
+                </h5>
+                <a href="{% url 'super_admin_organization_list' %}?status=pending" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
+                <p class="text-muted small mb-0 px-4 pt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    New organization registrations awaiting your review and approval.
+                </p>
                 {% if pending_orgs %}
-                <div class="table-responsive">
-                    <table class="table">
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th>Organization</th>
-                                <th>Date</th>
-                                <th>Action</th>
+                                <th data-label="Organization">Organization</th>
+                                <th data-label="Location">Location</th>
+                                <th data-label="Registered">Registered</th>
+                                <th data-label="Action" class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for org in pending_orgs %}
                             <tr>
-                                <td>
-                                    <strong>{{ org.name }}</strong><br>
-                                    <small class="text-muted">{{ org.city|default:"" }} {{ org.province|default:"" }}</small>
+                                <td data-label="Organization" class="fw-semibold">
+                                    <i class="fas fa-building text-muted me-2"></i>
+                                    {{ org.name }}
                                 </td>
-                                <td><small>{{ org.created_at|date:"M d, Y" }}</small></td>
-                                <td>
+                                <td data-label="Location">
+                                    <small class="text-muted">{{ org.city|default:"—" }}{% if org.city and org.province %}, {% endif %}{{ org.province|default:"" }}</small>
+                                </td>
+                                <td data-label="Registered">
+                                    <small>{{ org.created_at|date:"M d, Y" }}</small>
+                                </td>
+                                <td data-label="Action" class="text-end">
                                     <a href="{% url 'super_admin_approve_organization' org.id %}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-check"></i> Review
+                                        <i class="fas fa-check me-1"></i>Review
                                     </a>
                                 </td>
                             </tr>
@@ -171,9 +231,12 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                    <p class="text-muted mb-0">No pending organizations!</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-check-circle fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">All organizations approved!</h5>
+                    <p class="empty-state-text">There are no organizations pending approval at this time.</p>
                 </div>
                 {% endif %}
             </div>
@@ -182,36 +245,54 @@
 
     <!-- Top Organizations -->
     <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-trophy me-2 text-primary"></i>Top Organizations by Courts</h5>
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-trophy text-primary"></i>
+                    Top Organizations by Activity
+                </h5>
+                <span class="badge bg-primary">{{ org_stats|length }} orgs</span>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
+                <p class="text-muted small mb-0 px-4 pt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Approved organizations ranked by court count and tournament activity.
+                </p>
                 {% if org_stats %}
-                <div class="table-responsive">
-                    <table class="table">
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th>Organization</th>
-                                <th>Courts</th>
-                                <th>Tournaments</th>
+                                <th data-label="Organization">Organization</th>
+                                <th data-label="Courts" class="text-center">Courts</th>
+                                <th data-label="Tournaments" class="text-center">Tournaments</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for org in org_stats %}
                             <tr>
-                                <td><strong>{{ org.name }}</strong></td>
-                                <td><span class="badge bg-primary">{{ org.total_courts }}</span></td>
-                                <td><span class="badge bg-info">{{ org.total_tournaments }}</span></td>
+                                <td data-label="Organization" class="fw-semibold">
+                                    <i class="fas fa-building text-primary me-2"></i>
+                                    {{ org.name }}
+                                </td>
+                                <td data-label="Courts" class="text-center">
+                                    <span class="badge bg-primary rounded-pill">{{ org.total_courts }}</span>
+                                </td>
+                                <td data-label="Tournaments" class="text-center">
+                                    <span class="badge bg-info rounded-pill">{{ org.total_tournaments }}</span>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No organizations yet.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-building fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No organizations yet</h5>
+                    <p class="empty-state-text">Approved organizations will appear here with their activity stats.</p>
                 </div>
                 {% endif %}
             </div>

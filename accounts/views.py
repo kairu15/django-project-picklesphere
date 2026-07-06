@@ -20,7 +20,7 @@ from notifications.models import Notification
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
     
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -45,7 +45,7 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
     
     if request.method == 'POST':
         form = UserLoginForm(request, data=request.POST)
@@ -136,7 +136,7 @@ def profile_view(request):
 @login_required
 @admin_required
 def user_list_view(request):
-    
+    """Super admin / org admin user list"""
     users = User.objects.all().order_by('-created_at')
     
     # Org-scoping for org_admin - only show users from their organization
@@ -200,7 +200,9 @@ def user_edit_view(request, user_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'User {user.username} updated successfully!')
-            return redirect('user_list')
+            if request.user.is_super_admin():
+                return redirect('super_admin_user_list')
+            return redirect('org_admin_staff_list')
     else:
         form = AdminUserUpdateForm(instance=user)
     
@@ -223,7 +225,9 @@ def user_create_view(request):
                 created_user.organization = request.user.organization
             created_user.save()
             messages.success(request, f'User {created_user.username} created successfully!')
-            return redirect('user_list')
+            if request.user.is_super_admin():
+                return redirect('super_admin_user_list')
+            return redirect('org_admin_staff_list')
     else:
         form = AdminUserCreateForm()
     
@@ -236,7 +240,9 @@ def user_delete_view(request, user_id):
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
-        return redirect('user_list')
+        if request.user.is_super_admin():
+            return redirect('super_admin_user_list')
+        return redirect('org_admin_staff_list')
     
     user_qs = User.objects.all()
     # Org-scoping for org_admin
@@ -245,17 +251,23 @@ def user_delete_view(request, user_id):
     user_to_delete = get_object_or_404(user_qs, id=user_id)
     if user_to_delete == request.user:
         messages.error(request, 'You cannot delete your own account.')
-        return redirect('user_list')
+        if request.user.is_super_admin():
+            return redirect('super_admin_user_list')
+        return redirect('org_admin_staff_list')
     
     if not user_to_delete.is_active:
         messages.info(request, f'User {user_to_delete.username} is already inactive.')
-        return redirect('user_list')
+        if request.user.is_super_admin():
+            return redirect('super_admin_user_list')
+        return redirect('org_admin_staff_list')
     
     user_to_delete.is_active = False
     user_to_delete.save(update_fields=['is_active'])
     
     messages.success(request, f'User {user_to_delete.username} deactivated successfully.')
-    return redirect('user_list')
+    if request.user.is_super_admin():
+        return redirect('super_admin_user_list')
+    return redirect('org_admin_staff_list')
 
 
 @login_required

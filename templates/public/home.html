@@ -1,43 +1,48 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Home{% endblock %}
+{% block title %}PickleSphere - The Ultimate Pickleball Platform{% endblock %}
 
 {% block body %}
 {% include 'components/header.html' %}
 
-<!-- Hero Section with Background Image -->
+<!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
         <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <span class="badge bg-white text-primary mb-3 px-4 py-2" style="font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase;"><i class="fas fa-star me-2"></i>Premium Pickleball Facility</span>
-                <h1 class="display-2 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">{{ homepage_text.hero_title }}</h1>
-                <p class="lead mb-5 text-white fs-4" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.3); opacity: 0.95; max-width: 700px; margin: 0 auto 2rem;">{{ homepage_text.hero_subtitle }}</p>
+            <div class="col-lg-10">
+                <span class="badge bg-white text-primary mb-3 px-4 py-2" style="font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase;">
+                    <i class="fas fa-globe me-2"></i>The Ultimate Pickleball Platform
+                </span>
+                <h1 class="display-2 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">
+                    {{ homepage_text.hero_title|default:"Welcome to PickleSphere" }}
+                </h1>
+                <p class="lead mb-5 text-white fs-4" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.3); opacity: 0.95; max-width: 750px; margin: 0 auto 2rem;">
+                    {{ homepage_text.hero_subtitle|default:"The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide. Find, book, and play — all in one place." }}
+                </p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg px-5">
-                            <i class="fas fa-th-large me-2"></i>Go to Dashboard
-                        </a>
-                    {% else %}
-                        <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5">
-                            <i class="fas fa-user-plus me-2"></i>Join Now
-                        </a>
-                        <a href="{% url 'all_courts' %}" class="btn btn-outline-light btn-lg px-5">
-                            <i class="fas fa-search me-2"></i>Explore Courts
+                    <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5">
+                        <i class="fas fa-search me-2"></i>Explore Courts
+                    </a>
+                    <a href="{% url 'organization_directory' %}" class="btn btn-outline-light btn-lg px-5">
+                        <i class="fas fa-building me-2"></i>Browse Organizations
+                    </a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-5">
+                            <i class="fas fa-user-plus me-2"></i>Sign Up Free
                         </a>
                     {% endif %}
                 </div>
             </div>
         </div>
-        
+
         <!-- Search Widget -->
         <div class="row mt-5">
             <div class="col-lg-10 mx-auto">
                 <div class="card shadow-lg border-0" style="border-radius: var(--border-radius-lg); overflow: hidden; background: rgba(255,255,255,0.98);">
                     <div class="card-body p-4">
                         <form action="{% url 'all_courts' %}" method="get" class="row g-3 align-items-end">
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold text-primary"><i class="fas fa-map-marker-alt me-2"></i>Location</label>
                                 <select name="site" class="form-select form-select-lg">
                                     <option value="">All Locations</option>
@@ -46,19 +51,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold text-primary"><i class="fas fa-calendar me-2"></i>Date</label>
                                 <input type="date" name="date" class="form-control form-control-lg" min="{% now 'Y-m-d' %}">
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold text-primary"><i class="fas fa-cloud me-2"></i>Court Type</label>
-                                <select name="type" class="form-select form-select-lg">
-                                    <option value="">All Types</option>
-                                    <option value="indoor">Indoor</option>
-                                    <option value="outdoor">Outdoor</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <button type="submit" class="btn btn-primary btn-lg w-100">
                                     <i class="fas fa-search me-2"></i>Check Availability
                                 </button>
@@ -69,43 +66,53 @@
             </div>
         </div>
     </div>
-
 </section>
 
 <!-- Stats Section -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
     <div class="container">
         <div class="row g-4">
-            <div class="col-md-4 text-center">
+            <div class="col-md-3 col-6 text-center">
                 <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
                     <div class="card-body py-5">
                         <div class="stat-icon glass lg mx-auto mb-3">
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.75rem; letter-spacing: -1px;">{{ total_courts|default:"2" }}+</h2>
-                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85; letter-spacing: 0.5px;">Premium Courts</p>
+                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.5rem; letter-spacing: -1px;">{{ total_courts|default:"0" }}+</h2>
+                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85;">Courts Available</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
+            <div class="col-md-3 col-6 text-center">
                 <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
                     <div class="card-body py-5">
                         <div class="stat-icon glass lg mx-auto mb-3">
                             <i class="fas fa-users"></i>
                         </div>
-                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.75rem; letter-spacing: -1px;">{{ total_users|default:"3" }}+</h2>
-                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85; letter-spacing: 0.5px;">Active Members</p>
+                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.5rem; letter-spacing: -1px;">{{ total_users|default:"0" }}+</h2>
+                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85;">Active Players</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
+            <div class="col-md-3 col-6 text-center">
+                <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
+                    <div class="card-body py-5">
+                        <div class="stat-icon glass lg mx-auto mb-3">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.5rem; letter-spacing: -1px;">{{ total_organizations|default:"0" }}</h2>
+                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85;">Organizations</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 text-center">
                 <div class="card h-100 border-0" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: var(--border-radius-lg);">
                     <div class="card-body py-5">
                         <div class="stat-icon glass lg mx-auto mb-3">
                             <i class="fas fa-trophy"></i>
                         </div>
-                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.75rem; letter-spacing: -1px;">{{ tournaments_count|default:"0" }}</h2>
-                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85; letter-spacing: 0.5px;">Tournaments Hosted</p>
+                        <h2 class="fw-bold text-white mb-2" style="font-size: 2.5rem; letter-spacing: -1px;">{{ tournaments_count|default:"0" }}</h2>
+                        <p class="text-white mb-0" style="font-size: 1rem; opacity: 0.85;">Tournaments Hosted</p>
                     </div>
                 </div>
             </div>
@@ -113,115 +120,166 @@
     </div>
 </section>
 
-<!-- About / Experience Section -->
+<!-- How It Works Section -->
 <section class="py-5" style="background: var(--bg-light);">
     <div class="container py-5">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <div class="position-relative d-flex justify-content-center">
-                    <div style="width: 400px; height: 400px; border-radius: 50%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); border: 8px solid white; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
-                        <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere Logo" class="w-100 h-100" style="object-fit: contain; padding: 20px;">
-                    </div>
-                    <div class="position-absolute" style="bottom: 10px; right: 50px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); padding: 20px 25px; border-radius: 16px; box-shadow: 0 8px 30px rgba(59, 122, 140, 0.4); border: 3px solid white;">
-                        <h3 class="text-white mb-0 fw-bold" style="font-size: 2rem; line-height: 1;">{{ years_experience|default:"1" }}+</h3>
-                        <p class="text-white mb-0 mt-1" style="opacity: 0.9; font-size: 0.85rem;">Years Experience</p>
-                    </div>
+        <div class="text-center mb-5">
+            <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">How It Works</span>
+            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Your Pickleball Journey Starts Here</h2>
+            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Find a court, book a slot, and play — it's that simple</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="step-number gradient-primary mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">1</div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Create an Account</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Sign up free and join our growing community of pickleball enthusiasts.</p>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">About PickleSphere</span>
-                <h2 class="display-5 fw-bold mb-4" style="color: var(--text-dark); line-height: 1.2;">{{ homepage_text.about_title }}</h2>
-                <p class="lead mb-4" style="color: var(--text-body); line-height: 1.7;">{{ homepage_text.about_text }}</p>
-                
-                <div class="row g-4 mb-4">
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <div class="stat-icon primary md me-3" style="border-radius: 50%;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Premium Courts</h6>
-                                <small style="color: var(--text-muted);">Professional grade</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <div class="stat-icon success md me-3" style="border-radius: 50%;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">24/7 Booking</h6>
-                                <small style="color: var(--text-muted);">Anytime access</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <div class="stat-icon warning md me-3" style="border-radius: 50%;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Tournaments</h6>
-                                <small style="color: var(--text-muted);">Competitive play</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <div class="stat-icon info md me-3" style="border-radius: 50%;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-dark);">Coaching</h6>
-                                <small style="color: var(--text-muted);">Expert training</small>
-                            </div>
-                        </div>
-                    </div>
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="step-number gradient-success mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">2</div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Find a Court or Organization</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Browse organizations and courts near you. Filter by location, date, and court type.</p>
                 </div>
-                
-                <a href="{% url 'about' %}" class="btn btn-primary btn-lg px-5" style="border-radius: var(--border-radius-sm); font-weight: 600; letter-spacing: 0.5px;">
-                    Learn More About Us <i class="fas fa-arrow-right ms-2"></i>
-                </a>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="step-number gradient-warning mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">3</div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Book & Pay Online</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Reserve your slot instantly and pay securely through our platform.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="step-number gradient-info mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle text-white fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">4</div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Play & Compete</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Hit the courts, join tournaments, track scores, and improve your game.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Platform Features Section -->
+<section class="py-5" style="background: var(--bg-white);">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Platform Features</span>
+            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Everything You Need</h2>
+            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">A complete ecosystem for pickleball players and organizations</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="stat-icon gradient-primary lg mb-3">
+                        <i class="fas fa-search-location"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Find Courts & Organizations</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Discover pickleball courts and organizations across the country. Filter by location, court type, and availability.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="stat-icon gradient-success lg mb-3">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Online Reservations</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Book courts in real-time from any organization. View availability, select time slots, and get instant confirmation.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="stat-icon gradient-warning lg mb-3">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Tournament Registration</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Register for tournaments across multiple organizations. Track brackets, view scores, and climb the leaderboard.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="stat-icon gradient-info lg mb-3">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Secure Payments</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Pay securely online with multiple payment options including GCash, credit cards, and bank transfers.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="stat-icon gradient-purple lg mb-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Score Tracking & Analytics</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">Track your match history, monitor your performance, and analyze your stats to improve your game.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow);">
+                    <div class="stat-icon gradient-danger lg mb-3">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Real-Time Availability</h5>
+                    <p class="small mb-0" style="color: var(--text-muted);">See live court availability across all organizations. Get notified when slots open up or when tournaments are announced.</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Featured Courts -->
-<section class="py-5" style="background: var(--bg-white);">
+<section class="py-5" style="background: var(--bg-light);">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Premium Facilities</span>
-            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Our Courts & Facilities</h2>
-            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Experience world-class pickleball courts designed for champions</p>
+            <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Featured Courts</span>
+            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Courts Available Near You</h2>
+            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Browse courts from our partner organizations</p>
         </div>
         <div class="row g-4">
             {% for court in featured_courts|slice:":3" %}
             <div class="col-md-4">
-                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); transition: all var(--transition-slow);">
+                <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow);">
                     <div class="position-relative">
                         {% if court.image %}
-                            <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 250px; object-fit: cover;">
+                            <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 220px; object-fit: cover;">
                         {% else %}
-                            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 250px; background: var(--bg-light);">
+                            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 220px; background: var(--bg-light);">
                                 <i class="fas fa-table-tennis fa-4x" style="color: var(--primary-light);"></i>
                             </div>
                         {% endif %}
                     </div>
                     <div class="card-body p-4">
-                        <h5 class="card-title fw-bold mb-2" style="color: var(--text-dark);">{{ court.name }}</h5>
-                        <p class="small mb-3" style="color: var(--text-muted);">
-                            <i class="fas fa-map-marker-alt me-2" style="color: var(--primary-color);"></i>{{ court.site.name }}
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0" style="color: var(--text-dark);">{{ court.name }}</h5>
+                            <span class="badge bg-primary">{{ court.get_court_type_display|default:court.court_type|title }}</span>
+                        </div>
+                        <p class="small mb-2" style="color: var(--text-muted);">
+                            <i class="fas fa-building me-2" style="color: var(--primary-color);"></i>
+                            {% if court.organization %}
+                                {{ court.organization.name }}
+                            {% else %}
+                                {{ court.site.name }}
+                            {% endif %}
                         </p>
-                        <p class="card-text" style="color: var(--text-body); font-size: 0.95rem;">{{ court.description|truncatewords:15|default:"Premium pickleball court with professional amenities." }}</p>
+                        <p class="small mb-2" style="color: var(--text-muted);">
+                            <i class="fas fa-map-marker-alt me-2" style="color: var(--primary-color);"></i>
+                            {% if court.site.name %}
+                                {{ court.site.name }}
+                            {% elif court.organization and court.organization.location_address %}
+                                {{ court.organization.location_address }}
+                            {% else %}
+                                Various Locations
+                            {% endif %}
+                        </p>
+                        <p class="card-text" style="color: var(--text-body); font-size: 0.9rem;">{{ court.description|truncatewords:15|default:"Premium pickleball court available for booking." }}</p>
                         <hr class="my-3" style="border-color: var(--border-color);">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="small" style="color: var(--text-muted);">From</span>
+                                <span class="small text-muted">From</span>
                                 <h5 class="fw-bold mb-0" style="color: var(--primary-color);">₱{{ court.hourly_rate|floatformat:0 }}<small style="color: var(--text-muted); font-weight: 400;">/hour</small></h5>
                             </div>
-                            <a href="{% url 'court_view' court.id %}" class="btn btn-primary px-4" style="border-radius: var(--border-radius-sm); font-weight: 500;">
+                            <a href="{% url 'court_view' court.id %}" class="btn btn-primary px-4" style="border-radius: var(--border-radius-sm);">
                                 Book Now <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
@@ -229,44 +287,22 @@
                 </div>
             </div>
             {% empty %}
-            <div class="col-12 text-center py-5">                    <div class="stat-icon primary xl mx-auto mb-3" style="border-radius: 50%; background: var(--bg-light); color: var(--primary-light);">
-                        <i class="fas fa-table-tennis"></i>
-                    </div>
-                    <p style="color: var(--text-muted);">No courts available at the moment.</p>
-                    
+            <div class="col-12 text-center py-5">
+                <div class="stat-icon primary xl mx-auto mb-3" style="border-radius: 50%; background: var(--bg-light); color: var(--primary-light);">
+                    <i class="fas fa-table-tennis"></i>
+                </div>
+                <p style="color: var(--text-muted);">No courts available at the moment.</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Check back soon or browse our partner organizations.</p>
             </div>
             {% endfor %}
         </div>
         <div class="text-center mt-5">
-            <a href="{% url 'all_courts' %}" class="btn btn-outline-primary btn-lg px-5" style="border-radius: var(--border-radius-sm); font-weight: 500;">
+            <a href="{% url 'all_courts' %}" class="btn btn-outline-primary btn-lg px-5" style="border-radius: var(--border-radius-sm);">
                 <i class="fas fa-th-large me-2"></i>View All Courts
             </a>
-        </div>
-    </div>
-</section>
-
-<!-- Amenities Section -->
-<section class="py-5" style="background: var(--bg-light);">
-    <div class="container py-4">
-        <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2" style="background: var(--success-light); color: var(--success-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Facility Amenities</span>
-            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">What We Offer</h2>
-            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Everything you need for the perfect pickleball experience</p>
-        </div>
-        <div class="row g-4">
-            {% for amenity in amenities %}
-            <div class="col-md-4 col-lg-2">
-                <div class="card h-100 border-0 text-center hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="card-body p-4">
-                        <div class="stat-icon gradient-primary lg mx-auto mb-3">
-                            <i class="fas {{ amenity.icon }}"></i>
-                        </div>
-                        <h6 class="fw-bold mb-2" style="color: var(--text-dark);">{{ amenity.title }}</h6>
-                        <p class="small mb-0" style="color: var(--text-muted);">{{ amenity.description }}</p>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+            <a href="{% url 'organization_directory' %}" class="btn btn-outline-primary btn-lg px-5 ms-2" style="border-radius: var(--border-radius-sm);">
+                <i class="fas fa-building me-2"></i>Browse Organizations
+            </a>
         </div>
     </div>
 </section>
@@ -275,42 +311,41 @@
 <section class="py-5" style="background: linear-gradient(135deg, var(--bg-light) 0%, var(--border-color) 100%);">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2" style="background: var(--warning-light); color: var(--warning-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Competitive Play</span>
+            <span class="badge mb-3 px-3 py-2" style="background: var(--warning-light); color: var(--warning-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Competitions</span>
             <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Upcoming Tournaments</h2>
-            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Join exciting competitions and showcase your skills</p>
+            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Join exciting competitions across multiple organizations</p>
         </div>
         <div class="row g-4">
             {% for tournament in upcoming_tournaments %}
             <div class="col-md-4">
                 <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    {% if tournament.status == 'registration_open' %}
-                    <div class="card-header border-0 py-3" style="background: var(--success-color); color: white;">
-                    {% elif tournament.status == 'in_progress' %}
-                    <div class="card-header border-0 py-3" style="background: var(--primary-color); color: white;">
-                    {% else %}
-                    <div class="card-header border-0 py-3" style="background: var(--info-color); color: white;">
-                    {% endif %}
+                    <div class="card-header border-0 py-3" style="{% if tournament.status == 'registration_open' %}background: var(--success-color);{% elif tournament.status == 'in_progress' %}background: var(--primary-color);{% else %}background: var(--info-color);{% endif %} color: white;">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge" style="background: var(--bg-white); color: var(--text-dark);">{{ tournament.get_category_display }}</span>
+                            <span class="badge bg-light text-dark">{{ tournament.get_category_display }}</span>
                             {% if tournament.status == 'registration_open' %}
-                                <span class="badge" style="background: var(--warning-color); color: var(--text-dark);"><i class="fas fa-door-open me-1"></i>Open</span>
+                                <span class="badge bg-warning text-dark"><i class="fas fa-door-open me-1"></i>Open</span>
                             {% elif tournament.status == 'in_progress' %}
-                                <span class="badge" style="background: var(--danger-color); color: white;"><i class="fas fa-play me-1"></i>Live</span>
+                                <span class="badge bg-danger text-white"><i class="fas fa-play me-1"></i>Live</span>
                             {% endif %}
                         </div>
                     </div>
                     <div class="card-body p-4">
+                        <span class="badge bg-light text-muted mb-2">
+                            {% if tournament.organization %}
+                                {{ tournament.organization.name }}
+                            {% else %}
+                                Various Organizations
+                            {% endif %}
+                        </span>
                         <h5 class="card-title fw-bold mb-2" style="color: var(--text-dark);">{{ tournament.name }}</h5>
                         <span class="badge mb-3" style="background: var(--bg-light); color: var(--text-body);">{{ tournament.get_format_display }}</span>
-                        <p class="card-text" style="color: var(--text-muted);">{{ tournament.description|truncatewords:12|default:"Join our exciting tournament and compete with other players!" }}</p>
-                        
+                        <p class="card-text" style="color: var(--text-muted); font-size: 0.9rem;">{{ tournament.description|truncatewords:12|default:"Join our exciting tournament and compete with other players!" }}</p>
                         <ul class="list-unstyled mt-3 mb-4">
-                            <li class="mb-2 text-body"><i class="fas fa-calendar me-2 text-primary"></i><strong>Starts:</strong> {{ tournament.tournament_start|date:"M d, Y" }}</li>
-                            <li class="mb-2 text-body"><i class="fas fa-users me-2 text-primary"></i><strong>Players:</strong> {{ tournament.registrations.count }}/{{ tournament.max_participants }}</li>
-                            <li class="text-body"><i class="fas fa-signal me-2 text-primary"></i><strong>Level:</strong> {{ tournament.get_skill_level_display }}</li>
+                            <li class="mb-2 text-body small"><i class="fas fa-calendar me-2 text-primary"></i><strong>Starts:</strong> {{ tournament.tournament_start|date:"M d, Y" }}</li>
+                            <li class="mb-2 text-body small"><i class="fas fa-users me-2 text-primary"></i><strong>Players:</strong> {{ tournament.registrations.count }}/{{ tournament.max_participants }}</li>
+                            <li class="text-body small"><i class="fas fa-signal me-2 text-primary"></i><strong>Level:</strong> {{ tournament.get_skill_level_display }}</li>
                         </ul>
-                        
-                        <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-outline-primary w-100" style="border-radius: var(--border-radius-sm); font-weight: 500;">
+                        <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-outline-primary w-100" style="border-radius: var(--border-radius-sm);">
                             {% if tournament.status == 'registration_open' %}
                                 <i class="fas fa-edit me-2"></i>Register Now
                             {% else %}
@@ -327,7 +362,7 @@
                 </div>
                 <h4 style="color: var(--text-muted);">No upcoming tournaments</h4>
                 <p style="color: var(--text-muted);">Check back soon for exciting competitions!</p>
-                <a href="{% url 'tournament_list' %}" class="btn btn-primary btn-lg mt-3" style="border-radius: var(--border-radius-sm);">
+                <a href="{% url 'tournament_list' %}" class="btn btn-primary btn-lg mt-3">
                     <i class="fas fa-trophy me-2"></i>Browse All Tournaments
                 </a>
             </div>
@@ -335,7 +370,7 @@
         </div>
         {% if upcoming_tournaments %}
         <div class="text-center mt-5">
-            <a href="{% url 'tournament_list' %}" class="btn btn-primary btn-lg px-5" style="border-radius: var(--border-radius-sm); font-weight: 500;">
+            <a href="{% url 'tournament_list' %}" class="btn btn-primary btn-lg px-5" style="border-radius: var(--border-radius-sm);">
                 <i class="fas fa-medal me-2"></i>View All Tournaments
             </a>
         </div>
@@ -347,8 +382,9 @@
 <section class="py-5" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Customer Ratings</span>
-            <h2 class="display-5 fw-bold text-white mb-3">Feedback from our pickleball community</h2>
+            <span class="badge mb-3 px-3 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Testimonials</span>
+            <h2 class="display-5 fw-bold text-white mb-3">What Our Community Says</h2>
+            <p class="lead text-white-50">Hear from players and organizations using the platform</p>
         </div>
         <div class="row g-4">
             {% for rating in ratings|slice:":6" %}
@@ -365,7 +401,7 @@
                             {% endfor %}
                         </div>
                         {% if rating.comment %}
-                        <p class="card-text fst-italic mb-4" style="color: var(--text-body); line-height: 1.7;">"{{ rating.comment }}"</p>
+                        <p class="card-text fst-italic mb-4" style="color: var(--text-body); line-height: 1.7; font-size: 0.95rem;">"{{ rating.comment }}"</p>
                         {% endif %}
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; background: var(--primary-lighter); color: var(--primary-color);">
@@ -381,20 +417,86 @@
             </div>
             {% empty %}
             <div class="col-12 text-center">
-                <p class="text-white-50">No ratings yet. Be the first to rate your experience!</p>
+                <p class="text-white-50">No ratings yet. Be the first to share your experience!</p>
             </div>
             {% endfor %}
         </div>
     </div>
 </section>
 
-<!-- Gallery Section -->
+<!-- For Organizations Section -->
 <section class="py-5" style="background: var(--bg-light);">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="position-relative d-flex justify-content-center">
+                    <div style="width: 380px; height: 380px; border-radius: 50%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); border: 8px solid white; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                        <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere Logo" class="w-100 h-100" style="object-fit: contain; padding: 20px;">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">For Organizations</span>
+                <h2 class="display-5 fw-bold mb-4" style="color: var(--text-dark); line-height: 1.2;">Grow Your Pickleball Business</h2>
+                <p class="lead mb-4" style="color: var(--text-body); line-height: 1.7;">Join the PickleSphere platform to reach more players, manage bookings seamlessly, and grow your organization. Our platform gives you the tools you need to run your pickleball business efficiently.</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="font-size: 0.9rem;">Online booking management</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="font-size: 0.9rem;">Payment processing</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="font-size: 0.9rem;">Staff & court management</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="font-size: 0.9rem;">Tournament organization tools</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="font-size: 0.9rem;">Analytics & reporting</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="font-size: 0.9rem;">Marketing reach to players</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'organization_directory' %}" class="btn btn-primary btn-lg px-4" style="border-radius: var(--border-radius-sm);">
+                        <i class="fas fa-building me-2"></i>Browse Organizations
+                    </a>
+                    <a href="{% url 'about' %}" class="btn btn-outline-primary btn-lg px-4" style="border-radius: var(--border-radius-sm);">
+                        <i class="fas fa-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Gallery Section -->
+<section class="py-5" style="background: var(--bg-white);">
     <div class="container py-4">
         <div class="text-center mb-5">
             <span class="badge mb-3 px-3 py-2" style="background: var(--info-light); color: var(--info-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Gallery</span>
-            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Explore Our Facility</h2>
-            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Take a virtual tour of our world-class pickleball courts</p>
+            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Pickleball in Action</h2>
+            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">See what's happening across our partner organizations</p>
         </div>
         <div class="row g-3">
             {% for image in gallery_images|slice:":6" %}
@@ -411,76 +513,27 @@
     </div>
 </section>
 
-<!-- Why Choose Us Section -->
-<section class="py-5" style="background: var(--bg-white);">
-    <div class="container py-4">
-        <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2" style="background: var(--primary-lighter); color: var(--primary-color); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">Why PickleSphere</span>
-            <h2 class="display-5 fw-bold mb-3" style="color: var(--text-dark);">Why Choose PickleSphere?</h2>
-            <p class="lead" style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">We provide the best pickleball experience in the country</p>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-3 text-center">
-                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="stat-icon gradient-primary lg mx-auto mb-3">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Easy Reservation</h5>
-                    <p class="small mb-0" style="color: var(--text-muted);">Reserve your court anytime, anywhere with our online booking system.</p>
-                </div>
-            </div>
-            <div class="col-md-3 text-center">
-                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="stat-icon gradient-success lg mx-auto mb-3">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Score Tracking</h5>
-                    <p class="small mb-0" style="color: var(--text-muted);">Track your matches and analyze performance with detailed statistics.</p>
-                </div>
-            </div>
-            <div class="col-md-3 text-center">
-                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="stat-icon gradient-warning lg mx-auto mb-3">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Equipment Rental</h5>
-                    <p class="small mb-0" style="color: var(--text-muted);">Premium paddles and balls available for rent if you don't have your own.</p>
-                </div>
-            </div>
-            <div class="col-md-3 text-center">
-                <div class="card h-100 border-0 p-4 hover-card" style="border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); background: var(--bg-white);">
-                    <div class="stat-icon gradient-info lg mx-auto mb-3">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2" style="color: var(--text-dark);">Easy Payments</h5>
-                    <p class="small mb-0" style="color: var(--text-muted);">Pay securely with multiple options including GCash and credit cards.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- CTA Section -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);">
     <div class="container py-4">
         <div class="row align-items-center">
             <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
-                <h2 class="display-5 fw-bold text-white mb-3">{{ homepage_text.cta_title }}</h2>
-                <p class="lead mb-0" style="color: rgba(255,255,255,0.85);">{{ homepage_text.cta_text }}</p>
+                <h2 class="display-5 fw-bold text-white mb-3">{{ homepage_text.cta_title|default:"Ready to Play?" }}</h2>
+                <p class="lead mb-0" style="color: rgba(255,255,255,0.85);">{{ homepage_text.cta_text|default:"Join thousands of pickleball players. Find courts, join tournaments, and connect with organizations near you!" }}</p>
             </div>
             <div class="col-lg-4 text-center text-lg-end">
                 {% if not user.is_authenticated %}
-                    <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 mb-2" style="border-radius: var(--border-radius-sm); font-weight: 600;">
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 mb-2" style="border-radius: var(--border-radius-sm);">
                         <i class="fas fa-user-plus me-2"></i>Create Free Account
                     </a>
                 {% else %}
-                    <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5 mb-2" style="border-radius: var(--border-radius-sm); font-weight: 600;">
+                    <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5 mb-2" style="border-radius: var(--border-radius-sm);">
                         <i class="fas fa-calendar-plus me-2"></i>Reserve a Court
                     </a>
                 {% endif %}
                 <br>
-                <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg px-5" style="border-radius: var(--border-radius-sm); font-weight: 500;">
-                    <i class="fas fa-phone me-2"></i>Contact Us
+                <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg px-5" style="border-radius: var(--border-radius-sm);">
+                    <i class="fas fa-envelope me-2"></i>Contact Us
                 </a>
             </div>
         </div>
@@ -490,7 +543,7 @@
 <style>
 /* Hero Section */
 .hero-section {
-    min-height: 100vh;
+    min-height: 90vh;
     display: flex;
     align-items: center;
     position: relative;
@@ -498,12 +551,17 @@
     background: linear-gradient(rgba(26, 58, 66, 0.7), rgba(59, 122, 140, 0.85)), url('/static/images/hero-bg.jpg') center/cover;
 }
 
+/* Step Numbers */
+.step-number {
+    box-shadow: 0 8px 25px rgba(59, 122, 140, 0.3);
+}
+
 /* Hover Effects */
 .hover-card {
     transition: transform var(--transition-slow), box-shadow var(--transition-base);
 }
 .hover-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
     box-shadow: var(--card-shadow-lg) !important;
 }
 
@@ -516,16 +574,6 @@
 }
 .hover-gallery:hover .gallery-overlay {
     opacity: 1 !important;
-}
-
-/* Scroll Indicator Animation */
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
-}
-.animate-bounce {
-    animation: bounce 2s infinite;
 }
 
 /* Smooth Scroll */
@@ -547,21 +595,6 @@ html {
 /* Card Image Overlay */
 .card-img-overlay {
     background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 10px;
-}
-::-webkit-scrollbar-track {
-    background: var(--bg-light);
-}
-::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 5px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark);
 }
 
 /* Enhanced Cards */
@@ -597,16 +630,6 @@ html {
     transform: translateY(-1px);
 }
 
-/* Enhanced Badges */
-.badge {
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    padding: 6px 12px;
-    border-radius: var(--border-radius-sm);
-}
-
 /* Enhanced Section Animations */
 section {
     animation: fadeInUp 0.6s ease;
@@ -620,15 +643,6 @@ section {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* Enhanced Icon Circles */
-.icon-circle {
-    transition: all var(--transition-base);
-}
-.icon-circle:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: var(--btn-shadow);
 }
 </style>
 
@@ -646,7 +660,7 @@ section {
 
 <script>
 // Gallery Modal Functionality
-document.querySelectorAll('.hover-gallery').forEach(function(element, index) {
+document.querySelectorAll('.hover-gallery').forEach(function(element) {
     element.addEventListener('click', function() {
         const img = this.querySelector('img');
         document.getElementById('galleryModalImage').src = img.src;

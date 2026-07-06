@@ -741,7 +741,7 @@ body.sidebar-open {
         
         <nav class="sidebar-nav" id="sidebarNav">
             {% if user.is_super_admin %}
-            <!-- SUPER ADMIN Navigation -->
+            <!-- SUPER ADMIN Navigation (/super-admin/) -->
             <div class="nav-section">
                 <div class="nav-section-title">Super Admin</div>
                 <a href="{% url 'home' %}" class="nav-link">
@@ -763,31 +763,35 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">System Management</div>
-                <a href="{% url 'admin_reservation_list' %}" class="nav-link {% if 'reservation' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'super_admin_reservation_list' %}" class="nav-link {% if 'super_admin_reservation' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-calendar-check"></i>
                     <span>All Reservations</span>
                 </a>
-                <a href="{% url 'admin_payments' %}" class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'super_admin_payments' %}" class="nav-link {% if 'super_admin_payment' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-money-bill-wave"></i>
                     <span>All Payments</span>
                 </a>
-                <a href="{% url 'user_list' %}" class="nav-link {% if 'user_list' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'super_admin_user_list' %}" class="nav-link {% if 'super_admin_user' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-users"></i>
                     <span>User Management</span>
+                </a>
+                <a href="{% url 'super_admin_equipment_list' %}" class="nav-link {% if 'super_admin_equipment' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-tools"></i>
+                    <span>Equipment</span>
                 </a>
             </div>
 
             <div class="nav-section">
                 <div class="nav-section-title">System Analytics</div>
-                <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <a href="{% url 'super_admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-bar"></i>
                     <span>Analytics Dashboard</span>
                 </a>
-                <a href="{% url 'revenue_report' %}" class="nav-link {% if 'revenue' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'super_admin_revenue_report' %}" class="nav-link {% if 'revenue' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-chart-line"></i>
                     <span>Revenue Reports</span>
                 </a>
-                <a href="{% url 'contact_messages' %}" class="nav-link {% if 'contact_messages' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'super_admin_contact_messages' %}" class="nav-link {% if 'super_admin_contact_message' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-inbox"></i>
                     <span>Contact Messages</span>
                 </a>
@@ -795,22 +799,26 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">Content</div>
-                <a href="{% url 'homepage_management' %}" class="nav-link">
+                <a href="{% url 'super_admin_homepage' %}" class="nav-link {% if 'super_admin_homepage' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-edit"></i>
                     <span>Homepage Content</span>
                 </a>
-                <a href="{% url 'about_management' %}" class="nav-link">
+                <a href="{% url 'super_admin_about' %}" class="nav-link {% if 'super_admin_about' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-info-circle"></i>
                     <span>About Page</span>
                 </a>
-                <a href="{% url 'contact_management' %}" class="nav-link">
+                <a href="{% url 'super_admin_contact' %}" class="nav-link {% if 'super_admin_contact' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-envelope"></i>
                     <span>Contact Page</span>
+                </a>
+                <a href="{% url 'super_admin_pricing' %}" class="nav-link {% if 'super_admin_pricing' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Pricing Page</span>
                 </a>
             </div>
 
             {% elif user.is_org_admin %}
-            <!-- ORG ADMIN Navigation -->
+            <!-- ORG ADMIN Navigation (/org-admin/) -->
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
                 <a href="{% url 'home' %}" class="nav-link">
@@ -833,14 +841,14 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">Reservations</div>
-                <a href="{% url 'staff_reservations' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_reservations' %}active{% endif %}">
+                <a href="{% url 'org_admin_reservations' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_reservations' %}active{% endif %}">
                     <i class="fas fa-calendar-check"></i>
                     <span>Manage Reservations</span>
                     {% if badge_pending_reservations > 0 %}
                         <span class="menu-badge">{{ badge_pending_reservations }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'staff_cancellations' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_cancellations' %}active{% endif %}">
+                <a href="{% url 'org_admin_cancellations' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_cancellations' %}active{% endif %}">
                     <i class="fas fa-times-circle"></i>
                     <span>Cancellations</span>
                     {% if badge_pending_cancellations > 0 %}
@@ -851,21 +859,21 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">Payments & Refunds</div>
-                <a href="{% url 'staff_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_payments' or request.resolver_match.url_name == 'verify_payment' %}active{% endif %}">
+                <a href="{% url 'org_admin_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_payments' or request.resolver_match.url_name == 'org_admin_verify_payment' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave"></i>
                     <span>Manage Payments</span>
                     {% if badge_pending_payments > 0 %}
                         <span class="menu-badge warning">{{ badge_pending_payments }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'staff_refund_processing' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_refund_processing' %}active{% endif %}">
+                <a href="{% url 'org_admin_refund_processing' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_refund_processing' %}active{% endif %}">
                     <i class="fas fa-undo-alt"></i>
                     <span>Process Refunds</span>
                     {% if badge_pending_refunds > 0 %}
                         <span class="menu-badge warning">{{ badge_pending_refunds }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'staff_refund_history' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_refund_history' %}active{% endif %}">
+                <a href="{% url 'org_admin_refund_history' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_refund_history' %}active{% endif %}">
                     <i class="fas fa-history"></i>
                     <span>Refund History</span>
                 </a>
@@ -873,15 +881,19 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">Facilities</div>
-                <a href="{% url 'admin_site_list' %}" class="nav-link {% if 'site' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'org_admin_site_list' %}" class="nav-link {% if 'org_admin_site' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-building"></i>
                     <span>Sites</span>
                 </a>
-                <a href="{% url 'admin_court_list' %}" class="nav-link {% if 'court' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'org_admin_court_list' %}" class="nav-link {% if 'org_admin_court' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>Courts</span>
                 </a>
-                <a href="{% url 'admin_equipment_list' %}" class="nav-link {% if 'equipment' in request.resolver_match.url_name %}active{% endif %}">
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Equipment</div>
+                <a href="{% url 'staff_equipment' %}" class="nav-link {% if 'staff_equipment' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-tools"></i>
                     <span>Equipment</span>
                 </a>
@@ -912,7 +924,7 @@ body.sidebar-open {
             </div>
 
             {% elif user.is_org_staff %}
-            <!-- ORG STAFF Navigation -->
+            <!-- ORG STAFF Navigation (/staff/) -->
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
                 <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
@@ -945,7 +957,7 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">Payments & Refunds</div>
-                <a href="{% url 'staff_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_payments' or request.resolver_match.url_name == 'verify_payment' %}active{% endif %}">
+                <a href="{% url 'staff_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_payments' or request.resolver_match.url_name == 'staff_verify_payment' %}active{% endif %}">
                     <i class="fas fa-money-bill-wave"></i>
                     <span>All Payments</span>
                     {% if badge_pending_payments > 0 %}
@@ -982,7 +994,7 @@ body.sidebar-open {
             </div>
 
             {% else %}
-            <!-- USER Navigation -->
+            <!-- USER Navigation (/user/) -->
             <div class="nav-section">
                 <div class="nav-section-title">Main</div>
                 <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
@@ -1210,9 +1222,11 @@ body.sidebar-open {
             {% block breadcrumb %}
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb">
-                    {% if user.is_admin %}
-                        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
-                    {% elif user.is_staff_user %}
+                    {% if user.is_super_admin %}
+                        <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+                    {% elif user.is_org_admin %}
+                        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+                    {% elif user.is_org_staff %}
                         <li class="breadcrumb-item"><a href="{% url 'staff_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
                     {% else %}
                         <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
@@ -1387,7 +1401,7 @@ body.sidebar-open {
                             <p class="text-muted mb-4">${date}</p>
                             <p class="mb-4">How was your reservation? Your feedback helps us improve!</p>
                             <div class="d-flex justify-content-center gap-3 mb-4">
-                                <a href="/ratings/submit/${reservationId}/" class="btn btn-success btn-lg px-4">
+                                <a href="/user/ratings/submit/${reservationId}/" class="btn btn-success btn-lg px-4">
                                     <i class="fas fa-star me-2"></i>Rate Now
                                 </a>
                                 <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-dismiss="modal">

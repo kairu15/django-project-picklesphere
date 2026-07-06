@@ -152,8 +152,8 @@
 {% block breadcrumb %}
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'admin_payments' %}">Payments</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'super_admin_payments' %}">Payments</a></li>
         <li class="breadcrumb-item active" aria-current="page">Verify #{{ payment.id }}</li>
     </ol>
 </nav>

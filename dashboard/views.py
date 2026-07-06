@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from accounts.models import User, UserActivity
 from accounts.decorators import admin_required, staff_or_admin_required, user_required, super_admin_required
 from courts.models import Court, Site
+from organizations.models import Organization
 
 from reservations.models import Reservation
 from payments.models import Payment
@@ -50,11 +51,11 @@ def home_view(request):
 
     homepage_text = {
         'hero_title': get_homepage_content('hero_title', 'Welcome to PickleSphere'),
-        'hero_subtitle': get_homepage_content('hero_subtitle', 'The ultimate pickleball facility and game management system. Reserve courts, join tournaments, and become part of our growing community.'),
-        'about_title': get_homepage_content('about_title', 'Experience the Best Pickleball Facility'),
-        'about_text': get_homepage_content('about_text', "Discover our state-of-the-art pickleball courts designed for players of all skill levels. Whether you're a beginner or a seasoned pro, we have everything you need to enjoy the game."),
-        'cta_title': get_homepage_content('cta_title', 'Ready to Start Playing?'),
-        'cta_text': get_homepage_content('cta_text', 'Join our community of pickleball enthusiasts today! Book your first court and experience the PickleSphere difference.'),
+        'hero_subtitle': get_homepage_content('hero_subtitle', 'The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide. Find, book, and play — all in one place.'),
+        'about_title': get_homepage_content('about_title', 'Your Pickleball Journey Starts Here'),
+        'about_text': get_homepage_content('about_text', 'PickleSphere is a comprehensive platform that connects pickleball enthusiasts with courts, organizations, and tournaments across the country. Whether you are a beginner looking to learn or a seasoned pro seeking competition, we make it easy to find, book, and play.'),
+        'cta_title': get_homepage_content('cta_title', 'Ready to Play?'),
+        'cta_text': get_homepage_content('cta_text', 'Join thousands of pickleball players. Find courts, join tournaments, and connect with organizations near you!'),
     }
 
     # Get upcoming tournaments
@@ -163,6 +164,7 @@ def home_view(request):
         'amenities': amenities,
         'years_experience': years_experience,
         'tournaments_count': tournaments_count,
+        'total_organizations': Organization.objects.filter(status='approved', is_active=True).count(),
         'homepage_text': homepage_text,
     })
 
@@ -680,7 +682,7 @@ def about_view(request):
     """About page - accessible to all users"""
     from courts.models import Court
     from accounts.models import User
-    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem, ContactInfo
+    from .models import AboutContent, ContactInfo
 
     # Get content from database with fallback defaults
     def get_content(section, default):
@@ -700,37 +702,37 @@ def about_view(request):
     content = {
         'hero_badge': get_content('hero_badge', 'Our Story'),
         'hero_title': get_content('hero_title', 'Welcome to PickleSphere'),
-        'hero_subtitle': get_content('hero_subtitle', 'The Philippines\' premier pickleball destination, where passion meets excellence'),
+        'hero_subtitle': get_content('hero_subtitle', 'The Philippines\' premier pickleball platform, connecting players with courts, organizations, and tournaments nationwide.'),
         'mission_title': get_content('mission_title', 'Our Mission'),
-        'mission_text': get_content('mission_text', 'To promote the sport of pickleball in the Philippines by providing world-class facilities, fostering a vibrant community, and making the sport accessible to players of all ages and skill levels.'),
-        'mission_features': get_content('mission_features', 'World-class facilities,Vibrant community,All skill levels,Accessible pricing').split(','),
+        'mission_text': get_content('mission_text', 'To grow the sport of pickleball by providing a centralized platform that connects players with organizations, simplifies court reservations, streamlines tournament management, and fosters a vibrant, inclusive pickleball community across the Philippines.'),
+        'mission_features': get_content('mission_features', 'Connect players to organizations,Simplify court reservations,Streamline tournaments,Build community').split(','),
         'vision_title': get_content('vision_title', 'Our Vision'),
-        'vision_text': get_content('vision_text', 'To be the leading pickleball facility in Southeast Asia, known for excellence in facilities, coaching, and community engagement, while developing the next generation of Filipino pickleball champions.'),
-        'vision_features': get_content('vision_features', 'Southeast Asia leader,Excellence in coaching,Community focused,Champion development').split(','),
-        'stats_courts': get_content('stats_courts', 'Professional Courts'),
-        'stats_members': get_content('stats_members', 'Active Members'),
-        'stats_years': get_content('stats_years', 'Years Operating'),
+        'vision_text': get_content('vision_text', 'To become the leading pickleball ecosystem in Southeast Asia, where every player can easily find a court, join a tournament, and be part of a thriving community — and every organization has the tools it needs to grow and succeed.'),
+        'vision_features': get_content('vision_features', 'Leading ecosystem,Accessible to all,Empower organizations,Grow the sport').split(','),
+        'stats_courts': get_content('stats_courts', 'Courts on Platform'),
+        'stats_members': get_content('stats_members', 'Active Players'),
+        'stats_years': get_content('stats_years', 'Years in Operation'),
         'stats_tournaments': get_content('stats_tournaments', 'Tournaments Hosted'),
-        'journey_badge': get_content('journey_badge', 'OUR JOURNEY'),
-        'journey_title': get_content('journey_title', 'The PickleSphere Story'),
-        'journey_subtitle': get_content('journey_subtitle', 'From humble beginnings to becoming a leader in pickleball'),
-        'team_badge': get_content('team_badge', 'OUR TEAM'),
-        'team_title': get_content('team_title', 'Meet the Experts'),
-        'team_subtitle': get_content('team_subtitle', 'Passionate professionals dedicated to your pickleball journey'),
-        'facilities_badge': get_content('facilities_badge', 'FACILITIES'),
-        'facilities_title': get_content('facilities_title', 'World-Class Amenities'),
-        'facilities_subtitle': get_content('facilities_subtitle', 'Everything you need for the perfect pickleball experience'),
+        'offers_badge': get_content('offers_badge', 'WHAT WE OFFER'),
+        'offers_title': get_content('offers_title', 'Platform Features'),
+        'offers_subtitle': get_content('offers_subtitle', 'Everything you need for the perfect pickleball experience'),
+        'howitworks_badge': get_content('howitworks_badge', 'HOW IT WORKS'),
+        'howitworks_title': get_content('howitworks_title', 'Getting Started is Easy'),
+        'howitworks_subtitle': get_content('howitworks_subtitle', 'Follow these simple steps to start playing'),
+        'players_badge': get_content('players_badge', 'FOR PLAYERS'),
+        'players_title': get_content('players_title', 'Benefits for Players'),
+        'players_subtitle': get_content('players_subtitle', 'Everything you need to enjoy pickleball to the fullest'),
+        'orgs_badge': get_content('orgs_badge', 'FOR ORGANIZATIONS'),
+        'orgs_title': get_content('orgs_title', 'Benefits for Organizations'),
+        'orgs_subtitle': get_content('orgs_subtitle', 'Powerful tools to manage and grow your pickleball business'),
         'why_badge': get_content('why_badge', 'WHY PICKLESPHERE'),
-        'why_title': get_content('why_title', 'Why Players Choose Us'),
-        'why_subtitle': get_content('why_subtitle', 'We provide an unmatched pickleball experience that keeps our members coming back.'),
+        'why_title': get_content('why_title', 'Why Choose Our Platform?'),
+        'why_subtitle': get_content('why_subtitle', 'We provide the best pickleball platform experience'),
         'gallery_badge': get_content('gallery_badge', 'GALLERY'),
-        'gallery_title': get_content('gallery_title', 'Explore Our Facility'),
-        'gallery_subtitle': get_content('gallery_subtitle', 'Take a virtual tour of our world-class pickleball courts'),
-        'location_badge': get_content('location_badge', 'VISIT US'),
-        'location_title': get_content('location_title', 'Come Play With Us'),
-        'location_description': get_content('location_description', 'Located in Valencia, Negros Oriental, PickleSphere is easily accessible from all parts of the province with ample parking available.'),
+        'gallery_title': get_content('gallery_title', 'Pickleball in Action'),
+        'gallery_subtitle': get_content('gallery_subtitle', 'See what is happening across our partner organizations'),
         'cta_title': get_content('cta_title', 'Join the PickleSphere Community'),
-        'cta_subtitle': get_content('cta_subtitle', 'Experience the fastest-growing sport in the Philippines. Sign up today and start your pickleball journey!'),
+        'cta_subtitle': get_content('cta_subtitle', 'Whether you are a player looking for courts or an organization wanting to grow, PickleSphere is the platform for you.'),
     }
 
     # Get dynamic stats
@@ -744,64 +746,15 @@ def about_view(request):
     # Count actual completed tournaments
     tournaments_hosted = Tournament.objects.filter(status='completed').count()
 
+    total_organizations = Organization.objects.filter(status='approved', is_active=True).count()
+
     stats = {
         'total_courts': Court.objects.filter(is_active=True).count(),
         'total_members': User.objects.filter(is_active=True).count(),
+        'total_organizations': total_organizations,
         'years_operating': years_operating,
         'tournaments_hosted': tournaments_hosted
     }
-
-    # Get milestones from database or use defaults
-    db_milestones = Milestone.objects.filter(is_active=True).order_by('display_order', 'year')
-    if db_milestones.exists():
-        milestones = db_milestones
-    else:
-        # Fallback default milestones
-        milestones = [
-            {'year': '2016', 'title': 'The Beginning', 'description': 'PickleSphere was founded with just 4 outdoor courts, bringing pickleball to the Philippines for the first time.', 'color': 'primary'},
-            {'year': '2019', 'title': 'Expansion', 'description': 'Added 6 indoor climate-controlled courts and opened our pro shop with equipment rentals.', 'color': 'success'},
-            {'year': '2023', 'title': 'Digital Transformation', 'description': 'Launched our online booking platform and mobile app for seamless court reservations.', 'color': 'warning'},
-        ]
-
-    # Get team members from database or use defaults
-    db_team = TeamMember.objects.filter(is_active=True).order_by('display_order')
-    if db_team.exists():
-        team_members = db_team
-    else:
-        # Fallback default team members
-        team_members = [
-            {'name': 'John Santos', 'role': 'Founder & Head Coach', 'bio': 'Former national player with 15+ years of coaching experience. Certified IPTPA instructor.', 'color': 'primary', 'linkedin_url': '#', 'twitter_url': '#'},
-            {'name': 'Maria Garcia', 'role': 'Tournament Director', 'bio': 'Expert in organizing competitive events. Former tournament player and certified referee.', 'color': 'success', 'linkedin_url': '#', 'twitter_url': '#'},
-            {'name': 'David Chen', 'role': 'Facility Manager', 'bio': 'Ensures our courts are always in perfect condition. Expert in court maintenance and operations.', 'color': 'warning', 'linkedin_url': '#', 'twitter_url': '#'},
-        ]
-
-    # Get facilities from database or use defaults
-    db_facilities = Facility.objects.filter(is_active=True).order_by('display_order')
-    if db_facilities.exists():
-        facilities = db_facilities
-    else:
-        # Fallback default facilities
-        facilities = [
-            {'icon': 'fa-table-tennis', 'title': 'Premium Courts', 'description': '12 professional-grade courts with cushioned surfaces and excellent lighting.', 'color': 'primary'},
-            {'icon': 'fa-wind', 'title': 'Climate Control', 'description': '6 indoor courts with full air conditioning and climate control.', 'color': 'success'},
-            {'icon': 'fa-dumbbell', 'title': 'Pro Shop', 'description': 'Equipment sales, rentals, and professional stringing services.', 'color': 'warning'},
-            {'icon': 'fa-shower', 'title': 'Locker Rooms', 'description': 'Clean, modern locker rooms with showers and secure storage.', 'color': 'info'},
-            {'icon': 'fa-coffee', 'title': 'Cafe & Lounge', 'description': 'Relax and refuel with healthy snacks and beverages.', 'color': 'danger'},
-            {'icon': 'fa-car', 'title': 'Ample Parking', 'description': 'Free, secure parking for over 100 vehicles.', 'color': 'purple'},
-        ]
-
-    # Get why choose items from database or use defaults
-    db_why_items = WhyChooseItem.objects.filter(is_active=True).order_by('display_order')
-    if db_why_items.exists():
-        why_items = db_why_items
-    else:
-        # Fallback default why choose items
-        why_items = [
-            {'icon': 'fa-medal', 'title': 'Premium Facilities', 'description': 'Professional courts with top-quality surfaces.', 'color': 'primary'},
-            {'icon': 'fa-users', 'title': 'Vibrant Community', 'description': 'Friendly players and social events.', 'color': 'success'},
-            {'icon': 'fa-chalkboard-teacher', 'title': 'Expert Coaching', 'description': 'Certified coaches for all skill levels.', 'color': 'warning'},
-            {'icon': 'fa-mobile-alt', 'title': 'Easy Booking', 'description': '24/7 online court reservations.', 'color': 'info'},
-        ]
 
     # Get gallery images from database
     from .models import AboutGalleryImage
@@ -816,12 +769,9 @@ def about_view(request):
         'content': content,
         'stats': stats,
         'years_experience': years_experience,
-        'milestones': milestones,
-        'team_members': team_members,
-        'facilities': facilities,
-        'why_items': why_items,
         'gallery_images': gallery_images,
         'contact_info': contact_info,
+        'total_organizations': total_organizations,
     })
 
 
@@ -841,29 +791,25 @@ def contact_view(request):
         'hero_title': get_content('hero_title', 'Get in Touch'),
         'hero_subtitle': get_content('hero_subtitle', "We'd love to hear from you. Reach out for any questions, inquiries, or just to say hello!"),
         'phone_label': get_content('phone_label', 'Phone'),
-        'phone_hours': get_content('phone_hours', 'Mon-Sat, 6AM - 10PM'),
-        'email_label': get_content('email_label', 'Email'),
+        'phone_hours': get_content('phone_hours', 'Mon-Sat, 9AM - 6PM'),
+        'email_label': get_content('email_label', 'Email Us'),
         'email_response': get_content('email_response', 'We reply within 24 hours'),
-        'visit_label': get_content('visit_label', 'Visit Us'),
-        'visit_city': get_content('visit_city', 'Metro Manila, Philippines'),
+        'visit_label': get_content('visit_label', 'Our Office'),
+        'visit_city': get_content('visit_city', ''),
         'form_title': get_content('form_title', 'Send us a Message'),
         'form_name_label': get_content('form_name_label', 'Your Name'),
         'form_email_label': get_content('form_email_label', 'Email Address'),
         'form_subject_label': get_content('form_subject_label', 'Subject'),
         'form_message_label': get_content('form_message_label', 'Message'),
         'form_submit_text': get_content('form_submit_text', 'Send Message'),
-        'hours_title': get_content('hours_title', 'Business Hours'),
+        'hours_title': get_content('hours_title', 'Platform Support Hours'),
         'quick_links_title': get_content('quick_links_title', 'Quick Links'),
         'social_title': get_content('social_title', 'Follow Us'),
-        'map_badge': get_content('map_badge', 'FIND US'),
-        'map_title': get_content('map_title', 'Our Location'),
-        'map_subtitle': get_content('map_subtitle', 'Visit us and experience pickleball excellence'),
-        'getting_here_title': get_content('getting_here_title', 'Getting Here'),
         'faq_badge': get_content('faq_badge', 'FAQ'),
         'faq_title': get_content('faq_title', 'Frequently Asked Questions'),
         'faq_subtitle': get_content('faq_subtitle', 'Quick answers to common questions'),
         'cta_title': get_content('cta_title', 'Ready to Start Playing?'),
-        'cta_subtitle': get_content('cta_subtitle', "Don't wait! Book your court today and join our growing pickleball community."),
+        'cta_subtitle': get_content('cta_subtitle', 'Join thousands of players enjoying pickleball through our platform. Find courts, join tournaments, and connect with organizations near you!'),
     }
 
     if request.method == 'POST':
@@ -988,17 +934,17 @@ def populate_homepage_content(request):
     """Create or reactivate the default homepage text content."""
 
     if request.method != 'POST':
-        return redirect('homepage_management')
+        return redirect('super_admin_homepage')
 
     from .models import HomePageContent
 
     default_content = {
         'hero_title': 'Welcome to PickleSphere',
-        'hero_subtitle': 'The ultimate pickleball facility and game management system. Reserve courts, join tournaments, and become part of our growing community.',
-        'about_title': 'Experience the Best Pickleball Facility',
-        'about_text': "Discover our state-of-the-art pickleball courts designed for players of all skill levels. Whether you're a beginner or a seasoned pro, we have everything you need to enjoy the game.",
-        'cta_title': 'Ready to Start Playing?',
-        'cta_text': 'Join our community of pickleball enthusiasts today! Book your first court and experience the PickleSphere difference.',
+        'hero_subtitle': 'The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide. Find, book, and play — all in one place.',
+        'about_title': 'Your Pickleball Journey Starts Here',
+        'about_text': 'PickleSphere is a comprehensive platform that connects pickleball enthusiasts with courts, organizations, and tournaments across the country. Whether you are a beginner looking to learn or a seasoned pro seeking competition, we make it easy to find, book, and play.',
+        'cta_title': 'Ready to Play?',
+        'cta_text': 'Join thousands of pickleball players. Find courts, join tournaments, and connect with organizations near you!',
     }
 
     created_count = 0
@@ -1021,7 +967,7 @@ def populate_homepage_content(request):
     else:
         messages.success(request, 'Homepage text content refreshed with default values.')
 
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 @login_required
@@ -1041,7 +987,7 @@ def toggle_featured_rating(request, rating_id):
     else:
         messages.success(request, f'Rating from {rating.user.username} has been removed from featured.')
     
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 @login_required
@@ -1086,7 +1032,7 @@ def homepage_edit_testimonial(request, testimonial_id=None):
             )
             messages.success(request, 'Testimonial created and approved successfully!')
         
-        return redirect('homepage_management')
+        return redirect('super_admin_homepage')
     
     context = {
         'testimonial': testimonial,
@@ -1129,7 +1075,7 @@ def homepage_edit_amenity(request, amenity_id=None):
             )
             messages.success(request, 'Amenity created successfully!')
         
-        return redirect('homepage_management')
+        return redirect('super_admin_homepage')
     
     context = {
         'amenity': amenity,
@@ -1180,7 +1126,7 @@ def homepage_edit_gallery(request, gallery_id=None):
                 }
                 return render(request, 'admin/homepage/homepage_edit_gallery.html', context)
         
-        return redirect('homepage_management')
+        return redirect('super_admin_homepage')
     
     context = {
         'gallery': gallery,
@@ -1198,7 +1144,7 @@ def homepage_delete_testimonial(request, testimonial_id):
     testimonial = get_object_or_404(Testimonial, id=testimonial_id)
     testimonial.delete()
     messages.success(request, 'Testimonial deleted successfully!')
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 @login_required
@@ -1210,7 +1156,7 @@ def homepage_delete_amenity(request, amenity_id):
     amenity = get_object_or_404(Amenity, id=amenity_id)
     amenity.delete()
     messages.success(request, 'Amenity deleted successfully!')
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 @login_required
@@ -1222,7 +1168,7 @@ def homepage_delete_gallery(request, gallery_id):
     gallery = get_object_or_404(GalleryImage, id=gallery_id)
     gallery.delete()
     messages.success(request, 'Gallery image deleted successfully!')
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 def privacy_policy_view(request):
@@ -1407,7 +1353,7 @@ def pricing_edit_content(request, content_id=None):
             )
             messages.success(request, 'Content created successfully!')
         
-        return redirect('pricing_management')
+        return redirect('super_admin_pricing')
     
     context = {
         'content_item': content_item,
@@ -1426,7 +1372,7 @@ def pricing_delete_content(request, content_id):
     content = get_object_or_404(PricingContent, id=content_id)
     content.delete()
     messages.success(request, 'Content deleted successfully!')
-    return redirect('pricing_management')
+    return redirect('super_admin_pricing')
 
 
 @login_required
@@ -1480,7 +1426,7 @@ def pricing_edit_tier(request, tier_id=None):
             )
             messages.success(request, 'Pricing tier created successfully!')
         
-        return redirect('pricing_management')
+        return redirect('super_admin_pricing')
     
     context = {
         'tier': tier,
@@ -1498,7 +1444,7 @@ def pricing_delete_tier(request, tier_id):
     tier = get_object_or_404(PricingTier, id=tier_id)
     tier.delete()
     messages.success(request, 'Pricing tier deleted successfully!')
-    return redirect('pricing_management')
+    return redirect('super_admin_pricing')
 
 
 @login_required
@@ -1534,7 +1480,7 @@ def pricing_edit_faq(request, faq_id=None):
             )
             messages.success(request, 'FAQ created successfully!')
         
-        return redirect('pricing_management')
+        return redirect('super_admin_pricing')
     
     context = {
         'faq': faq,
@@ -1552,7 +1498,7 @@ def pricing_delete_faq(request, faq_id):
     faq = get_object_or_404(PricingFAQ, id=faq_id)
     faq.delete()
     messages.success(request, 'FAQ deleted successfully!')
-    return redirect('pricing_management')
+    return redirect('super_admin_pricing')
 
 
 # ============================================================================
@@ -1615,7 +1561,7 @@ def about_edit_content(request, content_id=None):
             )
             messages.success(request, 'Content created successfully!')
         
-        return redirect('about_management')
+        return redirect('super_admin_about')
     
     context = {
         'content_item': content_item,
@@ -1634,7 +1580,7 @@ def about_delete_content(request, content_id):
     content = get_object_or_404(AboutContent, id=content_id)
     content.delete()
     messages.success(request, 'Content deleted successfully!')
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 @login_required
@@ -1676,7 +1622,7 @@ def about_edit_milestone(request, milestone_id=None):
             )
             messages.success(request, 'Milestone created successfully!')
         
-        return redirect('about_management')
+        return redirect('super_admin_about')
     
     context = {
         'milestone': milestone,
@@ -1695,7 +1641,7 @@ def about_delete_milestone(request, milestone_id):
     milestone = get_object_or_404(Milestone, id=milestone_id)
     milestone.delete()
     messages.success(request, 'Milestone deleted successfully!')
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 @login_required
@@ -1746,7 +1692,7 @@ def about_edit_team_member(request, member_id=None):
             )
             messages.success(request, 'Team member created successfully!')
         
-        return redirect('about_management')
+        return redirect('super_admin_about')
     
     context = {
         'member': member,
@@ -1765,7 +1711,7 @@ def about_delete_team_member(request, member_id):
     member = get_object_or_404(TeamMember, id=member_id)
     member.delete()
     messages.success(request, 'Team member deleted successfully!')
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 @login_required
@@ -1807,7 +1753,7 @@ def about_edit_facility(request, facility_id=None):
             )
             messages.success(request, 'Facility created successfully!')
         
-        return redirect('about_management')
+        return redirect('super_admin_about')
     
     context = {
         'facility': facility,
@@ -1826,7 +1772,7 @@ def about_delete_facility(request, facility_id):
     facility = get_object_or_404(Facility, id=facility_id)
     facility.delete()
     messages.success(request, 'Facility deleted successfully!')
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 @login_required
@@ -1868,7 +1814,7 @@ def about_edit_why_item(request, item_id=None):
             )
             messages.success(request, 'Item created successfully!')
         
-        return redirect('about_management')
+        return redirect('super_admin_about')
     
     context = {
         'item': item,
@@ -1887,7 +1833,7 @@ def about_delete_why_item(request, item_id):
     item = get_object_or_404(WhyChooseItem, id=item_id)
     item.delete()
     messages.success(request, 'Item deleted successfully!')
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 @login_required
@@ -1914,9 +1860,9 @@ def about_add_gallery_image(request):
         else:
             messages.error(request, 'Please select an image to upload.')
         
-        return redirect('about_management')
+        return redirect('super_admin_about')
     
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 @login_required
@@ -1928,7 +1874,7 @@ def about_delete_gallery_image(request, image_id):
     image = get_object_or_404(AboutGalleryImage, id=image_id)
     image.delete()
     messages.success(request, 'Gallery image deleted successfully!')
-    return redirect('about_management')
+    return redirect('super_admin_about')
 
 
 # ============================================================================
@@ -1989,7 +1935,7 @@ def contact_edit_content(request, content_id=None):
             )
             messages.success(request, 'Content created successfully!')
         
-        return redirect('contact_management')
+        return redirect('super_admin_contact')
     
     context = {
         'content_item': content_item,
@@ -2008,7 +1954,7 @@ def contact_delete_content(request, content_id):
     content = get_object_or_404(ContactContent, id=content_id)
     content.delete()
     messages.success(request, 'Content deleted successfully!')
-    return redirect('contact_management')
+    return redirect('super_admin_contact')
 
 
 @login_required
@@ -2045,7 +1991,7 @@ def contact_edit_info(request):
             )
             messages.success(request, 'Contact information created successfully!')
         
-        return redirect('contact_management')
+        return redirect('super_admin_contact')
     
     context = {
         'contact_info': contact_info,
@@ -2090,7 +2036,7 @@ def contact_edit_business_hour(request, hour_id=None):
             )
             messages.success(request, 'Business hour created successfully!')
         
-        return redirect('contact_management')
+        return redirect('super_admin_contact')
     
     context = {
         'hour': hour,
@@ -2109,7 +2055,7 @@ def contact_delete_business_hour(request, hour_id):
     hour = get_object_or_404(BusinessHour, id=hour_id)
     hour.delete()
     messages.success(request, 'Business hour deleted successfully!')
-    return redirect('contact_management')
+    return redirect('super_admin_contact')
 
 
 @login_required
@@ -2148,7 +2094,7 @@ def contact_edit_faq(request, faq_id=None):
             )
             messages.success(request, 'FAQ created successfully!')
         
-        return redirect('contact_management')
+        return redirect('super_admin_contact')
     
     context = {
         'faq': faq,
@@ -2167,7 +2113,7 @@ def contact_delete_faq(request, faq_id):
     faq = get_object_or_404(ContactFAQ, id=faq_id)
     faq.delete()
     messages.success(request, 'FAQ deleted successfully!')
-    return redirect('contact_management')
+    return redirect('super_admin_contact')
 
 
 @login_required
@@ -2203,7 +2149,7 @@ def contact_edit_social_link(request, link_id=None):
             )
             messages.success(request, 'Social link created successfully!')
         
-        return redirect('contact_management')
+        return redirect('super_admin_contact')
     
     context = {
         'link': link,
@@ -2222,7 +2168,7 @@ def contact_delete_social_link(request, link_id):
     link = get_object_or_404(SocialLink, id=link_id)
     link.delete()
     messages.success(request, 'Social link deleted successfully!')
-    return redirect('contact_management')
+    return redirect('super_admin_contact')
 
 
 @login_required
@@ -2313,28 +2259,28 @@ def check_pending_rating_view(request):
 def submit_testimonial_view(request):
     """DEPRECATED: Use submit_rating_view instead"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('dashboard')
+    return redirect('user_dashboard')
 
 
 @login_required
 def my_testimonials_view(request):
     """DEPRECATED: Testimonials replaced by rating system"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('dashboard')
+    return redirect('user_dashboard')
 
 
 @login_required
 def delete_my_testimonial_view(request, testimonial_id):
     """DEPRECATED: Testimonials replaced by rating system"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('dashboard')
+    return redirect('user_dashboard')
 
 
 @login_required
 def admin_approve_testimonial_view(request, testimonial_id):
     """DEPRECATED: Testimonials replaced by rating system"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 @login_required
@@ -2413,13 +2359,13 @@ def contact_message_detail_view(request, message_id):
             except Exception:
                 messages.success(request, 'Reply saved successfully!')
             
-            return redirect('contact_messages')
+            return redirect('super_admin_contact_messages')
         
         elif action == 'close':
             message.status = 'closed'
             message.save()
             messages.success(request, 'Message closed.')
-            return redirect('contact_messages')
+            return redirect('super_admin_contact_messages')
     
     return render(request, 'admin/contact/contact_message_detail.html', {
         'message': message,
@@ -2458,7 +2404,7 @@ def user_messages_view(request):
 def admin_reject_testimonial_view(request, testimonial_id):
     """DEPRECATED: Testimonials replaced by rating system"""
     messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('homepage_management')
+    return redirect('super_admin_homepage')
 
 
 @login_required

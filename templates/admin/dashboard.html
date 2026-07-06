@@ -1,89 +1,46 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}Admin Dashboard{% endblock %}
-{% block page_title %}Dashboard Overview{% endblock %}
+{% block title %}System Dashboard (Legacy){% endblock %}
+{% block page_title %}System Overview{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Legacy Dashboard</li>
+    </ol>
+</nav>
+{% endblock %}
 
 {% block content %}
-<!-- Multi-Tenant Architecture Warning Banner -->
-<div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: var(--border-radius-lg); background: linear-gradient(135deg, #D1ECF1 0%, #BEE5EB 100%);">
-    <div class="d-flex align-items-start gap-3">
-        <div class="flex-shrink-0">
-            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(23, 162, 184, 0.2);">
-                <i class="fas fa-building fa-lg text-info"></i>
-            </div>
-        </div>
-        <div class="flex-grow-1">
-            <h5 class="fw-bold mb-2" style="color: #0C5460;">
-                <i class="fas fa-arrow-right me-2"></i>Multi-Tenant Architecture Now Active
-            </h5>
-            <p class="mb-2" style="color: #0C5460;">
-                PickleSphere has been upgraded to a multi-tenant organization-based system. 
-                Organizations now register and get approved before accessing the platform. 
-                Each organization has its own dedicated admin, courts, tournaments, and equipment.
-            </p>
-            <div class="d-flex flex-wrap gap-2 mt-3">
-                <a href="{% url 'super_admin_dashboard' %}" class="btn btn-info text-white btn-sm px-3">
-                    <i class="fas fa-crown me-1"></i>Go to Super Admin Dashboard
-                </a>
-                <a href="{% url 'super_admin_organization_list' %}" class="btn btn-outline-info btn-sm px-3">
-                    <i class="fas fa-building me-1"></i>Manage Organizations
-                </a>
-                <a href="{% url 'organization_register' %}" class="btn btn-outline-info btn-sm px-3">
-                    <i class="fas fa-plus me-1"></i>Register New Organization
-                </a>
-            </div>
-            <small class="d-block mt-2" style="color: #0C5460; opacity: 0.8;">
-                <i class="fas fa-info-circle me-1"></i>
-                This legacy dashboard is being replaced by the Super Admin Dashboard above.
-                Existing data has been migrated under the default "PickleSphere HQ" organization.
-            </small>
-        </div>
-        <button type="button" class="btn-close flex-shrink-0" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-</div>
-
-<!-- Quick Actions Row -->
-<div class="row g-3 mb-4">
-    <div class="col-12">
-        <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'admin_reservation_list' %}" class="btn btn-primary" style="border-radius: 10px;">
-                <i class="fas fa-calendar-check me-2"></i>Reservations
-            </a>
-            <a href="{% url 'admin_payments' %}" class="btn btn-success" style="border-radius: 10px;">
-                <i class="fas fa-money-bill-wave me-2"></i>Payments
-            </a>
-            <a href="{% url 'user_list' %}" class="btn btn-info" style="border-radius: 10px;">
-                <i class="fas fa-users me-2"></i>Users
-            </a>
-            <a href="{% url 'revenue_report' %}" class="btn btn-warning" style="border-radius: 10px;">
-                <i class="fas fa-chart-bar me-2"></i>Revenue Report
-            </a>
-            <a href="{% url 'dashboard_export' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
-                <i class="fas fa-download me-2"></i>Export CSV
-            </a>
-        </div>
+<!-- Page Description -->
+<div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center gap-3" style="border-radius: var(--border-radius-lg);">
+    <i class="fas fa-info-circle fa-lg text-info"></i>
+    <div>
+        <strong>Legacy Dashboard</strong> — This dashboard provides a system-wide analytics overview. For full management features, use the
+        <a href="{% url 'super_admin_dashboard' %}" class="alert-link">Super Admin Dashboard</a>.
     </div>
 </div>
 
 <!-- Key Metrics Row -->
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.1s;">
+        <div class="admin-card h-100" style="animation-delay: 0.1s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-primary text-white me-3">
                     <i class="fas fa-users fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">{{ metrics.total_users }}</div>
-                    <div class="stats-label text-muted">Total Users</div>
-                    <small class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ metrics.active_users }} active</small>
+                    <div class="stats-label text-muted">Total Registered Users</div>
+                    <small class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ metrics.active_users }} active accounts</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.2s;">
+        <div class="admin-card h-100" style="animation-delay: 0.2s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-success text-white me-3">
                     <i class="fas fa-calendar-check fa-lg"></i>
@@ -91,13 +48,13 @@
                 <div>
                     <div class="stats-value">{{ metrics.total_reservations }}</div>
                     <div class="stats-label text-muted">Total Reservations</div>
-                    <small class="text-info"><i class="fas fa-calendar-day me-1"></i>{{ metrics.today_reservations }} today</small>
+                    <small class="text-info"><i class="fas fa-calendar-day me-1"></i>{{ metrics.today_reservations }} booked today</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.3s;">
+        <div class="admin-card h-100" style="animation-delay: 0.3s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-warning text-white me-3">
                     <i class="fas fa-map-marker-alt fa-lg"></i>
@@ -105,38 +62,38 @@
                 <div>
                     <div class="stats-value">{{ metrics.total_courts }}</div>
                     <div class="stats-label text-muted">Active Courts</div>
-                    <small class="text-muted"><i class="fas fa-check me-1"></i>All operational</small>
+                    <small class="text-muted"><i class="fas fa-check-circle me-1"></i>All operational</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.4s;">
+        <div class="admin-card h-100" style="animation-delay: 0.4s;">
             <div class="card-body p-4 d-flex align-items-center">
-                <div class="stats-icon bg-gradient-primary text-white me-3">
+                <div class="stats-icon bg-gradient-danger text-white me-3">
                     <i class="fas fa-money-bill-wave fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">₱{{ revenue_stats.total_revenue|floatformat:0 }}</div>
-                    <div class="stats-label text-muted">Total Revenue</div>
-                    <small class="text-success"><i class="fas fa-calendar-day me-1"></i>₱{{ revenue_stats.today_revenue|floatformat:0 }} today</small>
+                    <div class="stats-label text-muted">Total Revenue Collected</div>
+                    <small class="text-success"><i class="fas fa-calendar-day me-1"></i>₱{{ revenue_stats.today_revenue|floatformat:0 }} earned today</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Revenue Growth + Month Comparison -->
+<!-- Secondary Metrics Row -->
 <div class="row g-4 mb-4">
-    <div class="col-xl-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.5s;">
+    <div class="col-xl-3 col-md-6">
+        <div class="admin-card h-100" style="animation-delay: 0.5s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-success text-white me-3">
                     <i class="fas fa-chart-line fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">₱{{ this_month_revenue|floatformat:0 }}</div>
-                    <div class="stats-label text-muted">This Month Revenue</div>
+                    <div class="stats-label text-muted">Revenue This Month</div>
                     <small class="{% if revenue_growth > 0 %}text-success{% elif revenue_growth < 0 %}text-danger{% else %}text-muted{% endif %}">
                         <i class="fas fa-{% if revenue_growth > 0 %}arrow-up{% elif revenue_growth < 0 %}arrow-down{% else %}minus{% endif %} me-1"></i>
                         {{ revenue_growth }}% vs last month (₱{{ last_month_revenue|floatformat:0 }})
@@ -146,29 +103,77 @@
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.6s;">
+        <div class="admin-card h-100" style="animation-delay: 0.6s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-warning text-white me-3">
                     <i class="fas fa-clock fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">{{ metrics.pending_reservations }}</div>
-                    <div class="stats-label text-muted">Pending Approval</div>
-                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting action</small>
+                    <div class="stats-label text-muted">Reservations Pending Approval</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting confirmation</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="card stats-card h-100" style="animation-delay: 0.7s;">
+        <div class="admin-card h-100" style="animation-delay: 0.7s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-info text-white me-3">
                     <i class="fas fa-tools fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">{{ equipment_utilization.utilization_rate }}%</div>
-                    <div class="stats-label text-muted">Equipment Utilization</div>
-                    <small class="text-info"><i class="fas fa-boxes me-1"></i>{{ equipment_utilization.in_use }}/{{ equipment_utilization.total_capacity }} in use</small>
+                    <div class="stats-label text-muted">Equipment Utilization Rate</div>
+                    <small class="text-info"><i class="fas fa-boxes me-1"></i>{{ equipment_utilization.in_use }}/{{ equipment_utilization.total_capacity }} items in use</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="admin-card h-100" style="animation-delay: 0.8s;">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-check-double fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.confirmed_reservations }}</div>
+                    <div class="stats-label text-muted">Confirmed Reservations</div>
+                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>All set</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-bolt text-warning"></i>
+                    Quick Actions
+                </h5>
+                <span class="badge bg-light text-dark">{{ metrics.total_reservations }} total bookings</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'super_admin_reservation_list' %}" class="btn btn-primary">
+                        <i class="fas fa-calendar-check me-2"></i>Reservations
+                    </a>
+                    <a href="{% url 'super_admin_payments' %}" class="btn btn-success">
+                        <i class="fas fa-money-bill-wave me-2"></i>Payments
+                    </a>
+                    <a href="{% url 'super_admin_user_list' %}" class="btn btn-info text-white">
+                        <i class="fas fa-users me-2"></i>Users
+                    </a>
+                    <a href="{% url 'super_admin_revenue_report' %}" class="btn btn-warning text-dark">
+                        <i class="fas fa-chart-bar me-2"></i>Revenue Report
+                    </a>
+                    <a href="{% url 'super_admin_organization_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-building me-2"></i>Organizations
+                    </a>
                 </div>
             </div>
         </div>
@@ -182,10 +187,15 @@
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
                     <i class="fas fa-chart-line text-primary"></i>
-                    User Registrations (6 Months)
+                    User Registration Trend
                 </h5>
+                <span class="badge bg-primary">6-month view</span>
             </div>
             <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Monthly new user sign-ups over the past 6 months. Use this to track growth and user acquisition trends.
+                </p>
                 <canvas id="userRegistrationChart" height="140"></canvas>
             </div>
         </div>
@@ -195,10 +205,15 @@
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
                     <i class="fas fa-chart-area text-success"></i>
-                    Revenue Trend (14 Days)
+                    Revenue & Booking Trend
                 </h5>
+                <span class="badge bg-success">14-day view</span>
             </div>
             <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Daily revenue (bars) and booking count (line) over the last 14 days. Monitor daily performance at a glance.
+                </p>
                 <canvas id="revenueTrendChart" height="140"></canvas>
             </div>
         </div>
@@ -212,11 +227,15 @@
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
                     <i class="fas fa-clock text-warning"></i>
-                    Peak Hours Distribution (Last 30 Days)
+                    Peak Booking Hours
                 </h5>
-                <span class="badge bg-primary">{{ peak_hours_counts|length }} hours</span>
+                <span class="badge bg-primary">{{ peak_hours_counts|length }} hourly slots</span>
             </div>
             <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Hourly booking distribution over the last 30 days. The highlighted bar shows the busiest hour. Use this to optimize staffing and court availability.
+                </p>
                 <canvas id="peakHoursChart" height="140"></canvas>
             </div>
         </div>
@@ -231,6 +250,10 @@
                 <span class="badge bg-info">{{ equipment_utilization.total_items }} items</span>
             </div>
             <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Current equipment usage breakdown showing availability and most rented items.
+                </p>
                 <!-- Utilization Gauge -->
                 <div class="text-center mb-3">
                     <div style="position: relative; display: inline-block;">
@@ -244,31 +267,33 @@
                 <!-- Quick Stats -->
                 <div class="row g-2 text-center">
                     <div class="col-4">
-                        <div class="p-2 bg-light rounded">
-                            <div class="fw-bold">{{ equipment_utilization.total_capacity }}</div>
-                            <small class="text-muted">Total</small>
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="fw-bold fs-5">{{ equipment_utilization.total_capacity }}</div>
+                            <small class="text-muted">Total Capacity</small>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-2 bg-light rounded">
-                            <div class="fw-bold text-success">{{ equipment_utilization.total_available }}</div>
-                            <small class="text-muted">Available</small>
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="fw-bold fs-5 text-success">{{ equipment_utilization.total_available }}</div>
+                            <small class="text-muted">Available Now</small>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-2 bg-light rounded">
-                            <div class="fw-bold text-warning">{{ equipment_utilization.in_use }}</div>
-                            <small class="text-muted">In Use</small>
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="fw-bold fs-5 text-warning">{{ equipment_utilization.in_use }}</div>
+                            <small class="text-muted">Currently In Use</small>
                         </div>
                     </div>
                 </div>
                 {% if equipment_utilization.most_rented %}
                 <hr>
-                <h6 class="fw-bold small text-muted text-uppercase mb-2">Most Rented Equipment</h6>
+                <h6 class="fw-bold small text-muted text-uppercase mb-2">
+                    <i class="fas fa-trophy me-1"></i>Most Rented Equipment
+                </h6>
                 <div style="max-height: 120px; overflow-y: auto;">
                     {% for item in equipment_utilization.most_rented %}
-                    <div class="d-flex justify-content-between align-items-center py-1">
-                        <span><small>{{ item.equipment__name }}</small></span>
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                        <span class="small">{{ item.equipment__name }}</span>
                         <span class="badge bg-light text-dark border">{{ item.total_rented }} rentals</span>
                     </div>
                     {% endfor %}
@@ -279,7 +304,15 @@
     </div>
 </div>
 
-<!-- Row 3: Revenue Summary + Court Usage -->
+<style>
+.share-col { width: 35%; }
+@media (max-width: 767.98px) {
+    .share-col { width: 100% !important; display: block !important; }
+    .share-col .progress { margin-top: 4px; }
+}
+</style>
+
+<!-- Revenue & Court Usage Row -->
 <div class="row g-4 mb-4">
     <div class="col-xl-4">
         <div class="admin-card h-100" style="animation-delay: 0.9s;">
@@ -290,25 +323,29 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Total Revenue</span>
-                    <span class="fw-bold">₱{{ revenue_stats.total_revenue|floatformat:0 }}</span>
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    A quick snapshot of revenue performance across different time periods.
+                </p>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fas fa-infinity me-2 text-primary"></i>Total Revenue</span>
+                    <span class="fw-bold fs-5">₱{{ revenue_stats.total_revenue|floatformat:0 }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">This Month</span>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fas fa-calendar-alt me-2 text-success"></i>This Month</span>
                     <span class="fw-bold text-success">₱{{ revenue_stats.month_revenue|floatformat:0 }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Today</span>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted"><i class="fas fa-calendar-day me-2 text-info"></i>Today</span>
                     <span class="fw-bold text-info">₱{{ revenue_stats.today_revenue|floatformat:0 }}</span>
                 </div>
                 <hr>
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted">Confirmed</span>
+                <div class="d-flex justify-content-between align-items-center py-2">
+                    <span class="text-muted"><i class="fas fa-check-circle me-2 text-success"></i>Confirmed</span>
                     <span class="fw-bold text-success">{{ metrics.confirmed_reservations }}</span>
                 </div>
-                <div class="d-flex justify-content-between mt-2">
-                    <span class="text-muted">Pending</span>
+                <div class="d-flex justify-content-between align-items-center py-2">
+                    <span class="text-muted"><i class="fas fa-clock me-2 text-warning"></i>Pending</span>
                     <span class="fw-bold text-warning">{{ metrics.pending_reservations }}</span>
                 </div>
             </div>
@@ -324,27 +361,31 @@
                 <span class="badge bg-primary">{{ court_usage|length }} courts</span>
             </div>
             <div class="card-body p-0">
+                <p class="text-muted small mb-0 px-4 pt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Courts ranked by total reservation count. The progress bar shows each court's share of total bookings.
+                </p>
                 {% if court_usage %}
                 <div class="admin-table-container">
                     <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th>Court</th>
-                                <th>Total Reservations</th>
-                                <th>Utilization</th>
+                                <th data-label="Court Name">Court</th>
+                                <th data-label="Reservations">Total Reservations</th>
+                                <th data-label="Share">Share of Bookings</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for court in court_usage %}
                             <tr>
-                                <td class="fw-semibold">
+                                <td data-label="Court" class="fw-semibold">
                                     <i class="fas fa-map-marker-alt text-primary me-2"></i>
                                     {{ court.court__name }}
                                 </td>
-                                <td>
+                                <td data-label="Reservations">
                                     <span class="badge bg-info">{{ court.total }}</span>
                                 </td>
-                                <td style="width: 40%;">
+                                <td data-label="Share" class="share-col">
                                     <div class="progress" style="height: 8px; border-radius: 4px;">
                                         <div class="progress-bar bg-primary court-utilization-bar" role="progressbar"
                                              data-court-total="{{ court.total }}"
@@ -361,8 +402,8 @@
                     <div class="empty-state-icon">
                         <i class="fas fa-chart-bar fa-2x text-muted"></i>
                     </div>
-                    <h5 class="empty-state-title">No usage data available</h5>
-                    <p class="empty-state-text">Court usage statistics will appear here.</p>
+                    <h5 class="empty-state-title">No court usage data yet</h5>
+                    <p class="empty-state-text">Court usage statistics will appear here once reservations are made.</p>
                 </div>
                 {% endif %}
             </div>
@@ -380,28 +421,32 @@
                     <i class="fas fa-calendar-alt text-primary"></i>
                     Recent Reservations
                 </h5>
-                <a href="{% url 'admin_reservation_list' %}" class="btn btn-sm btn-outline-primary">
+                <a href="{% url 'super_admin_reservation_list' %}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i>View All
                 </a>
             </div>
             <div class="card-body p-0">
+                <p class="text-muted small mb-0 px-4 pt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    The 10 most recent reservations across all organizations.
+                </p>
                 {% if recent_reservations %}
                 <div class="admin-table-container">
                     <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>User</th>
-                                <th>Court</th>
-                                <th>Date</th>
-                                <th>Status</th>
+                                <th data-label="ID">ID</th>
+                                <th data-label="User">User</th>
+                                <th data-label="Court">Court</th>
+                                <th data-label="Date">Date</th>
+                                <th data-label="Status">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for reservation in recent_reservations %}
                             <tr>
-                                <td class="fw-semibold"><span class="badge bg-light text-dark">#{{ reservation.id }}</span></td>
-                                <td>
+                                <td data-label="ID"><span class="badge bg-light text-dark">#{{ reservation.id }}</span></td>
+                                <td data-label="User">
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
                                             {{ reservation.user.username|first|upper }}
@@ -409,9 +454,9 @@
                                         <span>{{ reservation.user.username }}</span>
                                     </div>
                                 </td>
-                                <td>{{ reservation.court.name }}</td>
-                                <td><small>{{ reservation.date|date:"M d, Y" }}</small></td>
-                                <td>
+                                <td data-label="Court">{{ reservation.court.name }}</td>
+                                <td data-label="Date"><small>{{ reservation.date|date:"M d, Y" }}</small></td>
+                                <td data-label="Status">
                                     <span class="status-badge {{ reservation.status }}">
                                         {% if reservation.status == 'confirmed' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
                                         {{ reservation.get_status_display }}
@@ -428,7 +473,7 @@
                         <i class="fas fa-calendar-alt fa-2x text-muted"></i>
                     </div>
                     <h5 class="empty-state-title">No reservations found</h5>
-                    <p class="empty-state-text">New reservations will appear here.</p>
+                    <p class="empty-state-text">New reservations will appear here once users start booking courts.</p>
                 </div>
                 {% endif %}
             </div>
@@ -443,28 +488,32 @@
                     <i class="fas fa-credit-card text-primary"></i>
                     Recent Payments
                 </h5>
-                <a href="{% url 'admin_payments' %}" class="btn btn-sm btn-outline-primary">
+                <a href="{% url 'super_admin_payments' %}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i>View All
                 </a>
             </div>
             <div class="card-body p-0">
+                <p class="text-muted small mb-0 px-4 pt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    The 10 most recent payment transactions across all organizations.
+                </p>
                 {% if recent_payments %}
                 <div class="admin-table-container">
                     <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>User</th>
-                                <th>Amount</th>
-                                <th>Method</th>
-                                <th>Status</th>
+                                <th data-label="ID">ID</th>
+                                <th data-label="User">User</th>
+                                <th data-label="Amount">Amount</th>
+                                <th data-label="Method">Method</th>
+                                <th data-label="Status">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for payment in recent_payments %}
                             <tr>
-                                <td class="fw-semibold"><span class="badge bg-light text-dark">#{{ payment.id }}</span></td>
-                                <td>
+                                <td data-label="ID"><span class="badge bg-light text-dark">#{{ payment.id }}</span></td>
+                                <td data-label="User">
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
                                             {{ payment.reservation.user.username|first|upper }}
@@ -472,9 +521,9 @@
                                         <span>{{ payment.reservation.user.username }}</span>
                                     </div>
                                 </td>
-                                <td class="fw-semibold">₱{{ payment.amount|floatformat:2 }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ payment.get_method_display|default:"N/A" }}</span></td>
-                                <td>
+                                <td data-label="Amount" class="fw-semibold">₱{{ payment.amount|floatformat:2 }}</td>
+                                <td data-label="Method"><span class="badge bg-light text-dark border">{{ payment.get_method_display|default:"N/A" }}</span></td>
+                                <td data-label="Status">
                                     <span class="status-badge {{ payment.status }}">
                                         {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
                                         {{ payment.get_status_display }}
@@ -490,8 +539,8 @@
                     <div class="empty-state-icon">
                         <i class="fas fa-credit-card fa-2x text-muted"></i>
                     </div>
-                    <h5 class="empty-state-title">No payments found</h5>
-                    <p class="empty-state-text">Payment records will appear here.</p>
+                    <h5 class="empty-state-title">No payments recorded yet</h5>
+                    <p class="empty-state-text">Payment records will appear here once transactions are processed.</p>
                 </div>
                 {% endif %}
             </div>
@@ -510,7 +559,6 @@ document.querySelectorAll('.court-utilization-bar').forEach(function(bar) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Chart default colors
     const primaryColor = '#3B7A8C';
     const successColor = '#28a745';
     const warningColor = '#ffc107';
@@ -549,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ===== 2. Revenue Trend Chart (14 days) =====
+    // ===== 2. Revenue Trend Chart =====
     var revLabels = {{ revenue_trend_labels|safe }};
     var revValues = {{ revenue_trend_values|safe }};
     var bookingValues = {{ booking_trend_values|safe }};

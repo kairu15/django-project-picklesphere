@@ -4,20 +4,32 @@
 {% block title %}About Page Management{% endblock %}
 {% block page_title %}About Page Management{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item active">About Page Management</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <!-- Content Sections -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="fas fa-file-alt text-primary me-2"></i>Content Sections</h5>
-        <a href="{% url 'about_add_content' %}" class="btn btn-sm btn-primary">
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-file-alt text-primary"></i>
+            Content Sections
+        </h5>
+        <a href="{% url 'super_admin_about_content_add' %}" class="btn btn-sm btn-primary">
             <i class="fas fa-plus me-1"></i>Add Content
         </a>
     </div>
     <div class="card-body p-0">
         {% if content %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
                         <th>Section</th>
                         <th>Content Preview</th>
@@ -32,18 +44,20 @@
                         <td class="text-muted">{{ item.content|truncatechars:60 }}</td>
                         <td>
                             {% if item.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="status-badge active">Active</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{% url 'about_edit_content' item.id %}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'about_delete_content' item.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this content?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'super_admin_about_content_edit' item.id %}" class="action-btn edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'super_admin_about_content_delete' item.id %}" class="action-btn delete" title="Delete" data-confirm-message="Delete this content?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -51,27 +65,33 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No content sections created yet.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-file-alt fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No content sections created yet</h5>
+            <p class="empty-state-text">Add content to customize the About page.</p>
         </div>
         {% endif %}
     </div>
 </div>
 
 <!-- Milestones -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="fas fa-history text-success me-2"></i>Milestones</h5>
-        <a href="{% url 'about_add_milestone' %}" class="btn btn-sm btn-success">
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-history text-success"></i>
+            Milestones
+        </h5>
+        <a href="{% url 'super_admin_about_milestone_add' %}" class="btn btn-sm btn-success">
             <i class="fas fa-plus me-1"></i>Add Milestone
         </a>
     </div>
     <div class="card-body p-0">
         {% if milestones %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
                         <th>Year</th>
                         <th>Title</th>
@@ -90,18 +110,20 @@
                         <td><span class="badge bg-{{ milestone.color }}">{{ milestone.color }}</span></td>
                         <td>
                             {% if milestone.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="status-badge active">Active</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{% url 'about_edit_milestone' milestone.id %}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'about_delete_milestone' milestone.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this milestone?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'super_admin_about_milestone_edit' milestone.id %}" class="action-btn edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'super_admin_about_milestone_delete' milestone.id %}" class="action-btn delete" title="Delete" data-confirm-message="Delete this milestone?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -109,27 +131,33 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-history fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No milestones created yet.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-history fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No milestones created yet</h5>
+            <p class="empty-state-text">Milestones help tell your organization's story.</p>
         </div>
         {% endif %}
     </div>
 </div>
 
 <!-- Team Members -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="fas fa-users text-info me-2"></i>Team Members</h5>
-        <a href="{% url 'about_add_team_member' %}" class="btn btn-sm btn-info text-white">
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-users text-info"></i>
+            Team Members
+        </h5>
+        <a href="{% url 'super_admin_about_team_add' %}" class="btn btn-sm btn-info text-white">
             <i class="fas fa-plus me-1"></i>Add Member
         </a>
     </div>
     <div class="card-body p-0">
         {% if team_members %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
                         <th>Photo</th>
                         <th>Name</th>
@@ -144,10 +172,10 @@
                     <tr>
                         <td>
                             {% if member.photo %}
-                            <img src="{{ member.photo.url }}" alt="{{ member.name }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                            <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="avatar avatar-sm" style="object-fit: cover;">
                             {% else %}
-                            <div style="width: 40px; height: 40px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-user text-muted"></i>
+                            <div class="avatar avatar-sm avatar-placeholder">
+                                <i class="fas fa-user"></i>
                             </div>
                             {% endif %}
                         </td>
@@ -156,18 +184,20 @@
                         <td><span class="badge bg-{{ member.color }}">{{ member.color }}</span></td>
                         <td>
                             {% if member.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="status-badge active">Active</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{% url 'about_edit_team_member' member.id %}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'about_delete_team_member' member.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this team member?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'super_admin_about_team_edit' member.id %}" class="action-btn edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'super_admin_about_team_delete' member.id %}" class="action-btn delete" title="Delete" data-confirm-message="Delete this team member?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -175,27 +205,33 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-users fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No team members created yet.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-users fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No team members created yet</h5>
+            <p class="empty-state-text">Add team members to introduce your staff.</p>
         </div>
         {% endif %}
     </div>
 </div>
 
 <!-- Facilities -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="fas fa-building text-warning me-2"></i>Facilities</h5>
-        <a href="{% url 'about_add_facility' %}" class="btn btn-sm btn-warning text-white">
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-building text-warning"></i>
+            Facilities
+        </h5>
+        <a href="{% url 'super_admin_about_facility_add' %}" class="btn btn-sm btn-warning text-white">
             <i class="fas fa-plus me-1"></i>Add Facility
         </a>
     </div>
     <div class="card-body p-0">
         {% if facilities %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
                         <th>Icon</th>
                         <th>Title</th>
@@ -208,24 +244,26 @@
                 <tbody>
                     {% for facility in facilities %}
                     <tr>
-                        <td><i class="fas {{ facility.icon }}"></i></td>
+                        <td><i class="fas {{ facility.icon }} text-primary"></i></td>
                         <td class="fw-semibold">{{ facility.title }}</td>
                         <td class="text-muted">{{ facility.description|truncatechars:50 }}</td>
                         <td><span class="badge bg-{{ facility.color }}">{{ facility.color }}</span></td>
                         <td>
                             {% if facility.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="status-badge active">Active</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{% url 'about_edit_facility' facility.id %}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'about_delete_facility' facility.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this facility?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'super_admin_about_facility_edit' facility.id %}" class="action-btn edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'super_admin_about_facility_delete' facility.id %}" class="action-btn delete" title="Delete" data-confirm-message="Delete this facility?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -233,27 +271,99 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-building fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No facilities created yet.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-building fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No facilities created yet</h5>
+            <p class="empty-state-text">Add facilities to showcase your amenities.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Why Choose Us -->
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-star text-danger"></i>
+            Why Choose Us
+        </h5>
+        <a href="{% url 'super_admin_about_why_add' %}" class="btn btn-sm btn-danger">
+            <i class="fas fa-plus me-1"></i>Add Item
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if why_items %}
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Color</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in why_items %}
+                    <tr>
+                        <td><i class="fas {{ item.icon }} text-primary"></i></td>
+                        <td class="fw-semibold">{{ item.title }}</td>
+                        <td class="text-muted">{{ item.description|truncatechars:50 }}</td>
+                        <td><span class="badge bg-{{ item.color }}">{{ item.color }}</span></td>
+                        <td>
+                            {% if item.is_active %}
+                            <span class="status-badge active">Active</span>
+                            {% else %}
+                            <span class="status-badge inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'super_admin_about_why_edit' item.id %}" class="action-btn edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'super_admin_about_why_delete' item.id %}" class="action-btn delete" title="Delete" data-confirm-message="Delete this item?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-star fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No items created yet</h5>
+            <p class="empty-state-text">Add items to highlight why users should choose you.</p>
         </div>
         {% endif %}
     </div>
 </div>
 
 <!-- Facility Gallery -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="fas fa-images text-primary me-2"></i>Facility Gallery</h5>
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-images text-primary"></i>
+            Facility Gallery
+        </h5>
         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGalleryModal">
             <i class="fas fa-plus me-1"></i>Add Image
         </button>
     </div>
     <div class="card-body p-0">
         {% if gallery_images %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
                     <tr>
                         <th>Image</th>
                         <th>Title</th>
@@ -268,9 +378,9 @@
                     <tr>
                         <td>
                             {% if image.image %}
-                            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" class="avatar" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px;">
                             {% else %}
-                            <div style="width: 80px; height: 50px; background: #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                            <div class="avatar avatar-placeholder" style="width: 80px; height: 50px; border-radius: 6px;">
                                 <i class="fas fa-image text-muted"></i>
                             </div>
                             {% endif %}
@@ -280,15 +390,17 @@
                         <td>{{ image.display_order }}</td>
                         <td>
                             {% if image.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="status-badge active">Active</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{% url 'about_delete_gallery_image' image.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this gallery image?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'super_admin_about_gallery_delete' image.id %}" class="action-btn delete" title="Delete" data-confirm-message="Delete this gallery image?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -296,11 +408,14 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-images fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No gallery images added yet.</p>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addGalleryModal">
-                <i class="fas fa-plus me-1"></i>Add First Image
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-images fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No gallery images added yet</h5>
+            <p class="empty-state-text">Upload images to showcase your facility and events.</p>
+            <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addGalleryModal">
+                <i class="fas fa-plus me-2"></i>Add First Image
             </button>
         </div>
         {% endif %}
@@ -315,26 +430,26 @@
                 <h5 class="modal-title"><i class="fas fa-image text-primary me-2"></i>Add Gallery Image</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{% url 'about_add_gallery_image' %}" method="post" enctype="multipart/form-data">
+            <form action="{% url 'super_admin_about_gallery_add' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="image" class="form-label">Image File <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        <label class="admin-form-label">Image File <span class="text-danger">*</span></label>
+                        <input type="file" class="admin-form-control form-control" name="image" accept="image/*" required>
                         <div class="form-text">Recommended size: 800x500 pixels</div>
                     </div>
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" placeholder="e.g., Court 1">
+                        <label class="admin-form-label">Title</label>
+                        <input type="text" class="admin-form-control form-control" name="title" placeholder="e.g., Court 1">
                     </div>
                     <div class="mb-3">
-                        <label for="alt_text" class="form-label">Alt Text <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="alt_text" name="alt_text" placeholder="e.g., Indoor pickleball court with LED lighting" required>
+                        <label class="admin-form-label">Alt Text <span class="text-danger">*</span></label>
+                        <input type="text" class="admin-form-control form-control" name="alt_text" placeholder="e.g., Indoor pickleball court with LED lighting" required>
                         <div class="form-text">Description for accessibility and SEO</div>
                     </div>
                     <div class="mb-3">
-                        <label for="display_order" class="form-label">Display Order</label>
-                        <input type="number" class="form-control" id="display_order" name="display_order" value="0" min="0">
+                        <label class="admin-form-label">Display Order</label>
+                        <input type="number" class="admin-form-control form-control" name="display_order" value="0" min="0">
                         <div class="form-text">Lower numbers appear first</div>
                     </div>
                 </div>
@@ -346,64 +461,6 @@
                 </div>
             </form>
         </div>
-    </div>
-</div>
-
-<!-- Why Choose Items -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0"><i class="fas fa-star text-danger me-2"></i>Why Choose Us Items</h5>
-        <a href="{% url 'about_add_why_item' %}" class="btn btn-sm btn-danger">
-            <i class="fas fa-plus me-1"></i>Add Item
-        </a>
-    </div>
-    <div class="card-body p-0">
-        {% if why_items %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Icon</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Color</th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in why_items %}
-                    <tr>
-                        <td><i class="fas {{ item.icon }}"></i></td>
-                        <td class="fw-semibold">{{ item.title }}</td>
-                        <td class="text-muted">{{ item.description|truncatechars:50 }}</td>
-                        <td><span class="badge bg-{{ item.color }}">{{ item.color }}</span></td>
-                        <td>
-                            {% if item.is_active %}
-                            <span class="badge bg-success">Active</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">
-                            <a href="{% url 'about_edit_why_item' item.id %}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'about_delete_why_item' item.id %}" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this item?" onclick="return customConfirm(this.dataset.confirmMessage, () => { window.location.href = this.href; })">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-star fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No "Why Choose Us" items created yet.</p>
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

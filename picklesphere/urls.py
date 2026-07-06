@@ -1,18 +1,13 @@
 """
-URL configuration for picklesphereproj project.
+URL configuration for PickleSphere - Role-Based Routing
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Each role has its own URL prefix:
+- / (public) - Home, about, contact, pricing, faq, etc.
+- /super-admin/ - Super Admin system management
+- /org-admin/ - Organization Admin management
+- /staff/ - Organization Staff operations
+- /user/ - Regular user features
+- /accounts/ - Authentication
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -21,18 +16,53 @@ from django.conf.urls.static import static
 from . import session_views
 
 urlpatterns = [
+    # Django Admin (superuser only)
     path('admin/', admin.site.urls),
+
+    # ========== PUBLIC ROUTES ==========
     path('', include('dashboard.urls')),
-    path('organizations/', include('organizations.urls')),
-    path('accounts/', include('accounts.urls')),
     path('courts/', include('courts.urls')),
-    path('reservations/', include('reservations.urls')),
-    path('payments/', include('payments.urls')),
-    path('scoring/', include('scoring.urls')),
-    path('notifications/', include('notifications.urls')),
-    path('equipment/', include('equipment.urls')),
+    path('organizations/', include('organizations.urls')),
     path('tournaments/', include('tournaments.urls')),
-    # Session management API
+    path('equipment/', include('equipment.urls')),
+    path('accounts/', include('accounts.urls')),
+
+    # ========== SUPER ADMIN ROUTES (/super-admin/) ==========
+    path('super-admin/', include('dashboard.admin_urls')),
+    path('super-admin/', include('accounts.admin_urls')),
+    path('super-admin/', include('organizations.admin_urls')),
+    path('super-admin/', include('reservations.admin_urls')),
+    path('super-admin/', include('payments.admin_urls')),
+    path('super-admin/', include('equipment.admin_urls')),
+
+    # ========== ORGANIZATION ADMIN ROUTES (/org-admin/) ==========
+    path('org-admin/', include('organizations.org_urls')),
+    path('org-admin/', include('courts.org_urls')),
+    path('org-admin/', include('reservations.org_urls')),
+    path('org-admin/', include('payments.org_urls')),
+    path('org-admin/', include('equipment.staff_urls')),
+
+    # ========== STAFF ROUTES (/staff/) ==========
+    path('staff/', include('reservations.staff_urls')),
+    path('staff/', include('payments.staff_urls')),
+    path('staff/', include('equipment.staff_urls')),
+
+    # ========== USER ROUTES (/user/) ==========
+    path('user/', include('dashboard.user_urls')),
+    path('user/', include('reservations.user_urls')),
+    path('user/', include('payments.user_urls')),
+    path('user/', include('equipment.user_urls')),
+    path('user/', include('tournaments.user_urls')),
+    path('user/', include('notifications.user_urls')),
+
+    # ========== SHARED / NOTIFICATIONS ==========
+    # Shared notification routes handled via notifications.urls
+    path('notifications/', include('notifications.urls')),
+
+    # ========== SCORING ==========
+    path('scoring/', include('scoring.urls')),
+
+    # ========== SESSION MANAGEMENT API ==========
     path('api/session/heartbeat/', session_views.session_heartbeat, name='session_heartbeat'),
     path('api/session/info/', session_views.session_info, name='session_info'),
     path('api/session/extend/', session_views.extend_session, name='extend_session'),

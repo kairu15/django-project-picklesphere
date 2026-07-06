@@ -32,7 +32,7 @@
                 </button>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'user_create' %}" class="btn btn-success w-auto">
+                <a href="{% url 'super_admin_user_create' %}" class="btn btn-success w-auto">
                     <i class="fas fa-user-plus me-2"></i>Create User
                 </a>
             </div>
@@ -92,11 +92,11 @@
                         <td>{{ user.created_at|date:"M d, Y" }}</td>
                         <td>
                             <div class="action-buttons justify-content-end">
-                                <a href="{% url 'user_edit' user.id %}" class="action-btn edit" title="Edit">
+                                <a href="{% url 'super_admin_user_edit' user.id %}" class="action-btn edit" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if user != request.user %}
-                                <form method="post" action="{% url 'user_delete' user.id %}" class="d-inline" data-confirm-message="Deactivate this user account?">
+                                <form method="post" action="{% url 'super_admin_user_delete' user.id %}" class="d-inline" data-confirm-message="Deactivate this user account?">
                                     {% csrf_token %}
                                     <button type="submit" class="action-btn delete" title="Deactivate" onclick="event.preventDefault(); customConfirm(this.closest('form').dataset.confirmMessage, () => { this.closest('form').submit(); })">
                                         <i class="fas fa-trash"></i>

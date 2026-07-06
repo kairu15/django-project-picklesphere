@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}{{ organization.name }} Dashboard{% endblock %}
-{% block page_title %}{{ organization.name }}{% endblock %}
+{% block page_title %}{{ organization.name }} Overview{% endblock %}
 
 {% block breadcrumb %}
 <nav aria-label="breadcrumb" class="mb-3">
@@ -23,6 +23,12 @@
 }
 .org-dashboard-header h1 { font-size: 1.5rem; font-weight: 700; }
 .org-dashboard-header p { opacity: 0.9; margin: 0; }
+@media (max-width: 767.98px) {
+    .org-dashboard-header { padding: 20px !important; margin-bottom: 20px !important; }
+    .org-dashboard-header > div { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+    .org-dashboard-header .d-flex.gap-2 { flex-direction: column !important; width: 100% !important; }
+    .org-dashboard-header .btn { width: 100% !important; }
+}
 </style>
 
 <!-- Header -->
@@ -38,7 +44,7 @@
             {% endif %}
             <div>
                 <h1><i class="fas fa-building me-2"></i>{{ organization.name }} Dashboard</h1>
-                <p>Manage your organization's courts, tournaments, and reservations</p>
+                <p>Manage your organization's courts, tournaments, reservations, and staff — all in one place.</p>
             </div>
         </div>
         <div class="d-flex gap-2">
@@ -52,49 +58,71 @@
     </div>
 </div>
 
+<!-- Page Description -->
+<div class="card filter-card mb-4">
+    <div class="card-body">
+        <p class="text-muted small mb-0">
+            <i class="fas fa-info-circle me-1 text-primary"></i>
+            Overview of your organization's performance metrics, recent reservations, and quick access to management tools. All data is scoped to <strong>{{ organization.name }}</strong>.
+        </p>
+    </div>
+</div>
+
 <!-- Key Metrics -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-map-marker-alt"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.total_courts }}</h3>
-                <p>Active Courts</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.pending_reservations }}</h3>
-                <p>Pending Reservations</p>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-map-marker-alt fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_courts }}</div>
+                    <div class="stats-label text-muted">Active Courts</div>
+                    <small class="text-primary"><i class="fas fa-check-circle me-1"></i>Available for booking</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.active_tournaments }}</h3>
-                <p>Active Tournaments</p>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.pending_reservations }}</div>
+                    <div class="stats-label text-muted">Pending Reservations</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting confirmation</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon info">
-                <i class="fas fa-users"></i>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-trophy fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.active_tournaments }}</div>
+                    <div class="stats-label text-muted">Active Tournaments</div>
+                    <small class="text-success"><i class="fas fa-medal me-1"></i>{{ metrics.total_tournaments }} total</small>
+                </div>
             </div>
-            <div class="stat-info">
-                <h3>{{ metrics.staff_count }}</h3>
-                <p>Staff Members</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.staff_count }}</div>
+                    <div class="stats-label text-muted">Staff Members</div>
+                    <small class="text-info"><i class="fas fa-user-tie me-1"></i>On your team</small>
+                </div>
             </div>
         </div>
     </div>
@@ -102,46 +130,58 @@
 
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.today_reservations }}</h3>
-                <p>Today's Bookings</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="fas fa-medal"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ metrics.total_tournaments }}</h3>
-                <p>Total Tournaments</p>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-calendar-check fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.today_reservations }}</div>
+                    <div class="stats-label text-muted">Today's Bookings</div>
+                    <small class="text-success"><i class="fas fa-calendar-day me-1"></i>For today</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon danger">
-                <i class="fas fa-money-bill-wave"></i>
-            </div>
-            <div class="stat-info">
-                <h3>₱{{ org_revenue|floatformat:0 }}</h3>
-                <p>Total Revenue</p>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-trophy fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_tournaments }}</div>
+                    <div class="stats-label text-muted">Total Tournaments</div>
+                    <small class="text-primary"><i class="fas fa-calendar-alt me-1"></i>All time</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon secondary">
-                <i class="fas fa-chart-line"></i>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-danger text-white me-3">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ org_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Total Revenue</div>
+                    <small class="text-success"><i class="fas fa-coins me-1"></i>All-time earnings</small>
+                </div>
             </div>
-            <div class="stat-info">
-                <h3>{{ metrics.total_reservations }}</h3>
-                <p>Total Reservations</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-secondary text-white me-3">
+                    <i class="fas fa-chart-line fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ metrics.total_reservations }}</div>
+                    <div class="stats-label text-muted">Total Reservations</div>
+                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i>{{ metrics.pending_reservations }} pending</small>
+                </div>
             </div>
         </div>
     </div>
@@ -150,19 +190,27 @@
 <!-- Quick Actions -->
 <div class="row g-4 mb-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h5>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-bolt text-warning"></i>
+                    Quick Actions
+                </h5>
+                <span class="badge bg-light text-dark">{{ metrics.total_courts }} courts</span>
             </div>
             <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Frequently used management tools. Click any button to quickly navigate to the corresponding section.
+                </p>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{% url 'admin_court_create' %}" class="btn btn-primary">
+                    <a href="{% url 'org_admin_court_create' %}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Add Court
                     </a>
                     <a href="{% url 'admin_tournament_create' %}" class="btn btn-success">
                         <i class="fas fa-plus me-2"></i>Create Tournament
                     </a>
-                    <a href="{% url 'admin_court_list' %}" class="btn btn-info text-white">
+                    <a href="{% url 'org_admin_court_list' %}" class="btn btn-info text-white">
                         <i class="fas fa-list me-2"></i>Manage Courts
                     </a>
                     <a href="{% url 'admin_tournament_list' %}" class="btn btn-warning text-dark">
@@ -186,47 +234,56 @@
 <!-- Recent Reservations -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="fas fa-calendar-check me-2 text-primary"></i>Recent Reservations</h5>
-                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-calendar-check text-primary"></i>
+                    Recent Reservations
+                </h5>
+                <a href="{% url 'staff_reservations' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
             </div>
             <div class="card-body p-0">
+                <p class="text-muted small mb-0 px-4 pt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    The 10 most recent reservations at <strong>{{ organization.name }}</strong>.
+                </p>
                 {% if recent_reservations %}
-                <div class="table-responsive">
-                    <table class="table mb-0">
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>User</th>
-                                <th>Court</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Amount</th>
-                                <th>Status</th>
+                                <th data-label="ID">#</th>
+                                <th data-label="User">User</th>
+                                <th data-label="Court">Court</th>
+                                <th data-label="Date">Date</th>
+                                <th data-label="Time">Time</th>
+                                <th data-label="Amount">Amount</th>
+                                <th data-label="Status">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for res in recent_reservations %}
                             <tr>
-                                <td>{{ res.id }}</td>
-                                <td>{{ res.user.get_full_name|default:res.user.username }}</td>
-                                <td>{{ res.court.name }}</td>
-                                <td>{{ res.date|date:"M d, Y" }}</td>
-                                <td>{{ res.start_time|time:"g:i A" }} - {{ res.end_time|time:"g:i A" }}</td>
-                                <td>₱{{ res.total_amount|floatformat:2 }}</td>
-                                <td>
-                                    {% if res.status == 'confirmed' %}
-                                        <span class="badge bg-success">Confirmed</span>
-                                    {% elif res.status == 'pending' %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    {% elif res.status == 'completed' %}
-                                        <span class="badge bg-info">Completed</span>
-                                    {% elif res.status == 'cancelled' %}
-                                        <span class="badge bg-danger">Cancelled</span>
-                                    {% elif res.status == 'rejected' %}
-                                        <span class="badge bg-secondary">Rejected</span>
-                                    {% endif %}
+                                <td data-label="ID"><span class="badge bg-light text-dark">#{{ res.id }}</span></td>
+                                <td data-label="User">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
+                                            {{ res.user.username|first|upper }}
+                                        </div>
+                                        <span>{{ res.user.get_full_name|default:res.user.username }}</span>
+                                    </div>
+                                </td>
+                                <td data-label="Court">{{ res.court.name }}</td>
+                                <td data-label="Date"><small>{{ res.date|date:"M d, Y" }}</small></td>
+                                <td data-label="Time"><small>{{ res.start_time|time:"g:i A" }} - {{ res.end_time|time:"g:i A" }}</small></td>
+                                <td data-label="Amount" class="fw-semibold">₱{{ res.total_amount|floatformat:2 }}</td>
+                                <td data-label="Status">
+                                    <span class="status-badge {{ res.status }}">
+                                        {% if res.status == 'confirmed' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
+                                        {{ res.get_status_display }}
+                                    </span>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -234,9 +291,12 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No reservations yet.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-calendar fa-2x text-muted"></i>
+                    </div>
+                    <h5 class="empty-state-title">No reservations yet</h5>
+                    <p class="empty-state-text">Reservations will appear here once players start booking your courts.</p>
                 </div>
                 {% endif %}
             </div>

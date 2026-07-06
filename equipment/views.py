@@ -267,7 +267,7 @@ def admin_equipment_create_view(request):
                 equipment.organization = request.user.organization
             equipment.save()
             messages.success(request, f'Equipment {equipment.name} created successfully.')
-            return redirect('admin_equipment_list')
+            return redirect('super_admin_equipment_list')
     else:
         form = EquipmentForm()
 
@@ -293,7 +293,7 @@ def admin_equipment_edit_view(request, equipment_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Equipment {equipment.name} updated successfully.')
-            return redirect('admin_equipment_list')
+            return redirect('super_admin_equipment_list')
     else:
         form = EquipmentForm(instance=equipment)
 
@@ -310,7 +310,7 @@ def admin_equipment_delete_view(request, equipment_id):
 
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
-        return redirect('admin_equipment_list')
+        return redirect('super_admin_equipment_list')
 
     equipment_qs = Equipment.objects.all()
     # Org-scoping for org_admin
@@ -321,9 +321,9 @@ def admin_equipment_delete_view(request, equipment_id):
     
     if not equipment.is_active:
         messages.info(request, f'Equipment {equipment.name} is already inactive.')
-        return redirect('admin_equipment_list')
+        return redirect('super_admin_equipment_list')
 
     equipment.is_active = False
     equipment.save(update_fields=['is_active'])
     messages.success(request, f'Equipment {equipment.name} deactivated successfully.')
-    return redirect('admin_equipment_list')
+    return redirect('super_admin_equipment_list')

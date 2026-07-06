@@ -189,7 +189,7 @@ def admin_court_create_view(request):
                 created_court.organization = request.user.organization
             created_court.save()
             messages.success(request, f'Court {created_court.name} created successfully.')
-            return redirect('admin_court_list')
+            return redirect('org_admin_court_list')
     else:
         form = CourtForm(initial=initial)
     
@@ -219,7 +219,7 @@ def admin_court_edit_view(request, court_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Court {court.name} updated successfully.')
-            return redirect('admin_court_list')
+            return redirect('org_admin_court_list')
     else:
         form = CourtForm(instance=court)
 
@@ -236,7 +236,7 @@ def admin_court_delete_view(request, court_id):
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
-        return redirect('admin_court_list')
+        return redirect('org_admin_court_list')
     
     court_qs = Court.objects.all()
     # Org-scoping for org_admin
@@ -247,12 +247,12 @@ def admin_court_delete_view(request, court_id):
     
     if not court.is_active:
         messages.info(request, f'Court {court.name} is already inactive.')
-        return redirect('admin_court_list')
+        return redirect('org_admin_court_list')
     
     court.is_active = False
     court.save(update_fields=['is_active'])
     messages.success(request, f'Court {court.name} deactivated successfully.')
-    return redirect('admin_court_list')
+    return redirect('org_admin_court_list')
 
 
 @login_required
@@ -281,7 +281,7 @@ def admin_site_create_view(request):
                 site.organization = request.user.organization
             site.save()
             messages.success(request, 'Site created successfully.')
-            return redirect('admin_site_list')
+            return redirect('org_admin_site_list')
     else:
         form = SiteForm()
     
@@ -303,7 +303,7 @@ def admin_site_edit_view(request, site_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Site {site.name} updated successfully.')
-            return redirect('admin_site_list')
+            return redirect('org_admin_site_list')
     else:
         form = SiteForm(instance=site)
     
@@ -316,7 +316,7 @@ def admin_site_delete_view(request, site_id):
     
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
-        return redirect('admin_site_list')
+        return redirect('org_admin_site_list')
     
     site_qs = Site.objects.all()
     # Org-scoping for org_admin
@@ -326,4 +326,4 @@ def admin_site_delete_view(request, site_id):
     site = get_object_or_404(site_qs, id=site_id)
     site.delete()
     messages.success(request, f'Site {site.name} deleted successfully.')
-    return redirect('admin_site_list')
+    return redirect('org_admin_site_list')

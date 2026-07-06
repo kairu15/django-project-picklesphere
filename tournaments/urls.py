@@ -6,10 +6,9 @@ urlpatterns = [
     path('', views.tournament_list, name='tournament_list'),
     path('<int:pk>/', views.tournament_detail, name='tournament_detail'),
     path('<int:pk>/register/', views.tournament_register, name='tournament_register'),
-    path('my-tournaments/', views.my_tournaments, name='my_tournaments'),
-    path('my-matches/', views.my_matches, name='my_matches'),
-    
-    # Admin / Staff URLs
+
+    # Admin / Staff URLs (kept here under tournaments/ for backward compatibility)
+    # These are accessible by org_admin and above via shared include
     path('admin/', views.admin_tournament_list, name='admin_tournament_list'),
     path('admin/create/', views.admin_tournament_create, name='admin_tournament_create'),
     path('admin/<int:pk>/edit/', views.admin_tournament_edit, name='admin_tournament_edit'),
@@ -26,7 +25,7 @@ urlpatterns = [
     path('admin/<int:pk>/teams/create/', views.admin_team_create, name='admin_team_create'),
     path('admin/<int:pk>/bracket/', views.admin_tournament_bracket, name='admin_tournament_bracket'),
     path('admin/<int:pk>/change-status/', views.admin_change_status, name='admin_change_status'),
-    
+
     # API
     path('api/match/<int:match_id>/update-score/', views.api_update_score, name='api_update_score'),
 ]

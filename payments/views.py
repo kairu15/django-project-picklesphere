@@ -127,7 +127,7 @@ def payment_status_view(request, payment_id):
     # Check permissions
     if payment.reservation.user != request.user and not request.user.is_staff_user() and not request.user.is_admin():
         messages.error(request, 'You do not have permission to view this payment.')
-        return redirect('dashboard')
+        return redirect('user_dashboard')
     
     return render(request, 'user/payments/payment_status.html', {'payment': payment})
 
@@ -241,7 +241,7 @@ def verify_payment_view(request, payment_id):
     is_admin_url = 'admin' in request.path
     if request.user.is_admin() and is_admin_url:
         template_name = 'admin/payments/verify_payment.html'
-        redirect_url = 'admin_payments'
+        redirect_url = 'super_admin_payments'
     else:
         template_name = 'staff/payments/verify_payment.html'
         redirect_url = 'staff_payments'
@@ -604,7 +604,7 @@ def admin_cancellation_refunds_view(request):
             payment = cancellation.reservation.payment
         except Payment.DoesNotExist:
             messages.error(request, 'No payment record was found for this cancellation.')
-            return redirect('admin_cancellation_refunds')
+            return redirect('super_admin_cancellation_refunds')
 
         old_status = payment.status
         original_amount = payment.amount
@@ -645,7 +645,7 @@ def admin_cancellation_refunds_view(request):
         )
 
         messages.success(request, f'Payment #{payment.id} has been updated to Refunded.')
-        return redirect('admin_cancellation_refunds')
+        return redirect('super_admin_cancellation_refunds')
 
     refund_rows = []
     for cancellation in cancellations:

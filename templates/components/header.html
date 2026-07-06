@@ -387,20 +387,20 @@
                             {% if user.is_super_admin %}
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Admin Actions</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'admin_court_list' %}">
+                            <li><a class="dropdown-item" href="{% url 'org_admin_court_list' %}">
                                 <i class="fas fa-th-large"></i>Manage Courts
                             </a></li>
-                            <li><a class="dropdown-item" href="{% url 'user_list' %}">
+                            <li><a class="dropdown-item" href="{% url 'super_admin_user_list' %}">
                                 <i class="fas fa-users"></i>Manage Users
                             </a></li>
                             <li><a class="dropdown-item" href="{% url 'admin_tournament_list' %}">
                                 <i class="fas fa-trophy"></i>Manage Tournaments
                             </a></li>
-                            <li><a class="dropdown-item" href="{% url 'admin_equipment_list' %}">
+                            <li><a class="dropdown-item" href="{% url 'super_admin_equipment_list' %}">
                                 <i class="fas fa-box"></i>Manage Equipment
                             </a></li>
-                            <li><a class="dropdown-item" href="{% url 'admin_reservation_list' %}">
-                                <i class="fas fa-chart-bar"></i>Reports
+                            <li><a class="dropdown-item" href="{% url 'super_admin_reservation_list' %}">
+                                <i class="fas fa-chart-bar"></i>Reservations
                             </a></li>
                             {% endif %}
                             {% if user.is_org_admin %}

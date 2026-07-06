@@ -31,7 +31,7 @@
                 </button>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'admin_court_create' %}" class="btn btn-success w-auto">
+                <a href="{% url 'org_admin_court_create' %}" class="btn btn-success w-auto">
                     <i class="fas fa-plus me-2"></i>Add Court
                 </a>
             </div>
@@ -92,11 +92,11 @@
                                 <a href="{% url 'court_detail' court.id %}" class="action-btn view" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{% url 'admin_court_edit' court.id %}" class="action-btn edit" title="Edit">
+                                <a href="{% url 'org_admin_court_edit' court.id %}" class="action-btn edit" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if court.is_active %}
-                                <form method="post" action="{% url 'admin_court_delete' court.id %}" class="d-inline court-delete-form" data-confirm-message="Deactivate this court?">
+                                <form method="post" action="{% url 'org_admin_court_delete' court.id %}" class="d-inline court-delete-form" data-confirm-message="Deactivate this court?">
                                     {% csrf_token %}
                                     <button type="submit" class="action-btn delete" title="Deactivate" onclick="event.preventDefault(); customConfirm(this.closest('form').dataset.confirmMessage, () => { this.closest('form').submit(); })">
                                         <i class="fas fa-trash"></i>
