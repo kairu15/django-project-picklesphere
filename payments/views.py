@@ -142,6 +142,16 @@ def staff_payments_view(request):
     if request.user.organization:
         payments = payments.filter(reservation__court__organization=request.user.organization)
     
+    # Search
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        payments = payments.filter(
+            Q(id__icontains=search_query) |
+            Q(reservation__user__username__icontains=search_query) |
+            Q(reservation__user__email__icontains=search_query) |
+            Q(reservation__id__icontains=search_query)
+        )
+
     # Filter by status
     status_filter = request.GET.get('status', '')
     if status_filter:
@@ -192,10 +202,19 @@ def staff_payments_view(request):
     )
     today_revenue = today_paid.aggregate(Sum('amount'))['amount__sum'] or 0
     
+    # Counts for summary cards
+    paid_count = base_paid.count()
+    pending_count = base_pending.count()
+    refunded_count = Payment.objects.filter(status='refunded').count()
+    if request.user.organization:
+        refunded_count = Payment.objects.filter(status='refunded', reservation__court__organization=request.user.organization).count()
+    total_payments = base_paid.count() + base_pending.count()
+    
     return render(request, 'staff/payments/staff_payments.html', {
         'payments': page_obj.object_list,
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
         'status_filter': status_filter,
         'method_filter': method_filter,
         'date_from': date_from,
@@ -204,7 +223,11 @@ def staff_payments_view(request):
         'sort_order': sort_order,
         'total_paid': total_paid,
         'total_pending': total_pending,
-        'today_revenue': today_revenue
+        'today_revenue': today_revenue,
+        'paid_count': paid_count,
+        'pending_count': pending_count,
+        'refunded_count': refunded_count,
+        'total_payments': total_payments,
     })
 
 

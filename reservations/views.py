@@ -249,6 +249,16 @@ def staff_reservations_view(request):
     else:
         reservations = reservations.order_by('-created_at')
     
+    # Stats for summary cards (from full unfiltered queryset, scoped to org)
+    base_qs = Reservation.objects.all()
+    if request.user.organization:
+        base_qs = base_qs.filter(court__organization=request.user.organization)
+    total_count = base_qs.count()
+    pending_count = base_qs.filter(status='pending').count()
+    confirmed_count = base_qs.filter(status='confirmed').count()
+    completed_count = base_qs.filter(status='completed').count()
+    cancelled_count = base_qs.filter(status='cancelled').count()
+    
     # Pagination
     paginator = Paginator(reservations, 10)
     page_number = request.GET.get('page', 1)
@@ -263,6 +273,11 @@ def staff_reservations_view(request):
         'date_filter': date_filter,
         'sort_by': sort_by,
         'sort_order': sort_order,
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'confirmed_count': confirmed_count,
+        'completed_count': completed_count,
+        'cancelled_count': cancelled_count,
     })
 
 

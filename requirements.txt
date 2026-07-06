@@ -7,3 +7,4 @@ daphne>=4.0.0
 channels-redis>=4.1.0
 django-crispy-forms>=2.0,<3.0
 django-filter>=24.0,<25.0
+staticmap>=0.5.7

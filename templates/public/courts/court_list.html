@@ -48,6 +48,10 @@
                 <div class="image-wrapper">
                     <img src="{{ court.image.url }}" class="card-img-top court-list-image clickable-image" alt="{{ court.name }}" data-lightbox data-caption="{{ court.name }}" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
                 </div>
+            {% elif court.organization and court.organization.latitude and court.organization.longitude %}
+                <div style="height: 200px; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px; background: #f8f9fa;">
+                    <img src="{% url 'static_map' %}?lat={{ court.organization.latitude }}&lng={{ court.organization.longitude }}&width=400&height=200&zoom=14" alt="Map of {{ court.organization.name }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                </div>
             {% else %}
                 <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px; border-top-left-radius: 12px; border-top-right-radius: 12px;">
                     <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">

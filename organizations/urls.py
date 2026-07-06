@@ -17,6 +17,9 @@ urlpatterns = [
     path('super-admin/organizations/<int:pk>/edit/', views.super_admin_organization_edit, name='super_admin_organization_edit'),
     path('super-admin/organizations/<int:pk>/delete/', views.super_admin_organization_delete, name='super_admin_organization_delete'),
     
+    # Public API
+    path('api/static-map/', views.static_map_view, name='static_map'),
+
     # Org Admin URLs
     path('org-admin/dashboard/', views.org_admin_dashboard, name='org_admin_dashboard'),
     path('org-admin/profile/', views.org_admin_profile, name='org_admin_profile'),

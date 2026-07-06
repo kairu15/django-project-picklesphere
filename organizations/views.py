@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
 from .models import Organization
 from .forms import OrganizationRegistrationForm, OrganizationProfileForm, OrganizationApprovalForm, SuperAdminOrganizationForm, OrgStaffAssignmentForm
@@ -583,6 +583,44 @@ def org_admin_profile(request):
         'form': form,
         'organization': org,
     })
+
+
+def static_map_view(request):
+    """Generate a static map image for a given lat/lng."""
+    from staticmap import StaticMap, CircleMarker
+    from io import BytesIO
+    
+    lat = request.GET.get('lat')
+    lng = request.GET.get('lng')
+    width = int(request.GET.get('width', 300))
+    height = int(request.GET.get('height', 180))
+    zoom = int(request.GET.get('zoom', 15))
+    
+    if not lat or not lng:
+        return HttpResponse(status=400)
+    
+    try:
+        lat = float(lat)
+        lng = float(lng)
+    except (ValueError, TypeError):
+        return HttpResponse(status=400)
+    
+    try:
+        m = StaticMap(width, height, url_template='https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+        marker = CircleMarker((lng, lat), 'red', 8)
+        m.add_marker(marker)
+        image = m.render(zoom=zoom)
+        
+        buf = BytesIO()
+        image.save(buf, format='PNG')
+        buf.seek(0)
+        
+        response = HttpResponse(buf.getvalue(), content_type='image/png')
+        # Cache for 24 hours
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response
+    except Exception as e:
+        return HttpResponse(status=500)
 
 
 @login_required

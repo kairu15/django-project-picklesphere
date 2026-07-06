@@ -173,14 +173,15 @@ def dashboard_view(request):
     if request.user.is_super_admin():
         return redirect('super_admin_dashboard')
     elif request.user.is_org_admin():
-        # Check if they actually have an org to avoid redirect loops
-        # (org_required decorator would fail and loop back here)
         if request.user.organization:
             return redirect('org_admin_dashboard')
         messages.warning(request, 'Your account is not associated with any organization. Please contact a super admin.')
-        return redirect('user_dashboard')
+        return redirect('profile')
     elif request.user.is_org_staff():
-        return redirect('staff_dashboard')
+        if request.user.organization:
+            return redirect('staff_dashboard')
+        messages.warning(request, 'Your account is not associated with any organization. Please contact a super admin.')
+        return redirect('profile')
     else:
         return redirect('user_dashboard')
 
