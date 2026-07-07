@@ -157,10 +157,10 @@
                 <tbody>
                     {% for reservation in reservations %}
                     <tr class="reservation-row">
-                        <td class="py-3 px-4">
+                        <td data-label="ID" class="py-3 px-4">
                             <span class="badge bg-light text-dark border px-3 py-2" style="font-family: monospace; font-size: 0.8rem;">#{{ reservation.id }}</span>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Court" class="py-3 px-4">
                             <div class="d-flex align-items-center gap-2">
                                 <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-map-marker-alt text-white" style="font-size: 0.75rem;"></i>
@@ -168,25 +168,25 @@
                                 <span class="fw-semibold">{{ reservation.court.name }}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Date/Time" class="py-3 px-4">
                             <span class="fw-medium">{{ reservation.date|date:"M d, Y" }}</span>
                             <small class="text-muted d-block">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</small>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Duration" class="py-3 px-4">
                             <span class="badge bg-light text-dark border" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 8px;">
                                 <i class="fas fa-clock me-1 text-primary"></i>{{ reservation.duration_hours }} hrs
                             </span>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Amount" class="py-3 px-4">
                             <span class="fw-bold fs-5" style="color: #3B7A8C;">₱{{ reservation.total_amount|floatformat:2 }}</span>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Status" class="py-3 px-4">
                             <span class="badge px-3 py-2 reservation-status-badge {% if reservation.status == 'confirmed' %}bg-success{% elif reservation.status == 'pending' %}bg-warning text-dark{% elif reservation.status == 'completed' %}bg-secondary{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size: 0.8rem; border-radius: 8px;">
                                 {% if reservation.status == 'confirmed' %}<i class="fas fa-check-circle me-1"></i>{% elif reservation.status == 'pending' %}<i class="fas fa-clock me-1"></i>{% elif reservation.status == 'completed' %}<i class="fas fa-check-double me-1"></i>{% elif reservation.status == 'cancelled' %}<i class="fas fa-times-circle me-1"></i>{% endif %}
                                 {{ reservation.get_status_display }}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-center">
+                        <td data-label="Actions" class="py-3 px-4 text-center">
                             <div class="d-flex gap-1 justify-content-center">
                                 <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; padding: 8px 14px;" title="View Details">
                                     <i class="fas fa-eye"></i>

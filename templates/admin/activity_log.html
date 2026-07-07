@@ -29,7 +29,7 @@
                 <tbody>
                     {% for activity in activities %}
                     <tr>
-                        <td>
+                        <td data-label="User">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm avatar-placeholder me-2">
                                     {{ activity.user.username|first|upper }}
@@ -37,16 +37,16 @@
                                 <span class="fw-semibold">{{ activity.user.username }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Action">
                             <span class="badge bg-light text-dark border">{{ activity.action }}</span>
                         </td>
-                        <td>
+                        <td data-label="Details">
                             <span class="text-muted">{{ activity.details|default:"-" }}</span>
                         </td>
-                        <td>
+                        <td data-label="IP Address">
                             <span class="font-monospace text-muted">{{ activity.ip_address|default:"-" }}</span>
                         </td>
-                        <td>
+                        <td data-label="Date/Time">
                             <span class="text-muted">{{ activity.created_at|date:"M d, Y h:i A" }}</span>
                         </td>
                     </tr>

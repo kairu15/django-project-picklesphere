@@ -20,7 +20,7 @@
 </section>
 
 <!-- Our Mission & Vision -->
-<section class="py-5">
+<section class="py-5 marketing-section">
     <div class="container">
         <div class="row g-4">
             <div class="col-md-6">
@@ -116,7 +116,7 @@
 </section>
 
 <!-- Stats Section -->
-<section class="py-5" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+<section class="py-5 marketing-section" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
     <div class="container">
         <div class="row g-4 text-center">
             <div class="col-md-3 col-6">
@@ -160,7 +160,7 @@
 </section>
 
 <!-- What the Platform Offers -->
-<section class="py-5 bg-light">
+<section class="py-5 bg-light marketing-section">
     <div class="container">
         <div class="text-center mb-5">
             <span class="badge bg-primary mb-3 px-3 py-2">{{ content.offers_badge|default:"WHAT WE OFFER" }}</span>
@@ -239,7 +239,7 @@
 </section>
 
 <!-- How It Works -->
-<section class="py-5">
+<section class="py-5 marketing-section">
     <div class="container">
         <div class="text-center mb-5">
             <span class="badge bg-success mb-3 px-3 py-2">{{ content.howitworks_badge|default:"HOW IT WORKS" }}</span>
@@ -288,7 +288,7 @@
 </section>
 
 <!-- Benefits for Players -->
-<section class="py-5 bg-light">
+<section class="py-5 bg-light marketing-section">
     <div class="container">
         <div class="row g-5 align-items-center">
             <div class="col-lg-6">
@@ -388,7 +388,7 @@
 </section>
 
 <!-- Benefits for Organizations -->
-<section class="py-5">
+<section class="py-5 marketing-section">
     <div class="container">
         <div class="row g-5 align-items-center">
             <div class="col-lg-6">
@@ -488,7 +488,7 @@
 </section>
 
 <!-- Why Choose Us Section -->
-<section class="py-5 bg-light">
+<section class="py-5 bg-light marketing-section">
     <div class="container">
         <div class="text-center mb-5">
             <span class="badge bg-info mb-3 px-3 py-2">{{ content.why_badge|default:"WHY PICKLESPHERE" }}</span>
@@ -537,7 +537,7 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-5" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
+<section class="py-5 marketing-section" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
@@ -557,53 +557,7 @@
 </section>
 
 <style>
-/* Hover Effects */
-.hover-card {
-    transition: transform var(--transition-slow), box-shadow var(--transition-base);
-}
-.hover-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--card-shadow-lg) !important;
-}
-
-.step-number {
-    box-shadow: 0 8px 25px rgba(59, 122, 140, 0.3);
-}
-
-/* Enhanced Cards */
-.card {
-    transition: all var(--transition-slow);
-}
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--card-shadow-hover);
-}
-
-/* Enhanced Buttons */
-.btn {
-    transition: all var(--transition-slow);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--btn-shadow);
-}
-
-/* Enhanced Section Animations */
-section {
-    animation: fadeInUp 0.6s ease;
-}
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* About page retains minimal custom styles only */
 </style>
 
 {% include 'components/footer.html' %}

@@ -32,7 +32,7 @@
                 <tbody>
                     {% for s in settings %}
                     <tr>
-                        <td>
+                        <td data-label="Setting">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm avatar-placeholder me-2">
                                     <i class="fas fa-cog"></i>
@@ -40,18 +40,18 @@
                                 <span class="fw-semibold">{{ s.name }}</span>
                             </div>
                         </td>
-                        <td>{{ s.get_format_display }}</td>
-                        <td>{{ s.get_game_type_display }}</td>
-                        <td>{{ s.get_scoring_format_display }}</td>
-                        <td>{{ s.games_to_win }}</td>
-                        <td>
+                        <td data-label="Format">{{ s.get_format_display }}</td>
+                        <td data-label="Game Type">{{ s.get_game_type_display }}</td>
+                        <td data-label="Scoring">{{ s.get_scoring_format_display }}</td>
+                        <td data-label="Games to Win">{{ s.games_to_win }}</td>
+                        <td data-label="Status">
                             {% if s.is_active %}
                             <span class="status-badge active">Active</span>
                             {% else %}
                             <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Actions">
                             <div class="action-buttons justify-content-end">
                                 <a href="{% url 'match_settings_edit' s.id %}" class="action-btn edit" title="Edit">
                                     <i class="fas fa-edit"></i>

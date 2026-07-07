@@ -57,7 +57,7 @@ def payment_checkout_view(request, reservation_id):
                 
                 # Notify staff
                 from accounts.models import User
-                staff_users = User.objects.filter(role__in=['staff', 'admin'])
+                staff_users = User.objects.filter(role__in=['super_admin', 'org_admin', 'org_staff'])
                 for staff in staff_users:
                     Notification.objects.create(
                         user=staff,

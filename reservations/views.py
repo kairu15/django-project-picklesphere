@@ -148,7 +148,7 @@ def reservation_create_view(request):
                     role__in=['org_admin', 'org_staff', 'super_admin']
                 )
             else:
-                staff_users = User.objects.filter(role__in=['staff', 'admin'])
+                staff_users = User.objects.filter(role__in=['org_admin', 'org_staff', 'super_admin'])
             for staff in staff_users:
                 Notification.objects.create(
                     user=staff,
@@ -195,10 +195,11 @@ def reservation_create_view(request):
 
 @login_required
 def reservation_detail_view(request, reservation_id):
+    """View reservation details - accessible by both the reservation owner and staff/admin."""
     reservation = get_object_or_404(Reservation, id=reservation_id)
     
-    # Check if user has permission to view
-    if reservation.user != request.user and not request.user.is_staff_user() and not request.user.is_admin():
+    is_authorized = reservation.user == request.user or request.user.is_staff_user()
+    if not is_authorized:
         messages.error(request, 'You do not have permission to view this reservation.')
         return redirect('reservation_list')
     
@@ -209,7 +210,7 @@ def reservation_detail_view(request, reservation_id):
 @staff_or_admin_required
 def staff_reservations_view(request):
     
-    reservations = Reservation.objects.select_related('user', 'court', 'court__site', 'payment').all().order_by('-created_at')
+    reservations = Reservation.objects.select_related('user', 'court', 'court__site').prefetch_related('payment').all().order_by('-created_at')
     
     # Org-scoping for org_admin and org_staff users
     if request.user.organization:
@@ -395,7 +396,9 @@ def reservation_edit_view(request, reservation_id):
                 if payment.status == 'pending':
                     payment.amount = updated_reservation.total_amount
                     payment.save()
-            except:
+            except Payment.DoesNotExist:
+                pass
+            except AttributeError:
                 pass
             
             # Notify user
@@ -487,7 +490,9 @@ def cancel_reservation_view(request, reservation_id):
                         status='processed',
                         requested_by=request.user
                     )
-            except:
+            except Payment.DoesNotExist:
+                pass
+            except AttributeError:
                 pass
 
             # Return equipment
@@ -497,7 +502,7 @@ def cancel_reservation_view(request, reservation_id):
 
             # Notify staff
             from accounts.models import User
-            staff_users = User.objects.filter(role__in=['staff', 'admin'])
+            staff_users = User.objects.filter(role__in=['super_admin', 'org_admin', 'org_staff'])
             for staff in staff_users:
                 Notification.objects.create(
                     user=staff,
@@ -617,7 +622,9 @@ def staff_refund_processing_view(request):
                     details=f'Refund for cancellation #{cancellation.id} processed by {request.user.get_full_name() or request.user.username}. Notes: {refund_notes or "-"}',
                     performed_by=request.user
                 )
-            except:
+            except Payment.DoesNotExist:
+                pass
+            except AttributeError:
                 pass
 
             Notification.objects.create(
@@ -847,7 +854,9 @@ def staff_cancellations_view(request):
                 payment = cancellation.reservation.payment
                 payment.status = 'refunded'
                 payment.save()
-            except:
+            except Payment.DoesNotExist:
+                pass
+            except AttributeError:
                 pass
 
             Notification.objects.create(

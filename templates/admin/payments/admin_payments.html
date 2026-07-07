@@ -7,56 +7,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 <style>
-    .pay-filter-bar {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
-    }
-    .pay-empty {
-        padding: 4rem 1rem;
-        text-align: center;
-        color: var(--text-muted);
-    }
-    .pay-stats-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    .pay-stat-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1.25rem;
-        flex: 1 1 180px;
-        min-width: 140px;
-        transition: all 0.2s ease;
-    }
-    .pay-stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .pay-stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 0.75rem;
-    }
-    .pay-stat-value {
-        font-size: 1.35rem;
-        font-weight: 700;
-        margin-bottom: 0.15rem;
-    }
-    .pay-stat-label {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 500;
-    }
     .method-chip {
         display: inline-flex;
         align-items: center;
@@ -78,14 +28,6 @@
         background: rgba(23, 162, 184, 0.1);
         color: #0c5460;
     }
-    @media (max-width: 576px) {
-        .pay-filter-bar .row {
-            gap: 0.5rem;
-        }
-        .pay-stat-card {
-            min-width: 100px;
-        }
-    }
 </style>
 {% endblock %}
 
@@ -100,38 +42,62 @@
 
 {% block content %}
 <!-- Stats Cards -->
-<div class="pay-stats-row">
-    <div class="pay-stat-card">
-        <div class="pay-stat-icon" style="background: rgba(40, 167, 69, 0.1);">
-            <i class="fas fa-calendar-day text-success"></i>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-calendar-day fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ today_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Today's Revenue</div>
+                    <small class="text-muted"><i class="fas fa-receipt me-1"></i>{{ today_count }} transactions</small>
+                </div>
+            </div>
         </div>
-        <div class="pay-stat-value" style="color: #28a745;">₱{{ today_revenue|floatformat:0 }}</div>
-        <div class="pay-stat-label">Today's Revenue</div>
-        <small class="text-muted">{{ today_count }} transactions</small>
     </div>
-    <div class="pay-stat-card">
-        <div class="pay-stat-icon" style="background: rgba(0, 123, 255, 0.1);">
-            <i class="fas fa-calendar-week text-primary"></i>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-calendar-week fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ week_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">This Week</div>
+                    <small class="text-muted"><i class="fas fa-receipt me-1"></i>{{ week_count }} transactions</small>
+                </div>
+            </div>
         </div>
-        <div class="pay-stat-value" style="color: #007bff;">₱{{ week_revenue|floatformat:0 }}</div>
-        <div class="pay-stat-label">This Week</div>
-        <small class="text-muted">{{ week_count }} transactions</small>
     </div>
-    <div class="pay-stat-card">
-        <div class="pay-stat-icon" style="background: rgba(23, 162, 184, 0.1);">
-            <i class="fas fa-calendar-alt text-info"></i>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-calendar-alt fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ month_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">This Month</div>
+                    <small class="text-muted"><i class="fas fa-receipt me-1"></i>{{ month_count }} transactions</small>
+                </div>
+            </div>
         </div>
-        <div class="pay-stat-value" style="color: #17a2b8;">₱{{ month_revenue|floatformat:0 }}</div>
-        <div class="pay-stat-label">This Month</div>
-        <small class="text-muted">{{ month_count }} transactions</small>
     </div>
-    <div class="pay-stat-card">
-        <div class="pay-stat-icon" style="background: rgba(255, 193, 7, 0.1);">
-            <i class="fas fa-wallet text-warning"></i>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ total_pending|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Pending Amount</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting verification</small>
+                </div>
+            </div>
         </div>
-        <div class="pay-stat-value" style="color: #856404;">₱{{ total_pending|floatformat:0 }}</div>
-        <div class="pay-stat-label">Pending Amount</div>
-        <small class="text-muted">Awaiting verification</small>
     </div>
 </div>
 
@@ -251,7 +217,8 @@
 </div>
 
 <!-- Filters -->
-<div class="pay-filter-bar">
+<div class="filter-card">
+    <div class="card-body">
     <form method="get" class="row g-3 align-items-end">
         <div class="col-lg-2 col-md-4">
             <label class="form-label"><i class="fas fa-filter me-2 text-primary"></i>Status</label>
@@ -302,6 +269,7 @@
             </div>
         </div>
     </form>
+    </div>
 </div>
 
 <!-- Payments Table -->
@@ -337,8 +305,8 @@
                 <tbody>
                     {% for payment in payments %}
                     <tr>
-                        <td class="fw-semibold">#{{ payment.id }}</td>
-                        <td>
+                        <td data-label="#" class="fw-semibold">#{{ payment.id }}</td>
+                        <td data-label="User">
                             <div class="d-flex align-items-center">
                                 {% if payment.reservation.user.profile_picture %}
                                 <img src="{{ payment.reservation.user.profile_picture.url }}" alt="" class="rounded-circle me-2" width="28" height="28">
@@ -350,18 +318,18 @@
                                 <span>{{ payment.reservation.user.username }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Reservation">
                             <small class="text-muted">Res #{{ payment.reservation.id }}</small><br>
                             <small>{{ payment.reservation.court.name|default:"N/A" }}</small>
                         </td>
-                        <td class="fw-semibold" style="color: #198754;">₱{{ payment.amount|floatformat:2 }}</td>
-                        <td>
+                        <td data-label="Amount" class="fw-semibold" style="color: #198754;">₱{{ payment.amount|floatformat:2 }}</td>
+                        <td data-label="Method">
                             <span class="method-chip {{ payment.method }}">
                                 <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
                                 {{ payment.get_method_display|default:"N/A" }}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             <span class="badge
                                 {% if payment.status == 'paid' %}bg-success
                                 {% elif payment.status == 'pending' %}bg-warning text-dark
@@ -372,10 +340,10 @@
                                 {{ payment.get_status_display }}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Date">
                             <small class="text-muted">{{ payment.created_at|date:"M d, Y" }}</small>
                         </td>
-                        <td class="text-end">
+                        <td data-label="Actions" class="text-end">
                             <div class="d-flex gap-1 justify-content-end">
                                 <a href="{% url 'payment_status' payment.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
                                     <i class="fas fa-eye"></i>
@@ -396,10 +364,12 @@
                     {% empty %}
                     <tr>
                         <td colspan="8">
-                            <div class="pay-empty">
-                                <i class="fas fa-receipt fa-3x mb-3"></i>
-                                <h5>No payments found</h5>
-                                <p class="mb-0">Try adjusting your filters or check back later.</p>
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-receipt fa-2x text-muted"></i>
+                                </div>
+                                <h5 class="empty-state-title">No payments found</h5>
+                                <p class="empty-state-text">Try adjusting your filters or check back later.</p>
                             </div>
                         </td>
                     </tr>
@@ -440,10 +410,12 @@
         </div>
         {% endif %}
         {% else %}
-        <div class="pay-empty">
-            <i class="fas fa-receipt fa-3x mb-3"></i>
-            <h5>No payments found</h5>
-            <p class="mb-0">Try adjusting your filters or check back later.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-receipt fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No payments found</h5>
+            <p class="empty-state-text">Try adjusting your filters or check back later.</p>
         </div>
         {% endif %}
     </div>

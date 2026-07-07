@@ -41,13 +41,13 @@
                 <tbody>
                     {% for broadcast in broadcasts %}
                     <tr>
-                        <td>
+                        <td data-label="Title">
                             <span class="table-cell-main">{{ broadcast.title }}</span>
                         </td>
-                        <td>
+                        <td data-label="Message Preview">
                             <span class="table-cell-sub">{{ broadcast.message|truncatewords:15 }}</span>
                         </td>
-                        <td>
+                        <td data-label="Sent By">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="stat-icon-wrapper" style="width: 36px; height: 36px; background: rgba(59,122,140,0.1);">
                                     <i class="fas fa-user text-primary" style="font-size: 0.875rem;"></i>
@@ -55,14 +55,14 @@
                                 <span class="table-cell-main">{{ broadcast.sent_by.get_full_name|default:broadcast.sent_by.username }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Target Roles">
                             {% for role in broadcast.target_roles %}
                             <span class="badge-staff badge-status-pending me-1">{{ role|title }}</span>
                             {% empty %}
                             <span class="badge-staff badge-status-completed">All Users</span>
                             {% endfor %}
                         </td>
-                        <td>
+                        <td data-label="Sent At">
                             <span class="table-cell-main">{{ broadcast.sent_at|date:"M d, Y" }}</span><br>
                             <span class="table-cell-sub">{{ broadcast.sent_at|time:"g:i A" }}</span>
                         </td>

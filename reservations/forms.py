@@ -63,6 +63,11 @@ class ReservationForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['court'].queryset = Court.objects.filter(is_active=True)
+        # If user belongs to an organization, only show courts from their org
+        if self.user and hasattr(self.user, 'organization') and self.user.organization:
+            self.fields['court'].queryset = Court.objects.filter(
+                organization=self.user.organization, is_active=True
+            )
         # Make all match settings fields not required since they're set by admin
         self.fields['match_name'].required = False
         self.fields['match_format'].required = False

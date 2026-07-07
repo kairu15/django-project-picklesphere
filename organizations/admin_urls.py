@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     # Super Admin - Dashboard
-    path('dashboard/', views.super_admin_dashboard, name='super_admin_dashboard'),
+    path('dashboard/', views.super_admin_dashboard, name='super_admin_org_dashboard'),
 
     # Super Admin - Organization Management
     path('organizations/', views.super_admin_organization_list, name='super_admin_organization_list'),

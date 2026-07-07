@@ -31,27 +31,27 @@
                 <tbody>
                     {% for match in matches %}
                     <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">
+                        <td data-label="ID" style="padding: 15px 20px;">
                             <span class="badge bg-light text-dark border">#{{ match.id }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Court" style="padding: 15px 20px;">
                             <span class="fw-bold">{{ match.reservation.court.name }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Format" style="padding: 15px 20px;">
                             <span class="badge bg-info px-2 py-1">{{ match.get_format_display }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Score" style="padding: 15px 20px;">
                             <span class="badge bg-primary px-3 py-2">{{ match.get_team1_score }} - {{ match.get_team2_score }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Status" style="padding: 15px 20px;">
                             <span class="badge px-3 py-2 {% if match.status == 'completed' %}bg-success{% elif match.status == 'ongoing' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
                                 {{ match.get_status_display }}
                             </span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Date" style="padding: 15px 20px;">
                             <small class="text-muted">{{ match.reservation.date|date:"M d, Y" }}</small>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Actions" style="padding: 15px 20px;">
                             <div class="d-flex gap-1">
                                 <a href="{% url 'match_detail' match.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
                                     <i class="fas fa-eye"></i>
@@ -112,65 +112,6 @@
     background-color: #f8f9fa;
     transform: scale(1.01);
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* Enhanced Cards */
-.card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-/* Enhanced Table */
-.table-responsive {
-    border-radius: 12px;
-    overflow: hidden;
-}
-.table thead th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-.table tbody tr:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-    transform: scale(1.01);
-}
-
-/* Enhanced Buttons */
-.btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-/* Enhanced Badges */
-.badge {
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-}
-
-/* Enhanced Empty State */
-.empty-state-icon {
-    animation: pulse 2s infinite;
-}
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
 }
 </style>
 {% endblock %}

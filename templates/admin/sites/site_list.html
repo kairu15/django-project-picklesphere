@@ -32,7 +32,7 @@
                 <tbody>
                     {% for site in sites %}
                     <tr>
-                        <td>
+                        <td data-label="Site">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm avatar-placeholder me-2">
                                     <i class="fas fa-building"></i>
@@ -40,18 +40,18 @@
                                 <span class="fw-semibold">{{ site.name }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Description">
                             <span class="text-muted">{{ site.description|truncatewords:15|default:"No description" }}</span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             {% if site.is_active %}
                             <span class="status-badge active">Active</span>
                             {% else %}
                             <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>{{ site.created_at|date:"M d, Y" }}</td>
-                        <td>
+                        <td data-label="Created">{{ site.created_at|date:"M d, Y" }}</td>
+                        <td data-label="Actions">
                             <div class="action-buttons justify-content-end">
                                 <a href="{% url 'org_admin_site_edit' site.id %}" class="action-btn edit" title="Edit">
                                     <i class="fas fa-edit"></i>

@@ -204,10 +204,10 @@
                 <tbody>
                     {% for game in match.games.all %}
                     <tr>
-                        <td><span class="badge bg-light text-dark border">{{ game.game_number }}</span></td>
-                        <td class="fw-bold">{{ game.team1_score }}</td>
-                        <td class="fw-bold">{{ game.team2_score }}</td>
-                        <td>
+                        <td data-label="Game #"><span class="badge bg-light text-dark border">{{ game.game_number }}</span></td>
+                        <td data-label="Team 1 Score" class="fw-bold">{{ game.team1_score }}</td>
+                        <td data-label="Team 2 Score" class="fw-bold">{{ game.team2_score }}</td>
+                        <td data-label="Winner">
                             {% if game.winner == 1 %}
                                 <span class="badge bg-primary">Team 1</span>
                             {% elif game.winner == 2 %}
@@ -216,7 +216,7 @@
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Status">
                             {% if game.ended_at %}
                                 <span class="badge bg-success">Completed</span>
                             {% else %}
@@ -238,63 +238,7 @@
 </div>
 
 <style>
-/* Enhanced Cards */
-.card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-/* Enhanced Buttons */
-.btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-/* Enhanced Badges */
-.badge {
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-}
-
-/* Enhanced Table */
-.table-responsive {
-    border-radius: 12px;
-    overflow: hidden;
-}
-.table thead th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-.table tbody tr:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-    transform: scale(1.01);
-}
-
-/* Enhanced Avatar Circles */
-.rounded-circle {
-    transition: transform 0.3s ease;
-}
-.rounded-circle:hover {
-    transform: scale(1.1);
-}
+/* Minimal custom styles - base.css provides enhanced cards, tables, badges, buttons */
 </style>
 {% endblock %}
 

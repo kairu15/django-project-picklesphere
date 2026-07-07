@@ -85,7 +85,7 @@
                 <tbody>
                     {% for msg in messages %}
                     <tr class="{% if not msg.is_read %}table-active{% endif %}">
-                        <td>
+                        <td data-label="Status">
                             <span class="status-badge {% if msg.status == 'new' or not msg.is_read %}pending{% elif msg.status == 'replied' %}active{% elif msg.status == 'closed' %}inactive{% else %}active{% endif %}">
                                 {{ msg.get_status_display }}
                             </span>
@@ -93,7 +93,7 @@
                             <span class="badge bg-danger ms-1">New</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="From">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm avatar-placeholder me-2">
                                     {{ msg.name|first|upper }}
@@ -104,10 +104,10 @@
                                 </div>
                             </div>
                         </td>
-                        <td><span class="fw-semibold">{{ msg.get_subject_display }}</span></td>
-                        <td class="text-muted">{{ msg.message|truncatechars:50 }}</td>
-                        <td><small>{{ msg.created_at|date:"M d, Y" }}</small></td>
-                        <td class="text-end">
+                        <td data-label="Subject"><span class="fw-semibold">{{ msg.get_subject_display }}</span></td>
+                        <td data-label="Message Preview" class="text-muted">{{ msg.message|truncatechars:50 }}</td>
+                        <td data-label="Date"><small>{{ msg.created_at|date:"M d, Y" }}</small></td>
+                        <td data-label="Actions" class="text-end">
                             <a href="{% url 'super_admin_contact_message_detail' msg.id %}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye me-1"></i>View
                             </a>

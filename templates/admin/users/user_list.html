@@ -66,7 +66,7 @@
                 <tbody>
                     {% for user in users %}
                     <tr>
-                        <td>
+                        <td data-label="User">
                             <div class="d-flex align-items-center">
                                 {% if user.profile_picture %}
                                     <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="avatar avatar-sm me-2">
@@ -78,19 +78,19 @@
                                 <span class="fw-semibold">{{ user.username }}</span>
                             </div>
                         </td>
-                        <td>{{ user.email|default:"N/A" }}</td>
-                        <td>
+                        <td data-label="Email">{{ user.email|default:"N/A" }}</td>
+                        <td data-label="Role">
                             <span class="status-badge {{ user.role }}">{{ user.get_role_display }}</span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             {% if user.is_active %}
                             <span class="status-badge active">Active</span>
                             {% else %}
                             <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>{{ user.created_at|date:"M d, Y" }}</td>
-                        <td>
+                        <td data-label="Joined">{{ user.created_at|date:"M d, Y" }}</td>
+                        <td data-label="Actions">
                             <div class="action-buttons justify-content-end">
                                 <a href="{% url 'super_admin_user_edit' user.id %}" class="action-btn edit" title="Edit">
                                     <i class="fas fa-edit"></i>

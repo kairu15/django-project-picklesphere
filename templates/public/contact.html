@@ -6,31 +6,6 @@
 {% block body %}
 {% include 'components/header.html' %}
 
-<!-- Floating Toast Notifications -->
-<div class="floating-toast-container" id="toastContainer">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="floating-toast {{ message.tags }}" role="alert" data-auto-dismiss="5000">
-                <div class="floating-toast-icon">
-                    {% if message.tags == 'success' %}
-                        <i class="fas fa-check-circle"></i>
-                    {% elif message.tags == 'error' %}
-                        <i class="fas fa-exclamation-circle"></i>
-                    {% elif message.tags == 'warning' %}
-                        <i class="fas fa-exclamation-triangle"></i>
-                    {% else %}
-                        <i class="fas fa-info-circle"></i>
-                    {% endif %}
-                </div>
-                <div class="floating-toast-content">{{ message }}</div>
-                <button type="button" class="floating-toast-close" onclick="dismissToast(this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        {% endfor %}
-    {% endif %}
-</div>
-
 <!-- Hero Section -->
 <section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.85), rgba(59, 122, 140, 0.95)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920') center/cover; padding: 120px 0 100px; position: relative;">
     <div class="container">
@@ -45,7 +20,7 @@
 </section>
 
 <!-- Contact Info Cards Row -->
-<section class="py-5" style="margin-top: -60px; position: relative; z-index: 2;">
+<section class="py-5 marketing-section" style="margin-top: -60px; position: relative; z-index: 2;">
     <div class="container">
         <div class="row g-4">
             <div class="col-md-4">
@@ -89,7 +64,7 @@
 </section>
 
 <!-- Contact Form & Info Section -->
-<section class="py-5 bg-light">
+<section class="py-5 bg-light marketing-section">
     <div class="container">
         <div class="row g-5">
             <!-- Contact Form -->
@@ -235,7 +210,7 @@
 </section>
 
 <!-- FAQ Section -->
-<section class="py-5">
+<section class="py-5 marketing-section">
     <div class="container">
         <div class="text-center mb-5">
             <span class="badge bg-primary mb-3 px-3 py-2">{{ content.faq_badge|default:"FAQ" }}</span>
@@ -267,7 +242,7 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-5" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
+<section class="py-5 marketing-section" style="background: linear-gradient(135deg, #1a3a42 0%, #3B7A8C 100%);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8 text-center text-lg-start mb-4 mb-lg-0">
@@ -287,55 +262,7 @@
 </section>
 
 <style>
-/* Hover Effects */
-.hover-card {
-    transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-.hover-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--card-shadow-hover) !important;
-}
-
-/* Form Styling */
-.form-control:focus, .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(59,122,140,0.25);
-}
-
-/* Enhanced Cards */
-.card {
-    transition: all var(--transition-slow);
-}
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--card-shadow-hover);
-}
-
-/* Enhanced Buttons */
-.btn {
-    transition: all var(--transition-slow);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--btn-shadow);
-}
-
-/* Enhanced Section Animations */
-section {
-    animation: fadeInUp 0.6s ease;
-}
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* Contact page retains minimal custom styles only */
 </style>
 
 {% include 'components/footer.html' %}

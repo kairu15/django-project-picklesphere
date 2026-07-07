@@ -63,12 +63,12 @@
                 <tbody>
                     {% for msg in messages %}
                     <tr class="{% if msg.status == 'replied' and msg.admin_reply %}table-success{% endif %}">
-                        <td>
+                        <td data-label="Status">
                             <span class="badge {{ msg.status_badge_class }}">{{ msg.get_status_display }}</span>
                         </td>
-                        <td>{{ msg.get_subject_display }}</td>
-                        <td class="text-muted">{{ msg.message|truncatechars:50 }}</td>
-                        <td>
+                        <td data-label="Subject">{{ msg.get_subject_display }}</td>
+                        <td data-label="My Message" class="text-muted">{{ msg.message|truncatechars:50 }}</td>
+                        <td data-label="Admin Reply">
                             {% if msg.admin_reply %}
                             <span class="text-success">
                                 <i class="fas fa-check-circle me-1"></i>Replied
@@ -77,7 +77,7 @@
                             <span class="text-muted">Pending</span>
                             {% endif %}
                         </td>
-                        <td>{{ msg.created_at|date:"M d, Y" }}</td>
+                        <td data-label="Date">{{ msg.created_at|date:"M d, Y" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

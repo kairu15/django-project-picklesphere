@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- {% load static %} -->
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PickleSphere{% endblock %} - Pickleball Facility Management</title>
@@ -345,10 +345,6 @@
             object-fit: cover;
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.2);
-        }
-        
-        .sidebar-nav {
-            padding: 20px 0;
         }
         
         .nav-section {
@@ -809,15 +805,6 @@
         .btn-outline-primary:hover {
             background: var(--primary-color);
             border-color: var(--primary-color);
-        }
-
-        /* Enhanced Card Styles */
-        .card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
         /* Enhanced Table Styles */
@@ -1915,6 +1902,74 @@
             }
         }
 
+        /* ===== PUBLIC / MARKETING SITE STYLES ===== */
+        .hero-section {
+            min-height: auto;
+            padding: 80px 0;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                min-height: auto !important;
+                padding: 80px 0 40px !important;
+            }
+            .hero-section h1 {
+                font-size: 2.5rem !important;
+            }
+        }
+
+        .step-number {
+            box-shadow: 0 8px 25px rgba(59, 122, 140, 0.3);
+        }
+
+        .hover-card {
+            transition: transform var(--transition-slow), box-shadow var(--transition-base);
+        }
+        .hover-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--card-shadow-lg) !important;
+        }
+
+        .hover-gallery {
+            transition: transform var(--transition-base);
+            cursor: pointer;
+        }
+        .hover-gallery:hover {
+            transform: scale(1.05);
+        }
+        .hover-gallery:hover .gallery-overlay {
+            opacity: 1 !important;
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(59, 122, 140, 0.85);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gallery-overlay i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .card-img-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+        }
+
+
+
         /* ===== ENHANCED DESIGN ADDITIONS - Loading, Skeleton, Scrollbar ===== */
         /* Loading Overlay */
         .loading-overlay {
@@ -2309,6 +2364,21 @@
             pointer-events: none;
         }
 
+        /* Scope section animation to marketing pages only, not dashboard */
+        .marketing-section {
+            animation: fadeInUp 0.6s ease;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* ============================================
            LIGHTBOX / IMAGE MODAL STYLES
            ============================================ */
@@ -2680,6 +2750,32 @@
             });
         });
     </script>
+
+    <!-- Lightbox Modal -->
+    <!-- Global Floating Toast Messages -->
+    <div class="floating-toast-container" id="toastContainer">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="floating-toast {{ message.tags }}" role="alert" data-auto-dismiss="5000">
+                    <div class="floating-toast-icon">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="floating-toast-content">{{ message }}</div>
+                    <button type="button" class="floating-toast-close" onclick="dismissToast(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
     <!-- Lightbox Modal -->
     <div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox(event)">

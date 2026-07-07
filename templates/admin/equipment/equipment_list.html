@@ -78,7 +78,7 @@
                 <tbody>
                     {% for item in equipment %}
                     <tr>
-                        <td>
+                        <td data-label="Equipment">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm avatar-placeholder me-2">
                                     <i class="fas fa-box"></i>
@@ -89,10 +89,10 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Type">
                             <span class="badge bg-light text-dark border">{{ item.get_type_display }}</span>
                         </td>
-                        <td>
+                        <td data-label="Stock">
                             <div class="d-flex align-items-center">
                                 <span class="fw-semibold {% if item.quantity_available == 0 %}text-danger{% elif item.quantity_available < 5 %}text-warning{% else %}text-success{% endif %}">
                                     {{ item.quantity_available }}
@@ -101,17 +101,17 @@
                                 <span class="text-muted">{{ item.quantity_total }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Price">
                             <span class="fw-semibold text-primary">₱{{ item.rental_price|floatformat:0 }}</span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             {% if item.is_active %}
                             <span class="status-badge active">Active</span>
                             {% else %}
                             <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Actions">
                             <div class="action-buttons justify-content-end">
                                 <a href="{% url 'equipment_detail' item.id %}" class="action-btn view" title="View">
                                     <i class="fas fa-eye"></i>

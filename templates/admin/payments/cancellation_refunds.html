@@ -7,30 +7,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 <style>
-    .refund-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
-    }
-    .refund-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        background: rgba(59, 122, 140, 0.06);
-    }
-    .refund-card-title {
-        margin: 0;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-    .refund-card-body {
-        padding: 1.5rem;
-    }
     .refund-breakdown {
         max-width: 560px;
     }
@@ -62,34 +38,12 @@
         font-weight: 700;
         margin-bottom: 0.35rem;
     }
-    .refund-muted {
-        color: var(--text-muted);
-        margin-bottom: 0;
-    }
     .refund-detail-block {
         padding: 1rem;
         border: 1px solid var(--border-color);
         border-radius: 8px;
         background: var(--card-bg-secondary);
         height: 100%;
-    }
-    .refund-empty {
-        padding: 4rem 1rem;
-        text-align: center;
-        color: var(--text-muted);
-    }
-    @media (max-width: 576px) {
-        .refund-card-header {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        .refund-line {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        .refund-value {
-            text-align: left;
-        }
     }
 </style>
 {% endblock %}
@@ -119,11 +73,11 @@
 <div class="d-flex flex-column gap-4">
     {% for row in refund_rows %}
     {% with cancellation=row.cancellation payment=row.payment %}
-    <div class="refund-card">
-        <div class="refund-card-header">
+    <div class="admin-card refund-card">
+        <div class="admin-card-header">
             <div>
-                <h5 class="refund-card-title">Reservation #{{ cancellation.reservation.id }}</h5>
-                <p class="refund-muted">
+                <h5 class="admin-card-title">Reservation #{{ cancellation.reservation.id }}</h5>
+                <p class="text-muted small mb-0">
                     {{ cancellation.reservation.user.get_full_name|default:cancellation.reservation.user.username }}
                     &middot; {{ cancellation.reservation.court.name }}
                     &middot; {{ cancellation.requested_at|date:"M d, Y g:i A" }}
@@ -147,7 +101,7 @@
             </div>
         </div>
 
-        <div class="refund-card-body">
+        <div class="card-body p-4">
             <div class="row g-4">
                 <div class="col-lg-6">
                     <div class="refund-breakdown">
@@ -215,10 +169,14 @@
 </div>
 {% else %}
 <div class="admin-card">
-    <div class="refund-empty">
-        <i class="fas fa-undo-alt fa-3x mb-3"></i>
-        <h5>No cancellation refund records found</h5>
-        <p class="mb-0">Cancellation details will appear here once users cancel reservations.</p>
+    <div class="card-body">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-undo-alt fa-2x text-muted"></i>
+            </div>
+            <h5 class="empty-state-title">No cancellation refund records found</h5>
+            <p class="empty-state-text">Cancellation details will appear here once users cancel reservations.</p>
+        </div>
     </div>
 </div>
 {% endif %}

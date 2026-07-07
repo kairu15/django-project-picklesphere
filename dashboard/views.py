@@ -1399,7 +1399,7 @@ def pricing_edit_tier(request, tier_id=None):
         
         try:
             features = json.loads(features_json)
-        except:
+        except json.JSONDecodeError:
             features = []
         
         if tier:

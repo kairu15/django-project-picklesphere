@@ -165,9 +165,9 @@
                         <tbody>
                             {% for item in period_revenue %}
                             <tr>
-                                <td class="fw-semibold">{{ item.period }}</td>
-                                <td class="fw-semibold text-success">₱{{ item.revenue|floatformat:2 }}</td>
-                                <td><span class="badge bg-info">{{ item.count }}</span></td>
+                                <td data-label="Period" class="fw-semibold">{{ item.period }}</td>
+                                <td data-label="Revenue" class="fw-semibold text-success">₱{{ item.revenue|floatformat:2 }}</td>
+                                <td data-label="Transactions"><span class="badge bg-info">{{ item.count }}</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -213,17 +213,17 @@
                         <tbody>
                             {% for payment in recent_transactions %}
                             <tr>
-                                <td class="fw-semibold">#{{ payment.id }}</td>
-                                <td>{{ payment.reservation.user.username }}</td>
-                                <td class="fw-semibold text-success">₱{{ payment.amount|floatformat:2 }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ payment.get_method_display }}</span></td>
-                                <td>
+                                <td data-label="ID" class="fw-semibold">#{{ payment.id }}</td>
+                                <td data-label="User">{{ payment.reservation.user.username }}</td>
+                                <td data-label="Amount" class="fw-semibold text-success">₱{{ payment.amount|floatformat:2 }}</td>
+                                <td data-label="Method"><span class="badge bg-light text-dark border">{{ payment.get_method_display }}</span></td>
+                                <td data-label="Status">
                                     <span class="status-badge {{ payment.status }}">
                                         {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
                                         {{ payment.get_status_display }}
                                     </span>
                                 </td>
-                                <td><small class="text-muted">{{ payment.created_at|date:"M d, Y" }}</small></td>
+                                <td data-label="Date"><small class="text-muted">{{ payment.created_at|date:"M d, Y" }}</small></td>
                             </tr>
                             {% endfor %}
                         </tbody>

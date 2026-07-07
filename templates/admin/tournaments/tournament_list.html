@@ -99,25 +99,25 @@
                 <tbody>
                     {% for tournament in tournaments %}
                     <tr>
-                        <td>
+                        <td data-label="Name">
                             <span class="fw-semibold">{{ tournament.name }}</span>
                             <br><small class="text-muted">{{ tournament.get_skill_level_display }}</small>
                         </td>
-                        <td><span class="badge bg-light text-dark border">{{ tournament.get_category_display }}</span></td>
-                        <td><span class="badge bg-light text-dark border">{{ tournament.get_format_display }}</span></td>
-                        <td>
+                        <td data-label="Category"><span class="badge bg-light text-dark border">{{ tournament.get_category_display }}</span></td>
+                        <td data-label="Format"><span class="badge bg-light text-dark border">{{ tournament.get_format_display }}</span></td>
+                        <td data-label="Status">
                             <span class="status-badge {% if tournament.status == 'registration_open' %}active{% elif tournament.status == 'in_progress' %}pending{% elif tournament.status == 'completed' %}inactive{% else %}inactive{% endif %}">
                                 {{ tournament.get_status_display }}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Registrations">
                             <span class="badge bg-info">{{ tournament.registration_count }}</span>
                             {% if tournament.pending_count > 0 %}
                             <span class="badge bg-warning text-dark ms-1">{{ tournament.pending_count }}</span>
                             {% endif %}
                         </td>
-                        <td><small class="text-muted">{{ tournament.tournament_start|date:"M d, Y" }}</small></td>
-                        <td class="text-end">
+                        <td data-label="Start Date"><small class="text-muted">{{ tournament.tournament_start|date:"M d, Y" }}</small></td>
+                        <td data-label="Actions" class="text-end">
                             <div class="action-buttons justify-content-end">
                                 <a href="{% url 'admin_tournament_manage' tournament.pk %}" class="action-btn edit" title="Manage">
                                     <i class="fas fa-cog"></i>

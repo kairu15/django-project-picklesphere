@@ -105,7 +105,7 @@
                 <tbody>
                     {% for item in equipment %}
                     <tr>
-                        <td>
+                        <td data-label="Item">
                             <div class="equipment-item">
                                 {% if item.image %}
                                     <div class="equipment-image-wrapper-sm clickable-image" data-lightbox data-caption="{{ item.name }} - {{ item.get_type_display }}" style="cursor: zoom-in;">
@@ -122,8 +122,8 @@
                                 </div>
                             </div>
                         </td>
-                        <td>{{ item.get_type_display }}</td>
-                        <td>
+                        <td data-label="Type">{{ item.get_type_display }}</td>
+                        <td data-label="Available">
                             {% if item.quantity_available == 0 %}
                                 <span class="badge-staff badge-status-cancelled">{{ item.quantity_available }}</span>
                             {% elif item.quantity_available <= 5 %}
@@ -132,18 +132,18 @@
                                 <span class="badge-staff badge-status-confirmed">{{ item.quantity_available }}</span>
                             {% endif %}
                         </td>
-                        <td>{{ item.quantity_total }}</td>
-                        <td>
+                        <td data-label="Total">{{ item.quantity_total }}</td>
+                        <td data-label="Price">
                             <span class="table-cell-main">₱{{ item.rental_price|floatformat:0 }}</span>
                             <span class="table-cell-sub">/ {{ item.rental_duration }} hrs</span>
                         </td>
-                        <td>
+                        <td data-label="Condition">
                             <span class="badge-staff {% if item.condition == 'new' %}badge-equipment-new{% elif item.condition == 'good' %}badge-equipment-good{% elif item.condition == 'fair' %}badge-equipment-fair{% else %}badge-equipment-poor{% endif %}">
                                 <i class="fas fa-{% if item.condition == 'new' %}star{% elif item.condition == 'good' %}thumbs-up{% elif item.condition == 'fair' %}exclamation{% else %}warning{% endif %}"></i>
                                 {{ item.get_condition_display }}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             <span class="badge-staff {% if item.is_active %}badge-status-confirmed{% else %}badge-status-completed{% endif %}">
                                 <i class="fas fa-{% if item.is_active %}check-circle{% else %}times-circle{% endif %}"></i>
                                 {% if item.is_active %}Active{% else %}Inactive{% endif %}

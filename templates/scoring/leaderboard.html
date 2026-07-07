@@ -27,7 +27,7 @@
                 <tbody>
                     {% for stat in stats %}
                     <tr class="hover-row {% if stat.player == user %}table-primary{% endif %}" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Rank" style="padding: 15px 20px;">
                             {% if forloop.counter == 1 %}
                                 <span class="badge px-3 py-2" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);"><i class="fas fa-crown me-1"></i>1st</span>
                             {% elif forloop.counter == 2 %}
@@ -38,7 +38,7 @@
                                 <span class="badge bg-light text-dark border px-3 py-2">#{{ forloop.counter }}</span>
                             {% endif %}
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Player" style="padding: 15px 20px;">
                             <div class="d-flex align-items-center gap-2">
                                 <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem;">
                                     {{ stat.player.first_name|first|default:stat.player.username|first|upper }}
@@ -47,14 +47,14 @@
                                 {% if stat.player == user %}<span class="badge bg-primary px-2 py-1"><i class="fas fa-user me-1"></i>You</span>{% endif %}
                             </div>
                         </td>
-                        <td style="padding: 15px 20px;">{{ stat.total_matches }}</td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Matches" style="padding: 15px 20px;">{{ stat.total_matches }}</td>
+                        <td data-label="Wins" style="padding: 15px 20px;">
                             <span class="badge bg-success px-2 py-1">{{ stat.wins }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Losses" style="padding: 15px 20px;">
                             <span class="badge bg-danger px-2 py-1">{{ stat.losses }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Win Rate" style="padding: 15px 20px;">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="progress flex-grow-1" style="height: 8px; border-radius: 4px;">
                                     <div class="progress-bar win-rate-bar" data-win-rate="{{ stat.win_rate }}" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);"></div>
@@ -83,73 +83,6 @@
     background-color: #f8f9fa;
     transform: scale(1.01);
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* Enhanced Cards */
-.card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-/* Enhanced Table */
-.table-responsive {
-    border-radius: 12px;
-    overflow: hidden;
-}
-.table thead th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-.table tbody tr:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-    transform: scale(1.01);
-}
-
-/* Enhanced Badges */
-.badge {
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-}
-
-/* Enhanced Progress Bar */
-.progress {
-    height: 8px;
-    border-radius: 4px;
-    background: #e9ecef;
-}
-.progress-bar {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-    transition: width 0.6s ease;
-}
-
-/* Enhanced Empty State */
-.empty-state-icon {
-    animation: pulse 2s infinite;
-}
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-/* Enhanced Avatar */
-.avatar-circle {
-    transition: transform 0.3s ease;
-}
-.avatar-circle:hover {
-    transform: scale(1.1);
 }
 </style>
 

@@ -156,15 +156,15 @@
                 <tbody>
                     {% for match in matches %}
                     <tr class="hover-row" style="transition: all 0.3s ease;">
-                        <td style="padding: 15px 20px;">{{ match.reservation.date|date:"M d, Y" }}</td>
-                        <td style="padding: 15px 20px;">{{ match.reservation.court.name }}</td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Date" style="padding: 15px 20px;">{{ match.reservation.date|date:"M d, Y" }}</td>
+                        <td data-label="Court" style="padding: 15px 20px;">{{ match.reservation.court.name }}</td>
+                        <td data-label="Format" style="padding: 15px 20px;">
                             <span class="badge bg-info px-2 py-1">{{ match.get_format_display }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Score" style="padding: 15px 20px;">
                             <span class="badge bg-primary px-3 py-2">{{ match.get_team1_score }} - {{ match.get_team2_score }}</span>
                         </td>
-                        <td style="padding: 15px 20px;">
+                        <td data-label="Result" style="padding: 15px 20px;">
                             {% with user_team=match.team1_player1.id %}
                                 {% if match.winner_team == 1 %}
                                     <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>Won</span>

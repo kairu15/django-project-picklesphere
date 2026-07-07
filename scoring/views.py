@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.http import JsonResponse
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Match, Game, ScorePoint, PlayerStats, MatchSettings
 from .forms import MatchSetupForm, ScoreUpdateForm, MatchSettingsForm
@@ -125,7 +126,7 @@ def match_live_view(request, match_id):
 
 @login_required
 def update_score_view(request, game_id):
-    if not request.user.is_staff_user() and not request.user.is_admin():
+    if not request.user.is_staff_user():
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     game = get_object_or_404(Game, id=game_id)
@@ -140,11 +141,12 @@ def update_score_view(request, game_id):
             else:
                 game.team2_score += 1
             
-            # Log the point
+            # Log the point (total points so far in the game)
+            total_points = game.team1_score + game.team2_score
             ScorePoint.objects.create(
                 game=game,
                 team=int(team),
-                point_number=game.team1_score + game.team2_score if team == '1' else game.team1_score + game.team2_score
+                point_number=total_points
             )
             
         elif action == 'subtract':
@@ -287,8 +289,6 @@ def update_player_stats(match):
         stats.last_match_at = match.ended_at
         stats.save()
 
-
-from django.http import JsonResponse
 
 def match_score_api(request, match_id):
     """API endpoint for getting live match score"""

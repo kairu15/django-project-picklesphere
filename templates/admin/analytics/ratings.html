@@ -132,7 +132,7 @@
                 <tbody>
                     {% for rating in ratings %}
                     <tr>
-                        <td class="ps-4">
+                        <td data-label="Customer" class="ps-4">
                             <div class="d-flex align-items-center">
                                 {% if rating.user.profile_picture %}
                                     <img src="{{ rating.user.profile_picture.url }}" alt="" class="avatar avatar-sm me-2" style="object-fit: cover;">
@@ -147,7 +147,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Rating">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="fw-bold" style="color: #ffc107;">{{ rating.rating }}.0</span>
                                 <div>
@@ -161,23 +161,23 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Comment">
                             <span class="text-muted" style="max-width: 250px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {{ rating.comment|default:"No comment" }}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Court">
                             <span class="badge bg-light text-dark border">{{ rating.reservation.court.name|default:"N/A" }}</span>
                         </td>
-                        <td><small class="text-muted">{{ rating.created_at|date:"M d, Y" }}</small></td>
-                        <td>
+                        <td data-label="Date"><small class="text-muted">{{ rating.created_at|date:"M d, Y" }}</small></td>
+                        <td data-label="Status">
                             {% if rating.is_featured %}
                             <span class="status-badge active">Featured</span>
                             {% else %}
                             <span class="status-badge inactive">Standard</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-4">
+                        <td data-label="Actions" class="text-end pe-4">
                             <form method="post" action="{% url 'super_admin_toggle_featured_rating' rating.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm {% if rating.is_featured %}btn-warning{% else %}btn-outline-success{% endif %}">

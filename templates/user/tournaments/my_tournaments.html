@@ -96,17 +96,17 @@
                         <tbody>
                             {% for reg in registrations %}
                             <tr class="hover-row" style="transition: all 0.3s ease;">
-                                <td style="padding: 15px 20px;">
+                                <td data-label="Tournament" style="padding: 15px 20px;">
                                     <strong>{{ reg.tournament.name }}</strong>
                                     <br><small class="text-muted"><i class="fas fa-calendar me-1"></i>{{ reg.tournament.tournament_start|date:"M d, Y" }}</small>
                                 </td>
-                                <td style="padding: 15px 20px;">
+                                <td data-label="Category" style="padding: 15px 20px;">
                                     <span class="badge bg-light text-dark border">{{ reg.tournament.get_category_display }}</span>
                                 </td>
-                                <td style="padding: 15px 20px;">
+                                <td data-label="Format" style="padding: 15px 20px;">
                                     <span class="badge bg-light text-dark border">{{ reg.tournament.get_format_display }}</span>
                                 </td>
-                                <td style="padding: 15px 20px;">
+                                <td data-label="Status" style="padding: 15px 20px;">
                                     {% if reg.status == 'pending' %}
                                         <span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-clock me-1"></i>Pending</span>
                                     {% elif reg.status == 'approved' %}
@@ -117,10 +117,10 @@
                                         <span class="badge bg-secondary px-3 py-2">{{ reg.get_status_display }}</span>
                                     {% endif %}
                                 </td>
-                                <td style="padding: 15px 20px;">
+                                <td data-label="Registered" style="padding: 15px 20px;">
                                     <span class="text-muted">{{ reg.registered_at|date:"M d, Y" }}</span>
                                 </td>
-                                <td style="padding: 15px 20px;">
+                                <td data-label="Actions" style="padding: 15px 20px;">
                                     <a href="{% url 'tournament_detail' reg.tournament.pk %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
                                         <i class="fas fa-eye"></i>
                                     </a>

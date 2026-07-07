@@ -98,12 +98,12 @@
                 <tbody>
                     {% for payment in payments %}
                     <tr class="payment-row">
-                        <td class="py-3 px-4">
+                        <td data-label="Payment ID" class="py-3 px-4">
                             <span class="badge bg-light text-dark border px-3 py-2" style="font-family: monospace; font-size: 0.8rem;">
                                 #{{ payment.id }}
                             </span>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Reservation" class="py-3 px-4">
                             <div class="d-flex align-items-center gap-2">
                                 <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6c757d 0%, #545b62 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-map-marker-alt text-white" style="font-size: 0.75rem;"></i>
@@ -114,14 +114,14 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Date" class="py-3 px-4">
                             <span class="fw-medium">{{ payment.created_at|date:"M d, Y" }}</span>
                             <small class="text-muted d-block">{{ payment.created_at|time:"g:i A" }}</small>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Amount" class="py-3 px-4">
                             <span class="fw-bold fs-5" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</span>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Method" class="py-3 px-4">
                             <span class="badge bg-light text-dark border px-3 py-2" style="font-size: 0.8rem;">
                                 {% if payment.method == 'gcash' %}
                                     <i class="fas fa-mobile-alt me-1 text-primary"></i>
@@ -135,7 +135,7 @@
                                 {{ payment.get_method_display|default:"N/A" }}
                             </span>
                         </td>
-                        <td class="py-3 px-4">
+                        <td data-label="Status" class="py-3 px-4">
                             <span class="badge px-3 py-2 payment-status-badge {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}" style="font-size: 0.8rem; border-radius: 8px;">
                                 {% if payment.status == 'paid' %}
                                     <i class="fas fa-check-circle me-1"></i>
@@ -149,7 +149,7 @@
                                 {{ payment.get_status_display }}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-center">
+                        <td data-label="Actions" class="py-3 px-4 text-center">
                             <a href="{% url 'payment_status' payment.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; padding: 8px 16px;">
                                 <i class="fas fa-eye me-1"></i>View
                             </a>

@@ -134,21 +134,21 @@
                                     <tbody>
                                         {% for match in completed_matches %}
                                         <tr style="transition: all 0.3s ease;">
-                                            <td style="padding: 15px 20px;">
+                                            <td data-label="Tournament" style="padding: 15px 20px;">
                                                 <strong>{{ match.tournament.name }}</strong>
                                                 <br><small class="text-muted"><i class="fas fa-sitemap me-1"></i>{{ match.get_round_name_display }}</small>
                                             </td>
-                                            <td style="padding: 15px 20px;">
+                                            <td data-label="Matchup" style="padding: 15px 20px;">
                                                 <div class="d-flex align-items-center">
                                                     <span>{{ match.get_player1_display|truncatechars:15 }}</span>
                                                     <span class="mx-2 text-muted">vs</span>
                                                     <span>{{ match.get_player2_display|truncatechars:15 }}</span>
                                                 </div>
                                             </td>
-                                            <td style="padding: 15px 20px;">
+                                            <td data-label="Score" style="padding: 15px 20px;">
                                                 <span class="badge bg-dark fs-6 px-3 py-2">{{ match.score1 }} - {{ match.score2 }}</span>
                                             </td>
-                                            <td style="padding: 15px 20px;">
+                                            <td data-label="Result" style="padding: 15px 20px;">
                                                 {% if match.tournament.category == 'singles' %}
                                                     {% if match.winner == user %}
                                                         <span class="badge bg-success px-3 py-2"><i class="fas fa-trophy me-1"></i>Win</span>
@@ -163,7 +163,7 @@
                                                     {% endif %}
                                                 {% endif %}
                                             </td>
-                                            <td style="padding: 15px 20px;">
+                                            <td data-label="Date" style="padding: 15px 20px;">
                                                 <span class="text-muted">{{ match.completed_at|date:"M d, Y"|default:"N/A" }}</span>
                                             </td>
                                         </tr>

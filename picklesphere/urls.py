@@ -34,13 +34,16 @@ urlpatterns = [
     path('super-admin/', include('reservations.admin_urls')),
     path('super-admin/', include('payments.admin_urls')),
     path('super-admin/', include('equipment.admin_urls')),
+    path('super-admin/', include('tournaments.admin_urls')),
 
     # ========== ORGANIZATION ADMIN ROUTES (/org-admin/) ==========
     path('org-admin/', include('organizations.org_urls')),
+    path('org-admin/', include('accounts.org_urls')),
     path('org-admin/', include('courts.org_urls')),
     path('org-admin/', include('reservations.org_urls')),
     path('org-admin/', include('payments.org_urls')),
     path('org-admin/', include('equipment.staff_urls')),
+    path('org-admin/', include('tournaments.admin_urls')),
 
     # ========== STAFF ROUTES (/staff/) ==========
     path('staff/', include('dashboard.staff_urls')),

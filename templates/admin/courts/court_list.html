@@ -65,7 +65,7 @@
                 <tbody>
                     {% for court in courts %}
                     <tr>
-                        <td>
+                        <td data-label="Court">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm avatar-placeholder me-2">
                                     <i class="fas fa-map-marker-alt"></i>
@@ -73,21 +73,21 @@
                                 <span class="fw-semibold">{{ court.name }}</span>
                             </div>
                         </td>
-                        <td>{{ court.site.name }}</td>
-                        <td>
+                        <td data-label="Site">{{ court.site.name }}</td>
+                        <td data-label="Type">
                             <span class="badge bg-light text-dark border">{{ court.get_court_type_display }}</span>
                         </td>
-                        <td>
+                        <td data-label="Rate">
                             <span class="fw-semibold text-primary">₱{{ court.hourly_rate|floatformat:0 }}/hr</span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             {% if court.is_active %}
                             <span class="status-badge active">Active</span>
                             {% else %}
                             <span class="status-badge inactive">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Actions">
                             <div class="action-buttons justify-content-end">
                                 <a href="{% url 'court_detail' court.id %}" class="action-btn view" title="View Details">
                                     <i class="fas fa-eye"></i>
