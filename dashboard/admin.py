@@ -3,7 +3,15 @@ from .models import (
     Testimonial, Rating, Amenity, GalleryImage, HomePageContent,
     PricingContent, PricingTier, PricingFAQ,
     AboutContent, Milestone, TeamMember, Facility, WhyChooseItem,
-    ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
+    ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink,
+    # CMS Models
+    CourtPageSettings, FeaturedCourt,
+    OrganizationPageSettings, OrganizationCategory, FeaturedOrganization,
+    TournamentPageSettings, TournamentCategory, FeaturedTournament, TournamentAnnouncement,
+    EquipmentPageSettings, EquipmentCategory, FeaturedEquipment,
+    MaintenanceMode, MaintenanceAuditLog,
+    SiteSettings, Partner, GlobalAnnouncement,
+    ContentVersion,
 )
 
 
@@ -240,3 +248,146 @@ class HomePageContentAdmin(admin.ModelAdmin):
     list_editable = ['is_active']
     fields = ['section', 'content', 'is_active']
     readonly_fields = ['updated_at']
+
+
+# ============================================================================
+# CMS Admin Registrations
+# ============================================================================
+
+@admin.register(CourtPageSettings)
+class CourtPageSettingsAdmin(admin.ModelAdmin):
+    list_display = ['hero_title', 'show_search', 'show_featured_first', 'is_active', 'updated_at']
+    fieldsets = [
+        ('Hero Section', {'fields': ['hero_title', 'hero_subtitle', 'banner_image']}),
+        ('SEO', {'fields': ['page_title', 'meta_description']}),
+        ('Settings', {'fields': ['show_search', 'show_featured_first', 'is_active']}),
+        ('Featured Section', {'fields': ['featured_title', 'featured_subtitle']}),
+        ('Promo Banner', {'fields': ['promo_banner_title', 'promo_banner_text', 'promo_banner_link', 'promo_banner_image', 'promo_banner_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+
+@admin.register(FeaturedCourt)
+class FeaturedCourtAdmin(admin.ModelAdmin):
+    list_display = ['court', 'label', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active', 'label']
+    list_filter = ['is_active']
+    search_fields = ['court__name']
+
+
+@admin.register(OrganizationPageSettings)
+class OrganizationPageSettingsAdmin(admin.ModelAdmin):
+    list_display = ['hero_title', 'show_featured_first', 'show_verified_badge', 'is_active']
+    readonly_fields = ['updated_at']
+
+
+@admin.register(OrganizationCategory)
+class OrganizationCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'icon', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+    prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(FeaturedOrganization)
+class FeaturedOrganizationAdmin(admin.ModelAdmin):
+    list_display = ['organization', 'label', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+
+
+@admin.register(TournamentPageSettings)
+class TournamentPageSettingsAdmin(admin.ModelAdmin):
+    list_display = ['hero_title', 'announcement_active', 'is_active']
+    readonly_fields = ['updated_at']
+
+
+@admin.register(TournamentCategory)
+class TournamentCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'icon', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+    prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(FeaturedTournament)
+class FeaturedTournamentAdmin(admin.ModelAdmin):
+    list_display = ['tournament', 'label', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+
+
+@admin.register(TournamentAnnouncement)
+class TournamentAnnouncementAdmin(admin.ModelAdmin):
+    list_display = ['title', 'announcement_type', 'is_active', 'display_order']
+    list_editable = ['is_active', 'display_order']
+    list_filter = ['announcement_type', 'is_active']
+
+
+@admin.register(EquipmentPageSettings)
+class EquipmentPageSettingsAdmin(admin.ModelAdmin):
+    list_display = ['hero_title', 'show_availability_filter', 'is_active']
+    readonly_fields = ['updated_at']
+
+
+@admin.register(EquipmentCategory)
+class EquipmentCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'icon', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+    prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(FeaturedEquipment)
+class FeaturedEquipmentAdmin(admin.ModelAdmin):
+    list_display = ['equipment', 'label', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+
+
+@admin.register(MaintenanceMode)
+class MaintenanceModeAdmin(admin.ModelAdmin):
+    list_display = ['is_active', 'title', 'estimated_return', 'scheduled_start', 'scheduled_end']
+    readonly_fields = ['last_enabled_at', 'last_disabled_at', 'last_enabled_by', 'last_disabled_by', 'updated_at']
+
+    def has_add_permission(self, request):
+        return not MaintenanceMode.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(MaintenanceAuditLog)
+class MaintenanceAuditLogAdmin(admin.ModelAdmin):
+    list_display = ['action', 'performed_by', 'created_at']
+    list_filter = ['action', 'created_at']
+    readonly_fields = ['action', 'performed_by', 'details', 'ip_address', 'created_at']
+    search_fields = ['details']
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    list_display = ['footer_email', 'copyright_text', 'is_active']
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not SiteSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Partner)
+class PartnerAdmin(admin.ModelAdmin):
+    list_display = ['name', 'website_url', 'display_order', 'is_active']
+    list_editable = ['display_order', 'is_active']
+    search_fields = ['name']
+
+
+@admin.register(GlobalAnnouncement)
+class GlobalAnnouncementAdmin(admin.ModelAdmin):
+    list_display = ['title', 'announcement_type', 'is_active', 'display_order', 'created_at']
+    list_editable = ['is_active', 'display_order']
+    list_filter = ['announcement_type', 'is_active']
+
+
+@admin.register(ContentVersion)
+class ContentVersionAdmin(admin.ModelAdmin):
+    list_display = ['content_type', 'section', 'version_number', 'is_published', 'changed_by', 'created_at']
+    list_filter = ['content_type', 'is_published', 'created_at']
+    readonly_fields = ['content_type', 'section', 'old_value', 'new_value', 'changed_by', 'version_number', 'is_published', 'created_at']
+    search_fields = ['section']

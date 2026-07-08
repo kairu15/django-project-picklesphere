@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 class PricingContent(models.Model):
@@ -606,7 +608,6 @@ class AboutGalleryImage(models.Model):
         ordering = ['display_order', '-created_at']
         verbose_name = 'About Gallery Image'
         verbose_name_plural = 'About Gallery Images'
-
     def __str__(self):
         return self.title or f"About Gallery Image {self.id}"
 
@@ -615,3 +616,486 @@ class AboutGalleryImage(models.Model):
         if self.image:
             return self.image.url
         return ''
+
+
+# ============================================================================
+# COURTS PAGE CMS
+# ============================================================================
+
+class CourtPageSettings(models.Model):
+    """Settings for the public courts page"""
+    hero_title = models.CharField(max_length=200, default='Browse Courts')
+    hero_subtitle = models.TextField(blank=True, default='Find the perfect court for your next game')
+    page_title = models.CharField(max_length=200, blank=True, help_text='Browser tab title')
+    meta_description = models.TextField(blank=True, help_text='SEO meta description')
+    banner_image = models.ImageField(upload_to='cms/courts/', blank=True, null=True)
+    show_search = models.BooleanField(default=True, help_text='Show/hide the search & filter bar')
+    show_featured_first = models.BooleanField(default=True, help_text='Show featured courts before regular list')
+    featured_title = models.CharField(max_length=200, blank=True, default='Featured Courts')
+    featured_subtitle = models.TextField(blank=True, default='Handpicked courts you might love')
+    promo_banner_title = models.CharField(max_length=200, blank=True)
+    promo_banner_text = models.TextField(blank=True)
+    promo_banner_link = models.URLField(blank=True)
+    promo_banner_image = models.ImageField(upload_to='cms/courts/', blank=True, null=True)
+    promo_banner_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Courts Page Setting'
+        verbose_name_plural = 'Courts Page Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Courts Page Settings'
+
+
+class FeaturedCourt(models.Model):
+    """Featured court on the public courts page"""
+    court = models.ForeignKey('courts.Court', on_delete=models.CASCADE, related_name='cms_features')
+    label = models.CharField(max_length=100, blank=True, help_text='e.g. "Recommended", "Popular", "New"')
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Featured Court'
+        verbose_name_plural = 'Featured Courts'
+
+    def __str__(self):
+        return f"Featured: {self.court.name}"
+
+
+# ============================================================================
+# ORGANIZATIONS PAGE CMS
+# ============================================================================
+
+class OrganizationPageSettings(models.Model):
+    """Settings for the public organizations page"""
+    hero_title = models.CharField(max_length=200, default='Pickleball Organizations')
+    hero_subtitle = models.TextField(blank=True, default='Discover pickleball organizations, courts, and tournaments near you')
+    page_title = models.CharField(max_length=200, blank=True)
+    meta_description = models.TextField(blank=True)
+    banner_image = models.ImageField(upload_to='cms/orgs/', blank=True, null=True)
+    show_featured_first = models.BooleanField(default=True)
+    featured_title = models.CharField(max_length=200, blank=True, default='Featured Organizations')
+    featured_subtitle = models.TextField(blank=True, default='Top-rated organizations on our platform')
+    show_verified_badge = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Organizations Page Setting'
+        verbose_name_plural = 'Organizations Page Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Organizations Page Settings'
+
+
+class OrganizationCategory(models.Model):
+    """Categories for organizations"""
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, default='fa-building')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Organization Category'
+        verbose_name_plural = 'Organization Categories'
+        ordering = ['display_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FeaturedOrganization(models.Model):
+    """Featured organization on the public page"""
+    organization = models.ForeignKey('organizations.Organization', on_delete=models.CASCADE, related_name='cms_features')
+    label = models.CharField(max_length=100, blank=True)
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Featured Organization'
+        verbose_name_plural = 'Featured Organizations'
+
+    def __str__(self):
+        return f"Featured: {self.organization.name}"
+
+
+# ============================================================================
+# TOURNAMENTS PAGE CMS
+# ============================================================================
+
+class TournamentPageSettings(models.Model):
+    """Settings for the public tournaments page"""
+    hero_title = models.CharField(max_length=200, default='Tournaments')
+    hero_subtitle = models.TextField(blank=True, default='Join exciting pickleball competitions and showcase your skills')
+    page_title = models.CharField(max_length=200, blank=True)
+    meta_description = models.TextField(blank=True)
+    banner_image = models.ImageField(upload_to='cms/tournaments/', blank=True, null=True)
+    announcement = models.TextField(blank=True, help_text='Global announcement shown at top of tournaments page')
+    announcement_active = models.BooleanField(default=False)
+    featured_title = models.CharField(max_length=200, blank=True, default='Featured Tournaments')
+    featured_subtitle = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Tournaments Page Setting'
+        verbose_name_plural = 'Tournaments Page Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Tournaments Page Settings'
+
+
+class TournamentCategory(models.Model):
+    """Categories for tournaments"""
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, default='fa-trophy')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Tournament Category'
+        verbose_name_plural = 'Tournament Categories'
+        ordering = ['display_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FeaturedTournament(models.Model):
+    """Featured tournament on the public page"""
+    tournament = models.ForeignKey('tournaments.Tournament', on_delete=models.CASCADE, related_name='cms_features')
+    label = models.CharField(max_length=100, blank=True)
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Featured Tournament'
+        verbose_name_plural = 'Featured Tournaments'
+
+    def __str__(self):
+        return f"Featured: {self.tournament.name}"
+
+
+class TournamentAnnouncement(models.Model):
+    """Individual tournament announcements"""
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    link_url = models.URLField(blank=True, help_text='Optional link for more info')
+    link_text = models.CharField(max_length=100, blank=True, default='Learn More')
+    announcement_type = models.CharField(max_length=20, choices=[
+        ('info', 'Information'),
+        ('warning', 'Warning'),
+        ('success', 'Success'),
+        ('danger', 'Urgent'),
+    ], default='info')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Tournament Announcement'
+        verbose_name_plural = 'Tournament Announcements'
+
+    def __str__(self):
+        return self.title
+
+
+# ============================================================================
+# EQUIPMENT PAGE CMS
+# ============================================================================
+
+class EquipmentPageSettings(models.Model):
+    """Settings for the public equipment page"""
+    hero_title = models.CharField(max_length=200, default='Equipment Rental')
+    hero_subtitle = models.TextField(blank=True, default='Browse and rent quality equipment for your games')
+    page_title = models.CharField(max_length=200, blank=True)
+    meta_description = models.TextField(blank=True)
+    banner_image = models.ImageField(upload_to='cms/equipment/', blank=True, null=True)
+    featured_title = models.CharField(max_length=200, blank=True, default='Featured Equipment')
+    featured_subtitle = models.TextField(blank=True)
+    show_availability_filter = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Equipment Page Setting'
+        verbose_name_plural = 'Equipment Page Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Equipment Page Settings'
+
+
+class EquipmentCategory(models.Model):
+    """Categories for equipment"""
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, default='fa-tools')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Equipment Category'
+        verbose_name_plural = 'Equipment Categories'
+        ordering = ['display_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FeaturedEquipment(models.Model):
+    """Featured equipment item"""
+    equipment = models.ForeignKey('equipment.Equipment', on_delete=models.CASCADE, related_name='cms_features')
+    label = models.CharField(max_length=100, blank=True)
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Featured Equipment'
+        verbose_name_plural = 'Featured Equipment'
+
+    def __str__(self):
+        return f"Featured: {self.equipment.name}"
+
+
+# ============================================================================
+# MAINTENANCE MODE
+# ============================================================================
+
+class MaintenanceMode(models.Model):
+    """Maintenance mode settings (singleton)"""
+    is_active = models.BooleanField(default=False, help_text='Enable/disable maintenance mode')
+    title = models.CharField(max_length=200, default='System Under Maintenance')
+    message = models.TextField(default='We are performing scheduled maintenance. The system will be back shortly.')
+    banner_image = models.ImageField(upload_to='cms/maintenance/', blank=True, null=True)
+    estimated_return = models.DateTimeField(blank=True, null=True, help_text='Estimated time when system will be back')
+    show_contact_info = models.BooleanField(default=True)
+    contact_email = models.EmailField(blank=True)
+    contact_phone = models.CharField(max_length=50, blank=True)
+    scheduled_start = models.DateTimeField(blank=True, null=True, help_text='Scheduled maintenance start time')
+    scheduled_end = models.DateTimeField(blank=True, null=True, help_text='Scheduled maintenance end time (auto-disables after this)')
+    last_enabled_at = models.DateTimeField(blank=True, null=True)
+    last_enabled_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='maintenance_enabled'
+    )
+    last_disabled_at = models.DateTimeField(blank=True, null=True)
+    last_disabled_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='maintenance_disabled'
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Maintenance Mode'
+        verbose_name_plural = 'Maintenance Mode'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"Maintenance Mode: {'ON' if self.is_active else 'OFF'}"
+
+    def clean(self):
+        if self.scheduled_start and self.scheduled_end:
+            if self.scheduled_start >= self.scheduled_end:
+                raise ValidationError('Scheduled end time must be after start time.')
+
+
+class MaintenanceAuditLog(models.Model):
+    """Audit log for maintenance mode changes"""
+    ACTION_CHOICES = [
+        ('enabled', 'Maintenance Enabled'),
+        ('disabled', 'Maintenance Disabled'),
+        ('auto_disabled', 'Auto-Disabled (scheduled end)'),
+        ('scheduled', 'Maintenance Scheduled'),
+    ]
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    performed_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    details = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Maintenance Audit Log'
+        verbose_name_plural = 'Maintenance Audit Logs'
+
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+# ============================================================================
+# SITE SETTINGS (Footer, Partners, Announcements)
+# ============================================================================
+
+class SiteSettings(models.Model):
+    """Global site settings (singleton)"""
+    # Footer
+    footer_tagline = models.TextField(blank=True, default='The ultimate pickleball platform connecting players, courts, and organizations.')
+    footer_email = models.EmailField(blank=True)
+    footer_phone = models.CharField(max_length=50, blank=True)
+    footer_address = models.TextField(blank=True)
+    copyright_text = models.CharField(max_length=200, blank=True, default='© PickleSphere. All rights reserved.')
+    
+    # Statistics configuration (override auto-calculated values)
+    override_stat_courts = models.IntegerField(blank=True, null=True, help_text='Override courts count (leave blank for auto)')
+    override_stat_players = models.IntegerField(blank=True, null=True, help_text='Override players count')
+    override_stat_organizations = models.IntegerField(blank=True, null=True, help_text='Override organizations count')
+    override_stat_tournaments = models.IntegerField(blank=True, null=True, help_text='Override tournaments count')
+    override_stat_years = models.IntegerField(blank=True, null=True, help_text='Override years operating')
+    
+    # Partners/Sponsors
+    partners_title = models.CharField(max_length=200, blank=True, default='Our Partners')
+    partners_subtitle = models.TextField(blank=True)
+    
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Site Setting'
+        verbose_name_plural = 'Site Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Site Settings'
+
+
+class Partner(models.Model):
+    """Partner/Sponsor organizations"""
+    name = models.CharField(max_length=200)
+    logo = models.ImageField(upload_to='cms/partners/', blank=True, null=True)
+    website_url = models.URLField(blank=True)
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', 'name']
+        verbose_name = 'Partner'
+        verbose_name_plural = 'Partners'
+
+    def __str__(self):
+        return self.name
+
+
+class GlobalAnnouncement(models.Model):
+    """Global announcements shown across the site"""
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    announcement_type = models.CharField(max_length=20, choices=[
+        ('info', 'Information'),
+        ('warning', 'Warning'),
+        ('success', 'Success'),
+        ('danger', 'Urgent'),
+    ], default='info')
+    link_url = models.URLField(blank=True)
+    link_text = models.CharField(max_length=100, blank=True)
+    show_on_pages = models.CharField(max_length=200, blank=True, help_text='Comma-separated page names, or leave blank for all pages')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Global Announcement'
+        verbose_name_plural = 'Global Announcements'
+
+    def __str__(self):
+        return self.title
+
+
+# ============================================================================
+# CONTENT VERSION HISTORY
+# ============================================================================
+
+class ContentVersion(models.Model):
+    """Track content version history for CMS items"""
+    CONTENT_TYPE_CHOICES = [
+        ('homepage', 'Home Page'),
+        ('about', 'About Page'),
+        ('contact', 'Contact Page'),
+        ('pricing', 'Pricing Page'),
+        ('courts', 'Courts Page'),
+        ('organizations', 'Organizations Page'),
+        ('tournaments', 'Tournaments Page'),
+        ('equipment', 'Equipment Page'),
+    ]
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPE_CHOICES)
+    section = models.CharField(max_length=100, help_text='Which section/content was changed')
+    old_value = models.TextField(blank=True)
+    new_value = models.TextField(blank=True)
+    changed_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    version_number = models.PositiveIntegerField(help_text='Auto-incrementing version per content_type')
+    is_published = models.BooleanField(default=True, help_text='Whether this version was published live')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Content Version'
+        verbose_name_plural = 'Content Versions'
+        indexes = [
+            models.Index(fields=['content_type', '-version_number']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_content_type_display()} v{self.version_number} - {self.section}"

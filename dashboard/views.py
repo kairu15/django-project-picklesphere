@@ -150,6 +150,22 @@ def home_view(request):
     current_year = datetime.now().year
     years_experience = max(1, current_year - 2024 + 1)
     tournaments_count = Tournament.objects.filter(status='completed').count()
+    total_organizations = Organization.objects.filter(status='approved', is_active=True).count()
+    
+    # Apply SiteSettings overrides if set
+    from .models import SiteSettings
+    site_settings = SiteSettings.objects.first()
+    if site_settings:
+        if site_settings.override_stat_courts is not None:
+            total_courts = site_settings.override_stat_courts
+        if site_settings.override_stat_players is not None:
+            total_users = site_settings.override_stat_players
+        if site_settings.override_stat_organizations is not None:
+            total_organizations = site_settings.override_stat_organizations
+        if site_settings.override_stat_tournaments is not None:
+            tournaments_count = site_settings.override_stat_tournaments
+        if site_settings.override_stat_years is not None:
+            years_experience = site_settings.override_stat_years
 
     return render(request, 'public/home.html', {
         'featured_courts': featured_courts,
@@ -164,7 +180,7 @@ def home_view(request):
         'amenities': amenities,
         'years_experience': years_experience,
         'tournaments_count': tournaments_count,
-        'total_organizations': Organization.objects.filter(status='approved', is_active=True).count(),
+        'total_organizations': total_organizations,
         'homepage_text': homepage_text,
     })
 

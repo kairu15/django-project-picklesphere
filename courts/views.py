@@ -13,10 +13,15 @@ from datetime import datetime, timedelta
 
 def court_list_view(request):
     from organizations.models import Organization
+    from dashboard.models import CourtPageSettings, FeaturedCourt
 
     courts = Court.objects.filter(is_active=True).select_related('site', 'organization')
     sites = Site.objects.filter(is_active=True)
     organizations = Organization.objects.filter(is_active=True)
+    
+    # Get CMS settings for the courts page
+    cms_settings = CourtPageSettings.objects.filter(pk=1, is_active=True).first()
+    featured_courts = FeaturedCourt.objects.select_related('court__site', 'court__organization').filter(is_active=True).order_by('display_order')
     
     # ---- Filters ----
     site_id = request.GET.get('site', '')
@@ -91,6 +96,8 @@ def court_list_view(request):
         'search_query': search_query,
         'sort_by': sort,
         'query_string': query_string,
+        'cms_settings': cms_settings,
+        'featured_courts_cms': featured_courts,
     })
 
 
@@ -122,10 +129,14 @@ def court_detail_view(request, court_id):
     
     # Time slots for today
     from datetime import time
+    today_reservations = Reservation.objects.filter(
+        court=court,
+        date=today,
+        status__in=['confirmed', 'pending']
+    )
     time_slots = []
     for hour in range(8, 22):
-        slot_start = time(hour, 0)
-        is_booked = upcoming_reservations.filter(
+        is_booked = today_reservations.filter(
             start_time__lt=time(hour + 1, 0),
             end_time__gt=time(hour, 0)
         ).exists()

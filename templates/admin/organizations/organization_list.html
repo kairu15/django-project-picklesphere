@@ -44,8 +44,8 @@
 {% block content %}
 <!-- Stats Cards -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="admin-card h-100">
+    <div class="col-md col-6">
+        <div class="admin-card h-100" style="animation-delay: 0.1s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-primary text-white me-3">
                     <i class="fas fa-building fa-lg"></i>
@@ -53,12 +53,13 @@
                 <div>
                     <div class="stats-value">{{ stats.total }}</div>
                     <div class="stats-label text-muted">Total Organizations</div>
+                    <small class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ stats.approved }} active organizations</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="admin-card h-100">
+    <div class="col-md col-6">
+        <div class="admin-card h-100" style="animation-delay: 0.2s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-warning text-white me-3">
                     <i class="fas fa-clock fa-lg"></i>
@@ -66,12 +67,13 @@
                 <div>
                     <div class="stats-value">{{ stats.pending }}</div>
                     <div class="stats-label text-muted">Pending Approval</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>{{ stats.pending }} awaiting review</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="admin-card h-100">
+    <div class="col-md col-6">
+        <div class="admin-card h-100" style="animation-delay: 0.3s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-success text-white me-3">
                     <i class="fas fa-check-circle fa-lg"></i>
@@ -79,12 +81,13 @@
                 <div>
                     <div class="stats-value">{{ stats.approved }}</div>
                     <div class="stats-label text-muted">Approved</div>
+                    <small class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ stats.approved }} verified organizations</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="admin-card h-100">
+    <div class="col-md col-6">
+        <div class="admin-card h-100" style="animation-delay: 0.4s;">
             <div class="card-body p-4 d-flex align-items-center">
                 <div class="stats-icon bg-gradient-danger text-white me-3">
                     <i class="fas fa-ban fa-lg"></i>
@@ -92,6 +95,21 @@
                 <div>
                     <div class="stats-value">{{ stats.suspended }}</div>
                     <div class="stats-label text-muted">Suspended</div>
+                    <small class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ stats.suspended }} temporarily disabled</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md col-6">
+        <div class="admin-card h-100" style="animation-delay: 0.5s;">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-secondary text-white me-3">
+                    <i class="fas fa-times-circle fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ stats.rejected }}</div>
+                    <div class="stats-label text-muted">Rejected</div>
+                    <small class="text-secondary"><i class="fas fa-ban me-1"></i>{{ stats.rejected }} applications denied</small>
                 </div>
             </div>
         </div>

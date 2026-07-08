@@ -114,11 +114,12 @@ def super_admin_organization_list(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
-    # Stats
+    # Stats - include all statuses
     stats = {
         'total': Organization.objects.count(),
         'pending': Organization.objects.filter(status='pending').count(),
         'approved': Organization.objects.filter(status='approved').count(),
+        'rejected': Organization.objects.filter(status='rejected').count(),
         'suspended': Organization.objects.filter(status='suspended').count(),
     }
     

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import cms_views
 
 urlpatterns = [
     # Analytics Dashboard
@@ -67,4 +68,55 @@ urlpatterns = [
     path('contact/social/<int:link_id>/delete/', views.contact_delete_social_link, name='super_admin_contact_social_delete'),
     path('contact/messages/', views.contact_messages_view, name='super_admin_contact_messages'),
     path('contact/messages/<int:message_id>/', views.contact_message_detail_view, name='super_admin_contact_message_detail'),
+
+    # ========== COURTS PAGE CMS ==========
+    path('cms/courts/', cms_views.courts_page_settings, name='super_admin_courts_cms'),
+    path('cms/courts/featured/add/', cms_views.courts_featured_add, name='super_admin_courts_featured_add'),
+    path('cms/courts/featured/<int:featured_id>/edit/', cms_views.courts_featured_edit, name='super_admin_courts_featured_edit'),
+    path('cms/courts/featured/<int:featured_id>/delete/', cms_views.courts_featured_delete, name='super_admin_courts_featured_delete'),
+
+    # ========== ORGANIZATIONS PAGE CMS ==========
+    path('cms/organizations/', cms_views.organizations_page_settings, name='super_admin_organizations_cms'),
+    path('cms/organizations/category/add/', cms_views.org_category_add, name='super_admin_org_category_add'),
+    path('cms/organizations/category/<int:cat_id>/edit/', cms_views.org_category_edit, name='super_admin_org_category_edit'),
+    path('cms/organizations/category/<int:cat_id>/delete/', cms_views.org_category_delete, name='super_admin_org_category_delete'),
+    path('cms/organizations/featured/add/', cms_views.org_featured_add, name='super_admin_org_featured_add'),
+    path('cms/organizations/featured/<int:featured_id>/edit/', cms_views.org_featured_edit, name='super_admin_org_featured_edit'),
+    path('cms/organizations/featured/<int:featured_id>/delete/', cms_views.org_featured_delete, name='super_admin_org_featured_delete'),
+
+    # ========== TOURNAMENTS PAGE CMS ==========
+    path('cms/tournaments/', cms_views.tournaments_page_settings, name='super_admin_tournaments_cms'),
+    path('cms/tournaments/category/add/', cms_views.tournament_category_add, name='super_admin_tournament_category_add'),
+    path('cms/tournaments/category/<int:cat_id>/edit/', cms_views.tournament_category_edit, name='super_admin_tournament_category_edit'),
+    path('cms/tournaments/category/<int:cat_id>/delete/', cms_views.tournament_category_delete, name='super_admin_tournament_category_delete'),
+    path('cms/tournaments/featured/add/', cms_views.tournament_featured_add, name='super_admin_tournament_featured_add'),
+    path('cms/tournaments/featured/<int:featured_id>/edit/', cms_views.tournament_featured_edit, name='super_admin_tournament_featured_edit'),
+    path('cms/tournaments/featured/<int:featured_id>/delete/', cms_views.tournament_featured_delete, name='super_admin_tournament_featured_delete'),
+    path('cms/tournaments/announcement/add/', cms_views.tournament_announcement_add, name='super_admin_tournament_announcement_add'),
+    path('cms/tournaments/announcement/<int:ann_id>/edit/', cms_views.tournament_announcement_edit, name='super_admin_tournament_announcement_edit'),
+    path('cms/tournaments/announcement/<int:ann_id>/delete/', cms_views.tournament_announcement_delete, name='super_admin_tournament_announcement_delete'),
+
+    # ========== EQUIPMENT PAGE CMS ==========
+    path('cms/equipment/', cms_views.equipment_page_settings, name='super_admin_equipment_cms'),
+    path('cms/equipment/category/add/', cms_views.equipment_category_add, name='super_admin_equipment_category_add'),
+    path('cms/equipment/category/<int:cat_id>/edit/', cms_views.equipment_category_edit, name='super_admin_equipment_category_edit'),
+    path('cms/equipment/category/<int:cat_id>/delete/', cms_views.equipment_category_delete, name='super_admin_equipment_category_delete'),
+    path('cms/equipment/featured/add/', cms_views.equipment_featured_add, name='super_admin_equipment_featured_add'),
+    path('cms/equipment/featured/<int:featured_id>/edit/', cms_views.equipment_featured_edit, name='super_admin_equipment_featured_edit'),
+    path('cms/equipment/featured/<int:featured_id>/delete/', cms_views.equipment_featured_delete, name='super_admin_equipment_featured_delete'),
+
+    # ========== MAINTENANCE MODE ==========
+    path('maintenance/', cms_views.maintenance_mode_settings, name='super_admin_maintenance'),
+
+    # ========== SITE SETTINGS ==========
+    path('site-settings/', cms_views.site_settings_view, name='super_admin_site_settings'),
+    path('site-settings/partner/add/', cms_views.partner_add, name='super_admin_partner_add'),
+    path('site-settings/partner/<int:partner_id>/edit/', cms_views.partner_edit, name='super_admin_partner_edit'),
+    path('site-settings/partner/<int:partner_id>/delete/', cms_views.partner_delete, name='super_admin_partner_delete'),
+    path('site-settings/announcement/add/', cms_views.announcement_add, name='super_admin_announcement_add'),
+    path('site-settings/announcement/<int:ann_id>/edit/', cms_views.announcement_edit, name='super_admin_announcement_edit'),
+    path('site-settings/announcement/<int:ann_id>/delete/', cms_views.announcement_delete, name='super_admin_announcement_delete'),
+
+    # ========== CONTENT VERSION HISTORY ==========
+    path('versions/', cms_views.content_version_list, name='super_admin_content_versions'),
 ]

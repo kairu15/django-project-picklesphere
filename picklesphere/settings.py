@@ -61,6 +61,8 @@ MIDDLEWARE = [
     'picklesphere.session_management.SessionActivityMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Maintenance Mode - blocks non-admin users when maintenance is active
+    'dashboard.middleware.MaintenanceModeMiddleware',
 ]
 
 ROOT_URLCONF = 'picklesphere.urls'

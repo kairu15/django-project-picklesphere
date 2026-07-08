@@ -1,4 +1,4 @@
-from .models import ContactInfo
+from .models import ContactInfo, SiteSettings, GlobalAnnouncement, Partner
 
 
 DEFAULT_CONTACT_INFO = {
@@ -17,11 +17,23 @@ def site_contact_info(request):
             return DEFAULT_CONTACT_INFO[field_name]
         return getattr(contact_info, field_name) or DEFAULT_CONTACT_INFO[field_name]
 
+    # Get site settings
+    site_settings = SiteSettings.objects.first()
+    
+    # Get active global announcements
+    announcements = GlobalAnnouncement.objects.filter(is_active=True).order_by('display_order')
+    
+    # Get active partners
+    partners = Partner.objects.filter(is_active=True).order_by('display_order')
+
     return {
         'site_contact_info': {
             'phone': value('phone'),
             'email': value('email'),
             'address': value('address'),
             'city_country': value('city_country'),
-        }
+        },
+        'site_settings': site_settings,
+        'global_announcements': announcements,
+        'partners': partners,
     }
