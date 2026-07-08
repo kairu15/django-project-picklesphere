@@ -7,7 +7,116 @@
 
 {% block body %}
 <style>
-/* ===== Dashboard Base Responsive Styles ===== */
+/* ===== UNIVERSAL FILTER BAR ===== */
+.filter-bar-standard {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    transition: box-shadow 0.3s ease;
+}
+.filter-bar-standard:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.filter-bar-standard .card-body {
+    padding: 1.25rem 1.5rem;
+}
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.3px;
+}
+.filter-input,
+.filter-select {
+    border-radius: 10px;
+    border: 1.5px solid #e9ecef;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    background: white;
+}
+.filter-input:focus,
+.filter-select:focus {
+    border-color: #3B7A8C;
+    box-shadow: 0 0 0 3px rgba(59,122,140,0.12);
+    outline: none;
+}
+.filter-select {
+    appearance: auto;
+    cursor: pointer;
+}
+.filter-btn-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+.filter-btn-row .btn {
+    height: 40px;
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.filter-btn-row .btn-primary {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    border: none;
+}
+.filter-btn-row .btn-outline-secondary {
+    border: 1.5px solid #ced4da;
+    color: #6c757d;
+}
+.filter-btn-row .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+/* Responsive: stack filters on small screens */
+@media (max-width: 767.98px) {
+    .filter-bar-standard .row {
+        --bs-gutter-y: 0.75rem;
+    }
+    .filter-bar-standard .card-body {
+        padding: 1rem 1.25rem;
+    }
+    .filter-btn-row {
+        flex-wrap: wrap;
+    }
+    .filter-btn-row .btn {
+        flex: 1;
+        min-width: 80px;
+        height: 38px;
+        font-size: 0.8rem;
+    }
+}
+@media (max-width: 575.98px) {
+    .filter-bar-standard .card-body {
+        padding: 0.75rem 1rem;
+    }
+    .filter-label {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    .filter-input,
+    .filter-select {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    .filter-btn-row .btn {
+        height: 36px;
+        font-size: 0.75rem;
+    }
+}
+
+/* ===== Dashboard Base Responsive Styles =====
 
 /* Toast container is positioned lower to clear the sticky header */
 .floating-toast-container { top: 80px !important; }
@@ -618,6 +727,10 @@ body.sidebar-open {
                         <span class="menu-badge warning">{{ badge_pending_organizations }}</span>
                     {% endif %}
                 </a>
+                <a href="{% url 'super_admin_org_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_org_dashboard' %}active{% endif %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Org Overview</span>
+                </a>
             </div>
 
             <div class="nav-section">
@@ -642,13 +755,17 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">System Analytics</div>
-                <a href="{% url 'super_admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Analytics Dashboard</span>
-                </a>
                 <a href="{% url 'super_admin_revenue_report' %}" class="nav-link {% if 'revenue' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-chart-line"></i>
                     <span>Revenue Reports</span>
+                </a>
+                <a href="{% url 'super_admin_rating_list' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_rating_list' %}active{% endif %}">
+                    <i class="fas fa-star"></i>
+                    <span>Customer Ratings</span>
+                </a>
+                <a href="{% url 'super_admin_activity_log' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_activity_log' %}active{% endif %}">
+                    <i class="fas fa-history"></i>
+                    <span>Activity Log</span>
                 </a>
                 <a href="{% url 'super_admin_contact_messages' %}" class="nav-link {% if 'super_admin_contact_message' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-inbox"></i>

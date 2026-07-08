@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django.http import HttpResponse, Http404
@@ -11,7 +12,376 @@ from accounts.decorators import admin_required, staff_or_admin_required, user_re
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
 from reservations.models import Reservation, CancellationRequest
+from reservations.models import ReservationEquipment
+from equipment.models import Equipment
 from notifications.models import Notification
+from accounts.models import User
+
+
+@login_required
+@user_required
+def checkout_page_view(request, checkout_token):
+    """
+    Checkout page that takes a session-stored checkout token.
+    No reservation is created until the user completes payment.
+    """
+    checkout_data = request.session.get('checkout_data')
+    
+    if not checkout_data:
+        messages.error(request, 'Your checkout session has expired. Please start a new reservation.')
+        return redirect('reservation_create')
+    
+    from courts.models import Court
+    from reservations.models import Reservation as ResModel
+    from equipment.models import Equipment as EqModel
+    
+    court = get_object_or_404(Court, id=checkout_data['court_id'], is_active=True)
+    
+    # Look up equipment objects and calculate total fee
+    equipment_ids = checkout_data.get('equipment_ids', [])
+    equipment_objects = list(EqModel.objects.filter(id__in=equipment_ids, is_active=True)) if equipment_ids else []
+    total_equipment_fee = sum(float(eq.rental_price) for eq in equipment_objects)
+    
+    # Reconstruct unbound forms for the template
+    gcash_form = GCashPaymentForm()
+    cash_form = CashPaymentForm()
+    
+    def _render_checkout(extra_ctx=None):
+        """Helper to render the checkout page with common context."""
+        total_amount = float(checkout_data['subtotal']) + total_equipment_fee
+        ctx = {
+            'checkout_data': checkout_data,
+            'court': court,
+            'gcash_form': gcash_form,
+            'cash_form': cash_form,
+            'payment': None,
+            'reservation': None,
+            'is_session_checkout': True,
+            'equipment_objects': equipment_objects,
+            'total_equipment_fee': total_equipment_fee,
+            'total_amount': total_amount,
+        }
+        if extra_ctx:
+            ctx.update(extra_ctx)
+        return render(request, 'user/payments/checkout.html', ctx)
+    
+    if request.method == 'POST':
+        method = request.POST.get('method')
+        
+        if not method:
+            messages.error(request, 'Please select a payment method.')
+            return _render_checkout()
+        
+        # Re-verify slot availability before creating reservation
+        from django.utils import timezone as tz
+        date = datetime.strptime(checkout_data['date'], '%Y-%m-%d').date()
+        start_time = datetime.strptime(checkout_data['start_time'], '%H:%M').time()
+        end_time = datetime.strptime(checkout_data['end_time'], '%H:%M').time()
+        
+        overlapping = ResModel.objects.filter(
+            court=court,
+            date=date,
+            status__in=['confirmed', 'pending']
+        ).exclude(
+            start_time__gte=end_time
+        ).exclude(
+            end_time__lte=start_time
+        )
+        
+        if overlapping.exists():
+            messages.error(request, 'Sorry, this time slot was just booked by another user. Please start a new reservation.')
+            request.session.pop('checkout_data', None)
+            return redirect('reservation_create')
+        
+        # Check if slot is in the past
+        slot_datetime = datetime.combine(date, start_time)
+        if tz.is_naive(slot_datetime):
+            slot_datetime = tz.make_aware(slot_datetime)
+        if slot_datetime < tz.now():
+            messages.error(request, 'This time slot has already passed. Please start a new reservation.')
+            request.session.pop('checkout_data', None)
+            return redirect('reservation_create')
+        
+        if method == 'gcash':
+            gcash_form = GCashPaymentForm(request.POST, request.FILES)
+            if gcash_form.is_valid():
+                try:
+                    with transaction.atomic():
+                        # Create the reservation
+                        duration_hours = checkout_data['duration_hours']
+                        hourly_rate = checkout_data['hourly_rate']
+                        subtotal = checkout_data['subtotal']
+                        
+                        reservation = ResModel.objects.create(
+                            user=request.user,
+                            court=court,
+                            date=date,
+                            start_time=start_time,
+                            end_time=end_time,
+                            duration_hours=duration_hours,
+                            hourly_rate=hourly_rate,
+                            subtotal=subtotal,
+                            equipment_fee=0,
+                            total_amount=0,  # Will be recalculated by save()
+                            status='pending',
+                            notes=checkout_data.get('notes', ''),
+                            match_name=checkout_data.get('match_name', ''),
+                            match_format=checkout_data.get('match_format', 'singles'),
+                            game_type=checkout_data.get('game_type', 'friendly'),
+                            scoring_format=checkout_data.get('scoring_format', '11'),
+                            points_per_game=checkout_data.get('points_per_game', 11),
+                            games_to_win=checkout_data.get('games_to_win', 2),
+                            win_by_two=checkout_data.get('win_by_two', True),
+                        )
+                        # The Reservation.save() method recalculates totals
+                        
+                        # Attach equipment
+                        equipment_fee = 0
+                        for eq_id in checkout_data.get('equipment_ids', []):
+                            try:
+                                equipment = Equipment.objects.get(id=eq_id, is_active=True)
+                                if equipment.quantity_available > 0:
+                                    ReservationEquipment.objects.create(
+                                        reservation=reservation,
+                                        equipment=equipment,
+                                        quantity=1,
+                                        rental_fee=equipment.rental_price
+                                    )
+                                    equipment_fee += float(equipment.rental_price)
+                                    equipment.quantity_available -= 1
+                                    equipment.save()
+                            except Equipment.DoesNotExist:
+                                pass
+                        
+                        # Update equipment fee and recalculate total
+                        reservation.equipment_fee = equipment_fee
+                        reservation.total_amount = reservation.calculate_total()
+                        reservation.save()
+                        
+                        # Create payment record
+                        payment = Payment.objects.create(
+                            reservation=reservation,
+                            amount=reservation.total_amount,
+                            status='pending'
+                        )
+                        
+                        # Update payment with GCash details
+                        payment.method = 'gcash'
+                        payment.gcash_reference = gcash_form.cleaned_data['gcash_reference']
+                        if 'gcash_proof_image' in request.FILES:
+                            payment.gcash_proof_image = request.FILES['gcash_proof_image']
+                        payment.save()
+                        
+                        # Log the payment
+                        PaymentLog.objects.create(
+                            payment=payment,
+                            action='GCash Payment Submitted',
+                            details=f'GCash reference: {payment.gcash_reference}',
+                            performed_by=request.user
+                        )
+                        
+                        # Notify staff
+                        staff_users = User.objects.filter(role__in=['super_admin', 'org_admin', 'org_staff'])
+                        for staff in staff_users:
+                            Notification.objects.create(
+                                user=staff,
+                                message=f"New GCash payment for reservation #{reservation.id} requires verification."
+                            )
+                        
+                        # Clear session data
+                        request.session.pop('checkout_data', None)
+                    
+                    messages.success(request, 'GCash payment details submitted. Please wait for verification.')
+                    return redirect('payment_status', payment_id=payment.id)
+                    
+                except Exception as e:
+                    messages.error(request, f'An error occurred while processing your reservation. Please try again. Error: {str(e)}')
+                    return _render_checkout()
+            else:
+                # GCash form invalid
+                return _render_checkout()
+                
+        elif method == 'cash':
+            cash_form = CashPaymentForm(request.POST, request.FILES)
+            if cash_form.is_valid():
+                try:
+                    with transaction.atomic():
+                        # Create the reservation
+                        duration_hours = checkout_data['duration_hours']
+                        hourly_rate = checkout_data['hourly_rate']
+                        subtotal = checkout_data['subtotal']
+                        
+                        reservation = ResModel.objects.create(
+                            user=request.user,
+                            court=court,
+                            date=date,
+                            start_time=start_time,
+                            end_time=end_time,
+                            duration_hours=duration_hours,
+                            hourly_rate=hourly_rate,
+                            subtotal=subtotal,
+                            equipment_fee=0,
+                            total_amount=0,
+                            status='pending',
+                            notes=checkout_data.get('notes', ''),
+                            match_name=checkout_data.get('match_name', ''),
+                            match_format=checkout_data.get('match_format', 'singles'),
+                            game_type=checkout_data.get('game_type', 'friendly'),
+                            scoring_format=checkout_data.get('scoring_format', '11'),
+                            points_per_game=checkout_data.get('points_per_game', 11),
+                            games_to_win=checkout_data.get('games_to_win', 2),
+                            win_by_two=checkout_data.get('win_by_two', True),
+                        )
+                        
+                        # Attach equipment
+                        equipment_fee = 0
+                        for eq_id in checkout_data.get('equipment_ids', []):
+                            try:
+                                equipment = Equipment.objects.get(id=eq_id, is_active=True)
+                                if equipment.quantity_available > 0:
+                                    ReservationEquipment.objects.create(
+                                        reservation=reservation,
+                                        equipment=equipment,
+                                        quantity=1,
+                                        rental_fee=equipment.rental_price
+                                    )
+                                    equipment_fee += float(equipment.rental_price)
+                                    equipment.quantity_available -= 1
+                                    equipment.save()
+                            except Equipment.DoesNotExist:
+                                pass
+                        
+                        reservation.equipment_fee = equipment_fee
+                        reservation.total_amount = reservation.calculate_total()
+                        reservation.save()
+                        
+                        # Create payment record
+                        payment = Payment.objects.create(
+                            reservation=reservation,
+                            amount=reservation.total_amount,
+                            status='pending'
+                        )
+                        
+                        # Set cash payment method
+                        payment.method = 'cash'
+                        payment.save()
+                        
+                        PaymentLog.objects.create(
+                            payment=payment,
+                            action='Cash Payment Selected',
+                            details='User selected cash payment method',
+                            performed_by=request.user
+                        )
+                        
+                        # Notify staff
+                        staff_users = User.objects.filter(role__in=['super_admin', 'org_admin', 'org_staff'])
+                        for staff in staff_users:
+                            Notification.objects.create(
+                                user=staff,
+                                message=f"New cash payment reservation #{reservation.id} requires processing."
+                            )
+                        
+                        # Clear session data
+                        request.session.pop('checkout_data', None)
+                    
+                    messages.success(request, 'Please proceed to the counter to complete your cash payment.')
+                    return redirect('payment_status', payment_id=payment.id)
+                    
+                except Exception as e:
+                    messages.error(request, f'An error occurred while processing your reservation. Please try again. Error: {str(e)}')
+                    return _render_checkout()
+            else:
+                return _render_checkout()
+            
+        elif method == 'card':
+            try:
+                with transaction.atomic():
+                    # Create the reservation
+                    duration_hours = checkout_data['duration_hours']
+                    hourly_rate = checkout_data['hourly_rate']
+                    subtotal = checkout_data['subtotal']
+                    
+                    reservation = ResModel.objects.create(
+                        user=request.user,
+                        court=court,
+                        date=date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        duration_hours=duration_hours,
+                        hourly_rate=hourly_rate,
+                        subtotal=subtotal,
+                        equipment_fee=0,
+                        total_amount=0,
+                        status='confirmed',  # Card payments auto-confirm
+                        notes=checkout_data.get('notes', ''),
+                        match_name=checkout_data.get('match_name', ''),
+                        match_format=checkout_data.get('match_format', 'singles'),
+                        game_type=checkout_data.get('game_type', 'friendly'),
+                        scoring_format=checkout_data.get('scoring_format', '11'),
+                        points_per_game=checkout_data.get('points_per_game', 11),
+                        games_to_win=checkout_data.get('games_to_win', 2),
+                        win_by_two=checkout_data.get('win_by_two', True),
+                    )
+                    
+                    # Attach equipment
+                    equipment_fee = 0
+                    for eq_id in checkout_data.get('equipment_ids', []):
+                        try:
+                            equipment = Equipment.objects.get(id=eq_id, is_active=True)
+                            if equipment.quantity_available > 0:
+                                ReservationEquipment.objects.create(
+                                    reservation=reservation,
+                                    equipment=equipment,
+                                    quantity=1,
+                                    rental_fee=equipment.rental_price
+                                )
+                                equipment_fee += float(equipment.rental_price)
+                                equipment.quantity_available -= 1
+                                equipment.save()
+                        except Equipment.DoesNotExist:
+                            pass
+                    
+                    reservation.equipment_fee = equipment_fee
+                    reservation.total_amount = reservation.calculate_total()
+                    reservation.save()
+                    
+                    # Create and confirm payment in one go
+                    transaction_id = str(uuid.uuid4())[:8].upper()
+                    payment = Payment.objects.create(
+                        reservation=reservation,
+                        amount=reservation.total_amount,
+                        status='paid',
+                        method='card',
+                        transaction_id=transaction_id,
+                    )
+                    
+                    PaymentLog.objects.create(
+                        payment=payment,
+                        action='Card Payment Processed',
+                        details=f'Transaction ID: {transaction_id}',
+                        performed_by=request.user
+                    )
+                    
+                    Notification.objects.create(
+                        user=request.user,
+                        message=f"Payment successful for reservation #{reservation.id}. Your reservation is confirmed!"
+                    )
+                    
+                    # Clear session data
+                    request.session.pop('checkout_data', None)
+                
+                messages.success(request, 'Payment successful! Your reservation is confirmed.')
+                return redirect('reservation_detail', reservation_id=reservation.id)
+                
+            except Exception as e:
+                messages.error(request, f'An error occurred while processing your payment. Please try again. Error: {str(e)}')
+                return _render_checkout()
+        else:
+            messages.error(request, 'Invalid payment method selected.')
+            return _render_checkout()
+    
+    # GET request - show the checkout page with session data
+    return _render_checkout()
 
 
 @login_required
@@ -122,14 +492,40 @@ def payment_checkout_view(request, reservation_id):
 
 @login_required
 def payment_status_view(request, payment_id):
-    payment = get_object_or_404(Payment, id=payment_id)
+    payment = get_object_or_404(
+        Payment.objects.select_related(
+            'reservation',
+            'reservation__court',
+            'reservation__court__site',
+            'reservation__user',
+            'cash_received_by',
+        ).prefetch_related(
+            'reservation__rented_equipment',
+            'reservation__rented_equipment__equipment',
+        ),
+        id=payment_id
+    )
     
     # Check permissions
     if payment.reservation.user != request.user and not request.user.is_staff_user() and not request.user.is_admin():
         messages.error(request, 'You do not have permission to view this payment.')
         return redirect('user_dashboard')
     
-    return render(request, 'user/payments/payment_status.html', {'payment': payment})
+    # Get payment activity logs
+    logs = PaymentLog.objects.filter(payment=payment).select_related('performed_by').order_by('-created_at')
+    
+    # Get refund details if applicable
+    refunds = Refund.objects.filter(payment=payment).select_related(
+        'requested_by', 'approved_by'
+    ).order_by('-requested_at')
+    latest_refund = refunds.first()
+    
+    return render(request, 'user/payments/payment_status.html', {
+        'payment': payment,
+        'logs': logs,
+        'latest_refund': latest_refund,
+        'refunds': refunds,
+    })
 
 
 @login_required
@@ -235,7 +631,19 @@ def staff_payments_view(request):
 @staff_or_admin_required
 def verify_payment_view(request, payment_id):
 
-    payment = get_object_or_404(Payment, id=payment_id)
+    payment = get_object_or_404(
+        Payment.objects.select_related(
+            'reservation',
+            'reservation__court',
+            'reservation__court__site',
+            'reservation__user',
+            'cash_received_by',
+        ).prefetch_related(
+            'reservation__rented_equipment',
+            'reservation__rented_equipment__equipment',
+        ),
+        id=payment_id
+    )
 
     # Determine template and redirect URL based on user role and URL path
     is_admin_url = 'admin' in request.path
@@ -245,6 +653,15 @@ def verify_payment_view(request, payment_id):
     else:
         template_name = 'staff/payments/verify_payment.html'
         redirect_url = 'staff_payments'
+
+    # Get payment activity logs
+    logs = PaymentLog.objects.filter(payment=payment).select_related('performed_by').order_by('-created_at')
+
+    # Get refund details if applicable
+    refunds = Refund.objects.filter(payment=payment).select_related(
+        'requested_by', 'approved_by'
+    ).order_by('-requested_at')
+    latest_refund = refunds.first()
 
     if request.method == 'POST':
         form = PaymentApprovalForm(request.POST, instance=payment)
@@ -284,7 +701,10 @@ def verify_payment_view(request, payment_id):
 
     return render(request, template_name, {
         'form': form,
-        'payment': payment
+        'payment': payment,
+        'logs': logs,
+        'latest_refund': latest_refund,
+        'refunds': refunds,
     })
 
 

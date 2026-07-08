@@ -216,13 +216,10 @@
     </div>
 </div>
 
-<!-- Filters -->
-<div class="filter-card">
-    <div class="card-body">
-    <form method="get" class="row g-3 align-items-end">
+{% include 'components/filter_bar_start.html' %}
         <div class="col-lg-2 col-md-4">
-            <label class="form-label"><i class="fas fa-filter me-2 text-primary"></i>Status</label>
-            <select name="status" class="form-select">
+            <label class="filter-label"><i class="fas fa-filter me-1 text-primary"></i>Status</label>
+            <select name="status" class="filter-select">
                 <option value="">All Status</option>
                 <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
                 <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
@@ -231,8 +228,8 @@
             </select>
         </div>
         <div class="col-lg-2 col-md-4">
-            <label class="form-label"><i class="fas fa-credit-card me-2 text-primary"></i>Method</label>
-            <select name="method" class="form-select">
+            <label class="filter-label"><i class="fas fa-credit-card me-1 text-primary"></i>Method</label>
+            <select name="method" class="filter-select">
                 <option value="">All Methods</option>
                 <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
                 <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
@@ -240,8 +237,8 @@
             </select>
         </div>
         <div class="col-lg-2 col-md-4">
-            <label class="form-label"><i class="fas fa-user-check me-2 text-primary"></i>Verified By</label>
-            <select name="verified_by" class="form-select">
+            <label class="filter-label"><i class="fas fa-user-check me-1 text-primary"></i>Verified By</label>
+            <select name="verified_by" class="filter-select">
                 <option value="">All</option>
                 <option value="admin" {% if verified_by_filter == 'admin' %}selected{% endif %}>Admin</option>
                 <option value="staff" {% if verified_by_filter == 'staff' %}selected{% endif %}>Staff</option>
@@ -249,28 +246,22 @@
             </select>
         </div>
         <div class="col-lg-2 col-md-4">
-            <label class="form-label"><i class="fas fa-calendar me-2 text-primary"></i>From</label>
-            <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            <label class="filter-label"><i class="fas fa-calendar me-1 text-primary"></i>From</label>
+            <input type="date" name="date_from" class="filter-input" value="{{ date_from }}">
         </div>
         <div class="col-lg-2 col-md-4">
-            <label class="form-label"><i class="fas fa-calendar me-2 text-primary"></i>To</label>
-            <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            <label class="filter-label"><i class="fas fa-calendar me-1 text-primary"></i>To</label>
+            <input type="date" name="date_to" class="filter-input" value="{{ date_to }}">
         </div>
         <div class="col-lg-2 col-md-4">
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search me-2"></i>Search
-                </button>
+            <div class="filter-btn-row">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i>Search</button>
                 {% if status_filter or method_filter or date_from or date_to or verified_by_filter %}
-                <a href="{% url 'super_admin_payments' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times"></i>
-                </a>
+                <a href="{% url 'super_admin_payments' %}" class="btn btn-outline-secondary" title="Clear filters"><i class="fas fa-times"></i></a>
                 {% endif %}
             </div>
         </div>
-    </form>
-    </div>
-</div>
+{% include 'components/filter_bar_end.html' %}
 
 <!-- Payments Table -->
 <div class="admin-card">

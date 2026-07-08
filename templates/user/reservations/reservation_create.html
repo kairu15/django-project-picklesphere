@@ -2138,7 +2138,7 @@
             document.getElementById('confirm-time').textContent = `${startFmt} — ${endFmt}`;
 
             // Duration
-            const dur = getDurationHours(state.selectedSlot.start, state.selectedSlot.end);
+            const dur = Math.round(getDurationHours(state.selectedSlot.start, state.selectedSlot.end) * 10) / 10;
             document.getElementById('confirm-duration').textContent = `${dur} hour${dur !== 1 ? 's' : ''}`;
             document.getElementById('confirm-duration-price').textContent = `${dur} hr${dur !== 1 ? 's' : ''}`;
 

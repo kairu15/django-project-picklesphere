@@ -22,6 +22,7 @@ urlpatterns = [
     # ========== PUBLIC ROUTES ==========
     path('', include('dashboard.urls')),
     path('courts/', include('courts.urls')),
+    path('reservations/', include('reservations.urls')),
     path('organizations/', include('organizations.urls')),
     path('tournaments/', include('tournaments.urls')),
     path('equipment/', include('equipment.urls')),

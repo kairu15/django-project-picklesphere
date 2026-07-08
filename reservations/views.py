@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -86,7 +87,6 @@ def reservation_list_view(request):
 @login_required
 @user_required
 def reservation_create_view(request):
-    # Fetch active match settings from database
     from scoring.models import MatchSettings
     active_settings = MatchSettings.objects.filter(is_active=True).first()
     
@@ -95,76 +95,80 @@ def reservation_create_view(request):
         equipment_ids = request.POST.getlist('equipment')
         
         if form.is_valid():
-            reservation = form.save(commit=False)
-            reservation.user = request.user
-            reservation.hourly_rate = reservation.court.hourly_rate
+            # Store validated data in session instead of creating reservation
+            checkout_token = str(uuid.uuid4())
             
-            # Apply match settings from admin configuration
-            if active_settings:
-                reservation.match_format = active_settings.format
-                reservation.game_type = active_settings.game_type
-                reservation.scoring_format = active_settings.scoring_format
-                reservation.points_per_game = active_settings.points_per_game
-                reservation.games_to_win = active_settings.games_to_win
-                reservation.win_by_two = active_settings.win_by_two
+            court = form.cleaned_data['court']
+            date = form.cleaned_data['date']
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
             
-            reservation.save()
-            
-            # Add equipment
-            equipment_fee = 0
-            for eq_id in equipment_ids:
-                try:
-                    equipment = Equipment.objects.get(id=eq_id, is_active=True)
-                    if equipment.quantity_available > 0:
-                        RentalEquipment = ReservationEquipment(
-                            reservation=reservation,
-                            equipment=equipment,
-                            quantity=1,
-                            rental_fee=equipment.rental_price
-                        )
-                        RentalEquipment.save()
-                        equipment_fee += float(equipment.rental_price)
-                        equipment.quantity_available -= 1
-                        equipment.save()
-                except Equipment.DoesNotExist:
-                    pass
-            
-            # Update equipment fee and total
-            reservation.equipment_fee = equipment_fee
-            reservation.save()
-            
-            # Create payment record
-            Payment.objects.create(
-                reservation=reservation,
-                amount=reservation.total_amount,
-                status='pending'
+            # Re-verify slot availability on the server
+            overlapping = Reservation.objects.filter(
+                court=court,
+                date=date,
+                status__in=['confirmed', 'pending']
+            ).exclude(
+                start_time__gte=end_time
+            ).exclude(
+                end_time__lte=start_time
             )
             
-            # Notify staff (scoped to organization)
-            court_org = reservation.court.organization
-            if court_org:
-                staff_users = User.objects.filter(
-                    Q(organization=court_org) | Q(role='super_admin'),
-                    role__in=['org_admin', 'org_staff', 'super_admin']
-                )
-            else:
-                staff_users = User.objects.filter(role__in=['org_admin', 'org_staff', 'super_admin'])
-            for staff in staff_users:
-                Notification.objects.create(
-                    user=staff,
-                    message=f"New reservation #{reservation.id} by {request.user.username} requires approval."
-                )
+            if overlapping.exists():
+                messages.error(request, 'Sorry, this time slot was just booked. Please select a different slot.')
+                return render(request, 'user/reservations/reservation_create.html', {
+                    'form': form,
+                    'equipment_list': Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+                })
             
-            # Notify user
-            Notification.objects.create(
-                user=request.user,
-                message=f"Your reservation #{reservation.id} has been created and is pending approval."
-            )
+            # Check if slot is in the past
+            slot_datetime = datetime.combine(date, start_time)
+            if timezone.is_naive(slot_datetime):
+                slot_datetime = timezone.make_aware(slot_datetime)
+            if slot_datetime < timezone.now():
+                messages.error(request, 'This time slot has already passed. Please select a future time.')
+                return render(request, 'user/reservations/reservation_create.html', {
+                    'form': form,
+                    'equipment_list': Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+                })
             
-            messages.success(request, 'Reservation created successfully! Please proceed to payment.')
-            return redirect('payment_checkout', reservation_id=reservation.id)
+            # Calculate duration and pricing
+            start_dt = datetime.combine(date, start_time)
+            end_dt = datetime.combine(date, end_time)
+            duration_hours = round((end_dt - start_dt).total_seconds() / 3600, 1)
+            hourly_rate = float(court.hourly_rate)
+            subtotal = hourly_rate * duration_hours
+            
+            # Store in session
+            request.session['checkout_data'] = {
+                'court_id': court.id,
+                'date': date.isoformat(),
+                'start_time': start_time.strftime('%H:%M'),
+                'end_time': end_time.strftime('%H:%M'),
+                'duration_hours': duration_hours,
+                'hourly_rate': hourly_rate,
+                'subtotal': subtotal,
+                'notes': form.cleaned_data.get('notes', ''),
+                'equipment_ids': [int(eid) for eid in equipment_ids if eid],
+                'match_name': form.cleaned_data.get('match_name', ''),
+                'match_format': form.cleaned_data.get('match_format', 'singles'),
+                'game_type': form.cleaned_data.get('game_type', 'friendly'),
+                'scoring_format': form.cleaned_data.get('scoring_format', '11'),
+                'points_per_game': form.cleaned_data.get('points_per_game', 11),
+                'games_to_win': form.cleaned_data.get('games_to_win', 2),
+                'win_by_two': form.cleaned_data.get('win_by_two', True),
+            }
+            
+            messages.success(request, 'Please review your booking and complete payment.')
+            return redirect('checkout_page', checkout_token=checkout_token)
+        else:
+            equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+            return render(request, 'user/reservations/reservation_create.html', {
+                'form': form,
+                'equipment_list': equipment_list
+            })
     else:
-        # Get court from query parameter to pre-select
+        # GET request
         initial_court = request.GET.get('court')
         initial_data = {}
         if initial_court:
@@ -174,7 +178,6 @@ def reservation_create_view(request):
             except Court.DoesNotExist:
                 pass
         
-        # Add match settings from admin configuration as initial values
         if active_settings:
             initial_data['match_format'] = active_settings.format
             initial_data['game_type'] = active_settings.game_type

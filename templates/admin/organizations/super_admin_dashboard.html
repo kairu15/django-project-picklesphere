@@ -29,6 +29,86 @@
     .super-admin-header > div { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
     .super-admin-header .btn { width: 100% !important; }
 }
+/* Fullscreen chart overlay */
+.chart-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.chart-fullscreen-overlay.active {
+    display: flex;
+}
+.chart-fullscreen-overlay .admin-card {
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--border-radius-lg, 16px);
+    box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+    overflow: hidden;
+}
+.chart-fullscreen-overlay .admin-card .card-body {
+    overflow: auto;
+}
+.chart-fullscreen-overlay .chart-scroll-wrapper {
+    overflow: visible !important;
+}
+.chart-fullscreen-overlay .chart-scroll-wrapper canvas {
+    max-height: 60vh;
+    min-width: auto !important;
+    width: 100% !important;
+}
+.chart-fullscreen-close {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    z-index: 10000;
+}
+.chart-fullscreen-close:hover {
+    transform: scale(1.1);
+    background: white;
+}
+/* Constrain chart canvas so it doesn't stretch when scrolling */
+.chart-scroll-wrapper {
+    width: 100%;
+    overflow: visible;
+}
+.chart-scroll-wrapper canvas {
+    max-height: 200px;
+    width: 100%;
+}
+@media (max-width: 767.98px) {
+    .chart-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+    .chart-scroll-wrapper canvas {
+        min-width: 550px;
+        width: auto;
+    }
+}
 </style>
 
 <!-- Header -->
@@ -178,6 +258,33 @@
     </div>
 </div>
 
+<!-- Revenue Trend Chart -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-chart-area text-success"></i>
+                    Revenue & Booking Trend
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success">14-day view</span>
+                    <button class="btn btn-sm btn-outline-secondary chart-fullscreen-btn" data-chart-id="revenueTrendChart" title="View full screen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Daily revenue (bars) and booking count (line) over the last 14 days. Monitor financial performance at a glance.
+                </p>
+                <div class="chart-scroll-wrapper"><canvas id="revenueTrendChart" height="100"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
     <!-- Pending Organizations -->
     <div class="col-lg-6">
@@ -299,4 +406,127 @@
         </div>
     </div>
 </div>
+
+<!-- Fullscreen Chart Overlay -->
+<div class="chart-fullscreen-overlay" id="chartFullscreenOverlay">
+    <button class="chart-fullscreen-close" id="chartFullscreenClose" title="Close">
+        <i class="fas fa-times"></i>
+    </button>
+    <div class="admin-card" id="chartFullscreenContent"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var revLabels = {{ revenue_trend_labels|safe }};
+    var revValues = {{ revenue_trend_values|safe }};
+    var bookingValues = {{ booking_trend_values|safe }};
+    var revCtx = document.getElementById('revenueTrendChart');
+    if (revCtx) {
+        new Chart(revCtx, {
+            type: 'bar',
+            data: {
+                labels: revLabels,
+                datasets: [
+                    {
+                        label: 'Revenue (₱)',
+                        data: revValues,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: '#28a745',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Bookings',
+                        data: bookingValues,
+                        type: 'line',
+                        borderColor: '#3B7A8C',
+                        backgroundColor: 'rgba(59, 122, 140, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3B7A8C',
+                        pointRadius: 3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } } },
+                scales: {
+                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Revenue (₱)' } },
+                    y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Bookings' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // ===== Fullscreen Chart Toggle =====
+    var fsOverlay = document.getElementById('chartFullscreenOverlay');
+    var fsContent = document.getElementById('chartFullscreenContent');
+    var fsClose = document.getElementById('chartFullscreenClose');
+    var fsSavedPosition = null;
+
+    document.querySelectorAll('.chart-fullscreen-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (fsOverlay.classList.contains('active')) return;
+
+            var srcCard = this.closest('.admin-card');
+            if (!srcCard) return;
+
+            var fsBtn = srcCard.querySelector('.chart-fullscreen-btn');
+            if (fsBtn) fsBtn.style.display = 'none';
+
+            fsSavedPosition = {
+                parent: srcCard.parentNode,
+                nextSibling: srcCard.nextSibling,
+                fsBtn: fsBtn
+            };
+
+            fsContent.innerHTML = '';
+            fsContent.appendChild(srcCard);
+            fsOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            var chartCanvas = srcCard.querySelector('canvas');
+            if (chartCanvas) {
+                var inst = Chart.getChart(chartCanvas.id);
+                if (inst) {
+                    setTimeout(function() { inst.resize(); }, 150);
+                }
+            }
+        });
+    });
+
+    function closeFs() {
+        fsOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+
+        var movedCard = fsContent.querySelector('.admin-card');
+        if (movedCard && fsSavedPosition) {
+            if (fsSavedPosition.nextSibling) {
+                fsSavedPosition.parent.insertBefore(movedCard, fsSavedPosition.nextSibling);
+            } else {
+                fsSavedPosition.parent.appendChild(movedCard);
+            }
+            if (fsSavedPosition.fsBtn) {
+                fsSavedPosition.fsBtn.style.display = '';
+            }
+        }
+        fsContent.innerHTML = '';
+        fsSavedPosition = null;
+    }
+    fsClose.addEventListener('click', closeFs);
+    fsOverlay.addEventListener('click', function(e) {
+        if (e.target === fsOverlay) closeFs();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && fsOverlay.classList.contains('active')) closeFs();
+    });
+});
+</script>
 {% endblock %}

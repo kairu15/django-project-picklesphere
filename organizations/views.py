@@ -416,6 +416,29 @@ def super_admin_dashboard(request):
         'pending_amount': Payment.objects.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0,
     }
     
+    # ========== REVENUE TREND (last 14 days) ==========
+    from datetime import timedelta
+    fourteen_days_ago = today - timedelta(days=13)
+    daily_revenues = Payment.objects.filter(
+        status='paid',
+        created_at__date__gte=fourteen_days_ago
+    ).extra(
+        select={'day': 'DATE(created_at)'}
+    ).values('day').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('day')
+    
+    revenue_trend_labels = []
+    revenue_trend_values = []
+    booking_trend_values = []
+    for i in range(13, -1, -1):
+        day = today - timedelta(days=i)
+        revenue_trend_labels.append(day.strftime('%b %d'))
+        found = next((item for item in daily_revenues if item['day'] == day), None)
+        revenue_trend_values.append(float(found['total'] or 0) if found else 0)
+        booking_trend_values.append(found['count'] if found else 0)
+    
     # Recent registrations (pending orgs)
     pending_orgs = Organization.objects.filter(status='pending').order_by('-created_at')[:10]
     
@@ -430,6 +453,10 @@ def super_admin_dashboard(request):
         'revenue_stats': revenue_stats,
         'pending_orgs': pending_orgs,
         'org_stats': org_stats,
+        # Revenue trend
+        'revenue_trend_labels': revenue_trend_labels,
+        'revenue_trend_values': revenue_trend_values,
+        'booking_trend_values': booking_trend_values,
     })
 
 

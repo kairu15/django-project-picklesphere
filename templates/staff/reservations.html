@@ -5,6 +5,7 @@
 {% block page_title %}Reservation Management{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/staff.css' %}">
 <style>
 :root {
@@ -155,70 +156,89 @@
 
 {% block content %}
 <!-- Stats Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d1">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-calendar-check text-white"></i></div>
-                <div><div class="stat-number text-white">{{ total_count }}</div><div class="stat-label">Total Reservations</div></div>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-calendar-check fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ total_count }}</div>
+                    <div class="stats-label text-muted">Total Reservations</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d2">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-clock text-white"></i></div>
-                <div><div class="stat-number text-white">{{ pending_count }}</div><div class="stat-label">Pending</div></div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ pending_count }}</div>
+                    <div class="stats-label text-muted">Pending</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d3">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-check-circle text-white"></i></div>
-                <div><div class="stat-number text-white">{{ confirmed_count }}</div><div class="stat-label">Confirmed</div></div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-check-circle fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ confirmed_count }}</div>
+                    <div class="stats-label text-muted">Confirmed</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d4">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-check-double text-white"></i></div>
-                <div><div class="stat-number text-white">{{ completed_count }}</div><div class="stat-label">Completed</div></div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-check-double fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ completed_count }}</div>
+                    <div class="stats-label text-muted">Completed</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar animate-in animate-in-d3">
-    <form method="get" class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-search me-1"></i>Search</label>
-            <input type="text" name="search" class="form-control" placeholder="User email or ID..." value="{{ search_query }}">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-filter me-1"></i>Status</label>
-            <select name="status" class="form-select">
-                <option value="">All Status</option>
-                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
-                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label fw-semibold text-muted small text-uppercase"><i class="fas fa-calendar me-1"></i>Date</label>
-            <input type="date" name="date" class="form-control" value="{{ date_filter }}">
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Search</button>
-            {% if search_query or status_filter or date_filter %}
-            <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary" style="border-radius: 10px;"><i class="fas fa-times"></i></a>
-            {% endif %}
-        </div>
-    </form>
-</div>
+{% include 'components/filter_bar_start.html' %}
+            <div class="col-md-3">
+                <label class="filter-label"><i class="fas fa-search me-1 text-primary"></i>Search</label>
+                <input type="text" name="search" class="filter-input" placeholder="User email or ID..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label"><i class="fas fa-filter me-1 text-primary"></i>Status</label>
+                <select name="status" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label"><i class="fas fa-calendar me-1 text-primary"></i>Date</label>
+                <input type="date" name="date" class="filter-input" value="{{ date_filter }}">
+            </div>
+            <div class="col-md-3">
+                <div class="filter-btn-row">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-search me-1"></i>Search</button>
+                    {% if search_query or status_filter or date_filter %}
+                    <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary" title="Clear filters"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+{% include 'components/filter_bar_end.html' %}
 
 <!-- Reservations Card -->
 <div class="rsv-card animate-in animate-in-d4">
@@ -259,7 +279,7 @@
                         <div style="font-size: 0.85rem;">{{ reservation.date|date:"M d, Y" }}</div>
                         <small class="text-muted">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</small>
                     </td>
-                    <td>{{ reservation.duration_hours }} hrs</td>
+                    <td>{{ reservation.duration_hours|floatformat:1 }} hrs</td>
                     <td class="fw-semibold" style="color: #198754;">₱{{ reservation.total_amount|floatformat:2 }}</td>
                     <td>
                         {% with reservation.payment as payment %}

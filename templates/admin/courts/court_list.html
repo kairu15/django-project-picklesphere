@@ -5,39 +5,31 @@
 {% block page_title %}Court Management{% endblock %}
 
 {% block content %}
-<!-- Filters -->
-<div class="filter-card">
-    <div class="card-body">
-        <form method="get" class="row g-3 align-items-end">
+{% include 'components/filter_bar_start.html' %}
             <div class="col-md-4">
-                <label class="admin-form-label">
-                    <i class="fas fa-search me-2 text-primary"></i>Search
-                </label>
-                <input type="text" name="search" class="form-control admin-form-control" value="{{ search_query }}" placeholder="Court or site name">
+                <label class="filter-label"><i class="fas fa-search me-1 text-primary"></i>Search</label>
+                <input type="text" name="search" class="filter-input" value="{{ search_query }}" placeholder="Court or site name...">
             </div>
             <div class="col-md-3">
-                <label class="admin-form-label">
-                    <i class="fas fa-toggle-on me-2 text-primary"></i>Status
-                </label>
-                <select name="status" class="form-select admin-form-control">
+                <label class="filter-label"><i class="fas fa-toggle-on me-1 text-primary"></i>Status</label>
+                <select name="status" class="filter-select">
                     <option value="">All Status</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
                     <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-auto">
-                    <i class="fas fa-search me-2"></i>Search
-                </button>
+                <div class="filter-btn-row">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-search me-1"></i>Search</button>
+                    {% if search_query or status_filter %}
+                    <a href="{% url 'org_admin_court_list' %}" class="btn btn-outline-secondary" title="Clear filters"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                </div>
             </div>
             <div class="col-md-3">
-                <a href="{% url 'org_admin_court_create' %}" class="btn btn-success w-auto">
-                    <i class="fas fa-plus me-2"></i>Add Court
-                </a>
+                <a href="{% url 'org_admin_court_create' %}" class="btn btn-success w-100"><i class="fas fa-plus me-1"></i>Add Court</a>
             </div>
-        </form>
-    </div>
-</div>
+{% include 'components/filter_bar_end.html' %}
 
 <!-- Courts Table -->
 <div class="admin-card">

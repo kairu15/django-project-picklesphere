@@ -1,28 +1,19 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}System Dashboard (Legacy){% endblock %}
-{% block page_title %}System Overview{% endblock %}
+{% block title %}System Analytics Dashboard{% endblock %}
+{% block page_title %}System Analytics{% endblock %}
 
 {% block breadcrumb %}
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Legacy Dashboard</li>
+        <li class="breadcrumb-item active" aria-current="page">System Analytics</li>
     </ol>
 </nav>
 {% endblock %}
 
 {% block content %}
-<!-- Page Description -->
-<div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center gap-3" style="border-radius: var(--border-radius-lg);">
-    <i class="fas fa-info-circle fa-lg text-info"></i>
-    <div>
-        <strong>Legacy Dashboard</strong> — This dashboard provides a system-wide analytics overview. For full management features, use the
-        <a href="{% url 'super_admin_dashboard' %}" class="alert-link">Super Admin Dashboard</a>.
-    </div>
-</div>
-
 <!-- Key Metrics Row -->
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-md-6">
@@ -133,13 +124,15 @@
     <div class="col-xl-3 col-md-6">
         <div class="admin-card h-100" style="animation-delay: 0.8s;">
             <div class="card-body p-4 d-flex align-items-center">
-                <div class="stats-icon bg-gradient-primary text-white me-3">
-                    <i class="fas fa-check-double fa-lg"></i>
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-star fa-lg"></i>
                 </div>
                 <div>
-                    <div class="stats-value">{{ metrics.confirmed_reservations }}</div>
-                    <div class="stats-label text-muted">Confirmed Reservations</div>
-                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>All set</small>
+                    <div class="stats-value">{{ rating_data.average_rating }} <small class="fs-6 text-muted">/ 5</small></div>
+                    <div class="stats-label text-muted">Customer Ratings</div>
+                    <small class="text-warning">
+                        <i class="fas fa-star me-1"></i>{{ rating_data.total_ratings }} total · {{ rating_data.featured_ratings }} featured
+                    </small>
                 </div>
             </div>
         </div>
@@ -189,14 +182,19 @@
                     <i class="fas fa-chart-line text-primary"></i>
                     User Registration Trend
                 </h5>
-                <span class="badge bg-primary">6-month view</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">6-month view</span>
+                    <button class="btn btn-sm btn-outline-secondary chart-fullscreen-btn" data-chart-id="userRegistrationChart" title="View full screen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
                     <i class="fas fa-info-circle me-1"></i>
                     Monthly new user sign-ups over the past 6 months. Use this to track growth and user acquisition trends.
                 </p>
-                <canvas id="userRegistrationChart" height="140"></canvas>
+                <div class="chart-scroll-wrapper"><canvas id="userRegistrationChart" height="140"></canvas></div>
             </div>
         </div>
     </div>
@@ -207,14 +205,19 @@
                     <i class="fas fa-chart-area text-success"></i>
                     Revenue & Booking Trend
                 </h5>
-                <span class="badge bg-success">14-day view</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success">14-day view</span>
+                    <button class="btn btn-sm btn-outline-secondary chart-fullscreen-btn" data-chart-id="revenueTrendChart" title="View full screen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
                     <i class="fas fa-info-circle me-1"></i>
                     Daily revenue (bars) and booking count (line) over the last 14 days. Monitor daily performance at a glance.
                 </p>
-                <canvas id="revenueTrendChart" height="140"></canvas>
+                <div class="chart-scroll-wrapper"><canvas id="revenueTrendChart" height="140"></canvas></div>
             </div>
         </div>
     </div>
@@ -229,14 +232,19 @@
                     <i class="fas fa-clock text-warning"></i>
                     Peak Booking Hours
                 </h5>
-                <span class="badge bg-primary">{{ peak_hours_counts|length }} hourly slots</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">{{ peak_hours_counts|length }} hourly slots</span>
+                    <button class="btn btn-sm btn-outline-secondary chart-fullscreen-btn" data-chart-id="peakHoursChart" title="View full screen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
                     <i class="fas fa-info-circle me-1"></i>
                     Hourly booking distribution over the last 30 days. The highlighted bar shows the busiest hour. Use this to optimize staffing and court availability.
                 </p>
-                <canvas id="peakHoursChart" height="140"></canvas>
+                <div class="chart-scroll-wrapper"><canvas id="peakHoursChart" height="140"></canvas></div>
             </div>
         </div>
     </div>
@@ -309,6 +317,86 @@
 @media (max-width: 767.98px) {
     .share-col { width: 100% !important; display: block !important; }
     .share-col .progress { margin-top: 4px; }
+}
+/* Chart scroll wrapper: horizontal scroll on mobile, normal on desktop */
+.chart-scroll-wrapper {
+    width: 100%;
+    overflow: visible;
+}
+.chart-scroll-wrapper canvas {
+    max-height: 200px;
+    width: 100%;
+}
+@media (max-width: 767.98px) {
+    .chart-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+    .chart-scroll-wrapper canvas {
+        min-width: 550px;
+        width: auto;
+    }
+}
+/* Fullscreen chart overlay */
+.chart-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.chart-fullscreen-overlay.active {
+    display: flex;
+}
+.chart-fullscreen-overlay .admin-card {
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--border-radius-lg, 16px);
+    box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+    overflow: hidden;
+}
+.chart-fullscreen-overlay .admin-card .card-body {
+    overflow: auto;
+}
+.chart-fullscreen-overlay .chart-scroll-wrapper {
+    overflow: visible !important;
+}
+.chart-fullscreen-overlay .chart-scroll-wrapper canvas {
+    max-height: 60vh;
+    min-width: auto !important;
+    width: 100% !important;
+}
+.chart-fullscreen-close {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    z-index: 10000;
+}
+.chart-fullscreen-close:hover {
+    transform: scale(1.1);
+    background: white;
 }
 </style>
 
@@ -409,6 +497,14 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Fullscreen Chart Overlay -->
+<div class="chart-fullscreen-overlay" id="chartFullscreenOverlay">
+    <button class="chart-fullscreen-close" id="chartFullscreenClose" title="Close">
+        <i class="fas fa-times"></i>
+    </button>
+    <div class="admin-card" id="chartFullscreenContent"></div>
 </div>
 
 <!-- Recent Data Section -->
@@ -551,7 +647,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Calculate court utilization progress bars
-document.querySelectorAll('.court-utilization-bar').forEach(function(bar) {
+const courtUtilBars = document.querySelectorAll('.court-utilization-bar');
+courtUtilBars.forEach(function(bar) {
     var courtTotal = parseInt(bar.getAttribute('data-court-total')) || 0;
     var totalReservations = parseInt(bar.getAttribute('data-total-reservations')) || 0;
     var percentage = totalReservations > 0 ? (courtTotal / totalReservations * 100) : 0;
@@ -731,6 +828,77 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ===== Fullscreen Chart Toggle =====
+    var fsOverlay = document.getElementById('chartFullscreenOverlay');
+    var fsContent = document.getElementById('chartFullscreenContent');
+    var fsClose = document.getElementById('chartFullscreenClose');
+    var fsSavedPosition = null;
+
+    document.querySelectorAll('.chart-fullscreen-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (fsOverlay.classList.contains('active')) return;
+
+            var srcCard = this.closest('.admin-card');
+            if (!srcCard) return;
+
+            // Hide (don't remove) the fullscreen button so we can restore it later
+            var fsBtn = srcCard.querySelector('.chart-fullscreen-btn');
+            if (fsBtn) fsBtn.style.display = 'none';
+
+            // Save position to restore the card later
+            fsSavedPosition = {
+                parent: srcCard.parentNode,
+                nextSibling: srcCard.nextSibling,
+                fsBtn: fsBtn
+            };
+
+            // Move the actual card into the overlay (preserves Chart.js instance)
+            fsContent.innerHTML = '';
+            fsContent.appendChild(srcCard);
+            fsOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Resize the chart to fill the larger overlay
+            var chartCanvas = srcCard.querySelector('canvas');
+            if (chartCanvas) {
+                var inst = Chart.getChart(chartCanvas.id);
+                if (inst) {
+                    setTimeout(function() { inst.resize(); }, 150);
+                }
+            }
+        });
+    });
+
+    function closeFs() {
+        fsOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+
+        // Restore the card to its original position
+        var movedCard = fsContent.querySelector('.admin-card');
+        if (movedCard && fsSavedPosition) {
+            if (fsSavedPosition.nextSibling) {
+                fsSavedPosition.parent.insertBefore(movedCard, fsSavedPosition.nextSibling);
+            } else {
+                fsSavedPosition.parent.appendChild(movedCard);
+            }
+            // Restore the fullscreen button visibility
+            if (fsSavedPosition.fsBtn) {
+                fsSavedPosition.fsBtn.style.display = '';
+            }
+        }
+        fsContent.innerHTML = '';
+        fsSavedPosition = null;
+    }
+
+    fsClose.addEventListener('click', closeFs);
+    fsOverlay.addEventListener('click', function(e) {
+        if (e.target === fsOverlay) closeFs();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && fsOverlay.classList.contains('active')) closeFs();
+    });
 });
 </script>
 {% endblock %}

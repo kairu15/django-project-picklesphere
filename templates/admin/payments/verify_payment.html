@@ -54,6 +54,15 @@
         margin-right: 1rem;
         flex-shrink: 0;
     }
+    .admin-info-icon.bg-success {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    }
+    .admin-info-icon.bg-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    }
+    .admin-info-icon.bg-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    }
     .admin-info-content {
         flex: 1;
     }
@@ -139,12 +148,34 @@
         margin-top: 0.25rem;
         flex-shrink: 0;
     }
+    .timeline-item:last-child {
+        border-left: 2px solid transparent;
+    }
     .timeline-content {
         flex: 1;
     }
     .timeline-time {
         font-size: 0.8rem;
         color: var(--text-muted);
+    }
+    .copy-btn {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .copy-btn:hover {
+        background: var(--hover-bg, rgba(0,0,0,0.05));
+    }
+
+    /* Refund card */
+    .refund-card {
+        border: 1px solid rgba(23,162,184,0.2) !important;
+    }
+    .refund-header {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+        color: white !important;
+    }
+    .refund-header .admin-info-icon {
+        background: rgba(255,255,255,0.2) !important;
     }
 </style>
 {% endblock %}
@@ -202,6 +233,7 @@
                             <div class="admin-info-content">
                                 <div class="admin-info-label">Customer</div>
                                 <div class="admin-info-value">{{ payment.reservation.user.get_full_name|default:payment.reservation.user.username }}</div>
+                                <small class="text-muted d-block">{{ payment.reservation.user.email }}</small>
                             </div>
                         </div>
                         <div class="admin-info-item">
@@ -211,6 +243,9 @@
                             <div class="admin-info-content">
                                 <div class="admin-info-label">Court</div>
                                 <div class="admin-info-value">{{ payment.reservation.court.name }}</div>
+                                {% if payment.reservation.court.site %}
+                                <small class="text-muted d-block">{{ payment.reservation.court.site.name }}</small>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -232,6 +267,10 @@
                                 <div class="admin-info-label">Payment Method</div>
                                 <div class="admin-info-value">
                                     <span class="badge {% if payment.method == 'gcash' %}bg-primary{% elif payment.method == 'cash' %}bg-success{% elif payment.method == 'card' %}bg-info{% else %}bg-secondary{% endif %}">
+                                        {% if payment.method == 'gcash' %}<i class="fas fa-mobile-alt me-1"></i>
+                                        {% elif payment.method == 'cash' %}<i class="fas fa-money-bill-wave me-1"></i>
+                                        {% elif payment.method == 'card' %}<i class="fas fa-credit-card me-1"></i>
+                                        {% endif %}
                                         {{ payment.get_method_display|default:"N/A" }}
                                     </span>
                                 </div>
@@ -254,6 +293,21 @@
                                 </div>
                             </div>
                         </div>
+                        {% if payment.transaction_id %}
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-fingerprint"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Transaction ID</div>
+                                <div class="admin-info-value font-monospace text-info d-flex align-items-center gap-2">{{ payment.transaction_id }}
+                                    <button class="btn btn-sm btn-outline-secondary copy-btn" style="border-radius: 6px; padding: 2px 8px; font-size: 0.7rem;" onclick="navigator.clipboard.writeText('{{ payment.transaction_id }}').then(() => { this.innerHTML='<i class=\'fas fa-check\'></i>'; setTimeout(() => { this.innerHTML='<i class=\'fas fa-copy\'></i>'; }, 2000); }).catch(() => {});">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% if payment.gcash_reference %}
                         <div class="admin-info-item">
                             <div class="admin-info-icon bg-info">
@@ -265,7 +319,7 @@
                             </div>
                         </div>
                         {% endif %}
-                                            </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -290,6 +344,145 @@
                     <i class="fas fa-info-circle me-1"></i>
                     Click image to view full size and verify details. Ensure the reference number matches.
                 </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Cash Payment Details (only for cash payments that have been received) -->
+        {% if payment.method == 'cash' and payment.cash_received_by %}
+        <div class="admin-verify-card mb-4">
+            <div class="admin-verify-header">
+                <h5 class="admin-verify-title">
+                    <i class="fas fa-money-bill-wave text-success"></i>
+                    Cash Payment Details
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 36px; height: 36px; background: rgba(40,167,69,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-user-check" style="color: #28a745;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Received By</small>
+                                <span class="fw-semibold">{{ payment.cash_received_by.get_full_name|default:payment.cash_received_by.username }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if payment.cash_received_at %}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 36px; height: 36px; background: rgba(40,167,69,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock" style="color: #28a745;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Received At</small>
+                                <span class="fw-semibold">{{ payment.cash_received_at|date:"M d, Y g:i A" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Refund Details Card -->
+        {% if payment.status == 'refunded' and latest_refund %}
+        <div class="admin-verify-card refund-card mb-4">
+            <div class="admin-verify-header refund-header">
+                <h5 class="admin-verify-title">
+                    <i class="fas fa-undo"></i>
+                    Refund Details
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-peso-sign"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Refund Amount</div>
+                                <div class="admin-info-value text-info">₱{{ latest_refund.amount|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Status</div>
+                                <div class="admin-info-value">{{ latest_refund.get_status_display }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Requested By</div>
+                                <div class="admin-info-value">{{ latest_refund.requested_by.get_full_name|default:latest_refund.requested_by.username }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if latest_refund.approved_by %}
+                    <div class="col-md-6">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Approved By</div>
+                                <div class="admin-info-value">{{ latest_refund.approved_by.get_full_name|default:latest_refund.approved_by.username }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Requested At</div>
+                                <div class="admin-info-value">{{ latest_refund.requested_at|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if latest_refund.processed_at %}
+                    <div class="col-md-6">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Processed At</div>
+                                <div class="admin-info-value">{{ latest_refund.processed_at|date:"M d, Y g:i A" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if latest_refund.reason %}
+                    <div class="col-12">
+                        <div class="admin-info-item">
+                            <div class="admin-info-icon bg-info">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <div class="admin-info-content">
+                                <div class="admin-info-label">Reason</div>
+                                <div class="admin-info-value" style="font-size: 0.9rem; font-weight: 400;">{{ latest_refund.reason }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% endif %}
@@ -366,18 +559,80 @@
                     </div>
                     <div class="admin-info-content">
                         <div class="admin-info-label">Duration</div>
-                        <div class="admin-info-value">{{ payment.reservation.duration }} hours</div>
+                        <div class="admin-info-value">{{ payment.reservation.duration_hours|floatformat:1 }} hours</div>
                     </div>
                 </div>
                 <div class="admin-info-item">
                     <div class="admin-info-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="admin-info-content">
+                        <div class="admin-info-label">Court / Site</div>
+                        <div class="admin-info-value">{{ payment.reservation.court.name }}</div>
+                        {% if payment.reservation.court.site %}
+                        <small class="text-muted d-block">{{ payment.reservation.court.site.name }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="admin-info-item">
+                    <div class="admin-info-icon bg-success">
                         <i class="fas fa-peso-sign"></i>
                     </div>
                     <div class="admin-info-content">
                         <div class="admin-info-label">Court Fee</div>
-                        <div class="admin-info-value">₱{{ payment.reservation.total_amount|floatformat:2 }}</div>
+                        <div class="admin-info-value text-success">₱{{ payment.reservation.subtotal|floatformat:2 }}</div>
                     </div>
                 </div>
+                {% if payment.reservation.equipment_fee > 0 %}
+                <div class="admin-info-item">
+                    <div class="admin-info-icon bg-warning">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="admin-info-content">
+                        <div class="admin-info-label">Equipment Fee</div>
+                        <div class="admin-info-value">₱{{ payment.reservation.equipment_fee|floatformat:2 }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="admin-info-item">
+                    <div class="admin-info-icon" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="admin-info-content">
+                        <div class="admin-info-label">Total Charged</div>
+                        <div class="admin-info-value" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="admin-sidebar-card mb-4">
+            <div class="admin-sidebar-header">
+                <i class="fas fa-user"></i>
+                Customer Info
+            </div>
+            <div class="card-body p-0">
+                <div class="admin-info-item">
+                    <div class="admin-info-content">
+                        <div class="admin-info-label">Name</div>
+                        <div class="admin-info-value">{{ payment.reservation.user.get_full_name|default:payment.reservation.user.username }}</div>
+                    </div>
+                </div>
+                <div class="admin-info-item">
+                    <div class="admin-info-content">
+                        <div class="admin-info-label">Email</div>
+                        <div class="admin-info-value" style="font-size: 0.85rem;">{{ payment.reservation.user.email }}</div>
+                    </div>
+                </div>
+                {% if payment.reservation.user.phone_number %}
+                <div class="admin-info-item">
+                    <div class="admin-info-content">
+                        <div class="admin-info-label">Phone</div>
+                        <div class="admin-info-value">{{ payment.reservation.user.phone_number }}</div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -388,16 +643,16 @@
                 Payment Activity
             </div>
             <div class="verification-timeline">
-                {% for log in payment.logs.all|slice:":5" %}
+                {% for log in logs %}
                 <div class="timeline-item">
                     <div class="timeline-content">
                         <div class="fw-semibold small">{{ log.action }}</div>
                         {% if log.details %}
-                        <div class="text-muted small">{{ log.details|truncatechars:50 }}</div>
+                        <div class="text-muted small">{{ log.details|truncatechars:60 }}</div>
                         {% endif %}
                         <div class="timeline-time">
                             <i class="fas fa-user me-1"></i>
-                            {% if log.performed_by %}{{ log.performed_by.username }}{% else %}System{% endif %}
+                            {% if log.performed_by %}{{ log.performed_by.get_full_name|default:log.performed_by.username }}{% else %}System{% endif %}
                             • {{ log.created_at|timesince }} ago
                         </div>
                     </div>

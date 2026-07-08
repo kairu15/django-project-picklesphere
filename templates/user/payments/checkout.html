@@ -34,73 +34,155 @@
                 <div class="row g-4">
                     <!-- Left: Booking Info -->
                     <div class="col-md-7">
-                        <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
-                            <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-map-marker-alt" style="color: #3B7A8C;"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Court</small>
-                                <span class="fw-semibold">{{ reservation.court.name }}</span>
-                                {% if reservation.court.site %}
-                                <small class="text-muted d-block">{{ reservation.court.site.name }}</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
-                            <div style="width: 40px; height: 40px; background: rgba(40,167,69,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-calendar" style="color: #28a745;"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Date</small>
-                                <span class="fw-semibold">{{ reservation.date|date:"l, M d, Y" }}</span>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(255,193,7,0.08); border-radius: 10px;">
-                            <div style="width: 40px; height: 40px; background: rgba(255,193,7,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-clock" style="color: #ff9800;"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Time</small>
-                                <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} — {{ reservation.end_time|time:"g:i A" }}</span>
-                                <small class="text-muted d-block">{{ reservation.duration_hours|floatformat:0 }} hour{{ reservation.duration_hours|floatformat:0|pluralize }}</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-3 p-3" style="background: rgba(23,162,184,0.06); border-radius: 10px;">
-                            <div style="width: 40px; height: 40px; background: rgba(23,162,184,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-tools" style="color: #17a2b8;"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Equipment</small>
-                                {% with rented=reservation.rented_equipment.all %}
-                                {% if rented %}
-                                <div class="mt-1">
-                                    {% for item in rented %}
-                                    <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
-                                        <i class="fas fa-check-circle text-success me-1" style="font-size: 0.6rem;"></i>{{ item.equipment.name }}
-                                    </span>
-                                    {% endfor %}
+                        {% if is_session_checkout %}
+                            {# ===== SESSION-BASED CHECKOUT (new flow, no reservation created yet) ===== #}
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-map-marker-alt" style="color: #3B7A8C;"></i>
                                 </div>
-                                {% else %}
-                                <span class="text-muted">None selected</span>
-                                {% endif %}
-                                {% endwith %}
+                                <div>
+                                    <small class="text-muted d-block">Court</small>
+                                    <span class="fw-semibold">{{ court.name }}</span>
+                                    {% if court.site %}
+                                    <small class="text-muted d-block">{{ court.site.name }}</small>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(40,167,69,0.1); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(40,167,69,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-calendar" style="color: #28a745;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Date</small>
+                                    <span class="fw-semibold" id="checkout-date-label">{{ checkout_data.date }}</span>
+                                <script>document.getElementById('checkout-date-label').textContent = new Date('{{ checkout_data.date }}T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });</script>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(255,193,7,0.08); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(255,193,7,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-clock" style="color: #ff9800;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Time</small>
+                                    <span class="fw-semibold" id="checkout-time-label">{{ checkout_data.start_time }} — {{ checkout_data.end_time }}</span>
+                                <script>
+                                (function() {
+                                    var lbl = document.getElementById('checkout-time-label');
+                                    if (lbl) {
+                                        function fmt(t) { var p = t.split(':'); var h = parseInt(p[0]), m = p[1]; var ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + m + ' ' + ampm; }
+                                        var parts = lbl.textContent.split(' — ');
+                                        if (parts.length === 2) lbl.textContent = fmt(parts[0].trim()) + ' — ' + fmt(parts[1].trim());
+                                    }
+                                })();
+                                </script>
+                                    <small class="text-muted d-block">{{ checkout_data.duration_hours|floatformat:0 }} hour{{ checkout_data.duration_hours|floatformat:0|pluralize }}</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 p-3" style="background: rgba(23,162,184,0.06); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(23,162,184,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-tools" style="color: #17a2b8;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Equipment</small>
+                                    {% if equipment_objects %}
+                                    <div class="mt-1">
+                                        {% for eq in equipment_objects %}
+                                        <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+                                            <i class="fas fa-check-circle text-success me-1" style="font-size: 0.6rem;"></i>{{ eq.name }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">None selected</span>
+                                    {% endif %}
+                                </div>
+                            </div>
 
-                        {% if reservation.match_name or reservation.match_format %}
-                        <div class="d-flex align-items-center gap-3 mt-3 p-3" style="background: rgba(102,51,153,0.06); border-radius: 10px;">
-                            <div style="width: 40px; height: 40px; background: rgba(102,51,153,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-gamepad" style="color: #663399;"></i>
+                            {% if checkout_data.match_name or checkout_data.match_format %}
+                            <div class="d-flex align-items-center gap-3 mt-3 p-3" style="background: rgba(102,51,153,0.06); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(102,51,153,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-gamepad" style="color: #663399;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Match Info</small>
+                                    <span class="fw-semibold">
+                                        {% if checkout_data.match_name %}{{ checkout_data.match_name }} — {% endif %}
+                                        {{ checkout_data.match_format|title }}
+                                        {% if checkout_data.game_type %} · {{ checkout_data.game_type|title }}{% endif %}
+                                    </span>
+                                </div>
                             </div>
-                            <div>
-                                <small class="text-muted d-block">Match Info</small>
-                                <span class="fw-semibold">
-                                    {% if reservation.match_name %}{{ reservation.match_name }} — {% endif %}
-                                    {{ reservation.get_match_format_display|default:'' }}
-                                    {% if reservation.get_game_type_display %} · {{ reservation.get_game_type_display }}{% endif %}
-                                </span>
+                            {% endif %}
+                        {% else %}
+                            {# ===== OLD FLOW (reservation already exists) ===== #}
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(59,122,140,0.05); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(59,122,140,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-map-marker-alt" style="color: #3B7A8C;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Court</small>
+                                    <span class="fw-semibold">{{ reservation.court.name }}</span>
+                                    {% if reservation.court.site %}
+                                    <small class="text-muted d-block">{{ reservation.court.site.name }}</small>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(40,167,69,0.1); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(40,167,69,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-calendar" style="color: #28a745;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Date</small>
+                                    <span class="fw-semibold">{{ reservation.date|date:"l, M d, Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(255,193,7,0.08); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(255,193,7,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-clock" style="color: #ff9800;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Time</small>
+                                    <span class="fw-semibold">{{ reservation.start_time|time:"g:i A" }} — {{ reservation.end_time|time:"g:i A" }}</span>
+                                    <small class="text-muted d-block">{{ reservation.duration_hours|floatformat:0 }} hour{{ reservation.duration_hours|floatformat:0|pluralize }}</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 p-3" style="background: rgba(23,162,184,0.06); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(23,162,184,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-tools" style="color: #17a2b8;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Equipment</small>
+                                    {% with rented=reservation.rented_equipment.all %}
+                                    {% if rented %}
+                                    <div class="mt-1">
+                                        {% for item in rented %}
+                                        <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+                                            <i class="fas fa-check-circle text-success me-1" style="font-size: 0.6rem;"></i>{{ item.equipment.name }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">None selected</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+
+                            {% if reservation.match_name or reservation.match_format %}
+                            <div class="d-flex align-items-center gap-3 mt-3 p-3" style="background: rgba(102,51,153,0.06); border-radius: 10px;">
+                                <div style="width: 40px; height: 40px; background: rgba(102,51,153,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-gamepad" style="color: #663399;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Match Info</small>
+                                    <span class="fw-semibold">
+                                        {% if reservation.match_name %}{{ reservation.match_name }} — {% endif %}
+                                        {{ reservation.get_match_format_display|default:'' }}
+                                        {% if reservation.get_game_type_display %} · {{ reservation.get_game_type_display }}{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endif %}
                         {% endif %}
                     </div>
 
@@ -110,6 +192,37 @@
                             <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                 <i class="fas fa-receipt me-2"></i>Price Breakdown
                             </h6>
+                            {% if is_session_checkout %}
+                            <div class="d-flex justify-content-between mb-2 py-1">
+                                <span class="text-muted">Court Rate</span>
+                                <span class="fw-medium">₱{{ checkout_data.hourly_rate|floatformat:0 }}/hr × {{ checkout_data.duration_hours|floatformat:0 }} hr{{ checkout_data.duration_hours|floatformat:0|pluralize }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 py-1">
+                                <span class="text-muted">Court Fee</span>
+                                <span class="fw-medium">₱{{ checkout_data.subtotal|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 py-1">
+                                <span class="text-muted">Equipment Fee</span>
+                                <span class="fw-medium">₱{{ checkout_data.equipment_fee|default:0|floatformat:2 }}</span>
+                            </div>
+
+                            {% if equipment_objects %}
+                            <div class="ps-3 mb-2 py-1" style="font-size: 0.75rem;">
+                                {% for eq in equipment_objects %}
+                                <div class="d-flex justify-content-between text-muted">
+                                    <span>{{ eq.name }} × 1</span>
+                                    <span>₱{{ eq.rental_price|floatformat:2 }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold fs-6">Total Amount</span>
+                                <span class="fw-bold fs-4" style="color: #3B7A8C;">₱{{ total_amount|floatformat:2 }}</span>
+                            </div>
+                            {% else %}
                             <div class="d-flex justify-content-between mb-2 py-1">
                                 <span class="text-muted">Court Rate</span>
                                 <span class="fw-medium">₱{{ reservation.hourly_rate|floatformat:0 }}/hr × {{ reservation.duration_hours|floatformat:0 }} hr{{ reservation.duration_hours|floatformat:0|pluralize }}</span>
@@ -139,6 +252,7 @@
                                 <span class="fw-bold fs-6">Total Amount</span>
                                 <span class="fw-bold fs-4" style="color: #3B7A8C;">₱{{ reservation.total_amount|floatformat:2 }}</span>
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

@@ -37,46 +37,39 @@
 {% endblock %}
 
 {% block content %}
-<!-- Filters -->
-<div class="res-filter-bar">
-    <form method="get" class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label"><i class="fas fa-search me-2 text-primary"></i>Search</label>
-            <input type="text" name="search" class="form-control" value="{{ search_query }}" placeholder="User, court, or ID">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label"><i class="fas fa-filter me-2 text-primary"></i>Status</label>
-            <select name="status" class="form-select">
-                <option value="">All Status</option>
-                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
-                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label"><i class="fas fa-calendar me-2 text-primary"></i>From</label>
-            <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label"><i class="fas fa-calendar me-2 text-primary"></i>To</label>
-            <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
-        </div>
-        <div class="col-md-3">
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search me-2"></i>Search
-                </button>
-                {% if search_query or status_filter or date_from or date_to %}
-                <a href="{% url 'super_admin_reservation_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times"></i>
-                </a>
-                {% endif %}
+{% include 'components/filter_bar_start.html' %}
+            <div class="col-md-3">
+                <label class="filter-label"><i class="fas fa-search me-1 text-primary"></i>Search</label>
+                <input type="text" name="search" class="filter-input" value="{{ search_query }}" placeholder="User, court, or ID...">
             </div>
-        </div>
-    </form>
-</div>
+            <div class="col-md-2">
+                <label class="filter-label"><i class="fas fa-filter me-1 text-primary"></i>Status</label>
+                <select name="status" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label"><i class="fas fa-calendar me-1 text-primary"></i>From</label>
+                <input type="date" name="date_from" class="filter-input" value="{{ date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label"><i class="fas fa-calendar me-1 text-primary"></i>To</label>
+                <input type="date" name="date_to" class="filter-input" value="{{ date_to }}">
+            </div>
+            <div class="col-md-3">
+                <div class="filter-btn-row">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-search me-1"></i>Search</button>
+                    {% if search_query or status_filter or date_from or date_to %}
+                    <a href="{% url 'super_admin_reservation_list' %}" class="btn btn-outline-secondary" title="Clear filters"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+{% include 'components/filter_bar_end.html' %}
 
 <!-- Reservations Table -->
 <div class="admin-card">
@@ -127,7 +120,7 @@
                             <div>{{ res.date|date:"M d, Y" }}</div>
                             <small class="text-muted">{{ res.start_time|time:"g:i A" }} - {{ res.end_time|time:"g:i A" }}</small>
                         </td>
-                        <td data-label="Duration">{{ res.duration_hours }} hrs</td>
+                        <td data-label="Duration">{{ res.duration_hours|floatformat:1 }} hrs</td>
                         <td data-label="Total" class="fw-semibold" style="color: #198754;">₱{{ res.total_amount|floatformat:0 }}</td>
                         <td data-label="Status">
                             <span class="badge

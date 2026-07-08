@@ -47,7 +47,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Duration</h6>
-                                <p class="mb-0 fw-semibold">{{ reservation.duration_hours }} hours</p>
+                                <p class="mb-0 fw-semibold">{{ reservation.duration_hours|floatformat:1 }} hours</p>
                             </div>
                         </div>
                     </div>

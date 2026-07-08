@@ -5,6 +5,7 @@
 {% block page_title %}Refund Processing{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
 /* ===== ANIMATIONS ===== */
 @keyframes fadeSlideUp {
@@ -31,41 +32,6 @@
 .animate-in-d6 { animation-delay: 0.3s; }
 
 /* ===== STAT CARDS ===== */
-.stat-card {
-    border-radius: 16px;
-    border: none;
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-.stat-card .card-body {
-    padding: 1.25rem 1.5rem;
-}
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 1.2rem;
-}
-.stat-number {
-    font-size: 1.6rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 0.05rem;
-}
-.stat-label {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.78);
-    margin-bottom: 0;
-    letter-spacing: 0.3px;
-}
 
 /* ===== FILTER BAR ===== */
 .filter-bar {
@@ -288,7 +254,6 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-    .stat-number { font-size: 1.3rem; }
     .receipt-box { max-width: 100%; }
     .refund-card-header { flex-direction: column; align-items: flex-start; }
 }
@@ -307,55 +272,55 @@
 
 {% block content %}
 <!-- ===== STAT CARDS ===== -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d1">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #0d7a8c 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);">
-                    <i class="fas fa-hourglass-half text-white"></i>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-hourglass-half fa-lg"></i>
                 </div>
                 <div>
-                    <div class="stat-number text-white">{{ total_pending }}</div>
-                    <div class="stat-label">Pending Refunds</div>
+                    <div class="stats-value">{{ total_pending }}</div>
+                    <div class="stats-label text-muted">Pending Refunds</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d2">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);">
-                    <i class="fas fa-check-circle text-white"></i>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-check-circle fa-lg"></i>
                 </div>
                 <div>
-                    <div class="stat-number text-white">{{ total_processed }}</div>
-                    <div class="stat-label">Refunded</div>
+                    <div class="stats-value">{{ total_processed }}</div>
+                    <div class="stats-label text-muted">Refunded</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d3">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);">
-                    <i class="fas fa-mobile-alt text-white"></i>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-mobile-alt fa-lg"></i>
                 </div>
                 <div>
-                    <div class="stat-number text-white">{{ gcash_count }}</div>
-                    <div class="stat-label">GCash Refunds</div>
+                    <div class="stats-value">{{ gcash_count }}</div>
+                    <div class="stats-label text-muted">GCash Refunds</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d4">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #0070BA 0%, #00457C 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);">
-                    <i class="fab fa-paypal text-white"></i>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-purple text-white me-3">
+                    <i class="fab fa-paypal fa-lg"></i>
                 </div>
                 <div>
-                    <div class="stat-number text-white">{{ paypal_count }}</div>
-                    <div class="stat-label">PayPal Refunds</div>
+                    <div class="stats-value">{{ paypal_count }}</div>
+                    <div class="stats-label text-muted">PayPal Refunds</div>
                 </div>
             </div>
         </div>

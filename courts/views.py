@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from urllib.parse import urlencode
 from accounts.decorators import admin_required
 from .models import Site, Court
 from .forms import CourtForm, SiteForm
@@ -11,53 +12,98 @@ from datetime import datetime, timedelta
 
 
 def court_list_view(request):
-    courts = Court.objects.filter(is_active=True).select_related('organization')
+    from organizations.models import Organization
+
+    courts = Court.objects.filter(is_active=True).select_related('site', 'organization')
     sites = Site.objects.filter(is_active=True)
+    organizations = Organization.objects.filter(is_active=True)
     
-    # Filter by site
+    # ---- Filters ----
     site_id = request.GET.get('site', '')
     if site_id:
         courts = courts.filter(site_id=site_id)
     
-    # Filter by type
     court_type = request.GET.get('type', '')
     if court_type:
         courts = courts.filter(court_type=court_type)
     
-    # Filter by availability
+    org_slug = request.GET.get('org', '')
+    if org_slug:
+        courts = courts.filter(organization__slug=org_slug)
+    
     date = request.GET.get('date', '')
     if date:
         try:
             selected_date = datetime.strptime(date, '%Y-%m-%d').date()
-            # Get courts that don't have reservations on this date
-            reserved_court_ids = Reservation.objects.filter(
+            reserved_ids = Reservation.objects.filter(
                 date=selected_date,
                 status__in=['confirmed', 'pending']
             ).values_list('court_id', flat=True)
-            courts = courts.exclude(id__in=reserved_court_ids)
+            courts = courts.exclude(id__in=reserved_ids)
         except ValueError:
             pass
     
-    # Pagination
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        courts = courts.filter(
+            Q(name__icontains=search_query) |
+            Q(site__name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(organization__name__icontains=search_query)
+        )
+    
+    amenities_filter = request.GET.get('amenities', '').strip()
+    if amenities_filter:
+        courts = courts.filter(amenities__contains=[amenities_filter])
+    
+    # ---- Sorting ----
+    sort = request.GET.get('sort', 'name')
+    sort_map = {
+        'name': 'name',
+        '-name': '-name',
+        'price': 'hourly_rate',
+        '-price': '-hourly_rate',
+        '-created_at': '-created_at',
+        'created_at': 'created_at',
+    }
+    courts = courts.order_by(sort_map.get(sort, 'name'))
+    
+    # ---- Pagination ----
     paginator = Paginator(courts, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
+    # Build query string for pagination (preserve filters, remove page)
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+    query_string = '&' + query_params.urlencode() if query_params else ''
+
     return render(request, 'public/courts/court_list.html', {
         'courts': page_obj.object_list,
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
         'sites': sites,
+        'organizations': organizations,
         'selected_site': site_id,
         'selected_type': court_type,
-        'selected_date': date
+        'selected_org': org_slug,
+        'selected_date': date,
+        'search_query': search_query,
+        'sort_by': sort,
+        'query_string': query_string,
     })
 
 
 def court_detail_view(request, court_id):
-    court = get_object_or_404(Court, id=court_id, is_active=True)
+    court = get_object_or_404(Court.objects.select_related('site', 'organization'), id=court_id, is_active=True)
     
-    # Get upcoming reservations for this court
+    # Gallery images
+    gallery_images = court.images.all()[:6]
+    
+    # Operating hours
+    operating_hours = court.availability.all().order_by('day_of_week')
+    
+    # Upcoming reservations
     today = datetime.now().date()
     upcoming_reservations = Reservation.objects.filter(
         court=court,
@@ -65,9 +111,38 @@ def court_detail_view(request, court_id):
         status__in=['confirmed', 'pending']
     ).order_by('date', 'start_time')[:10]
     
+    # Related courts (same site or organization, excluding current)
+    related_courts = Court.objects.filter(
+        is_active=True
+    ).filter(
+        Q(site=court.site) | Q(organization=court.organization)
+    ).exclude(
+        id=court.id
+    ).select_related('site', 'organization').distinct()[:3]
+    
+    # Time slots for today
+    from datetime import time
+    time_slots = []
+    for hour in range(8, 22):
+        slot_start = time(hour, 0)
+        is_booked = upcoming_reservations.filter(
+            start_time__lt=time(hour + 1, 0),
+            end_time__gt=time(hour, 0)
+        ).exists()
+        time_slots.append({
+            'start': f'{hour:02d}:00',
+            'end': f'{hour+1:02d}:00',
+            'label': f'{hour:02d}:00 – {hour+1:02d}:00',
+            'is_available': not is_booked,
+        })
+    
     return render(request, 'public/courts/court_detail.html', {
         'court': court,
-        'upcoming_reservations': upcoming_reservations
+        'gallery_images': gallery_images,
+        'operating_hours': operating_hours,
+        'upcoming_reservations': upcoming_reservations,
+        'related_courts': related_courts,
+        'time_slots': time_slots,
     })
 
 

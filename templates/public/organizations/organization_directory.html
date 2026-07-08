@@ -16,26 +16,32 @@
         <!-- Search -->
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card shadow border-0" style="border-radius: var(--border-radius-lg);">
-                    <div class="card-body p-4">
-                        <form method="get" class="row g-3">
-                            <div class="col-md-8">
-                                <input type="text" name="search" class="form-control form-control-lg" placeholder="Search organizations by name, city, or keyword..." value="{{ search_query }}">
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                <div class="filter-bar-standard">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-8">
+                            <label class="filter-label"><i class="fas fa-search"></i>Search Organizations</label>
+                            <input type="text" name="search" class="filter-input" placeholder="Search by name, city, or keyword..." value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="filter-btn-row">
+                                <button type="submit" class="btn btn-primary w-100">
                                     <i class="fas fa-search me-2"></i>Search
                                 </button>
+                                {% if search_query %}
+                                <a href="{% url 'organization_directory' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-undo me-1"></i>Clear
+                                </a>
+                                {% endif %}
                             </div>
-                        </form>
-                        <div class="text-center mt-3">
-                            <a href="{% url 'organization_register' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-plus me-2"></i>Register Your Organization
-                            </a>
-                            <a href="{% url 'all_courts' %}" class="btn btn-outline-secondary ms-2">
-                                <i class="fas fa-map-marker-alt me-2"></i>Browse All Courts
-                            </a>
                         </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'organization_register' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Register Your Organization
+                        </a>
+                        <a href="{% url 'all_courts' %}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>Browse All Courts
+                        </a>
                     </div>
                 </div>
             </div>

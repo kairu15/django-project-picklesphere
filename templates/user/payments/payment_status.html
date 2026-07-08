@@ -1,7 +1,7 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}Payment Status{% endblock %}
+{% block title %}Payment #{{ payment.id }} Details{% endblock %}
 {% block page_title %}Payment #{{ payment.id }}{% endblock %}
 
 {% block breadcrumb %}
@@ -15,7 +15,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row g-4">
+    <!-- Main Column -->
     <div class="col-lg-8">
         <div class="card border-0 shadow-lg payment-status-card" style="border-radius: 16px; overflow: hidden;">
             <!-- Card Header -->
@@ -27,8 +28,11 @@
                         </div>
                         Payment Details
                     </h5>
-                    <span class="badge px-4 py-2 payment-status-badge {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}" style="font-size: 0.9rem; border-radius: 10px;">
-                        {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-2"></i>{% elif payment.status == 'pending' %}<i class="fas fa-clock me-2"></i>{% elif payment.status == 'refunded' %}<i class="fas fa-undo me-2"></i>{% else %}<i class="fas fa-question-circle me-2"></i>{% endif %}
+                    <span class="badge px-4 py-2 payment-status-badge {% if payment.status == 'paid' %}bg-success{% elif payment.status == 'pending' %}bg-warning text-dark{% elif payment.status == 'refunded' %}bg-info{% else %}bg-danger{% endif %}" style="font-size: 0.9rem; border-radius: 10px;">
+                        {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-2"></i>
+                        {% elif payment.status == 'pending' %}<i class="fas fa-clock me-2"></i>
+                        {% elif payment.status == 'refunded' %}<i class="fas fa-undo me-2"></i>
+                        {% else %}<i class="fas fa-times-circle me-2"></i>{% endif %}
                         {{ payment.get_status_display }}
                     </span>
                 </div>
@@ -41,12 +45,121 @@
                         <div class="status-icon" data-status="{{ payment.status }}"></div>
                         <h4 class="mb-1 fw-bold status-text">{{ payment.get_status_display }}</h4>
                         <p class="mb-0 text-muted">Payment #{{ payment.id }}</p>
+                        {% if payment.transaction_id %}
+                        <p class="mb-0 mt-1"><small class="text-muted"><i class="fas fa-hashtag me-1"></i>Transaction: <span class="font-monospace fw-semibold">{{ payment.transaction_id }}</span></small></p>
+                        {% endif %}
                     </div>
                 </div>
-                
+
+                <!-- Transaction ID Highlight (if available and not shown in banner) -->
+                {% if payment.transaction_id %}
+                <div class="card border-0 mb-4" style="background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%); border-radius: 12px; border: 1px solid rgba(59,122,140,0.15);">
+                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-fingerprint text-white" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.2;">Transaction ID</small>
+                                <span class="fw-bold font-monospace" style="font-size: 0.95rem; color: #1a3a42;">{{ payment.transaction_id }}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" onclick="navigator.clipboard.writeText('{{ payment.transaction_id }}').then(() => { this.innerHTML='<i class=\'fas fa-check me-1\'></i>Copied'; setTimeout(() => { this.innerHTML='<i class=\'fas fa-copy me-1\'></i>Copy'; }, 2000); }).catch(() => {});">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Reservation Details Card -->
+                <div class="card border-0 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; border: 1px solid #e9ecef;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>Reservation Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-calendar text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Date</small>
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">{{ payment.reservation.date|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-clock text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Time</small>
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">{{ payment.reservation.start_time|time:"g:i A" }} - {{ payment.reservation.end_time|time:"g:i A" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-hourglass-half text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Duration</small>
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">{{ payment.reservation.duration_hours|floatformat:1 }} hrs</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-map-marker-alt text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Court / Site</small>
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">{{ payment.reservation.court.name }}</span>
+                                        {% if payment.reservation.court.site %}
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">{{ payment.reservation.court.site.name }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-user text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Booked By</small>
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">{{ payment.reservation.user.get_full_name|default:payment.reservation.user.username }}</span>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">{{ payment.reservation.user.email }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if payment.reservation.rented_equipment.all %}
+                            <div class="col-12">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-tools text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Equipment</small>
+                                        {% for item in payment.reservation.rented_equipment.all %}
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">{{ item.equipment.name }}{% if not forloop.last %}, {% endif %}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Payment Info Grid -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">                            <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%); border-radius: 12px; border: 1px solid rgba(59,122,140,0.1);">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(59,122,140,0.05) 0%, rgba(59,122,140,0.02) 100%); border-radius: 12px; border: 1px solid rgba(59,122,140,0.1);">
                             <div class="stat-icon primary" style="width: 44px; height: 44px;">
                                 <i class="fas fa-calendar-check"></i>
                             </div>
@@ -71,7 +184,10 @@
                     <div class="col-md-6">
                         <div class="d-flex align-items-center gap-3 p-3" style="background: linear-gradient(135deg, rgba(255,193,7,0.05) 0%, rgba(255,193,7,0.02) 100%); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
                             <div class="stat-icon warning" style="width: 44px; height: 44px;">
-                                <i class="fas fa-credit-card"></i>
+                                {% if payment.method == 'gcash' %}<i class="fas fa-mobile-alt"></i>
+                                {% elif payment.method == 'cash' %}<i class="fas fa-money-bill-wave"></i>
+                                {% elif payment.method == 'card' %}<i class="fas fa-credit-card"></i>
+                                {% else %}<i class="fas fa-credit-card"></i>{% endif %}
                             </div>
                             <div>
                                 <h6 class="text-muted small mb-0">Payment Method</h6>
@@ -87,82 +203,274 @@
                             <div>
                                 <h6 class="text-muted small mb-0">Transaction Date</h6>
                                 <p class="mb-0 fw-semibold text-dark">{{ payment.created_at|date:"M d, Y" }}</p>
+                                <small class="text-muted">{{ payment.created_at|time:"g:i A" }}</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Payment Summary -->
                 <div class="payment-summary-box p-4 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 12px; border: 1px solid #e9ecef;">
                     <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
                         <i class="fas fa-receipt me-2 text-primary"></i>Payment Summary
                     </h6>
-                    <div class="d-flex justify-content-between mb-2 py-2">
-                        <span class="text-muted">Court Fee</span>
+                    <div class="d-flex justify-content-between mb-2 py-2 border-bottom border-light">
+                        <span class="text-muted"><i class="fas fa-tag me-2 text-muted" style="font-size: 0.8rem;"></i>Court Fee ({{ payment.reservation.duration_hours|floatformat:1 }} hrs × ₱{{ payment.reservation.hourly_rate|floatformat:0 }}/hr)</span>
                         <span class="fw-medium">₱{{ payment.reservation.subtotal|floatformat:2 }}</span>
                     </div>
                     {% if payment.reservation.equipment_fee > 0 %}
-                    <div class="d-flex justify-content-between mb-2 py-2">
-                        <span class="text-muted">Equipment Fee</span>
+                    <div class="d-flex justify-content-between mb-2 py-2 border-bottom border-light">
+                        <span class="text-muted"><i class="fas fa-tools me-2 text-muted" style="font-size: 0.8rem;"></i>Equipment Fee</span>
                         <span class="fw-medium">₱{{ payment.reservation.equipment_fee|floatformat:2 }}</span>
                     </div>
                     {% endif %}
+
                     <hr class="my-3">
                     <div class="d-flex justify-content-between align-items-center py-2">
                         <span class="fw-bold">Total Amount</span>
                         <span class="fw-bold fs-4" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</span>
                     </div>
                 </div>
-                
+
+                <!-- GCash Details -->
                 {% if payment.method == 'gcash' %}
-                <hr class="my-4">
-                <h6 class="fw-bold mb-3"><i class="fas fa-mobile-alt text-primary me-2"></i>GCash Payment Details</h6>
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width: 30px; height: 30px; background: rgba(59,122,140,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-hashtag text-primary"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted small mb-0">Reference Number</p>
-                        <p class="mb-0 fw-semibold font-monospace">{{ payment.gcash_reference|default:"N/A" }}</p>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if payment.payment_notes %}
-                <hr class="my-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width: 35px; height: 35px; background: rgba(59,122,140,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-sticky-note text-primary"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted small mb-0">Notes</h6>
-                        <p class="mb-0 text-muted">{{ payment.payment_notes }}</p>
+                <div class="card border-0 mb-4" style="background: linear-gradient(135deg, rgba(0,156,222,0.04) 0%, rgba(0,156,222,0.01) 100%); border-radius: 12px; border: 1px solid rgba(0,156,222,0.15);">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                            <i class="fas fa-mobile-alt me-2" style="color: #007bff;"></i>GCash Payment Details
+                        </h6>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div style="width: 36px; height: 36px; background: rgba(0,156,222,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-hashtag" style="color: #007bff;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Reference Number</small>
+                                <p class="mb-0 fw-semibold font-monospace">{{ payment.gcash_reference|default:"N/A" }}</p>
+                            </div>
+                        </div>
+                        {% if payment.gcash_proof_image and payment.gcash_proof_image.name %}
+                        <div class="mt-3 payment-proof-section">
+                            <div class="position-relative" style="border-radius: 12px; overflow: hidden; border: 1px solid #e9ecef; background: #f8f9fa;">
+                                <img src="{% url 'serve_payment_proof_image' payment.id %}"
+                                     alt="GCash Payment Receipt"
+                                     class="w-100"
+                                     style="max-height: 300px; object-fit: contain; display: block; cursor: pointer;"
+                                     onclick="openImageModal(this.src)"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="image-error" style="display: none; padding: 40px; text-align: center; background: #f8f9fa;">
+                                    <i class="fas fa-image text-muted fa-3x mb-3"></i>
+                                    <p class="text-muted mb-0">Receipt image not available</p>
+                                </div>
+                            </div>
+                            <small class="text-muted mt-2 d-block"><i class="fas fa-info-circle me-1"></i>Click image to view full size</small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
 
-                {% if payment.gcash_proof_image and payment.gcash_proof_image.name %}
-                <hr class="my-4">
-                <div class="payment-proof-section">
-                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
-                        <i class="fas fa-receipt me-2 text-primary"></i>Payment Receipt
-                    </h6>
-                    <div class="position-relative" style="border-radius: 12px; overflow: hidden; border: 1px solid #e9ecef; background: #f8f9fa;">
-                        <img src="{% url 'serve_payment_proof_image' payment.id %}"
-                             alt="Payment Receipt"
-                             class="w-100"
-                             style="max-height: 400px; object-fit: contain; display: block;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="image-error" style="display: none; padding: 40px; text-align: center; background: #f8f9fa;">
-                            <i class="fas fa-image text-muted fa-3x mb-3"></i>
-                            <p class="text-muted mb-0">Receipt image not available</p>
+                <!-- Cash Payment Details -->
+                {% if payment.method == 'cash' and payment.cash_received_by %}
+                <div class="card border-0 mb-4" style="background: linear-gradient(135deg, rgba(40,167,69,0.04) 0%, rgba(40,167,69,0.01) 100%); border-radius: 12px; border: 1px solid rgba(40,167,69,0.15);">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                            <i class="fas fa-money-bill-wave me-2" style="color: #28a745;"></i>Cash Payment Details
+                        </h6>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div style="width: 36px; height: 36px; background: rgba(40,167,69,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-user-check" style="color: #28a745;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Received By</small>
+                                <p class="mb-0 fw-semibold">{{ payment.cash_received_by.get_full_name|default:payment.cash_received_by.username }}</p>
+                            </div>
+                        </div>
+                        {% if payment.cash_received_at %}
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 36px; height: 36px; background: rgba(40,167,69,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock" style="color: #28a745;"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Received At</small>
+                                <p class="mb-0 fw-semibold">{{ payment.cash_received_at|date:"M d, Y" }} at {{ payment.cash_received_at|time:"g:i A" }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if payment.payment_notes %}
+                <div class="card border-0 mb-4" style="background: linear-gradient(135deg, rgba(255,193,7,0.04) 0%, rgba(255,193,7,0.01) 100%); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
+                    <div class="card-body p-3 d-flex align-items-start gap-3">
+                        <div style="width: 36px; height: 36px; background: rgba(255,193,7,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-sticky-note" style="color: #d39e00;"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="font-size: 0.8rem;">Notes</h6>
+                            <p class="mb-0 text-muted" style="font-size: 0.85rem;">{{ payment.payment_notes }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Refund Details Card -->
+                {% if payment.status == 'refunded' and latest_refund %}
+                <div class="card border-0 mb-4 refund-card" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header py-3 px-4" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <h6 class="fw-bold mb-0 text-white"><i class="fas fa-undo me-2"></i>Refund Details</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-peso-sign" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Refund Amount</small>
+                                        <span class="fw-bold fs-5" style="color: #17a2b8;">₱{{ latest_refund.amount|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-check-circle" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Status</small>
+                                        <span class="fw-semibold">{{ latest_refund.get_status_display }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-user" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Requested By</small>
+                                        <span class="fw-semibold">{{ latest_refund.requested_by.get_full_name|default:latest_refund.requested_by.username }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if latest_refund.approved_by %}
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-user-shield" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Approved By</small>
+                                        <span class="fw-semibold">{{ latest_refund.approved_by.get_full_name|default:latest_refund.approved_by.username }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-calendar" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Requested At</small>
+                                        <span class="fw-semibold">{{ latest_refund.requested_at|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if latest_refund.processed_at %}
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-check-double" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Processed At</small>
+                                        <span class="fw-semibold">{{ latest_refund.processed_at|date:"M d, Y" }} at {{ latest_refund.processed_at|time:"g:i A" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if latest_refund.reason %}
+                            <div class="col-12">
+                                <hr class="my-2">
+                                <div class="d-flex align-items-start gap-2">
+                                    <div style="width: 32px; height: 32px; background: rgba(23,162,184,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-comment" style="color: #17a2b8;"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem; line-height: 1.2;">Reason</small>
+                                        <p class="mb-0" style="font-size: 0.85rem;">{{ latest_refund.reason }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Activity Timeline -->
+                {% if logs %}
+                <div class="card border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header bg-white py-3 px-4 border-bottom">
+                        <h6 class="fw-bold mb-0 d-flex align-items-center">
+                            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-history text-white" style="font-size: 0.8rem;"></i>
+                            </div>
+                            Activity Timeline
+                            <span class="badge bg-secondary ms-2" style="font-size: 0.65rem;">{{ logs|length }} event{{ logs|length|pluralize }}</span>
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="timeline">
+                            {% for log in logs %}
+                            <div class="timeline-item {% if forloop.first %}timeline-item-active{% endif %}">
+                                <div class="timeline-marker {% if forloop.first %}marker-active{% endif %}">
+                                    {% if log.action|lower == 'payment paid' or log.action|lower == 'payment confirmed' %}
+                                    <i class="fas fa-check-circle" style="font-size: 0.65rem;"></i>
+                                    {% elif log.action|lower == 'payment refunded' %}
+                                    <i class="fas fa-undo" style="font-size: 0.65rem;"></i>
+                                    {% elif log.action|lower == 'payment failed' or log.action|lower == 'payment rejected' %}
+                                    <i class="fas fa-times-circle" style="font-size: 0.65rem;"></i>
+                                    {% elif 'gcash' in log.action|lower %}
+                                    <i class="fas fa-mobile-alt" style="font-size: 0.65rem;"></i>
+                                    {% elif 'cash' in log.action|lower %}
+                                    <i class="fas fa-money-bill-wave" style="font-size: 0.65rem;"></i>
+                                    {% else %}
+                                    <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-semibold" style="font-size: 0.85rem;">{{ log.action }}</span>
+                                            {% if log.details %}
+                                            <p class="text-muted mb-0" style="font-size: 0.8rem;">{{ log.details }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end ms-3" style="flex-shrink: 0;">
+                                            <small class="text-muted" style="font-size: 0.7rem; white-space: nowrap;">{{ log.created_at|date:"M d, Y" }}</small>
+                                            <small class="text-muted d-block" style="font-size: 0.65rem; white-space: nowrap;">{{ log.created_at|time:"g:i A" }}</small>
+                                        </div>
+                                    </div>
+                                    {% if log.performed_by %}
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">
+                                        <i class="fas fa-user me-1"></i>{{ log.performed_by.get_full_name|default:log.performed_by.username }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
                 {% endif %}
             </div>
 
-            <!-- Image Modal - Floating Window Style -->
+            <!-- Image Modal -->
             <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" style="max-width: fit-content; margin: 1.75rem auto;">
                     <div class="modal-content border-0" style="background: transparent; box-shadow: none;">
@@ -203,6 +511,98 @@
             </div>
         </div>
     </div>
+
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+        <!-- Quick Summary Card -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <span class="badge px-4 py-2" style="font-size: 0.9rem; border-radius: 10px;
+                        {% if payment.status == 'paid' %}background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white;
+                        {% elif payment.status == 'pending' %}background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #333;
+                        {% elif payment.status == 'refunded' %}background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;
+                        {% else %}background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); color: white;{% endif %}">
+                        <i class="fas fa-{% if payment.status == 'paid' %}check-circle{% elif payment.status == 'pending' %}clock{% elif payment.status == 'refunded' %}undo{% else %}times-circle{% endif %} me-2"></i>
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Amount</span>
+                    <span class="fw-bold" style="color: #3B7A8C;">₱{{ payment.amount|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Method</span>
+                    <span class="fw-semibold small">{{ payment.get_method_display|default:"N/A" }}</span>
+                </div>
+                {% if payment.transaction_id %}
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Transaction</span>
+                    <span class="font-monospace small">{{ payment.transaction_id|truncatechars:12 }}</span>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted small">Date</span>
+                    <span class="fw-semibold small">{{ payment.created_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservation Status Card -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                    <i class="fas fa-calendar-check me-2 text-primary"></i>Reservation Status
+                </h6>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Status</span>
+                    <span class="badge px-3 py-1
+                        {% if payment.reservation.status == 'confirmed' %}bg-success
+                        {% elif payment.reservation.status == 'pending' %}bg-warning text-dark
+                        {% elif payment.reservation.status == 'cancelled' %}bg-secondary
+                        {% elif payment.reservation.status == 'completed' %}bg-info
+                        {% else %}bg-secondary{% endif %}"
+                        style="font-size: 0.7rem; border-radius: 20px;">
+                        {{ payment.reservation.get_status_display }}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Court</span>
+                    <span class="fw-semibold small text-end">{{ payment.reservation.court.name }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Date</span>
+                    <span class="fw-semibold small">{{ payment.reservation.date|date:"M d, Y" }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted small">Time</span>
+                    <span class="fw-semibold small">{{ payment.reservation.start_time|time:"g:i A" }} - {{ payment.reservation.end_time|time:"g:i A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d;">
+                    <i class="fas fa-bolt me-2 text-primary"></i>Quick Actions
+                </h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reservation_detail' payment.reservation.id %}" class="btn btn-outline-primary" style="border-radius: 10px; font-size: 0.85rem;">
+                        <i class="fas fa-eye me-2"></i>View Reservation
+                    </a>
+                    <a href="{% url 'payment_history' %}" class="btn btn-outline-secondary" style="border-radius: 10px; font-size: 0.85rem;">
+                        <i class="fas fa-list me-2"></i>Payment History
+                    </a>
+                    {% if payment.status == 'pending' %}
+                    <a href="{% url 'payment_checkout' payment.reservation.id %}" class="btn btn-primary" style="border-radius: 10px; font-size: 0.85rem; background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); border: none;">
+                        <i class="fas fa-redo me-2"></i>Retry Payment
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -229,6 +629,8 @@
     display: inline-flex;
     align-items: center;
 }
+
+/* Status Banner */
 .status-banner {
     transition: all 0.3s ease;
 }
@@ -241,6 +643,7 @@
 .status-banner.refunded, .status-banner.failed {
     background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
 }
+
 .payment-summary-box {
     transition: all 0.3s ease;
 }
@@ -248,7 +651,72 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Floating Window Modal Styles */
+/* Refund Card */
+.refund-card {
+    border: 1px solid rgba(23,162,184,0.2) !important;
+}
+
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.25rem;
+}
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+.timeline-item-active .timeline-marker {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    border-color: #3B7A8C;
+    color: white;
+    box-shadow: 0 2px 8px rgba(59,122,140,0.3);
+}
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+.timeline-content:hover {
+    background: #fff;
+    border-color: #e9ecef;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.timeline-item-active .timeline-content {
+    background: rgba(59,122,140,0.04);
+    border-color: rgba(59,122,140,0.1);
+}
+
+/* Image Modal */
 #imageModal .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.75) !important;
     backdrop-filter: blur(8px);
@@ -270,6 +738,22 @@
 #imageModal .btn-close:hover {
     background-color: rgba(255,255,255,0.3) !important;
     transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .timeline {
+        padding-left: 24px;
+    }
+    .timeline-marker {
+        left: -24px;
+        width: 22px;
+        height: 22px;
+        font-size: 0.7rem;
+    }
+    .timeline::before {
+        left: 10px;
+    }
 }
 </style>
 

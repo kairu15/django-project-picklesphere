@@ -520,6 +520,20 @@ def admin_dashboard_view(request):
         'counts': [item['total_rented'] for item in most_rented],
     }
     
+    # ========== CUSTOMER RATINGS STATISTICS ==========
+    from .models import Rating
+    
+    rating_stats = Rating.objects.aggregate(
+        average_rating=Avg('rating'),
+        total_ratings=Count('id')
+    )
+    rating_data = {
+        'average_rating': round(rating_stats['average_rating'] or 0, 1),
+        'total_ratings': rating_stats['total_ratings'] or 0,
+        'featured_ratings': Rating.objects.filter(is_featured=True).count(),
+        'five_star_ratings': Rating.objects.filter(rating=5).count(),
+    }
+    
     # ========== REVENUE COMPARISON (this month vs last month) ==========
     this_month_revenue = Payment.objects.filter(
         status='paid',
@@ -546,6 +560,7 @@ def admin_dashboard_view(request):
         'recent_reservations': recent_reservations,
         'recent_payments': recent_payments,
         'recent_users': recent_users,
+
         'court_usage': court_usage,
         'months': months,
         'user_counts': user_counts,
@@ -563,6 +578,8 @@ def admin_dashboard_view(request):
         'this_month_revenue': this_month_revenue,
         'last_month_revenue': last_month_revenue,
         'revenue_growth': revenue_growth,
+        # Customer ratings
+        'rating_data': rating_data,
     })
 
 

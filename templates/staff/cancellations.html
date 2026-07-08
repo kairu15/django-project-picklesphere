@@ -5,6 +5,7 @@
 {% block page_title %}Cancellation Requests{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/staff.css' %}">
 <style>
 :root {
@@ -47,26 +48,6 @@
     border-color: #3B7A8C;
     box-shadow: 0 0 0 3px rgba(59,122,140,0.12);
 }
-
-.stat-card {
-    border-radius: 16px;
-    border: none;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-.stat-card .card-body { padding: 1.25rem 1.5rem; }
-.stat-icon {
-    width: 48px; height: 48px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 1.2rem;
-}
-.stat-number { font-size: 1.6rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.15rem; }
-.stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.8); margin-bottom: 0; letter-spacing: 0.3px; }
 
 .cancel-card {
     border-radius: 14px;
@@ -160,7 +141,6 @@
 
 @media (max-width: 768px) {
     .filter-bar .row > div { margin-bottom: 0.5rem; }
-    .stat-number { font-size: 1.3rem; }
     .cancel-card .d-flex { flex-wrap: wrap; }
     .cancel-card .action-group { width: 100%; margin-top: 0.75rem; }
 }
@@ -178,36 +158,56 @@
 {% endblock %}
 
 {% block content %}
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d1">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-times-circle text-white"></i></div>
-                <div><div class="stat-number text-white">{{ total_count }}</div><div class="stat-label">Total Cancellations</div></div>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-times-circle fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ total_count }}</div>
+                    <div class="stats-label text-muted">Total Cancellations</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d2">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-hourglass-half text-white"></i></div>
-                <div><div class="stat-number text-white">{{ pending_count }}</div><div class="stat-label">Pending Review</div></div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-hourglass-half fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ pending_count }}</div>
+                    <div class="stats-label text-muted">Pending Review</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d3">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-check-circle text-white"></i></div>
-                <div><div class="stat-number text-white">{{ approved_count }}</div><div class="stat-label">Approved</div></div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-check-circle fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ approved_count }}</div>
+                    <div class="stats-label text-muted">Approved</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 animate-in animate-in-d4">
-        <div class="card stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.2);"><i class="fas fa-money-bill-wave text-white"></i></div>
-                <div><div class="stat-number text-white">{{ refund_pending }}</div><div class="stat-label">Refunds Pending</div></div>
+    <div class="col-md-3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ refund_pending }}</div>
+                    <div class="stats-label text-muted">Refunds Pending</div>
+                </div>
             </div>
         </div>
     </div>
