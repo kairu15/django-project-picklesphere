@@ -16,17 +16,20 @@
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Icon Class</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas {{ amenity.icon|default:'fa-check' }}"></i></span>
-                                <input type="text" name="icon" class="form-control" 
-                                       value="{{ amenity.icon|default:'' }}" required
-                                       placeholder="e.g., fa-wifi, fa-car, fa-coffee">
+                            <label class="form-label fw-bold">Icon</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-preview-wrapper" data-icon-preview-for="amenityIconInput">
+                                    <div class="icon-preview-container">
+                                        <i class="fas {{ amenity.icon|default:'fa-check' }}"></i>
+                                    </div>
+                                    <span class="icon-class-label small text-muted">{{ amenity.icon|default:'fa-check' }}</span>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;"
+                                        onclick="initIconPicker('amenityIconInput', '{{ amenity.icon|default:'fa-check' }}')">
+                                    <i class="fas fa-icons me-1"></i>Choose Icon
+                                </button>
                             </div>
-                            <small class="text-muted">
-                                Use Font Awesome icon classes. 
-                                <a href="https://fontawesome.com/icons" target="_blank">Browse icons</a>
-                            </small>
+                            <input type="hidden" name="icon" id="amenityIconInput" value="{{ amenity.icon|default:'fa-check' }}">
                         </div>
                         
                         <div class="mb-3">
@@ -65,5 +68,5 @@
         </div>
     </div>
 </div>
+{% include 'components/icon_picker.html' %}
 {% endblock %}
-

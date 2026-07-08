@@ -15,6 +15,8 @@ from django.core.paginator import Paginator
 
 def organization_directory(request):
     """Public directory of all approved organizations"""
+    from dashboard.models import OrganizationPageSettings, FeaturedOrganization, OrganizationCategory
+    
     organizations = Organization.objects.filter(status='approved', is_active=True)
     
     search_query = request.GET.get('search', '')
@@ -30,10 +32,18 @@ def organization_directory(request):
     if city:
         organizations = organizations.filter(city__icontains=city)
     
+    # CMS Data
+    cms_settings = OrganizationPageSettings.objects.first()
+    featured_organizations = FeaturedOrganization.objects.filter(is_active=True).select_related('organization').order_by('display_order')[:6]
+    categories = OrganizationCategory.objects.filter(is_active=True).order_by('display_order')
+    
     return render(request, 'public/organizations/organization_directory.html', {
         'organizations': organizations,
         'search_query': search_query,
         'city': city,
+        'cms_settings': cms_settings,
+        'featured_organizations': featured_organizations,
+        'categories': categories,
     })
 
 

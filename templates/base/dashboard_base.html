@@ -669,6 +669,112 @@ body.sidebar-open {
     }
 }
 
+/* ===== Collapsible CMS Accordion Menu ===== */
+.nav-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 3px solid transparent;
+    margin: 2px 0;
+    border-radius: 0 8px 8px 0;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+}
+.nav-accordion-header::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(59,122,140,0.2) 0%, transparent 100%);
+    transition: width 0.3s ease;
+}
+.nav-accordion-header:hover::before {
+    width: 100%;
+}
+.nav-accordion-header:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding-left: 25px;
+    transform: translateX(4px);
+}
+.nav-accordion-header > div i:first-child {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+.nav-accordion-header:hover > div i:first-child {
+    transform: scale(1.2);
+}
+.nav-accordion-header > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+.nav-accordion-arrow {
+    transition: transform 0.3s ease !important;
+    font-size: 0.75rem !important;
+    color: rgba(255,255,255,0.4);
+    width: auto !important;
+}
+.nav-accordion-arrow.open {
+    transform: rotate(180deg);
+}
+.nav-accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    opacity: 0;
+}
+.nav-accordion-body.open {
+    max-height: 800px;
+    opacity: 1;
+}
+/* Sub-links inside accordion get slightly indented */
+.nav-accordion-body .nav-link {
+    padding-left: 28px;
+}
+.nav-accordion-body .nav-link i {
+    width: 18px;
+    font-size: 0.875rem;
+}
+
+/* Responsive accordion adjustments */
+@media (max-width: 991.98px) {
+    .nav-accordion-header {
+        padding: 10px 16px !important;
+        font-size: 0.9375rem !important;
+    }
+    .nav-accordion-body .nav-link {
+        padding-left: 24px !important;
+    }
+}
+@media (max-width: 767.98px) {
+    .nav-accordion-header {
+        padding: 8px 14px !important;
+        font-size: 0.875rem !important;
+    }
+    .nav-accordion-header > div {
+        gap: 8px !important;
+    }
+    .nav-accordion-body .nav-link {
+        padding-left: 20px !important;
+    }
+    .nav-accordion-body .nav-link i {
+        width: 16px !important;
+        font-size: 0.8125rem !important;
+    }
+}
+
 </style>
 
 <!-- Sidebar Backdrop Overlay -->
@@ -774,22 +880,82 @@ body.sidebar-open {
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">Content</div>
-                <a href="{% url 'super_admin_homepage' %}" class="nav-link {% if 'super_admin_homepage' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-edit"></i>
-                    <span>Homepage Content</span>
+                <div class="nav-section-title">Content Management</div>
+                <!-- Collapsible CMS Menu -->
+                <div class="nav-accordion">
+                    <div class="nav-accordion-header" onclick="toggleCmsMenu(event)">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-pencil-alt"></i>
+                            <span>Content Management (CMS)</span>
+                        </div>
+                        <i class="fas fa-chevron-down nav-accordion-arrow" id="cmsArrow"></i>
+                    </div>
+                    <div class="nav-accordion-body" id="cmsMenu">
+                        <a href="{% url 'super_admin_homepage' %}" class="nav-link {% if 'super_admin_homepage' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-edit"></i>
+                            <span>Homepage</span>
+                        </a>
+                        <a href="{% url 'super_admin_courts_cms' %}" class="nav-link {% if 'super_admin_courts_cms' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Courts Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_organizations_cms' %}" class="nav-link {% if 'super_admin_organizations_cms' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-building"></i>
+                            <span>Organizations Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_tournaments_cms' %}" class="nav-link {% if 'super_admin_tournaments_cms' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-trophy"></i>
+                            <span>Tournaments Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_equipment_cms' %}" class="nav-link {% if 'super_admin_equipment_cms' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-tools"></i>
+                            <span>Equipment Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_about' %}" class="nav-link {% if 'super_admin_about' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-info-circle"></i>
+                            <span>About Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_contact' %}" class="nav-link {% if 'super_admin_contact' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-envelope"></i>
+                            <span>Contact Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_pricing' %}" class="nav-link {% if 'super_admin_pricing' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span>Pricing Page</span>
+                        </a>
+                        <a href="{% url 'super_admin_maintenance' %}" class="nav-link {% if 'super_admin_maintenance' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Maintenance</span>
+                        </a>
+                        <a href="{% url 'super_admin_site_settings' %}" class="nav-link {% if 'super_admin_site_settings' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-globe"></i>
+                            <span>Site Settings</span>
+                        </a>
+                        <a href="{% url 'super_admin_content_versions' %}" class="nav-link {% if 'super_admin_content_versions' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-history"></i>
+                            <span>Version History</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Preview Pages</div>
+                <a href="{% url 'tournament_list' %}" class="nav-link" target="_blank">
+                    <i class="fas fa-eye"></i>
+                    <span>View Tournaments</span>
                 </a>
-                <a href="{% url 'super_admin_about' %}" class="nav-link {% if 'super_admin_about' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-info-circle"></i>
-                    <span>About Page</span>
+                <a href="{% url 'equipment_list' %}" class="nav-link" target="_blank">
+                    <i class="fas fa-eye"></i>
+                    <span>View Equipment</span>
                 </a>
-                <a href="{% url 'super_admin_contact' %}" class="nav-link {% if 'super_admin_contact' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-envelope"></i>
-                    <span>Contact Page</span>
+                <a href="{% url 'organization_directory' %}" class="nav-link" target="_blank">
+                    <i class="fas fa-eye"></i>
+                    <span>View Organizations</span>
                 </a>
-                <a href="{% url 'super_admin_pricing' %}" class="nav-link {% if 'super_admin_pricing' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="fas fa-dollar-sign"></i>
-                    <span>Pricing Page</span>
+                <a href="{% url 'court_list' %}" class="nav-link" target="_blank">
+                    <i class="fas fa-eye"></i>
+                    <span>View Courts</span>
                 </a>
             </div>
 
@@ -1089,7 +1255,52 @@ body.sidebar-open {
                 section.style.display = '';
             }
         }
+        
+        // Auto-expand CMS accordion if any child link is visible through search
+        const cmsBody = document.getElementById('cmsMenu');
+        const cmsArrow = document.getElementById('cmsArrow');
+        if (cmsBody && cmsArrow && filter.length > 0) {
+            const visibleInCms = cmsBody.querySelectorAll('.nav-link:not([style*="display: none"])');
+            if (visibleInCms.length > 0 && !cmsBody.classList.contains('open')) {
+                cmsBody.classList.add('open');
+                cmsArrow.classList.add('open');
+            }
+        }
     }
+
+    // ===== Collapsible CMS Accordion =====
+    function toggleCmsMenu(event) {
+        event.preventDefault();
+        const body = document.getElementById('cmsMenu');
+        const arrow = document.getElementById('cmsArrow');
+        if (!body || !arrow) return;
+        
+        const isOpen = body.classList.contains('open');
+        if (isOpen) {
+            body.classList.remove('open');
+            arrow.classList.remove('open');
+            localStorage.setItem('cmsMenuOpen', 'false');
+        } else {
+            body.classList.add('open');
+            arrow.classList.add('open');
+            localStorage.setItem('cmsMenuOpen', 'true');
+        }
+    }
+
+    // Auto-expand CMS menu on page load if a submenu is active or stored preference says open
+    document.addEventListener('DOMContentLoaded', function() {
+        const cmsBody = document.getElementById('cmsMenu');
+        const cmsArrow = document.getElementById('cmsArrow');
+        if (!cmsBody || !cmsArrow) return;
+        
+        const hasActive = cmsBody.querySelector('.nav-link.active') !== null;
+        const storedPref = localStorage.getItem('cmsMenuOpen');
+        
+        if (hasActive || storedPref === 'true') {
+            cmsBody.classList.add('open');
+            cmsArrow.classList.add('open');
+        }
+    });
     </script>
     
     <!-- Main Content -->

@@ -21,8 +21,20 @@
                         <textarea name="description" class="form-control" rows="2">{{ category.description|default:'' }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Icon <small class="text-muted">(Font Awesome class, e.g. fa-building)</small></label>
-                        <input type="text" name="icon" class="form-control" value="{{ category.icon|default:'fa-building' }}">
+                        <label class="form-label fw-semibold">Icon</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-preview-wrapper" data-icon-preview-for="orgCatIconInput">
+                                <div class="icon-preview-container">
+                                    <i class="fas {{ category.icon|default:'fa-building' }}"></i>
+                                </div>
+                                <span class="icon-class-label small text-muted">{{ category.icon|default:'fa-building' }}</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;"
+                                    onclick="initIconPicker('orgCatIconInput', '{{ category.icon|default:'fa-building' }}')">
+                                <i class="fas fa-icons me-1"></i>Choose
+                            </button>
+                        </div>
+                        <input type="hidden" name="icon" id="orgCatIconInput" value="{{ category.icon|default:'fa-building' }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Display Order</label>
@@ -41,4 +53,5 @@
         </div>
     </div>
 </div>
+{% include 'components/icon_picker.html' %}
 {% endblock %}

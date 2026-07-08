@@ -15,9 +15,20 @@
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Icon (Font Awesome class)</label>
-                            <input type="text" name="icon" class="form-control" value="{{ item.icon|default:'fa-check' }}" placeholder="e.g., fa-medal">
-                            <div class="form-text">Example: fa-medal, fa-users, fa-chalkboard-teacher</div>
+                            <label class="form-label">Icon</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-preview-wrapper" data-icon-preview-for="whyItemIconInput">
+                                    <div class="icon-preview-container">
+                                        <i class="fas {{ item.icon|default:'fa-check' }}"></i>
+                                    </div>
+                                    <span class="icon-class-label small text-muted">{{ item.icon|default:'fa-check' }}</span>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;"
+                                        onclick="initIconPicker('whyItemIconInput', '{{ item.icon|default:'fa-check' }}')">
+                                    <i class="fas fa-icons me-1"></i>Choose
+                                </button>
+                            </div>
+                            <input type="hidden" name="icon" id="whyItemIconInput" value="{{ item.icon|default:'fa-check' }}">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Title</label>
@@ -57,4 +68,5 @@
         </div>
     </div>
 </div>
+{% include 'components/icon_picker.html' %}
 {% endblock %}

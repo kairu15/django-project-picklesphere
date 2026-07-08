@@ -12,6 +12,8 @@ from datetime import timedelta
 
 
 def equipment_list_view(request):
+    from dashboard.models import EquipmentPageSettings, FeaturedEquipment, EquipmentCategory
+    
     equipment = Equipment.objects.filter(is_active=True)
 
     # Filter by type
@@ -23,11 +25,19 @@ def equipment_list_view(request):
     available_only = request.GET.get('available', '')
     if available_only:
         equipment = equipment.filter(quantity_available__gt=0)
+    
+    # CMS Data
+    cms_settings = EquipmentPageSettings.objects.first()
+    featured_equipment = FeaturedEquipment.objects.filter(is_active=True).select_related('equipment').order_by('display_order')[:6]
+    categories = EquipmentCategory.objects.filter(is_active=True).order_by('display_order')
 
     return render(request, 'user/equipment/equipment_list.html', {
         'equipment': equipment,
         'type_filter': type_filter,
-        'available_only': available_only
+        'available_only': available_only,
+        'cms_settings': cms_settings,
+        'featured_equipment': featured_equipment,
+        'categories': categories,
     })
 
 

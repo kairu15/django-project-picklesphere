@@ -23,6 +23,8 @@ from .utils import TournamentRandomizer, LeaderboardManager
 
 def tournament_list(request):
     """List all active tournaments"""
+    from dashboard.models import TournamentPageSettings, FeaturedTournament, TournamentAnnouncement, TournamentCategory
+    
     status_filter = request.GET.get('status', 'all')
     category_filter = request.GET.get('category', 'all')
     
@@ -39,6 +41,12 @@ def tournament_list(request):
     active_tournaments = tournaments.filter(status='in_progress')
     completed_tournaments = tournaments.filter(status='completed')
     
+    # CMS Data
+    cms_settings = TournamentPageSettings.objects.first()
+    featured_tournaments = FeaturedTournament.objects.filter(is_active=True).select_related('tournament').order_by('display_order')[:6]
+    announcements = TournamentAnnouncement.objects.filter(is_active=True).order_by('display_order')
+    categories = TournamentCategory.objects.filter(is_active=True).order_by('display_order')
+    
     context = {
         'open_tournaments': open_tournaments,
         'upcoming_tournaments': upcoming_tournaments,
@@ -46,7 +54,11 @@ def tournament_list(request):
         'completed_tournaments': completed_tournaments,
         'status_filter': status_filter,
         'category_filter': category_filter,
-        'page_title': 'Tournaments'
+        'cms_settings': cms_settings,
+        'featured_tournaments': featured_tournaments,
+        'announcements': announcements,
+        'categories': categories,
+        'page_title': cms_settings.page_title if cms_settings and cms_settings.page_title else 'Tournaments',
     }
     
     # Use public template for non-authenticated users, dashboard template for authenticated
