@@ -36,6 +36,7 @@ urlpatterns = [
     path('super-admin/', include('payments.admin_urls')),
     path('super-admin/', include('equipment.admin_urls')),
     path('super-admin/', include('tournaments.admin_urls')),
+    path('super-admin/', include('notifications.admin_urls')),
 
     # ========== ORGANIZATION ADMIN ROUTES (/org-admin/) ==========
     path('org-admin/', include('organizations.org_urls')),
@@ -45,12 +46,14 @@ urlpatterns = [
     path('org-admin/', include('payments.org_urls')),
     path('org-admin/', include('equipment.staff_urls')),
     path('org-admin/', include('tournaments.admin_urls')),
+    path('org-admin/', include('notifications.org_urls')),
 
     # ========== STAFF ROUTES (/staff/) ==========
     path('staff/', include('dashboard.staff_urls')),
     path('staff/', include('reservations.staff_urls')),
     path('staff/', include('payments.staff_urls')),
     path('staff/', include('equipment.staff_urls')),
+    path('staff/', include('notifications.staff_urls')),
 
     # ========== USER ROUTES (/user/) ==========
     path('user/', include('dashboard.user_urls')),

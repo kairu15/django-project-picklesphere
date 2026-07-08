@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load notification_tags %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">
@@ -1326,13 +1327,21 @@ body.sidebar-open {
                         <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="background: var(--primary-color);">
                             <h6 class="mb-0 text-white"><i class="fas fa-bell me-2"></i>Notifications</h6>
                             <div>
+                                {% if user.is_super_admin %}
+                                <a href="{% url 'super_admin_notification_list' %}" class="btn btn-sm btn-outline-light me-1">View All</a>
+                                {% elif user.is_org_admin %}
+                                <a href="{% url 'org_admin_notification_list' %}" class="btn btn-sm btn-outline-light me-1">View All</a>
+                                {% elif user.is_org_staff %}
+                                <a href="{% url 'staff_notification_list' %}" class="btn btn-sm btn-outline-light me-1">View All</a>
+                                {% else %}
                                 <a href="{% url 'notification_list' %}" class="btn btn-sm btn-outline-light me-1">View All</a>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="notification-list overflow-auto" style="max-height: 300px;">
                             {% if recent_notifications %}
                                 {% for notification in recent_notifications %}
-                                <a href="{% url 'notification_detail' notification.id %}" class="text-decoration-none">
+                                <a href="{% notification_url 'notification_detail' notification.id %}" class="text-decoration-none">
                                     <div class="p-3 border-bottom {% if not notification.is_read %}bg-light{% endif %}">
                                         <div class="d-flex">
                                             <div class="flex-shrink-0">
@@ -1355,8 +1364,15 @@ body.sidebar-open {
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="p-2 border-top d-flex justify-content-between align-items-center">
-                            <a href="{% url 'mark_all_read' %}" class="btn btn-link btn-sm text-decoration-none">Mark all as read</a>
+                        <div class="p-2 border-top d-flex justify-content-between align-items-center">                                {% if user.is_super_admin %}
+                                <a href="{% url 'super_admin_mark_all_read' %}" class="btn btn-link btn-sm text-decoration-none">Mark all as read</a>
+                                {% elif user.is_org_admin %}
+                                <a href="{% url 'org_admin_mark_all_read' %}" class="btn btn-link btn-sm text-decoration-none">Mark all as read</a>
+                                {% elif user.is_org_staff %}
+                                <a href="{% url 'staff_mark_all_read' %}" class="btn btn-link btn-sm text-decoration-none">Mark all as read</a>
+                                {% else %}
+                                <a href="{% url 'mark_all_read' %}" class="btn btn-link btn-sm text-decoration-none">Mark all as read</a>
+                                {% endif %}
                             {% if unread_notification_count > 0 %}
                                 <span class="badge bg-primary">{{ unread_notification_count }} unread</span>
                             {% endif %}

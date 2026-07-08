@@ -1,101 +1,99 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
-
-{% block title %}Send Broadcast{% endblock %}
-{% block page_title %}Send Broadcast Message{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/staff.css' %}">
-{% endblock %}
-
-{% block breadcrumb %}
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'staff_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'broadcast_list' %}">Broadcasts</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Send New</li>
-    </ol>
-</nav>
-{% endblock %}
+{% block title %}Create Broadcast{% endblock %}
+{% block page_title %}Create Broadcast{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center animate-fadeInUp" style="animation-delay: 0.1s;">
+<div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="staff-card">
-            <div class="staff-card-header">
-                <h5 class="staff-card-title"><i class="fas fa-bullhorn text-primary me-2"></i>Compose Broadcast Message</h5>
+        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-bullhorn text-primary me-2"></i>New Broadcast Message</h5>
             </div>
-            <div class="staff-card-body">
+            <div class="card-body p-4">
                 <form method="post">
                     {% csrf_token %}
-                    
-                    <div class="staff-form-group">
-                        <label class="staff-form-label"><i class="fas fa-heading text-primary me-2"></i>Message Title</label>
-                        <input type="text" name="title" class="form-control staff-form-control" required placeholder="Enter a clear, descriptive title for your message">
-                        <div class="form-text">This will be shown as the notification headline.</div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Title</label>
+                        <input type="text" name="title" class="form-control" required style="border-radius: 10px;" placeholder="Enter broadcast title">
                     </div>
-                    
-                    <div class="staff-form-group">
-                        <label class="staff-form-label"><i class="fas fa-align-left text-primary me-2"></i>Message Content</label>
-                        <textarea name="message" class="form-control staff-form-control" rows="6" required placeholder="Enter your broadcast message content here..."></textarea>
-                        <div class="form-text">Be concise and clear. This message will be sent to all selected recipients.</div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Message</label>
+                        <textarea name="message" class="form-control" rows="5" required style="border-radius: 10px;" placeholder="Enter your broadcast message..."></textarea>
                     </div>
-                    
-                    <div class="staff-form-group">
-                        <label class="staff-form-label"><i class="fas fa-users text-primary me-2"></i>Target Recipients</label>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <label class="staff-check">
-                                    <input type="checkbox" name="target_roles" value="admin" id="role_admin">
-                                    <div>
-                                        <strong>Administrators</strong>
-                                        <div class="small text-muted">System admins only</div>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="staff-check">
-                                    <input type="checkbox" name="target_roles" value="staff" id="role_staff">
-                                    <div>
-                                        <strong>Staff Members</strong>
-                                        <div class="small text-muted">All staff users</div>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="staff-check">
-                                    <input type="checkbox" name="target_roles" value="player" id="role_player">
-                                    <div>
-                                        <strong>Players</strong>
-                                        <div class="small text-muted">Registered players</div>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="staff-check">
-                                    <input type="checkbox" name="target_roles" value="member" id="role_member">
-                                    <div>
-                                        <strong>Members</strong>
-                                        <div class="small text-muted">All members</div>
-                                    </div>
-                                </label>
-                            </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Target Audience</label>
+                            <select name="target_type" class="form-select" style="border-radius: 10px;" onchange="toggleTargetFields(this.value)">
+                                <option value="all">All Users</option>
+                                <option value="roles">Specific Roles</option>
+                                <option value="organization">Specific Organization</option>
+                            </select>
                         </div>
-                        <div class="form-text mt-2">Select at least one role. Leave all unchecked to send to all users.</div>
+                        <div class="col-md-6" id="roleSelect" style="display:none;">
+                            <label class="form-label fw-medium">Target Roles</label>
+                            <select name="target_roles" class="form-select" style="border-radius: 10px;" multiple>
+                                <option value="user">Users</option>
+                                <option value="org_staff">Staff</option>
+                                <option value="org_admin">Organization Admin</option>
+                                <option value="super_admin">Super Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="orgSelect" style="display:none;">
+                            <label class="form-label fw-medium">Organization</label>
+                            <select name="target_organization" class="form-select" style="border-radius: 10px;">
+                                {% for org in organizations %}
+                                <option value="{{ org.id }}">{{ org.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                    
-                    <div class="d-flex gap-3 pt-3 border-top">
-                        <button type="submit" class="btn btn-primary">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Priority</label>
+                            <select name="priority" class="form-select" style="border-radius: 10px;">
+                                <option value="low">Low</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Category</label>
+                            <select name="category" class="form-select" style="border-radius: 10px;">
+                                <option value="announcement">Announcement</option>
+                                <option value="system">System</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="security">Security</option>
+                                <option value="promotion">Promotion</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Type</label>
+                            <select name="notification_type" class="form-select" style="border-radius: 10px;">
+                                <option value="info">Info</option>
+                                <option value="success">Success</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'super_admin_broadcast_list' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px;">Cancel</a>
+                        <button type="submit" class="btn px-4 py-2" style="border-radius: 10px; background: linear-gradient(135deg, #3B7A8C, #1a3a42); color: white; border: none; font-weight: 500;">
                             <i class="fas fa-paper-plane me-2"></i>Send Broadcast
                         </button>
-                        <a href="{% url 'broadcast_list' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-2"></i>Cancel
-                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
+<script>
+function toggleTargetFields(value) {
+    document.getElementById('roleSelect').style.display = value === 'roles' ? 'block' : 'none';
+    document.getElementById('orgSelect').style.display = value === 'organization' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

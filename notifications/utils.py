@@ -3,6 +3,18 @@ from django.db.models import Q
 from .models import Notification, NotificationPreference
 
 
+def _get_notification_url_name(request, base_name):
+    """Returns role-appropriate URL name for notification routes."""
+    user = request.user
+    if user.is_super_admin():
+        return f'super_admin_{base_name}'
+    elif user.is_org_admin():
+        return f'org_admin_{base_name}'
+    elif user.is_org_staff():
+        return f'staff_{base_name}'
+    return base_name
+
+
 def create_notification(
     user,
     title='',
@@ -21,31 +33,12 @@ def create_notification(
     check_preferences=True,
     dedup_window_minutes=5,
 ):
-    """
-    Centralized notification creation with preference checking and deduplication.
-
-    Args:
-        user: The user to notify
-        title: Short notification title
-        message: Notification body text
-        notification_type: info/success/warning/error
-        category: reservation/payment/tournament/equipment/account/system/message/organization/maintenance/promotion
-        priority: low/normal/high/urgent
-        action_url: URL to redirect when notification is clicked
-        action_text: Button text for the action link
-        related_*: Related model instances
-        check_preferences: Whether to check user's notification preferences
-        dedup_window_minutes: Minutes within which duplicate notifications are prevented
-
-    Returns:
-        Notification instance or None if suppressed
-    """
+    """Centralized notification creation with preference checking and deduplication."""
     if check_preferences:
         prefs = NotificationPreference.objects.filter(user=user).first()
         if prefs and not prefs.is_category_enabled(category):
             return None
 
-    # Deduplication: check for similar notification in the time window
     if dedup_window_minutes > 0 and title:
         since = timezone.now() - timezone.timedelta(minutes=dedup_window_minutes)
         duplicate = Notification.objects.filter(
@@ -76,244 +69,8 @@ def create_notification(
     return notification
 
 
-def notify_reservation_submitted(user, reservation):
-    """Notify user that a reservation was submitted"""
-    return create_notification(
-        user=user,
-        title='Reservation Submitted',
-        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} has been submitted.',
-        notification_type='info',
-        category='reservation',
-        priority='normal',
-        action_url=f'/user/reservations/{reservation.id}/',
-        action_text='View Reservation',
-        related_reservation=reservation,
-    )
-
-
-def notify_reservation_approved(user, reservation):
-    """Notify user that a reservation was approved"""
-    return create_notification(
-        user=user,
-        title='Reservation Approved',
-        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} has been approved!',
-        notification_type='success',
-        category='reservation',
-        priority='normal',
-        action_url=f'/user/reservations/{reservation.id}/',
-        action_text='View Reservation',
-        related_reservation=reservation,
-    )
-
-
-def notify_reservation_confirmed(user, reservation):
-    """Notify user that a reservation was confirmed"""
-    return create_notification(
-        user=user,
-        title='Reservation Confirmed',
-        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} is confirmed.',
-        notification_type='success',
-        category='reservation',
-        priority='normal',
-        action_url=f'/user/reservations/{reservation.id}/',
-        action_text='View Reservation',
-        related_reservation=reservation,
-    )
-
-
-def notify_reservation_cancelled(user, reservation):
-    """Notify user that a reservation was cancelled"""
-    return create_notification(
-        user=user,
-        title='Reservation Cancelled',
-        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} has been cancelled.',
-        notification_type='warning',
-        category='reservation',
-        priority='normal',
-        action_url=f'/user/reservations/{reservation.id}/',
-        action_text='View Details',
-        related_reservation=reservation,
-    )
-
-
-def notify_payment_received(user, payment):
-    """Notify user that a payment was received"""
-    return create_notification(
-        user=user,
-        title='Payment Received',
-        message=f'Your payment of ₱{payment.amount} for reservation #{payment.reservation.id} has been received.',
-        notification_type='success',
-        category='payment',
-        priority='normal',
-        action_url=f'/user/payments/',
-        action_text='View Payments',
-        related_payment=payment,
-    )
-
-
-def notify_payment_failed(user, payment):
-    """Notify user that a payment failed"""
-    return create_notification(
-        user=user,
-        title='Payment Failed',
-        message=f'Your payment of ₱{payment.amount} could not be processed. Please try again.',
-        notification_type='error',
-        category='payment',
-        priority='high',
-        action_url=f'/user/payments/',
-        action_text='Retry Payment',
-        related_payment=payment,
-    )
-
-
-def notify_tournament_registration(user, tournament, status='pending'):
-    """Notify user about tournament registration status"""
-    if status == 'pending':
-        title = 'Tournament Registration Submitted'
-        msg = f'Your registration for {tournament.name} has been submitted and is pending approval.'
-        ntype = 'info'
-    elif status == 'approved':
-        title = 'Tournament Registration Approved'
-        msg = f'Your registration for {tournament.name} has been approved!'
-        ntype = 'success'
-    else:
-        title = 'Tournament Registration Update'
-        msg = f'Your registration for {tournament.name} status: {status}'
-        ntype = 'info'
-
-    return create_notification(
-        user=user,
-        title=title,
-        message=msg,
-        notification_type=ntype,
-        category='tournament',
-        priority='normal',
-        action_url=f'/tournaments/{tournament.id}/',
-        action_text='View Tournament',
-        related_tournament=tournament,
-    )
-
-
-def notify_equipment_rental(user, equipment, status):
-    """Notify user about equipment rental status"""
-    status_msgs = {
-        'reserved': f'Your rental for {equipment.name} has been reserved.',
-        'rented': f'Your rental for {equipment.name} is now active.',
-        'returned': f'Your rental for {equipment.name} has been returned successfully.',
-        'cancelled': f'Your rental for {equipment.name} has been cancelled.',
-    }
-    msg = status_msgs.get(status, f'Equipment rental update for {equipment.name}.')
-    title_map = {
-        'reserved': 'Equipment Reserved',
-        'rented': 'Equipment Rented',
-        'returned': 'Equipment Returned',
-        'cancelled': 'Equipment Rental Cancelled',
-    }
-
-    return create_notification(
-        user=user,
-        title=title_map.get(status, 'Equipment Update'),
-        message=msg,
-        notification_type='success' if status in ('returned',) else 'info',
-        category='equipment',
-        priority='normal',
-        action_url=f'/equipment/{equipment.id}/',
-        action_text='View Equipment',
-        related_equipment=equipment,
-    )
-
-
-def notify_org_admin_new_reservation(admin_user, reservation):
-    """Notify organization admin about a new reservation"""
-    org = reservation.court.organization if hasattr(reservation.court, 'organization') else None
-    return create_notification(
-        user=admin_user,
-        title='New Reservation Received',
-        message=f'New reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} by {reservation.user.username}.',
-        notification_type='info',
-        category='reservation',
-        priority='normal',
-        action_url=f'/org-admin/reservations/',
-        action_text='View Reservations',
-        related_reservation=reservation,
-        related_organization=org,
-    )
-
-
-def notify_super_admin_new_organization(super_admin, organization):
-    """Notify super admin about a new organization registration"""
-    return create_notification(
-        user=super_admin,
-        title='New Organization Registration',
-        message=f'{organization.name} has registered and is awaiting approval.',
-        notification_type='info',
-        category='organization',
-        priority='high',
-        action_url=f'/super-admin/organizations/{organization.id}/',
-        action_text='Review Organization',
-        related_organization=organization,
-    )
-
-
-def notify_org_admin_cancellation_request(admin_user, cancellation):
-    """Notify org admin about a cancellation request"""
-    res = cancellation.reservation
-    return create_notification(
-        user=admin_user,
-        title='Cancellation Request',
-        message=f'{res.user.username} requested to cancel reservation for {res.court.name} on {res.date.strftime("%b %d, %Y")}.',
-        notification_type='warning',
-        category='reservation',
-        priority='high',
-        action_url=f'/org-admin/cancellations/',
-        action_text='Review Cancellation',
-        related_reservation=res,
-    )
-
-
-def notify_refund_processed(user, cancellation):
-    """Notify user that their refund has been processed"""
-    res = cancellation.reservation
-    return create_notification(
-        user=user,
-        title='Refund Processed',
-        message=f'Your refund for reservation #{res.id} ({res.court.name}) has been processed.',
-        notification_type='success',
-        category='payment',
-        priority='normal',
-        action_url=f'/user/payments/',
-        action_text='View Payments',
-        related_reservation=res,
-    )
-
-
-def notify_system_announcement(user, title, message, priority='normal'):
-    """Send a system announcement to a user"""
-    return create_notification(
-        user=user,
-        title=title,
-        message=message,
-        notification_type='info',
-        category='system',
-        priority=priority,
-        action_text='Dismiss',
-    )
-
-
-def notify_maintenance_notice(user, title, message):
-    """Send a maintenance notice"""
-    return create_notification(
-        user=user,
-        title=title or 'Scheduled Maintenance',
-        message=message or 'The system will undergo scheduled maintenance.',
-        notification_type='warning',
-        category='maintenance',
-        priority='urgent',
-    )
-
-
 def broadcast_to_users(users, title, message, notification_type='info', category='system', priority='normal', action_url=''):
-    """Send the same notification to multiple users efficiently"""
+    """Send the same notification to multiple users efficiently."""
     notifications = []
     for user in users:
         n = create_notification(
@@ -328,3 +85,394 @@ def broadcast_to_users(users, title, message, notification_type='info', category
         if n:
             notifications.append(n)
     return notifications
+
+
+# ==================== USER NOTIFICATIONS ====================
+
+def notify_user_reservation_submitted(user, reservation):
+    return create_notification(
+        user=user,
+        title='Reservation Submitted',
+        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} ({reservation.start_time.strftime("%I:%M %p")} - {reservation.end_time.strftime("%I:%M %p")}) has been submitted and is pending confirmation.',
+        notification_type='info',
+        category='reservation',
+        priority='normal',
+        action_url=f'/user/reservations/{reservation.id}/',
+        action_text='View Reservation',
+        related_reservation=reservation,
+    )
+
+def notify_user_reservation_confirmed(user, reservation):
+    return create_notification(
+        user=user,
+        title='Reservation Confirmed',
+        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} is confirmed! See you on the court.',
+        notification_type='success',
+        category='reservation',
+        priority='normal',
+        action_url=f'/user/reservations/{reservation.id}/',
+        action_text='View Reservation',
+        related_reservation=reservation,
+    )
+
+def notify_user_reservation_rejected(user, reservation, reason=''):
+    msg = f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} has been rejected.'
+    if reason:
+        msg += f' Reason: {reason}'
+    return create_notification(
+        user=user,
+        title='Reservation Rejected',
+        message=msg,
+        notification_type='error',
+        category='cancellation',
+        priority='high',
+        action_url=f'/user/reservations/{reservation.id}/',
+        action_text='View Details',
+        related_reservation=reservation,
+    )
+
+def notify_user_reservation_cancelled(user, reservation):
+    return create_notification(
+        user=user,
+        title='Reservation Cancelled',
+        message=f'Your reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} has been cancelled.',
+        notification_type='warning',
+        category='cancellation',
+        priority='normal',
+        action_url=f'/user/reservations/{reservation.id}/',
+        action_text='View Details',
+        related_reservation=reservation,
+    )
+
+def notify_user_reservation_completed(user, reservation):
+    return create_notification(
+        user=user,
+        title='Reservation Completed',
+        message=f'Your reservation at {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} is complete. We hope you had a great game!',
+        notification_type='success',
+        category='reservation',
+        priority='low',
+        action_url=f'/user/reservations/{reservation.id}/',
+        action_text='Leave a Rating',
+        related_reservation=reservation,
+    )
+
+def notify_user_payment_confirmed(user, payment):
+    return create_notification(
+        user=user,
+        title='Payment Confirmed',
+        message=f'Your payment of ₱{payment.amount} for reservation has been confirmed. Reference: #{payment.id}',
+        notification_type='success',
+        category='payment',
+        priority='normal',
+        action_url=f'/user/payments/',
+        action_text='View Payments',
+        related_payment=payment,
+    )
+
+def notify_user_refund_processed(user, cancellation):
+    res = cancellation.reservation
+    return create_notification(
+        user=user,
+        title='Refund Processed',
+        message=f'Your refund for reservation #{res.id} at {res.court.name} has been processed.',
+        notification_type='success',
+        category='refund',
+        priority='normal',
+        action_url=f'/user/payments/',
+        action_text='View Payments',
+        related_reservation=res,
+    )
+
+def notify_user_tournament_registration(user, tournament, status='pending'):
+    if status == 'pending':
+        title = 'Tournament Registration Submitted'
+        msg = f'Your registration for {tournament.name} has been submitted and is pending approval.'
+        ntype = 'info'
+    elif status == 'approved':
+        title = 'Tournament Registration Approved'
+        msg = f'Your registration for {tournament.name} has been approved! Get ready to compete.'
+        ntype = 'success'
+    elif status == 'rejected':
+        title = 'Tournament Registration Rejected'
+        msg = f'Your registration for {tournament.name} was not approved.'
+        ntype = 'error'
+    else:
+        title = 'Tournament Registration Update'
+        msg = f'Your registration for {tournament.name} status: {status}'
+        ntype = 'info'
+    return create_notification(
+        user=user,
+        title=title,
+        message=msg,
+        notification_type=ntype,
+        category='tournament',
+        priority='normal',
+        action_url=f'/user/tournaments/',
+        action_text='View Tournaments',
+        related_tournament=tournament,
+    )
+
+def notify_user_equipment_rental(user, equipment, status):
+    status_msgs = {
+        'reserved': f'Your rental for {equipment.name} has been reserved.',
+        'rented': f'Your rental for {equipment.name} is now active. Enjoy!',
+        'returned': f'Your rental for {equipment.name} has been returned successfully.',
+        'cancelled': f'Your rental for {equipment.name} has been cancelled.',
+        'overdue': f'Your rental for {equipment.name} is overdue. Please return it as soon as possible.',
+    }
+    title_map = {
+        'reserved': 'Equipment Reserved',
+        'rented': 'Equipment Rented',
+        'returned': 'Equipment Returned',
+        'cancelled': 'Equipment Rental Cancelled',
+        'overdue': 'Equipment Overdue',
+    }
+    return create_notification(
+        user=user,
+        title=title_map.get(status, 'Equipment Update'),
+        message=status_msgs.get(status, f'Equipment rental update for {equipment.name}.'),
+        notification_type='error' if status == 'overdue' else 'success' if status in ('returned',) else 'info',
+        category='equipment',
+        priority='high' if status == 'overdue' else 'normal',
+        action_url=f'/equipment/{equipment.id}/',
+        action_text='View Equipment',
+        related_equipment=equipment,
+    )
+
+def notify_user_account_update(user, message):
+    return create_notification(
+        user=user,
+        title='Account Updated',
+        message=message,
+        notification_type='info',
+        category='account',
+        priority='normal',
+    )
+
+
+# ==================== ORG ADMIN / STAFF NOTIFICATIONS ====================
+
+def notify_org_admin_new_reservation(admin_user, reservation):
+    org = reservation.court.organization if hasattr(reservation.court, 'organization') else None
+    return create_notification(
+        user=admin_user,
+        title='New Reservation',
+        message=f'New reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} by {reservation.user.get_full_name() or reservation.user.username}.',
+        notification_type='info',
+        category='reservation',
+        priority='normal',
+        action_url=f'/org-admin/reservations/',
+        action_text='View Reservations',
+        related_reservation=reservation,
+        related_organization=org,
+    )
+
+def notify_org_admin_new_payment(admin_user, payment):
+    org = payment.reservation.court.organization if payment.reservation and hasattr(payment.reservation.court, 'organization') else None
+    return create_notification(
+        user=admin_user,
+        title='New Payment',
+        message=f'Payment of ₱{payment.amount} received from {payment.reservation.user.get_full_name() or payment.reservation.user.username} for reservation #{payment.reservation.id}.',
+        notification_type='success',
+        category='payment',
+        priority='normal',
+        action_url=f'/org-admin/payments/',
+        action_text='View Payments',
+        related_payment=payment,
+        related_organization=org,
+    )
+
+def notify_org_admin_cancellation_request(admin_user, cancellation):
+    res = cancellation.reservation
+    return create_notification(
+        user=admin_user,
+        title='Cancellation Request',
+        message=f'{res.user.get_full_name() or res.user.username} requested to cancel reservation for {res.court.name} on {res.date.strftime("%b %d, %Y")}.',
+        notification_type='warning',
+        category='cancellation',
+        priority='high',
+        action_url=f'/org-admin/cancellations/',
+        action_text='Review',
+        related_reservation=res,
+    )
+
+def notify_org_admin_tournament_registration(admin_user, registration):
+    return create_notification(
+        user=admin_user,
+        title='New Tournament Registration',
+        message=f'{registration.user.get_full_name() or registration.user.username} registered for {registration.tournament.name}.',
+        notification_type='info',
+        category='tournament',
+        priority='normal',
+        action_url=f'/admin/tournaments/',
+        action_text='View Registrations',
+        related_tournament=registration.tournament,
+    )
+
+def notify_org_admin_equipment_alert(admin_user, equipment, alert_type='low_stock'):
+    alerts = {
+        'low_stock': f'{equipment.name} is running low on stock.',
+        'damaged': f'{equipment.name} has been reported as damaged.',
+        'returned': f'{equipment.name} has been returned and is ready for inspection.',
+    }
+    return create_notification(
+        user=admin_user,
+        title='Equipment Alert',
+        message=alerts.get(alert_type, f'Update for {equipment.name}.'),
+        notification_type='warning' if alert_type == 'damaged' else 'info',
+        category='equipment',
+        priority='high' if alert_type == 'damaged' else 'normal',
+        action_url=f'/staff/equipment/',
+        action_text='Manage Equipment',
+        related_equipment=equipment,
+    )
+
+def notify_org_admin_staff_activity(admin_user, staff_user, action):
+    return create_notification(
+        user=admin_user,
+        title='Staff Activity',
+        message=f'{staff_user.get_full_name() or staff_user.username} {action}.',
+        notification_type='info',
+        category='staff',
+        priority='low',
+    )
+
+def notify_org_admin_announcement(admin_user, title, message):
+    return create_notification(
+        user=admin_user,
+        title=title,
+        message=message,
+        notification_type='info',
+        category='announcement',
+        priority='normal',
+    )
+
+
+# ==================== STAFF NOTIFICATIONS ====================
+
+def notify_staff_assigned_reservation(staff_user, reservation):
+    return create_notification(
+        user=staff_user,
+        title='Reservation Assigned',
+        message=f'Reservation for {reservation.court.name} on {reservation.date.strftime("%b %d, %Y")} has been assigned to you.',
+        notification_type='info',
+        category='reservation',
+        priority='normal',
+        action_url=f'/staff/reservations/',
+        action_text='View',
+        related_reservation=reservation,
+    )
+
+def notify_staff_payment_verification(staff_user, payment):
+    return create_notification(
+        user=staff_user,
+        title='Payment Needs Verification',
+        message=f'A payment of ₱{payment.amount} from {payment.reservation.user.get_full_name() or payment.reservation.user.username} needs verification.',
+        notification_type='warning',
+        category='payment',
+        priority='high',
+        action_url=f'/staff/payments/',
+        action_text='Verify Payment',
+        related_payment=payment,
+    )
+
+def notify_staff_equipment_update(staff_user, equipment, status):
+    return create_notification(
+        user=staff_user,
+        title='Equipment Update',
+        message=f'{equipment.name} status changed to: {status}.',
+        notification_type='info',
+        category='equipment',
+        priority='normal',
+        action_url=f'/staff/equipment/',
+        action_text='View',
+        related_equipment=equipment,
+    )
+
+def notify_staff_task(staff_user, task_title, task_description=''):
+    return create_notification(
+        user=staff_user,
+        title=task_title,
+        message=task_description or 'A new task has been assigned to you.',
+        notification_type='info',
+        category='staff',
+        priority='normal',
+    )
+
+
+# ==================== SUPER ADMIN NOTIFICATIONS ====================
+
+def notify_super_admin_new_organization(super_admin, organization):
+    return create_notification(
+        user=super_admin,
+        title='New Organization Registration',
+        message=f'{organization.name} has registered and is awaiting approval.',
+        notification_type='info',
+        category='organization',
+        priority='high',
+        action_url=f'/super-admin/organizations/',
+        action_text='Review',
+        related_organization=organization,
+    )
+
+def notify_super_admin_org_approval(super_admin, organization, status):
+    return create_notification(
+        user=super_admin,
+        title=f'Organization {status.title()}',
+        message=f'{organization.name} has been {status}.',
+        notification_type='success' if status == 'approved' else 'warning',
+        category='organization',
+        priority='normal',
+        related_organization=organization,
+    )
+
+def notify_super_admin_system_error(super_admin, error_message):
+    return create_notification(
+        user=super_admin,
+        title='System Error',
+        message=f'System error detected: {error_message[:200]}',
+        notification_type='error',
+        category='system',
+        priority='urgent',
+    )
+
+def notify_super_admin_failed_login(super_admin, username):
+    return create_notification(
+        user=super_admin,
+        title='Failed Login Attempt',
+        message=f'A failed login attempt was detected for username: {username}.',
+        notification_type='warning',
+        category='security',
+        priority='high',
+    )
+
+def notify_super_admin_maintenance(super_admin, maintenance_info):
+    return create_notification(
+        user=super_admin,
+        title='Scheduled Maintenance',
+        message=maintenance_info,
+        notification_type='warning',
+        category='maintenance',
+        priority='urgent',
+    )
+
+def notify_super_admin_security_alert(super_admin, alert_message):
+    return create_notification(
+        user=super_admin,
+        title='Security Alert',
+        message=alert_message[:200],
+        notification_type='error',
+        category='security',
+        priority='urgent',
+    )
+
+def notify_super_admin_announcement(super_admin, title, message):
+    return create_notification(
+        user=super_admin,
+        title=title,
+        message=message,
+        notification_type='info',
+        category='announcement',
+        priority='normal',
+    )
