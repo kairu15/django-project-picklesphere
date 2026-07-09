@@ -9,7 +9,7 @@
     <ol class="breadcrumb">
         {% if user.is_authenticated %}
             {% if user.is_super_admin %}
-            <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'super_admin_org_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
             {% elif user.is_org_admin %}
             <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
             {% endif %}

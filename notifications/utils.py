@@ -1,6 +1,9 @@
 from django.utils import timezone
 from django.db.models import Q
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import Notification, NotificationPreference
+from .email_utils import send_notification_email
 
 
 def _get_notification_url_name(request, base_name):
@@ -66,6 +69,41 @@ def create_notification(
         related_tournament=related_tournament,
         related_equipment=related_equipment,
     )
+
+    # Send email notification if user has email notifications enabled
+    try:
+        send_notification_email(
+            user=user,
+            notification_obj=notification,
+            action_url=action_url,
+            action_text=action_text,
+        )
+    except Exception:
+        pass
+
+    # Push real-time notification via WebSocket
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{user.id}',
+                {
+                    'type': 'send_notification',
+                    'id': notification.id,
+                    'title': notification.title,
+                    'message': notification.message[:200],
+                    'notification_type': notification.notification_type,
+                    'category': notification.category,
+                    'priority': notification.priority,
+                    'action_url': notification.action_url,
+                    'action_text': notification.action_text,
+                    'created_at': notification.created_at.isoformat() if notification.created_at else '',
+                    'unread_count': Notification.objects.filter(user=user, is_read=False, is_deleted=False).count(),
+                }
+            )
+    except Exception:
+        pass
+
     return notification
 
 

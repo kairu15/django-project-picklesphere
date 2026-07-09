@@ -49,6 +49,10 @@ INSTALLED_APPS = [
     'dashboard',
     'equipment',
     'tournaments',
+    # Email
+    'anymail',
+    # Real-time
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -88,6 +92,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'picklesphere.wsgi.application'
+ASGI_APPLICATION = 'picklesphere.asgi.application'
 
 
 # Database
@@ -187,4 +192,34 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='picklesphere@gmail.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@picklesphere.com')
+DEFAULT_FROM_NAME = config('DEFAULT_FROM_NAME', default='PickleSphere')
+
+# Anymail (Elastic Email) - Transactional email backend
+ANYMAIL = {
+    'ELASTICEMAIL_API_KEY': config('ELASTICEMAIL_API_KEY', default=''),
+}
+# When ELASTICEMAIL_API_KEY is set, switch to Elastic Email backend automatically
+if config('ELASTICEMAIL_API_KEY', default=''):
+    EMAIL_BACKEND = 'anymail.backends.elasticemail.ElasticEmailBackend'
+
+# Site URL for email templates
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+SITE_NAME = 'PickleSphere'
+
+# ========== REAL-TIME (Django Channels) ==========
+# Channel layer configuration using Redis (or in-memory for dev)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+# For production, use Redis:
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }

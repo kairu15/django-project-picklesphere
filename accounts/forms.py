@@ -64,7 +64,12 @@ class UserLoginForm(AuthenticationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'gender', 'phone_number', 'address', 'profile_picture']
+        fields = [
+            'first_name', 'last_name', 'email', 'gender', 'phone_number',
+            'address', 'profile_picture', 'cover_photo', 'bio',
+            'birth_date', 'skill_level', 'website_url', 'twitter_url',
+            'instagram_url', 'facebook_url',
+        ]
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -73,6 +78,14 @@ class UserProfileForm(forms.ModelForm):
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
+            'cover_photo': forms.FileInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tell others about yourself...'}),
+            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'skill_level': forms.Select(attrs={'class': 'form-select'}),
+            'website_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://yourwebsite.com'}),
+            'twitter_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://x.com/username'}),
+            'instagram_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://instagram.com/username'}),
+            'facebook_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://facebook.com/username'}),
         }
 
 

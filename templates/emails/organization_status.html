@@ -1,0 +1,29 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_content %}
+    {% if new_status == 'approved' %}
+        <span class="notification-badge success">✅ Approved</span>
+        <h2>Organization Approved!</h2>
+        <p>Congratulations <strong>{{ user.get_full_name|default:user.username }}</strong>! Your organization <strong>{{ organization_name }}</strong> has been approved.</p>
+        <p>You can now start managing courts, equipment, and accepting reservations. Head to your dashboard to get started.</p>
+    {% elif new_status == 'rejected' %}
+        <span class="notification-badge error">❌ Not Approved</span>
+        <h2>Organization Status Update</h2>
+        <p>Hi <strong>{{ user.get_full_name|default:user.username }}</strong>, your organization <strong>{{ organization_name }}</strong> has been reviewed and was not approved at this time.</p>
+        {% if note %}<p><strong>Reason:</strong> {{ note }}</p>{% endif %}
+    {% elif new_status == 'suspended' %}
+        <span class="notification-badge error">⛔ Suspended</span>
+        <h2>Organization Suspended</h2>
+        <p>Hi <strong>{{ user.get_full_name|default:user.username }}</strong>, your organization <strong>{{ organization_name }}</strong> has been suspended.</p>
+        {% if note %}<p><strong>Reason:</strong> {{ note }}</p>{% endif %}
+        <p>Please contact support for more information.</p>
+    {% else %}
+        <span class="notification-badge">📋 Status Update</span>
+        <h2>Organization Status Update</h2>
+        <p>Hi <strong>{{ user.get_full_name|default:user.username }}</strong>, the status of <strong>{{ organization_name }}</strong> has been changed to <strong>{{ new_status }}</strong>.</p>
+    {% endif %}
+    
+    <div style="text-align: center;">
+        <a href="{{ action_url }}" class="cta-button">{{ action_text }}</a>
+    </div>
+{% endblock %}

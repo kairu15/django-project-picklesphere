@@ -17,11 +17,28 @@ class User(AbstractUser):
         ('P', 'Prefer not to say'),
     )
     
+    SKILL_LEVEL_CHOICES = (
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+        ('pro', 'Pro'),
+    )
+    
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    cover_photo = models.ImageField(upload_to='covers/', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True, max_length=500, help_text='Tell others about yourself')
+    birth_date = models.DateField(blank=True, null=True)
+    skill_level = models.CharField(max_length=20, choices=SKILL_LEVEL_CHOICES, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    
+    # Social links
+    website_url = models.URLField(blank=True, null=True, max_length=500)
+    twitter_url = models.URLField(blank=True, null=True, max_length=500, verbose_name='X (Twitter) URL')
+    instagram_url = models.URLField(blank=True, null=True, max_length=500)
+    facebook_url = models.URLField(blank=True, null=True, max_length=500)
     
     # Organization association (for org_admin and org_staff)
     organization = models.ForeignKey(

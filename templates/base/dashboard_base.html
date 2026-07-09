@@ -1634,39 +1634,8 @@ body.sidebar-open {
 </script>
 
 <script>
-    // ===== Dark Mode Theme Toggle =====
-    function toggleTheme() {
-        var html = document.documentElement;
-        var currentTheme = html.getAttribute('data-theme') || 'light';
-        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('picklesphere-theme', newTheme);
-        updateThemeIcon(newTheme);
-    }
-
-    function updateThemeIcon(theme) {
-        var icon = document.getElementById('themeIcon');
-        if (!icon) return;
-        if (theme === 'dark') {
-            icon.className = 'fas fa-sun';
-        } else {
-            icon.className = 'fas fa-moon';
-        }
-    }
-
-    // Load saved theme on page load
-    (function() {
-        var savedTheme = localStorage.getItem('picklesphere-theme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            // Respect system preference
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('picklesphere-theme', 'dark');
-            updateThemeIcon('dark');
-        }
-    })();
+    // Theme icon synced globally via base/base.html
+    // The dashboard icon (id="themeIcon") is auto-detected by updateAllThemeIcons()
 </script>
 {% block extra_js %}{% endblock %}
 {% endblock %}

@@ -1,16 +1,25 @@
 """
-ASGI config for picklesphereproj project.
+ASGI config for PickleSphere with Django Channels for WebSocket support.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
+Exposes:
+- application: The combined ASGI application that routes HTTP and WebSocket requests
 """
-
 import os
-
 from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'picklesphere.settings')
 
-application = get_asgi_application()
+# Import WebSocket routing
+from picklesphere.routing import websocket_urlpatterns
+
+application = ProtocolTypeRouter({
+    'http': get_asgi_application(),
+    'websocket': AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(websocket_urlpatterns)
+        )
+    ),
+})
