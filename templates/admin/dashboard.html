@@ -146,23 +146,13 @@
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
                     <i class="fas fa-bolt text-warning"></i>
-                    Quick Actions
+                    Platform Management
                 </h5>
-                <span class="badge bg-light text-dark">{{ metrics.total_reservations }} total bookings</span>
             </div>
             <div class="card-body">
                 <div class="d-flex gap-2 flex-wrap">
-                    <a href="{% url 'super_admin_reservation_list' %}" class="btn btn-primary">
-                        <i class="fas fa-calendar-check me-2"></i>Reservations
-                    </a>
-                    <a href="{% url 'super_admin_payments' %}" class="btn btn-success">
-                        <i class="fas fa-money-bill-wave me-2"></i>Payments
-                    </a>
                     <a href="{% url 'super_admin_user_list' %}" class="btn btn-info text-white">
                         <i class="fas fa-users me-2"></i>Users
-                    </a>
-                    <a href="{% url 'super_admin_revenue_report' %}" class="btn btn-warning text-dark">
-                        <i class="fas fa-chart-bar me-2"></i>Revenue Report
                     </a>
                     <a href="{% url 'super_admin_organization_list' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-building me-2"></i>Organizations
@@ -561,55 +551,44 @@
 
 <!-- Recent Data Section -->
 <div class="row g-4 mb-4">
-    <!-- Recent Reservations -->
-    <div class="col-lg-6">
+    <!-- Recent Users -->
+    <div class="col-lg-12">
         <div class="admin-card h-100" style="animation-delay: 1s;">
             <div class="admin-card-header">
                 <h5 class="admin-card-title">
-                    <i class="fas fa-calendar-alt text-primary"></i>
-                    Recent Reservations
+                    <i class="fas fa-users text-primary"></i>
+                    Newest Users
                 </h5>
-                <a href="{% url 'super_admin_reservation_list' %}" class="btn btn-sm btn-outline-primary">
+                <a href="{% url 'super_admin_user_list' %}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i>View All
                 </a>
             </div>
             <div class="card-body p-0">
-                <p class="text-muted small mb-0 px-4 pt-3">
-                    <i class="fas fa-info-circle me-1"></i>
-                    The 10 most recent reservations across all organizations.
-                </p>
-                {% if recent_reservations %}
+                {% if recent_users %}
                 <div class="admin-table-container">
                     <table class="table admin-table mb-0">
                         <thead>
                             <tr>
-                                <th data-label="ID">ID</th>
-                                <th data-label="User">User</th>
-                                <th data-label="Court">Court</th>
-                                <th data-label="Date">Date</th>
-                                <th data-label="Status">Status</th>
+                                <th data-label="Username">Username</th>
+                                <th data-label="Email">Email</th>
+                                <th data-label="Role">Role</th>
+                                <th data-label="Joined">Joined</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for reservation in recent_reservations %}
+                            {% for user in recent_users %}
                             <tr>
-                                <td data-label="ID"><span class="badge bg-light text-dark">#{{ reservation.id }}</span></td>
-                                <td data-label="User">
+                                <td data-label="Username">
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
-                                            {{ reservation.user.username|first|upper }}
+                                            {{ user.username|first|upper }}
                                         </div>
-                                        <span>{{ reservation.user.username }}</span>
+                                        <span>{{ user.username }}</span>
                                     </div>
                                 </td>
-                                <td data-label="Court">{{ reservation.court.name }}</td>
-                                <td data-label="Date"><small>{{ reservation.date|date:"M d, Y" }}</small></td>
-                                <td data-label="Status">
-                                    <span class="status-badge {{ reservation.status }}">
-                                        {% if reservation.status == 'confirmed' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
-                                        {{ reservation.get_status_display }}
-                                    </span>
-                                </td>
+                                <td data-label="Email"><small>{{ user.email }}</small></td>
+                                <td data-label="Role"><span class="badge bg-light text-dark border">{{ user.get_role_display }}</span></td>
+                                <td data-label="Joined"><small>{{ user.created_at|date:"M d, Y" }}</small></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -618,77 +597,10 @@
                 {% else %}
                 <div class="empty-state">
                     <div class="empty-state-icon">
-                        <i class="fas fa-calendar-alt fa-2x text-muted"></i>
+                        <i class="fas fa-users fa-2x text-muted"></i>
                     </div>
-                    <h5 class="empty-state-title">No reservations found</h5>
-                    <p class="empty-state-text">New reservations will appear here once users start booking courts.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Payments -->
-    <div class="col-lg-6">
-        <div class="admin-card h-100" style="animation-delay: 1s;">
-            <div class="admin-card-header">
-                <h5 class="admin-card-title">
-                    <i class="fas fa-credit-card text-primary"></i>
-                    Recent Payments
-                </h5>
-                <a href="{% url 'super_admin_payments' %}" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-list me-1"></i>View All
-                </a>
-            </div>
-            <div class="card-body p-0">
-                <p class="text-muted small mb-0 px-4 pt-3">
-                    <i class="fas fa-info-circle me-1"></i>
-                    The 10 most recent payment transactions across all organizations.
-                </p>
-                {% if recent_payments %}
-                <div class="admin-table-container">
-                    <table class="table admin-table mb-0">
-                        <thead>
-                            <tr>
-                                <th data-label="ID">ID</th>
-                                <th data-label="User">User</th>
-                                <th data-label="Amount">Amount</th>
-                                <th data-label="Method">Method</th>
-                                <th data-label="Status">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in recent_payments %}
-                            <tr>
-                                <td data-label="ID"><span class="badge bg-light text-dark">#{{ payment.id }}</span></td>
-                                <td data-label="User">
-                                    <div class="d-flex align-items-center">
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; background: rgba(59,122,140,0.1); color: var(--primary-color); font-weight: 600; font-size: 0.75rem;">
-                                            {{ payment.reservation.user.username|first|upper }}
-                                        </div>
-                                        <span>{{ payment.reservation.user.username }}</span>
-                                    </div>
-                                </td>
-                                <td data-label="Amount" class="fw-semibold">₱{{ payment.amount|floatformat:2 }}</td>
-                                <td data-label="Method"><span class="badge bg-light text-dark border">{{ payment.get_method_display|default:"N/A" }}</span></td>
-                                <td data-label="Status">
-                                    <span class="status-badge {{ payment.status }}">
-                                        {% if payment.status == 'paid' %}<i class="fas fa-check-circle me-1"></i>{% endif %}
-                                        {{ payment.get_status_display }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-credit-card fa-2x text-muted"></i>
-                    </div>
-                    <h5 class="empty-state-title">No payments recorded yet</h5>
-                    <p class="empty-state-text">Payment records will appear here once transactions are processed.</p>
+                    <h5 class="empty-state-title">No users found</h5>
+                    <p class="empty-state-text">New user registrations will appear here.</p>
                 </div>
                 {% endif %}
             </div>

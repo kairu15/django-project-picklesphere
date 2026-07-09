@@ -129,9 +129,9 @@ def checkout_page_view(request, checkout_token):
                             match_format=checkout_data.get('match_format', 'singles'),
                             game_type=checkout_data.get('game_type', 'friendly'),
                             scoring_format=checkout_data.get('scoring_format', '11'),
-                            points_per_game=checkout_data.get('points_per_game', 11),
-                            games_to_win=checkout_data.get('games_to_win', 2),
-                            win_by_two=checkout_data.get('win_by_two', True),
+                            points_per_game=checkout_data.get('points_per_game') or 11,
+                            games_to_win=checkout_data.get('games_to_win') or 2,
+                            win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
                         )
                         # The Reservation.save() method recalculates totals
                         
@@ -228,9 +228,9 @@ def checkout_page_view(request, checkout_token):
                             match_format=checkout_data.get('match_format', 'singles'),
                             game_type=checkout_data.get('game_type', 'friendly'),
                             scoring_format=checkout_data.get('scoring_format', '11'),
-                            points_per_game=checkout_data.get('points_per_game', 11),
-                            games_to_win=checkout_data.get('games_to_win', 2),
-                            win_by_two=checkout_data.get('win_by_two', True),
+                            points_per_game=checkout_data.get('points_per_game') or 11,
+                            games_to_win=checkout_data.get('games_to_win') or 2,
+                            win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
                         )
                         
                         # Attach equipment
@@ -318,9 +318,9 @@ def checkout_page_view(request, checkout_token):
                         match_format=checkout_data.get('match_format', 'singles'),
                         game_type=checkout_data.get('game_type', 'friendly'),
                         scoring_format=checkout_data.get('scoring_format', '11'),
-                        points_per_game=checkout_data.get('points_per_game', 11),
-                        games_to_win=checkout_data.get('games_to_win', 2),
-                        win_by_two=checkout_data.get('win_by_two', True),
+                        points_per_game=checkout_data.get('points_per_game') or 11,
+                        games_to_win=checkout_data.get('games_to_win') or 2,
+                        win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
                     )
                     
                     # Attach equipment
@@ -645,11 +645,10 @@ def verify_payment_view(request, payment_id):
         id=payment_id
     )
 
-    # Determine template and redirect URL based on user role and URL path
-    is_admin_url = 'admin' in request.path
-    if request.user.is_admin() and is_admin_url:
+    # Determine template and redirect URL based on user role
+    if request.user.is_org_admin():
         template_name = 'admin/payments/verify_payment.html'
-        redirect_url = 'super_admin_payments'
+        redirect_url = 'org_admin_payments'
     else:
         template_name = 'staff/payments/verify_payment.html'
         redirect_url = 'staff_payments'

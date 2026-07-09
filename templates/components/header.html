@@ -396,12 +396,7 @@
                             <li><a class="dropdown-item" href="{% url 'admin_tournament_list' %}">
                                 <i class="fas fa-trophy"></i>Manage Tournaments
                             </a></li>
-                            <li><a class="dropdown-item" href="{% url 'super_admin_equipment_list' %}">
-                                <i class="fas fa-box"></i>Manage Equipment
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'super_admin_reservation_list' %}">
-                                <i class="fas fa-chart-bar"></i>Reservations
-                            </a></li>
+
                             {% endif %}
                             {% if user.is_org_admin %}
                             <li><hr class="dropdown-divider"></li>

@@ -32,9 +32,6 @@ urlpatterns = [
     path('super-admin/', include('dashboard.admin_urls')),
     path('super-admin/', include('accounts.admin_urls')),
     path('super-admin/', include('organizations.admin_urls')),
-    path('super-admin/', include('reservations.admin_urls')),
-    path('super-admin/', include('payments.admin_urls')),
-    path('super-admin/', include('equipment.admin_urls')),
     path('super-admin/', include('tournaments.admin_urls')),
     path('super-admin/', include('notifications.admin_urls')),
 
@@ -44,7 +41,7 @@ urlpatterns = [
     path('org-admin/', include('courts.org_urls')),
     path('org-admin/', include('reservations.org_urls')),
     path('org-admin/', include('payments.org_urls')),
-    path('org-admin/', include('equipment.staff_urls')),
+    path('org-admin/', include('equipment.org_urls')),
     path('org-admin/', include('tournaments.admin_urls')),
     path('org-admin/', include('notifications.org_urls')),
 

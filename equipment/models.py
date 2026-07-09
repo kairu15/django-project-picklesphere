@@ -21,7 +21,10 @@ class Equipment(models.Model):
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     name = models.CharField(max_length=100)
     brand = models.CharField(max_length=100, blank=True, null=True)
+    model_name = models.CharField(max_length=100, blank=True, null=True, verbose_name='Model')
     description = models.TextField(blank=True, null=True)
+    storage_location = models.CharField(max_length=200, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
     
     # Inventory
     quantity_total = models.PositiveIntegerField(default=1)

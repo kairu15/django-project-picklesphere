@@ -282,7 +282,11 @@
                         {% endif %}
                     {% endif %}
                     
-                    {% if user.is_staff_user or user.is_admin %}
+                    {% if user.is_org_admin %}
+                        <a href="{% url 'org_admin_reservations' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Reservations
+                        </a>
+                    {% elif user.is_staff_user %}
                         <a href="{% url 'staff_reservations' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
                             <i class="fas fa-arrow-left me-2"></i>Back to Reservations
                         </a>

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.utils import timezone
-from accounts.decorators import admin_required, staff_or_admin_required, user_required
+from accounts.decorators import admin_required, staff_or_admin_required, user_required, org_admin_required
 from .models import Equipment, EquipmentRental, EquipmentMaintenance
 from reservations.models import Reservation
 from .forms import EquipmentForm
@@ -96,6 +96,10 @@ def equipment_detail_view(request, equipment_id):
 @login_required
 @staff_or_admin_required
 def staff_equipment_view(request):
+    
+    # Redirect org_admin to their dedicated equipment module
+    if request.user.is_org_admin():
+        return redirect('org_admin_equipment_list')
     
     equipment = Equipment.objects.all().order_by('type', 'name')
     
@@ -277,7 +281,7 @@ def admin_equipment_create_view(request):
                 equipment.organization = request.user.organization
             equipment.save()
             messages.success(request, f'Equipment {equipment.name} created successfully.')
-            return redirect('super_admin_equipment_list')
+            return redirect('org_admin_equipment_list')
     else:
         form = EquipmentForm()
 
@@ -303,7 +307,7 @@ def admin_equipment_edit_view(request, equipment_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Equipment {equipment.name} updated successfully.')
-            return redirect('super_admin_equipment_list')
+            return redirect('org_admin_equipment_list')
     else:
         form = EquipmentForm(instance=equipment)
 
@@ -320,7 +324,7 @@ def admin_equipment_delete_view(request, equipment_id):
 
     if request.method != 'POST':
         messages.error(request, 'Invalid request method.')
-        return redirect('super_admin_equipment_list')
+        return redirect('org_admin_equipment_list')
 
     equipment_qs = Equipment.objects.all()
     # Org-scoping for org_admin
@@ -331,9 +335,181 @@ def admin_equipment_delete_view(request, equipment_id):
     
     if not equipment.is_active:
         messages.info(request, f'Equipment {equipment.name} is already inactive.')
-        return redirect('super_admin_equipment_list')
+        return redirect('org_admin_equipment_list')
 
     equipment.is_active = False
     equipment.save(update_fields=['is_active'])
     messages.success(request, f'Equipment {equipment.name} deactivated successfully.')
-    return redirect('super_admin_equipment_list')
+    return redirect('org_admin_equipment_list')
+
+
+# ==================== ORG ADMIN EQUIPMENT VIEWS ====================
+
+
+@login_required
+@org_admin_required
+def org_admin_equipment_list_view(request):
+
+    equipment = Equipment.objects.all().order_by('-created_at')
+
+    # Org-scoping
+    if request.user.organization:
+        equipment = equipment.filter(organization=request.user.organization)
+
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        equipment = equipment.filter(
+            Q(name__icontains=search_query) |
+            Q(brand__icontains=search_query) |
+            Q(type__icontains=search_query)
+        )
+
+    type_filter = request.GET.get('type', '')
+    if type_filter:
+        equipment = equipment.filter(type=type_filter)
+
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'active':
+        equipment = equipment.filter(is_active=True)
+    elif status_filter == 'inactive':
+        equipment = equipment.filter(is_active=False)
+
+    condition_filter = request.GET.get('condition', '')
+    if condition_filter:
+        equipment = equipment.filter(condition=condition_filter)
+
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['name', 'type', 'quantity_available', 'rental_price', 'created_at']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        equipment = equipment.order_by(sort_by)
+
+    # Stats
+    equip_base = Equipment.objects.filter(is_active=True)
+    rental_base = EquipmentRental.objects.filter(status__in=['reserved', 'rented'])
+    if request.user.organization:
+        equip_base = equip_base.filter(organization=request.user.organization)
+        rental_base = rental_base.filter(equipment__organization=request.user.organization)
+
+    stats = {
+        'total': Equipment.objects.filter(organization=request.user.organization).count(),
+        'available': equip_base.filter(quantity_available__gt=0).count(),
+        'rented': rental_base.count(),
+        'maintenance': equip_base.filter(condition__in=['fair', 'poor']).count(),
+        'out_of_stock': equip_base.filter(quantity_available=0).count(),
+        'low_stock': equip_base.filter(quantity_available__lte=2, quantity_available__gt=0).count(),
+    }
+
+    # Pagination
+    paginator = Paginator(equipment, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'admin/equipment/org_equipment_list.html', {
+        'equipment': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
+        'type_filter': type_filter,
+        'status_filter': status_filter,
+        'condition_filter': condition_filter,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'stats': stats,
+    })
+
+
+@login_required
+@org_admin_required
+def org_admin_equipment_create_view(request):
+
+    if not request.user.organization:
+        messages.error(request, 'You must belong to an organization to create equipment.')
+        return redirect('org_admin_equipment_list')
+
+    if request.method == 'POST':
+        form = EquipmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            equipment = form.save(commit=False)
+            equipment.organization = request.user.organization
+            equipment.save()
+            messages.success(request, f'Equipment {equipment.name} created successfully.')
+            return redirect('org_admin_equipment_list')
+    else:
+        form = EquipmentForm()
+
+    return render(request, 'admin/equipment/org_equipment_form.html', {
+        'form': form,
+        'edit_mode': False,
+    })
+
+
+@login_required
+@org_admin_required
+def org_admin_equipment_detail_view(request, equipment_id):
+
+    equip_qs = Equipment.objects.all()
+    if request.user.organization:
+        equip_qs = equip_qs.filter(organization=request.user.organization)
+
+    equipment = get_object_or_404(equip_qs, id=equipment_id)
+
+    rental_history = EquipmentRental.objects.filter(equipment=equipment).order_by('-created_at')[:10]
+    maintenance_records = EquipmentMaintenance.objects.filter(equipment=equipment).order_by('-maintenance_date')[:10]
+
+    return render(request, 'admin/equipment/org_equipment_detail.html', {
+        'equipment': equipment,
+        'rental_history': rental_history,
+        'maintenance_records': maintenance_records,
+    })
+
+
+@login_required
+@org_admin_required
+def org_admin_equipment_edit_view(request, equipment_id):
+
+    equip_qs = Equipment.objects.all()
+    if request.user.organization:
+        equip_qs = equip_qs.filter(organization=request.user.organization)
+
+    equipment = get_object_or_404(equip_qs, id=equipment_id)
+
+    if request.method == 'POST':
+        form = EquipmentForm(request.POST, request.FILES, instance=equipment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Equipment {equipment.name} updated successfully.')
+            return redirect('org_admin_equipment_list')
+    else:
+        form = EquipmentForm(instance=equipment)
+
+    return render(request, 'admin/equipment/org_equipment_form.html', {
+        'form': form,
+        'edit_mode': True,
+        'equipment': equipment,
+    })
+
+
+@login_required
+@org_admin_required
+def org_admin_equipment_delete_view(request, equipment_id):
+
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('org_admin_equipment_list')
+
+    equip_qs = Equipment.objects.all()
+    if request.user.organization:
+        equip_qs = equip_qs.filter(organization=request.user.organization)
+
+    equipment = get_object_or_404(equip_qs, id=equipment_id)
+
+    equipment.is_active = False
+    equipment.save(update_fields=['is_active'])
+    messages.success(request, f'Equipment {equipment.name} deactivated successfully.')
+    return redirect('org_admin_equipment_list')

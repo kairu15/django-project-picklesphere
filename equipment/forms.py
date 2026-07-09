@@ -9,6 +9,7 @@ class EquipmentForm(forms.ModelForm):
             'name',
             'type',
             'brand',
+            'model_name',
             'description',
             'quantity_total',
             'quantity_available',
@@ -16,12 +17,15 @@ class EquipmentForm(forms.ModelForm):
             'purchase_price',
             'condition',
             'is_active',
+            'storage_location',
+            'notes',
             'image',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'type': forms.Select(attrs={'class': 'form-select'}),
             'brand': forms.TextInput(attrs={'class': 'form-control'}),
+            'model_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Pro-Lite Black'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'quantity_total': forms.NumberInput(attrs={'class': 'form-control'}),
             'quantity_available': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -29,6 +33,8 @@ class EquipmentForm(forms.ModelForm):
             'purchase_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'condition': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'storage_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Shelf A-3, Equipment Room'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional notes...'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
         }
 

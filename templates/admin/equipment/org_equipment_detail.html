@@ -1,0 +1,241 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ equipment.name }} - Equipment Details{% endblock %}
+{% block page_title %}{{ equipment.name }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_equipment_list' %}">Equipment</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ equipment.name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Main Column -->
+    <div class="col-lg-8">
+        <!-- Equipment Details Card -->
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-info-circle text-primary"></i>
+                    Equipment Information
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'org_admin_equipment_edit' equipment.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4 text-center">
+                        {% if equipment.image %}
+                        <img src="{{ equipment.image.url }}" alt="{{ equipment.name }}" class="img-fluid rounded" style="max-height: 200px; object-fit: contain;">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center" style="height: 150px; background: #f8f9fa; border-radius: 12px;">
+                            <i class="fas fa-box fa-4x text-muted"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <td class="text-muted" style="width: 140px;">Name</td>
+                                <td class="fw-semibold">{{ equipment.name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Type</td>
+                                <td><span class="badge bg-light text-dark border">{{ equipment.get_type_display }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Brand</td>
+                                <td>{{ equipment.brand|default:"N/A" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Condition</td>
+                                <td>
+                                    <span class="badge {% if equipment.condition == 'new' %}bg-success{% elif equipment.condition == 'good' %}bg-info{% elif equipment.condition == 'fair' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ equipment.get_condition_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Status</td>
+                                <td>
+                                    {% if equipment.is_active %}
+                                    <span class="status-badge active">Active</span>
+                                    {% else %}
+                                    <span class="status-badge inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if equipment.description %}
+                            <tr>
+                                <td class="text-muted">Description</td>
+                                <td>{{ equipment.description|linebreaks }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rental History -->
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-history text-info"></i>
+                    Rental History
+                </h5>
+                <span class="badge bg-info">{{ rental_history|length }} records</span>
+            </div>
+            <div class="card-body p-0">
+                {% if rental_history %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Renter</th>
+                                <th>Date</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rental in rental_history %}
+                            <tr>
+                                <td data-label="Renter">{{ rental.rented_by.get_full_name|default:rental.rented_by.username }}</td>
+                                <td data-label="Date">{{ rental.created_at|date:"M d, Y" }}</td>
+                                <td data-label="Quantity">{{ rental.quantity }}</td>
+                                <td data-label="Status">
+                                    <span class="badge {% if rental.status == 'returned' %}bg-success{% elif rental.status == 'rented' %}bg-warning text-dark{% elif rental.status == 'reserved' %}bg-info{% else %}bg-danger{% endif %}">
+                                        {{ rental.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h6 class="empty-state-title">No rental history</h6>
+                    <p class="empty-state-text">This equipment has not been rented yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Maintenance Records -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-tools text-warning"></i>
+                    Maintenance Records
+                </h5>
+                <span class="badge bg-warning text-dark">{{ maintenance_records|length }} records</span>
+            </div>
+            <div class="card-body p-0">
+                {% if maintenance_records %}
+                <div class="admin-table-container">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Performed By</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in maintenance_records %}
+                            <tr>
+                                <td data-label="Date">{{ record.maintenance_date|date:"M d, Y" }}</td>
+                                <td data-label="Description">{{ record.description|truncatechars:50 }}</td>
+                                <td data-label="Performed By">{{ record.performed_by }}</td>
+                                <td data-label="Cost">
+                                    {% if record.cost %}
+                                    ₱{{ record.cost|floatformat:2 }}
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h6 class="empty-state-title">No maintenance records</h6>
+                    <p class="empty-state-text">No maintenance has been recorded for this equipment.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+        <!-- Quick Stats -->
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-chart-bar text-success"></i>
+                    Inventory Stats
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Total Quantity</span>
+                    <span class="fw-bold">{{ equipment.quantity_total }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Available</span>
+                    <span class="fw-bold text-success">{{ equipment.quantity_available }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Reserved</span>
+                    <span class="fw-bold text-info">{{ equipment.quantity_reserved }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Rental Price</span>
+                    <span class="fw-bold text-primary">₱{{ equipment.rental_price|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-bolt text-warning"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'org_admin_equipment_edit' equipment.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Equipment
+                    </a>
+                    <a href="{% url 'org_admin_equipment_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

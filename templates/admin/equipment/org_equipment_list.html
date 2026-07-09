@@ -1,0 +1,259 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Equipment Management{% endblock %}
+{% block page_title %}Equipment Management{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Equipment</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-2 col-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-3 text-center">
+                <div class="stats-icon bg-gradient-primary text-white mx-auto mb-2" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stats-value fs-4 fw-bold">{{ stats.total }}</div>
+                <div class="stats-label text-muted small">Total Items</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-3 text-center">
+                <div class="stats-icon bg-gradient-success text-white mx-auto mb-2" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-value fs-4 fw-bold text-success">{{ stats.available }}</div>
+                <div class="stats-label text-muted small">Available</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-3 text-center">
+                <div class="stats-icon bg-gradient-info text-white mx-auto mb-2" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-hand-holding"></i>
+                </div>
+                <div class="stats-value fs-4 fw-bold text-info">{{ stats.rented }}</div>
+                <div class="stats-label text-muted small">Rented</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-3 text-center">
+                <div class="stats-icon bg-gradient-warning text-white mx-auto mb-2" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-value fs-4 fw-bold text-warning">{{ stats.maintenance }}</div>
+                <div class="stats-label text-muted small">Maintenance</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-3 text-center">
+                <div class="stats-icon bg-gradient-danger text-white mx-auto mb-2" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stats-value fs-4 fw-bold text-danger">{{ stats.out_of_stock }}</div>
+                <div class="stats-label text-muted small">Out of Stock</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-3 text-center">
+                <div class="stats-icon bg-gradient-secondary text-white mx-auto mb-2" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="stats-value fs-4 fw-bold text-muted">{{ stats.low_stock }}</div>
+                <div class="stats-label text-muted small">Low Stock</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+{% include 'components/filter_bar_start.html' %}
+    <div class="col-md-3">
+        <label class="filter-label"><i class="fas fa-search me-1 text-primary"></i>Search</label>
+        <input type="text" name="search" class="filter-input" value="{{ search_query }}" placeholder="Name or brand...">
+    </div>
+    <div class="col-md-2">
+        <label class="filter-label"><i class="fas fa-tag me-1 text-primary"></i>Type</label>
+        <select name="type" class="filter-select">
+            <option value="">All Types</option>
+            <option value="paddle" {% if type_filter == 'paddle' %}selected{% endif %}>Paddle</option>
+            <option value="ball" {% if type_filter == 'ball' %}selected{% endif %}>Ball</option>
+            <option value="net" {% if type_filter == 'net' %}selected{% endif %}>Net</option>
+            <option value="shoes" {% if type_filter == 'shoes' %}selected{% endif %}>Shoes</option>
+            <option value="other" {% if type_filter == 'other' %}selected{% endif %}>Other</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="filter-label"><i class="fas fa-toggle-on me-1 text-primary"></i>Status</label>
+        <select name="status" class="filter-select">
+            <option value="">All Status</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="filter-label"><i class="fas fa-clipboard-check me-1 text-primary"></i>Condition</label>
+        <select name="condition" class="filter-select">
+            <option value="">All Conditions</option>
+            <option value="new" {% if condition_filter == 'new' %}selected{% endif %}>New</option>
+            <option value="good" {% if condition_filter == 'good' %}selected{% endif %}>Good</option>
+            <option value="fair" {% if condition_filter == 'fair' %}selected{% endif %}>Fair</option>
+            <option value="poor" {% if condition_filter == 'poor' %}selected{% endif %}>Poor</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <div class="filter-btn-row">
+            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i>Search</button>
+            {% if search_query or type_filter or status_filter %}
+            <a href="{% url 'org_admin_equipment_list' %}" class="btn btn-outline-secondary" title="Clear filters"><i class="fas fa-times"></i></a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'org_admin_equipment_create' %}" class="btn btn-success w-100"><i class="fas fa-plus me-1"></i>Add Equipment</a>
+    </div>
+{% include 'components/filter_bar_end.html' %}
+
+<!-- Equipment Table -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-tools text-primary"></i>
+            All Equipment
+        </h5>
+        <span class="badge bg-primary">{{ equipment|length }} total</span>
+    </div>
+    <div class="card-body p-0">
+        {% if equipment %}
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th><a href="?sort_by=name&amp;sort_order={% if sort_by == 'name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&amp;search={{ search_query }}{% endif %}{% if type_filter %}&amp;type={{ type_filter }}{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}" class="sort-link">Equipment {% if sort_by == 'name' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}\"></i>{% elif sort_by == '-name' %}<i class="fas fa-sort-down\"></i>{% endif %}</a></th>
+                        <th><a href="?sort_by=type&amp;sort_order={% if sort_by == 'type' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&amp;search={{ search_query }}{% endif %}{% if type_filter %}&amp;type={{ type_filter }}{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}" class="sort-link">Type {% if sort_by == 'type' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}\"></i>{% elif sort_by == '-type' %}<i class="fas fa-sort-down\"></i>{% endif %}</a></th>
+                        <th><a href="?sort_by=quantity_available&amp;sort_order={% if sort_by == 'quantity_available' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&amp;search={{ search_query }}{% endif %}{% if type_filter %}&amp;type={{ type_filter }}{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}" class="sort-link">Stock {% if sort_by == 'quantity_available' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}\"></i>{% elif sort_by == '-quantity_available' %}<i class="fas fa-sort-down\"></i>{% endif %}</a></th>
+                        <th><a href="?sort_by=rental_price&amp;sort_order={% if sort_by == 'rental_price' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&amp;search={{ search_query }}{% endif %}{% if type_filter %}&amp;type={{ type_filter }}{% endif %}{% if status_filter %}&amp;status={{ status_filter }}{% endif %}" class="sort-link">Price {% if sort_by == 'rental_price' %}<i class="fas fa-sort-{% if sort_order == 'asc' %}up{% else %}down{% endif %}\"></i>{% elif sort_by == '-rental_price' %}<i class="fas fa-sort-down\"></i>{% endif %}</a></th>
+                        <th>Condition</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in equipment %}
+                    <tr>
+                        <td data-label="Equipment">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm {% if item.image %}{% else %}avatar-placeholder{% endif %} me-2" style="width: 36px; height: 36px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                    {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                    <i class="fas fa-box" style="line-height: 36px; text-align: center; width: 100%; color: #adb5bd;"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="fw-semibold d-block">{{ item.name }}</span>
+                                    <small class="text-muted">{{ item.brand|default:"No brand" }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="Type">
+                            <span class="badge bg-light text-dark border">{{ item.get_type_display }}</span>
+                        </td>
+                        <td data-label="Stock">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-semibold {% if item.quantity_available == 0 %}text-danger{% elif item.quantity_available < 5 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ item.quantity_available }}
+                                </span>
+                                <span class="text-muted mx-1">/</span>
+                                <span class="text-muted">{{ item.quantity_total }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Price">
+                            <span class="fw-semibold text-primary">₱{{ item.rental_price|floatformat:0 }}</span>
+                        </td>
+                        <td data-label="Condition">
+                            <span class="badge {% if item.condition == 'new' %}bg-success{% elif item.condition == 'good' %}bg-info{% elif item.condition == 'fair' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                {{ item.get_condition_display }}
+                            </span>
+                        </td>
+                        <td data-label="Status">
+                            {% if item.is_active %}
+                            <span class="status-badge active">Active</span>
+                            {% else %}
+                            <span class="status-badge inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Actions">
+                            <div class="action-buttons justify-content-end">
+                                <a href="{% url 'org_admin_equipment_detail' item.id %}" class="action-btn view" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'org_admin_equipment_edit' item.id %}" class="action-btn edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if item.is_active %}
+                                <form method="post" action="{% url 'org_admin_equipment_delete' item.id %}" class="d-inline" data-confirm-message="Deactivate this equipment?">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn delete" title="Deactivate" onclick="event.preventDefault(); customConfirm(this.closest('form').dataset.confirmMessage, () => { this.closest('form').submit(); })">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include 'components/pagination.html' %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h5 class="empty-state-title">No equipment found</h5>
+            <p class="empty-state-text">
+                {% if search_query or type_filter or status_filter %}
+                    No equipment matches your search criteria.
+                {% else %}
+                    Add equipment items to start renting to customers.
+                {% endif %}
+            </p>
+            {% if not search_query and not type_filter and not status_filter %}
+            <a href="{% url 'org_admin_equipment_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Equipment
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Apply admin form styling
+document.querySelectorAll('select.filter-select, input.filter-input').forEach(function(el) {
+    if (el.tagName === 'SELECT') el.classList.add('form-select');
+    else el.classList.add('form-control');
+});
+</script>
+{% endblock %}

@@ -154,9 +154,9 @@ def reservation_create_view(request):
                 'match_format': form.cleaned_data.get('match_format', 'singles'),
                 'game_type': form.cleaned_data.get('game_type', 'friendly'),
                 'scoring_format': form.cleaned_data.get('scoring_format', '11'),
-                'points_per_game': form.cleaned_data.get('points_per_game', 11),
-                'games_to_win': form.cleaned_data.get('games_to_win', 2),
-                'win_by_two': form.cleaned_data.get('win_by_two', True),
+                'points_per_game': form.cleaned_data.get('points_per_game') or 11,
+                'games_to_win': form.cleaned_data.get('games_to_win') or 2,
+                'win_by_two': form.cleaned_data.get('win_by_two') if form.cleaned_data.get('win_by_two') is not None else True,
             }
             
             messages.success(request, 'Please review your booking and complete payment.')

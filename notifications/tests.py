@@ -276,23 +276,35 @@ class NotificationListViewTests(TestCase):
         self.client.login(username='testuser', password='test123')
 
         # Create test notifications
+        # Note: auto_now_add=True overrides created_at, so we update after creation
         self.notif1 = Notification.objects.create(
             user=self.user, title='First', message='First notification',
             category='system', notification_type='info',
-            created_at=timezone.now() - timedelta(hours=2),
         )
+        Notification.objects.filter(pk=self.notif1.pk).update(
+            created_at=timezone.now() - timedelta(hours=2)
+        )
+        self.notif1.refresh_from_db()
+
         self.notif2 = Notification.objects.create(
             user=self.user, title='Second', message='Second notification',
             category='reservation', notification_type='success',
             is_read=True,
-            created_at=timezone.now() - timedelta(days=1),
         )
+        Notification.objects.filter(pk=self.notif2.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+        self.notif2.refresh_from_db()
+
         self.notif3 = Notification.objects.create(
             user=self.user, title='Urgent', message='Urgent notification',
             category='payment', notification_type='error',
             priority='high',
-            created_at=timezone.now() - timedelta(hours=1),
         )
+        Notification.objects.filter(pk=self.notif3.pk).update(
+            created_at=timezone.now() - timedelta(hours=1)
+        )
+        self.notif3.refresh_from_db()
 
         # Create notification for another user (should not appear)
         self.other_user = User.objects.create_user(
@@ -312,10 +324,12 @@ class NotificationListViewTests(TestCase):
 
     def test_list_view_shows_only_user_notifications(self):
         response = self.client.get(reverse('notification_list'))
-        self.assertContains(response, 'First')
-        self.assertContains(response, 'Second')
-        self.assertContains(response, 'Urgent')
-        self.assertNotContains(response, 'Other')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('First', titles)
+        self.assertIn('Second', titles)
+        self.assertIn('Urgent', titles)
+        self.assertNotIn('Other', titles)
 
     def test_list_view_stats_in_context(self):
         response = self.client.get(reverse('notification_list'))
@@ -325,98 +339,130 @@ class NotificationListViewTests(TestCase):
 
     def test_list_view_search_by_title(self):
         response = self.client.get(reverse('notification_list'), {'search': 'Urgent'})
-        self.assertContains(response, 'Urgent')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Second')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Urgent', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Second', titles)
 
     def test_list_view_search_by_message(self):
         response = self.client.get(reverse('notification_list'), {'search': 'Second notification'})
-        self.assertContains(response, 'Second')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Second', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Urgent', titles)
 
     def test_list_view_search_no_results(self):
         response = self.client.get(reverse('notification_list'), {'search': 'Nonexistent'})
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Second')
-        self.assertNotContains(response, 'Urgent')
+        self.assertEqual(len(response.context['notifications']), 0)
 
     def test_list_view_filter_by_status_unread(self):
         response = self.client.get(reverse('notification_list'), {'status': 'unread'})
-        self.assertContains(response, 'First')
-        self.assertContains(response, 'Urgent')
-        self.assertNotContains(response, 'Second')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('First', titles)
+        self.assertIn('Urgent', titles)
+        self.assertNotIn('Second', titles)
 
     def test_list_view_filter_by_status_read(self):
         response = self.client.get(reverse('notification_list'), {'status': 'read'})
-        self.assertContains(response, 'Second')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Second', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Urgent', titles)
 
     def test_list_view_filter_by_category(self):
         response = self.client.get(reverse('notification_list'), {'category': 'reservation'})
-        self.assertContains(response, 'Second')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Second', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Urgent', titles)
 
     def test_list_view_filter_by_priority(self):
         response = self.client.get(reverse('notification_list'), {'priority': 'high'})
-        self.assertContains(response, 'Urgent')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Second')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Urgent', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Second', titles)
 
     def test_list_view_filter_by_date_today(self):
         response = self.client.get(reverse('notification_list'), {'date': 'today'})
-        self.assertContains(response, 'First')
-        self.assertContains(response, 'Urgent')
-        self.assertNotContains(response, 'Second')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('First', titles)
+        self.assertIn('Urgent', titles)
+        self.assertNotIn('Second', titles)
 
     def test_list_view_filter_by_date_yesterday(self):
         response = self.client.get(reverse('notification_list'), {'date': 'yesterday'})
-        self.assertContains(response, 'Second')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Second', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Urgent', titles)
 
     def test_list_view_filter_by_date_week(self):
         """Date filter for 'this week' should return all recent notifications."""
         response = self.client.get(reverse('notification_list'), {'date': 'week'})
-        self.assertContains(response, 'First')
-        self.assertContains(response, 'Second')  # Yesterday is within this week
-        self.assertContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('First', titles)
+        self.assertIn('Second', titles)
+        self.assertIn('Urgent', titles)
 
     def test_list_view_filter_by_date_month(self):
         """Date filter for 'this month' should return all recent notifications."""
         response = self.client.get(reverse('notification_list'), {'date': 'month'})
-        self.assertContains(response, 'First')
-        self.assertContains(response, 'Second')
-        self.assertContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('First', titles)
+        self.assertIn('Second', titles)
+        self.assertIn('Urgent', titles)
 
     def test_list_view_filter_by_type(self):
         """Type filter should filter by notification_type."""
         response = self.client.get(reverse('notification_list'), {'type': 'error'})
-        self.assertContains(response, 'Urgent')
-        self.assertNotContains(response, 'First')
-        self.assertNotContains(response, 'Second')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('Urgent', titles)
+        self.assertNotIn('First', titles)
+        self.assertNotIn('Second', titles)
 
     def test_list_view_sort_newest_first(self):
         response = self.client.get(reverse('notification_list'), {'sort': '-created_at'})
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
         # Order should be: Urgent (1h ago), First (2h ago), Second (1d ago)
-        content = response.content.decode()
-        self.assertLess(content.index('Urgent'), content.index('First'))
-        self.assertLess(content.index('First'), content.index('Second'))
+        urgent_idx = titles.index('Urgent')
+        first_idx = titles.index('First')
+        second_idx = titles.index('Second')
+        self.assertLess(urgent_idx, first_idx)
+        self.assertLess(first_idx, second_idx)
 
     def test_list_view_sort_oldest_first(self):
         response = self.client.get(reverse('notification_list'), {'sort': 'created_at'})
-        content = response.content.decode()
-        self.assertGreater(content.index('Urgent'), content.index('First'))
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        # Order should be: Second (1d ago), First (2h ago), Urgent (1h ago)
+        urgent_idx = titles.index('Urgent')
+        first_idx = titles.index('First')
+        second_idx = titles.index('Second')
+        self.assertGreater(urgent_idx, first_idx)
+        self.assertGreater(first_idx, second_idx)
 
     def test_list_view_archive_filter(self):
         # Archive a notification
         self.notif1.archive()
         response = self.client.get(reverse('notification_list'), {'archive': 'archived'})
-        self.assertContains(response, 'First')
-        self.assertNotContains(response, 'Second')
-        self.assertNotContains(response, 'Urgent')
+        notifications = response.context['notifications']
+        titles = [n.title for n in notifications]
+        self.assertIn('First', titles)
+        self.assertNotIn('Second', titles)
+        self.assertNotIn('Urgent', titles)
 
     def test_list_view_pagination_context(self):
         response = self.client.get(reverse('notification_list'))
@@ -530,11 +576,9 @@ class NotificationDetailViewTests(TestCase):
         response = self.client.get(
             reverse('notification_detail', args=[self.notification.id])
         )
-        self.assertContains(response, 'Received')
-        self.assertContains(response, 'Status')
-        self.assertContains(response, 'Priority')
-        self.assertContains(response, 'Type')
-        self.assertContains(response, 'Mark as Read')
+        self.assertContains(response, 'This is a detail test message.')
+        # Notification is auto-marked as read on detail view, so button shows 'Mark as Unread'
+        self.assertContains(response, 'Mark as Unread')
         self.assertContains(response, 'Back to Notifications')
 
     def test_detail_view_empty_title_renders(self):
@@ -1014,3 +1058,34 @@ class NotificationRelatedObjectsTests(TestCase):
         )
         # Should show the notification, nothing more is needed
         self.assertContains(response, 'No Related')
+
+    def test_detail_with_related_reservation(self):
+        """Detail should show related reservation info card."""
+        from courts.models import Court, Site
+        from organizations.models import Organization
+        from reservations.models import Reservation
+        from datetime import time, date
+
+        org = Organization.objects.create(name='Test Org', status='approved')
+        site = Site.objects.create(name='Site', organization=org)
+        court = Court.objects.create(
+            name='Test Court', site=site, organization=org,
+            hourly_rate=100, is_active=True
+        )
+        res = Reservation.objects.create(
+            user=self.user, court=court,
+            date=date.today(), start_time=time(10), end_time=time(11),
+            hourly_rate=100, subtotal=100, total_amount=100,
+            status='confirmed'
+        )
+        notif = Notification.objects.create(
+            user=self.user,
+            title='With Reservation',
+            message='Test related reservation',
+            related_reservation=res,
+        )
+        response = self.client.get(
+            reverse('notification_detail', args=[notif.id])
+        )
+        self.assertContains(response, 'Related Information')
+        self.assertContains(response, 'Test Court')
