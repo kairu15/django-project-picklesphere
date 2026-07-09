@@ -145,6 +145,98 @@ class CancellationRequest(models.Model):
         return f"Cancellation Request for Reservation #{self.reservation.id}"
 
 
+class WaitlistEntry(models.Model):
+    """When a court/time slot is fully booked, users can join a waitlist.
+    When a reservation is cancelled/expired, the next person on the waitlist gets notified."""
+    STATUS_CHOICES = (
+        ('waiting', 'Waiting'),
+        ('notified', 'Notified'),
+        ('claimed', 'Claimed'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='waitlist_entries')
+    court = models.ForeignKey(Court, on_delete=models.CASCADE, related_name='waitlist_entries')
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
+    preferred_slot_only = models.BooleanField(
+        default=True,
+        help_text='If True, only notify for this exact time slot. If False, notify for any available slot on this date.'
+    )
+    notified_at = models.DateTimeField(null=True, blank=True)
+    claimed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'waitlist_entries'
+        ordering = ['date', 'start_time', 'created_at']
+        indexes = [
+            models.Index(fields=['court', 'date', 'status']),
+            models.Index(fields=['user', 'status']),
+        ]
+
+    def __str__(self):
+        return f"Waitlist: {self.user.username} - {self.court.name} on {self.date} ({self.start_time}-{self.end_time})"
+
+    @property
+    def position(self):
+        """Return the user's position in the waitlist for this court/date/time."""
+        return WaitlistEntry.objects.filter(
+            court=self.court,
+            date=self.date,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            status='waiting',
+            created_at__lt=self.created_at
+        ).count() + 1
+
+    @classmethod
+    def get_waitlist_count(cls, court, date, start_time, end_time):
+        """Get count of waitlist entries for a specific slot."""
+        return cls.objects.filter(
+            court=court,
+            date=date,
+            start_time=start_time,
+            end_time=end_time,
+            status='waiting'
+        ).count()
+
+    @classmethod
+    def notify_next(cls, court, date, start_time, end_time):
+        """Notify the next person in the waitlist that a slot opened up."""
+        next_entry = cls.objects.filter(
+            court=court,
+            date=date,
+            start_time=start_time,
+            end_time=end_time,
+            status='waiting'
+        ).order_by('created_at').first()
+
+        if next_entry:
+            next_entry.status = 'notified'
+            next_entry.notified_at = timezone.now()
+            next_entry.save(update_fields=['status', 'notified_at'])
+
+            # Create notification
+            from notifications.models import Notification
+            Notification.objects.create(
+                user=next_entry.user,
+                title='Slot Available!',
+                message=f'A spot just opened up for {court.name} on {date.strftime("%b %d, %Y")} ({start_time.strftime("%I:%M %p")} - {end_time.strftime("%I:%M %p")}). You have a limited time to claim it!',
+                notification_type='success',
+                category='reservation',
+                priority='high',
+                action_url=f'/reservations/create/?court={court.id}&date={date.isoformat()}&start={start_time.strftime("%H:%M")}&end={end_time.strftime("%H:%M")}',
+                action_text='Book Now',
+            )
+
+        return next_entry
+
+
 class ReservationInvitation(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),

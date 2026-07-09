@@ -31,7 +31,7 @@ def org_admin_required(view_func):
         if not (request.user.is_org_admin() or request.user.is_super_admin()):
             messages.error(request, 'You do not have permission to access this page.')
             if request.user.is_super_admin():
-                return redirect('super_admin_dashboard')
+                return redirect('super_admin_org_dashboard')
             return redirect('user_dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -49,7 +49,7 @@ def org_staff_or_admin_required(view_func):
         if not (request.user.is_org_staff() or request.user.is_org_admin() or request.user.is_super_admin()):
             messages.error(request, 'You do not have permission to access this page.')
             if request.user.is_super_admin():
-                return redirect('super_admin_dashboard')
+                return redirect('super_admin_org_dashboard')
             return redirect('user_dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -85,7 +85,7 @@ def staff_or_admin_required(view_func):
         if not request.user.is_staff_user():
             messages.error(request, 'You do not have permission to access this page.')
             if request.user.is_super_admin():
-                return redirect('super_admin_dashboard')
+                return redirect('super_admin_org_dashboard')
             return redirect('user_dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -103,7 +103,7 @@ def user_required(view_func):
         if not request.user.is_normal_user():
             messages.error(request, 'You do not have permission to access this page.')
             if request.user.is_super_admin():
-                return redirect('super_admin_dashboard')
+                return redirect('super_admin_org_dashboard')
             elif request.user.is_org_admin():
                 return redirect('org_admin_dashboard')
             elif request.user.is_org_staff():
@@ -126,7 +126,7 @@ def org_required(view_func):
         if not request.user.organization:
             messages.error(request, 'You are not associated with any organization.')
             if request.user.is_super_admin():
-                return redirect('super_admin_dashboard')
+                return redirect('super_admin_org_dashboard')
             return redirect('user_dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view

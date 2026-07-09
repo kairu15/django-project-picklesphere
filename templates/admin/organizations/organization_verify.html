@@ -1,0 +1,121 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Verify Organization{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        {% if organization.is_verified %}
+                        <div class="mb-3">
+                            <i class="fas fa-check-circle fa-4x text-success"></i>
+                        </div>
+                        <h3 class="fw-bold">Remove Verification?</h3>
+                        <p class="text-muted mb-1">
+                            <strong>{{ organization.name }}</strong> is currently verified.
+                        </p>
+                        <p class="text-muted small">
+                            The verification badge will be removed from the organization's public profile.
+                            This action can be undone later.
+                        </p>
+                        {% else %}
+                        <div class="mb-3">
+                            <i class="fas fa-star fa-4x text-warning"></i>
+                        </div>
+                        <h3 class="fw-bold">Verify Organization</h3>
+                        <p class="text-muted mb-1">
+                            Verify <strong>{{ organization.name }}</strong>
+                        </p>
+                        <p class="text-muted small">
+                            A verified badge will appear on the organization's public profile,
+                            indicating that PickleSphere has confirmed this organization.
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Organization Summary -->
+                    <div class="bg-light rounded p-3 mb-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Status</small>
+                                <span class="badge {% if organization.status == 'approved' %}bg-success{% elif organization.status == 'pending' %}bg-warning{% elif organization.status == 'suspended' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                    {{ organization.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Current</small>
+                                {% if organization.is_verified %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Verified</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Not Verified</span>
+                                {% endif %}
+                            </div>
+                            {% if organization.verified_at %}
+                            <div class="col-12">
+                                <small class="text-muted d-block">Previously verified on</small>
+                                <small>{{ organization.verified_at|date:"F d, Y h:i A" }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Form -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <div class="form-check form-switch form-check-lg">
+                                <input type="checkbox" name="is_verified" id="id_is_verified"
+                                       class="form-check-input"
+                                       {% if organization.is_verified %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                                <label class="form-check-label fw-semibold" for="id_is_verified">
+                                    {% if organization.is_verified %}
+                                        <span class="text-success">✓ Currently Verified</span>
+                                    {% else %}
+                                        <span class="text-warning">Mark as Verified</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% if form.is_verified.errors %}
+                            <div class="text-danger small mt-1">{{ form.is_verified.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'super_admin_organization_detail' organization.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Organization
+                            </a>
+                            <button type="submit" class="btn {% if organization.is_verified %}btn-danger{% else %}btn-success{% endif %}">
+                                {% if organization.is_verified %}
+                                <i class="fas fa-times-circle me-1"></i> Remove Verification
+                                {% else %}
+                                <i class="fas fa-check-circle me-1"></i> Verify Organization
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-check-lg .form-check-input {
+    width: 3em;
+    height: 1.5em;
+    cursor: pointer;
+}
+.form-check-lg .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+</style>
+{% endblock %}

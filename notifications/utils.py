@@ -476,3 +476,99 @@ def notify_super_admin_announcement(super_admin, title, message):
         category='announcement',
         priority='normal',
     )
+
+
+# ==================== ORGANIZATION STATUS NOTIFICATIONS ====================
+
+def notify_org_admin_org_status_change(admin_user, organization, new_status, old_status=None, note=''):
+    """Notify org admin when their organization's status changes."""
+    status_messages = {
+        'approved': f'Your organization "{organization.name}" has been approved! You can now start managing courts, equipment, and accepting reservations.',
+        'rejected': f'Your organization "{organization.name}" has been reviewed and was not approved at this time.{" Reason: " + note if note else ""}',
+        'suspended': f'Your organization "{organization.name}" has been suspended. Please contact support for more information.{" Reason: " + note if note else ""}',
+        'pending': f'Your organization "{organization.name}" status has been reset to pending for review.',
+    }
+    status_titles = {
+        'approved': 'Organization Approved!',
+        'rejected': 'Organization Not Approved',
+        'suspended': 'Organization Suspended',
+        'pending': 'Organization Status Reset',
+    }
+    msg = status_messages.get(new_status, f'Your organization "{organization.name}" status has been changed to {new_status}.')
+    title = status_titles.get(new_status, 'Organization Status Updated')
+    ntype = 'success' if new_status == 'approved' else 'error' if new_status in ('rejected', 'suspended') else 'warning'
+    return create_notification(
+        user=admin_user,
+        title=title,
+        message=msg,
+        notification_type=ntype,
+        category='organization',
+        priority='high' if new_status in ('suspended',) else 'normal',
+        related_organization=organization,
+        action_url=f'/org-admin/dashboard/',
+        action_text='Go to Dashboard',
+    )
+
+
+def notify_org_owned_users_org_status_change(organization, new_status, note=''):
+    """Notify all organization members (staff, users) about a status change."""
+    from accounts.models import User
+    members = User.objects.filter(organization=organization).exclude(role='super_admin')
+    status_messages = {
+        'approved': f'{organization.name} has been approved! Start exploring courts and making reservations.',
+        'suspended': f'{organization.name} has been temporarily suspended. Please contact support.',
+        'rejected': f'{organization.name} application was not approved at this time.',
+    }
+    msg = status_messages.get(new_status, f'{organization.name} status has been updated to {new_status}.')
+    title = 'Organization Approved!' if new_status == 'approved' else 'Organization Update'
+    ntype = 'success' if new_status == 'approved' else 'error'
+    for member in members:
+        create_notification(
+            user=member,
+            title=title,
+            message=msg,
+            notification_type=ntype,
+            category='organization',
+            priority='normal',
+            related_organization=organization,
+        )
+
+
+def notify_org_admin_org_verified(admin_user, organization):
+    """Notify org admin when their organization gets verified."""
+    return create_notification(
+        user=admin_user,
+        title='Organization Verified!',
+        message=f'Your organization "{organization.name}" has been verified. The verification badge will now appear on your organization profile.',
+        notification_type='success',
+        category='organization',
+        priority='normal',
+        related_organization=organization,
+        action_url=f'/org-admin/profile/',
+        action_text='View Profile',
+    )
+
+
+def notify_super_admin_org_verified(super_admin, organization):
+    """Confirm to super admin that verification was toggled."""
+    return create_notification(
+        user=super_admin,
+        title='Organization Verification Updated',
+        message=f'{organization.name} verification status has been updated.',
+        notification_type='info',
+        category='organization',
+        priority='low',
+        related_organization=organization,
+    )
+
+def notify_super_admin_org_activity(super_admin, organization, activity):
+    """Notify super admin about important org activity."""
+    return create_notification(
+        user=super_admin,
+        title='Organization Activity',
+        message=f'{activity}',
+        notification_type='info',
+        category='organization',
+        priority='normal',
+        related_organization=organization,
+    )

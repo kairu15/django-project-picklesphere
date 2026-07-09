@@ -1,0 +1,209 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Organization Activity Log{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                {% if organization %}
+                    <i class="fas fa-history text-primary me-2"></i>Activity Log
+                {% else %}
+                    <i class="fas fa-history text-primary me-2"></i>Organization Activity Log
+                {% endif %}
+            </h1>
+            <p class="text-muted mb-0">
+                {% if organization %}
+                    Audit trail for <strong>{{ organization.name }}</strong>
+                {% else %}
+                    Track all organization-related actions across the platform
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <span class="badge bg-secondary fs-6 px-3 py-2">
+                <i class="fas fa-list me-1"></i> {{ total_count|default:page_obj.paginator.count }} Total Entries
+            </span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                {% if not organization %}
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted">Organization ID</label>
+                    <input type="number" name="org_id" class="form-control" placeholder="Filter by Org ID" value="{{ org_filter|default:'' }}">
+                </div>
+                {% endif %}
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted">Action</label>
+                    <select name="action" class="form-select">
+                        <option value="">All Actions</option>
+                        <option value="created" {% if action_filter == 'created' %}selected{% endif %}>Created</option>
+                        <option value="approved" {% if action_filter == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if action_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="suspended" {% if action_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+                        <option value="verified" {% if action_filter == 'verified' %}selected{% endif %}>Verified</option>
+                        <option value="unverified" {% if action_filter == 'unverified' %}selected{% endif %}>Unverified</option>
+                        <option value="updated" {% if action_filter == 'updated' %}selected{% endif %}>Updated</option>
+                        <option value="deleted" {% if action_filter == 'deleted' %}selected{% endif %}>Deleted</option>
+                        <option value="admin_assigned" {% if action_filter == 'admin_assigned' %}selected{% endif %}>Admin Assigned</option>
+                        <option value="admin_removed" {% if action_filter == 'admin_removed' %}selected{% endif %}>Admin Removed</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted">From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from|default:'' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted">To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter me-1"></i> Apply Filters
+                    </button>
+                    <a href="{% if organization %}{% url 'org_admin_org_activity_log' %}{% else %}{% url 'super_admin_organization_activity_log' %}{% endif %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activity Log Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            {% if logs %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Date/Time</th>
+                            <th>Organization</th>
+                            <th>Action</th>
+                            <th>Performed By</th>
+                            <th>Details</th>
+                            <th class="text-end pe-4">IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td class="ps-4 text-nowrap">
+                                <small class="text-muted">{{ log.created_at|date:"M d, Y" }}</small>
+                                <br>
+                                <small class="text-muted">{{ log.created_at|date:"h:i A" }}</small>
+                            </td>
+                            <td>
+                                <a href="{% if request.user.is_super_admin %}{% url 'super_admin_organization_detail' log.organization.pk %}{% else %}#{% endif %}" class="fw-semibold text-decoration-none">
+                                    {{ log.organization.name }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge {% if log.action == 'approved' or log.action == 'verified' %}bg-success{% elif log.action == 'rejected' or log.action == 'suspended' or log.action == 'deleted' %}bg-danger{% elif log.action == 'created' %}bg-info{% else %}bg-secondary{% endif %} bg-opacity-75 px-3 py-1">
+                                    {{ log.get_action_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if log.performed_by %}
+                                    <span class="fw-medium">{{ log.performed_by.get_full_name|default:log.performed_by.username }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ log.performed_by.get_role_display }}</small>
+                                {% else %}
+                                    <span class="text-muted"><em>System</em></span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ log.details|default:"—" }}</small>
+                                {% if log.changes %}
+                                <br>
+                                <a href="#" class="text-primary small" data-bs-toggle="modal" data-bs-target="#changesModal{{ log.id }}">
+                                    <i class="fas fa-code-branch me-1"></i>View Changes
+                                </a>
+                                <!-- Changes Modal -->
+                                <div class="modal fade" id="changesModal{{ log.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-sm">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h6 class="modal-title">Changes</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <pre class="mb-0" style="font-size: 0.85rem;">{{ log.changes|pprint }}</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <small class="text-muted font-monospace">{{ log.ip_address|default:"—" }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="card-footer bg-white border-0">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-history fa-3x text-muted opacity-50"></i>
+                </div>
+                <h5 class="text-muted">No Activity Logged</h5>
+                <p class="text-muted mb-0">There are no audit log entries matching your criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

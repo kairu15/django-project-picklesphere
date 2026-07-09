@@ -583,7 +583,7 @@ class DashboardRedirectTests(TestCase):
     def test_super_admin_redirects_to_super_admin_dashboard(self):
         self.client.login(username='sa', password='test123')
         response = self.client.get(reverse('dashboard'))
-        self.assertRedirects(response, reverse('super_admin_dashboard'))
+        self.assertRedirects(response, reverse('super_admin_org_dashboard'))
 
     def test_org_admin_redirects_to_org_admin_dashboard(self):
         self.client.login(username='oa', password='test123')
@@ -605,7 +605,7 @@ class DashboardRedirectTests(TestCase):
             'username': 'sa', 'password': 'test123'
         })
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('super_admin_dashboard'))
+        self.assertEqual(response.url, reverse('super_admin_org_dashboard'))
 
     def test_login_redirects_org_admin_correctly(self):
         response = self.client.post(reverse('login'), {

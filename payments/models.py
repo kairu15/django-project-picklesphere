@@ -32,6 +32,13 @@ class Payment(models.Model):
     # Transaction details
     transaction_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     payment_notes = models.TextField(blank=True, null=True)
+
+    # Stripe integration fields
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text='Stripe PaymentIntent ID (pi_xxx)')
+    stripe_checkout_session_id = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text='Stripe Checkout Session ID (cs_xxx)')
+    stripe_payment_method = models.CharField(max_length=50, blank=True, null=True, help_text='Stripe payment method type (card, gcash, grabpay, etc.)')
+    stripe_receipt_url = models.URLField(max_length=500, blank=True, null=True, help_text='URL to the Stripe-hosted receipt')
+    stripe_charge_id = models.CharField(max_length=255, blank=True, null=True, help_text='Stripe Charge ID (ch_xxx)')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

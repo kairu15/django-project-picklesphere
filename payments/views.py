@@ -7,10 +7,12 @@ from django.db import transaction
 from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django.http import HttpResponse, Http404
+from django.urls import reverse
 from datetime import datetime, timedelta
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
+from .stripe_integration import create_checkout_session, create_payment_intent, get_publishable_key
 from reservations.models import Reservation, CancellationRequest
 from reservations.models import ReservationEquipment
 from equipment.models import Equipment
@@ -45,6 +47,7 @@ def checkout_page_view(request, checkout_token):
     # Reconstruct unbound forms for the template
     gcash_form = GCashPaymentForm()
     cash_form = CashPaymentForm()
+    stripe_publishable_key = get_publishable_key()
     
     def _render_checkout(extra_ctx=None):
         """Helper to render the checkout page with common context."""
@@ -60,6 +63,8 @@ def checkout_page_view(request, checkout_token):
             'equipment_objects': equipment_objects,
             'total_equipment_fee': total_equipment_fee,
             'total_amount': total_amount,
+            'stripe_publishable_key': stripe_publishable_key,
+            'stripe_enabled': bool(stripe_publishable_key),
         }
         if extra_ctx:
             ctx.update(extra_ctx)
@@ -293,10 +298,10 @@ def checkout_page_view(request, checkout_token):
             else:
                 return _render_checkout()
             
-        elif method == 'card':
+        elif method == 'stripe':
+            # Stripe Checkout - create reservation first, then redirect to Stripe
             try:
                 with transaction.atomic():
-                    # Create the reservation
                     duration_hours = checkout_data['duration_hours']
                     hourly_rate = checkout_data['hourly_rate']
                     subtotal = checkout_data['subtotal']
@@ -312,7 +317,7 @@ def checkout_page_view(request, checkout_token):
                         subtotal=subtotal,
                         equipment_fee=0,
                         total_amount=0,
-                        status='confirmed',  # Card payments auto-confirm
+                        status='pending',
                         notes=checkout_data.get('notes', ''),
                         match_name=checkout_data.get('match_name', ''),
                         match_format=checkout_data.get('match_format', 'singles'),
@@ -323,21 +328,20 @@ def checkout_page_view(request, checkout_token):
                         win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
                     )
                     
-                    # Attach equipment
                     equipment_fee = 0
                     for eq_id in checkout_data.get('equipment_ids', []):
                         try:
-                            equipment = Equipment.objects.get(id=eq_id, is_active=True)
-                            if equipment.quantity_available > 0:
+                            equipment_item = Equipment.objects.get(id=eq_id, is_active=True)
+                            if equipment_item.quantity_available > 0:
                                 ReservationEquipment.objects.create(
                                     reservation=reservation,
-                                    equipment=equipment,
+                                    equipment=equipment_item,
                                     quantity=1,
-                                    rental_fee=equipment.rental_price
+                                    rental_fee=equipment_item.rental_price
                                 )
-                                equipment_fee += float(equipment.rental_price)
-                                equipment.quantity_available -= 1
-                                equipment.save()
+                                equipment_fee += float(equipment_item.rental_price)
+                                equipment_item.quantity_available -= 1
+                                equipment_item.save()
                         except Equipment.DoesNotExist:
                             pass
                     
@@ -345,7 +349,95 @@ def checkout_page_view(request, checkout_token):
                     reservation.total_amount = reservation.calculate_total()
                     reservation.save()
                     
-                    # Create and confirm payment in one go
+                    payment = Payment.objects.create(
+                        reservation=reservation,
+                        amount=reservation.total_amount,
+                        status='pending',
+                        method='card',
+                    )
+                    
+                    PaymentLog.objects.create(
+                        payment=payment,
+                        action='Stripe Checkout Initiated',
+                        details='User redirected to Stripe Checkout',
+                        performed_by=request.user
+                    )
+                    
+                    request.session.pop('checkout_data', None)
+                
+                # Create Stripe Checkout Session
+                success_url = request.build_absolute_uri(
+                    reverse('payment_status', args=[payment.id])
+                ) + '?stripe_session_id={CHECKOUT_SESSION_ID}'
+                cancel_url = request.build_absolute_uri(
+                    reverse('reservation_detail', args=[reservation.id])
+                )
+                
+                session = create_checkout_session(payment, success_url, cancel_url)
+                
+                if session:
+                    # Store the session ID
+                    payment.stripe_checkout_session_id = session.get('id')
+                    payment.save(update_fields=['stripe_checkout_session_id'])
+                    return redirect(session.url)
+                else:
+                    messages.error(request, 'Unable to process Stripe payment. Please try again or choose a different payment method.')
+                    return redirect('payment_checkout', reservation_id=reservation.id)
+                    
+            except Exception as e:
+                messages.error(request, f'An error occurred while processing your payment. Please try again. Error: {str(e)}')
+                return _render_checkout()
+        
+        elif method == 'card':
+            try:
+                with transaction.atomic():
+                    duration_hours = checkout_data['duration_hours']
+                    hourly_rate = checkout_data['hourly_rate']
+                    subtotal = checkout_data['subtotal']
+                    
+                    reservation = ResModel.objects.create(
+                        user=request.user,
+                        court=court,
+                        date=date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        duration_hours=duration_hours,
+                        hourly_rate=hourly_rate,
+                        subtotal=subtotal,
+                        equipment_fee=0,
+                        total_amount=0,
+                        status='confirmed',
+                        notes=checkout_data.get('notes', ''),
+                        match_name=checkout_data.get('match_name', ''),
+                        match_format=checkout_data.get('match_format', 'singles'),
+                        game_type=checkout_data.get('game_type', 'friendly'),
+                        scoring_format=checkout_data.get('scoring_format', '11'),
+                        points_per_game=checkout_data.get('points_per_game') or 11,
+                        games_to_win=checkout_data.get('games_to_win') or 2,
+                        win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
+                    )
+                    
+                    equipment_fee = 0
+                    for eq_id in checkout_data.get('equipment_ids', []):
+                        try:
+                            equipment_item = Equipment.objects.get(id=eq_id, is_active=True)
+                            if equipment_item.quantity_available > 0:
+                                ReservationEquipment.objects.create(
+                                    reservation=reservation,
+                                    equipment=equipment_item,
+                                    quantity=1,
+                                    rental_fee=equipment_item.rental_price
+                                )
+                                equipment_fee += float(equipment_item.rental_price)
+                                equipment_item.quantity_available -= 1
+                                equipment_item.save()
+                        except Equipment.DoesNotExist:
+                            pass
+                    
+                    reservation.equipment_fee = equipment_fee
+                    reservation.total_amount = reservation.calculate_total()
+                    reservation.save()
+                    
                     transaction_id = str(uuid.uuid4())[:8].upper()
                     payment = Payment.objects.create(
                         reservation=reservation,
@@ -367,7 +459,6 @@ def checkout_page_view(request, checkout_token):
                         message=f"Payment successful for reservation #{reservation.id}. Your reservation is confirmed!"
                     )
                     
-                    # Clear session data
                     request.session.pop('checkout_data', None)
                 
                 messages.success(request, 'Payment successful! Your reservation is confirmed.')
@@ -376,6 +467,7 @@ def checkout_page_view(request, checkout_token):
             except Exception as e:
                 messages.error(request, f'An error occurred while processing your payment. Please try again. Error: {str(e)}')
                 return _render_checkout()
+        
         else:
             messages.error(request, 'Invalid payment method selected.')
             return _render_checkout()
@@ -787,6 +879,36 @@ def cash_payment_confirmation_view(request, payment_id):
     return render(request, 'staff/payments/cash_confirmation.html', {
         'payment': payment,
         'reservation': payment.reservation,
+    })
+
+
+@login_required
+def payment_receipt_view(request, payment_id):
+    """View/print an official receipt for a payment."""
+    payment = get_object_or_404(
+        Payment.objects.select_related(
+            'reservation', 'reservation__court', 'reservation__user',
+            'cash_received_by',
+        ).prefetch_related(
+            'reservation__rented_equipment__equipment',
+            'logs__performed_by',
+        ),
+        id=payment_id
+    )
+    
+    # Check permissions
+    is_owner = payment.reservation.user == request.user
+    is_staff = request.user.is_staff_user() or request.user.is_admin()
+    if not is_owner and not is_staff:
+        messages.error(request, 'You do not have permission to view this receipt.')
+        return redirect('user_dashboard')
+    
+    # Get payment logs
+    logs = PaymentLog.objects.filter(payment=payment).select_related('performed_by').order_by('-created_at')
+    
+    return render(request, 'user/payments/receipt.html', {
+        'payment': payment,
+        'logs': logs,
     })
 
 
@@ -1370,7 +1492,7 @@ def revenue_report_view(request):
 @login_required
 @admin_required
 def revenue_report_export_view(request):
-    """Export revenue report as CSV"""
+    """Export revenue report as CSV or Excel (.xlsx)"""
     import csv
     from django.http import HttpResponse
 
@@ -1397,7 +1519,149 @@ def revenue_report_export_view(request):
     if method_filter:
         payments = payments.filter(method=method_filter)
 
-    # Create CSV response
+    # Revenue by method for summary
+    revenue_by_method = payments.values('method').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    )
+    total_revenue = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_bookings = payments.count()
+
+    # ===== EXCEL (.xlsx) EXPORT =====
+    if export_format == 'xlsx':
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+            wb = Workbook()
+            ws = wb.active
+            ws.title = 'Revenue Report'
+
+            # Styles
+            header_font = Font(name='Calibri', bold=True, size=14, color='FFFFFF')
+            header_fill = PatternFill(start_color='3B7A8C', end_color='3B7A8C', fill_type='solid')
+            section_font = Font(name='Calibri', bold=True, size=11, color='1a3a42')
+            section_fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
+            data_font = Font(name='Calibri', size=10)
+            money_font = Font(name='Calibri', size=10, color='28a745')
+            thin_border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+
+            # Title row
+            ws.merge_cells('A1:M1')
+            ws['A1'] = f'PickleSphere Revenue Report ({date_from} to {date_to})'
+            ws['A1'].font = header_font
+            ws['A1'].fill = header_fill
+            ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+            ws.row_dimensions[1].height = 35
+
+            # Summary section
+            row = 3
+            ws[f'A{row}'] = 'SUMMARY METRICS'
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].fill = section_fill
+            ws.merge_cells(f'A{row}:B{row}')
+            row += 1
+            ws[f'A{row}'] = 'Total Revenue'
+            ws[f'A{row}'].font = data_font
+            ws[f'B{row}'] = f'₱{total_revenue:,.2f}'
+            ws[f'B{row}'].font = money_font
+            row += 1
+            ws[f'A{row}'] = 'Total Paid Bookings'
+            ws[f'A{row}'].font = data_font
+            ws[f'B{row}'] = total_bookings
+            ws[f'B{row}'].font = data_font
+            row += 2
+
+            # Revenue by Method
+            ws[f'A{row}'] = 'REVENUE BY PAYMENT METHOD'
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].fill = section_fill
+            ws.merge_cells(f'A{row}:C{row}')
+            row += 1
+            headers = ['Method', 'Transactions', 'Revenue']
+            for col_idx, h in enumerate(headers, 1):
+                cell = ws.cell(row=row, column=col_idx, value=h)
+                cell.font = Font(name='Calibri', bold=True, size=10, color='FFFFFF')
+                cell.fill = PatternFill(start_color='6c757d', end_color='6c757d', fill_type='solid')
+                cell.border = thin_border
+            row += 1
+            for item in revenue_by_method:
+                ws.cell(row=row, column=1, value=item['method'] or 'N/A').font = data_font
+                ws.cell(row=row, column=2, value=item['count']).font = data_font
+                ws.cell(row=row, column=3, value=f'₱{item["total"]:,.2f}').font = money_font
+                for c in range(1, 4):
+                    ws.cell(row=row, column=c).border = thin_border
+                row += 1
+            row += 1
+
+            # Booking Details
+            ws[f'A{row}'] = 'BOOKING DETAILS'
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].fill = section_fill
+            ws.merge_cells(f'A{row}:M{row}')
+            row += 1
+            detail_headers = [
+                'Booking ID', 'Date', 'Start Time', 'End Time', 'Court',
+                'Player Name', 'Duration (hrs)', 'Equipment Fee',
+                'Court Fee', 'Total Amount', 'Method', 'Transaction ID', 'Status'
+            ]
+            for col_idx, h in enumerate(detail_headers, 1):
+                cell = ws.cell(row=row, column=col_idx, value=h)
+                cell.font = Font(name='Calibri', bold=True, size=9, color='FFFFFF')
+                cell.fill = PatternFill(start_color='6c757d', end_color='6c757d', fill_type='solid')
+                cell.border = thin_border
+            row += 1
+            for payment in payments:
+                res = payment.reservation
+                data = [
+                    res.id,
+                    res.date.isoformat() if hasattr(res.date, 'isoformat') else str(res.date),
+                    str(res.start_time)[:5] if res.start_time else '',
+                    str(res.end_time)[:5] if res.end_time else '',
+                    res.court.name if res.court else 'N/A',
+                    res.user.get_full_name() or res.user.username,
+                    float(res.duration_hours) if res.duration_hours else 0,
+                    float(res.equipment_fee or 0),
+                    float(res.subtotal or 0),
+                    float(payment.amount or 0),
+                    payment.method or 'N/A',
+                    payment.transaction_id or 'N/A',
+                    payment.status
+                ]
+                for col_idx, val in enumerate(data, 1):
+                    cell = ws.cell(row=row, column=col_idx, value=val)
+                    cell.font = data_font
+                    cell.border = thin_border
+                    if col_idx in (8, 9, 10):  # Money columns
+                        cell.number_format = '#,##0.00'
+                row += 1
+
+            # Auto-adjust column widths
+            for col in ws.columns:
+                max_length = 0
+                col_letter = col[0].column_letter
+                for cell in col:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                ws.column_dimensions[col_letter].width = min(max_length + 3, 30)
+
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="revenue_report_{date_from}_to_{date_to}.xlsx"'
+            wb.save(response)
+            return response
+
+        except ImportError:
+            # Fallback to CSV if openpyxl not installed
+            pass
+
+    # ===== CSV EXPORT (default) =====
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="revenue_report_{date_from}_to_{date_to}.csv"'
 
@@ -1413,8 +1677,6 @@ def revenue_report_export_view(request):
     writer.writerow([])
 
     # Summary Section
-    total_revenue = payments.aggregate(Sum('amount'))['amount__sum'] or 0
-    total_bookings = payments.count()
     writer.writerow(['SUMMARY METRICS'])
     writer.writerow(['Total Revenue', f'₱{total_revenue:.2f}'])
     writer.writerow(['Total Bookings', total_bookings])
@@ -1449,10 +1711,6 @@ def revenue_report_export_view(request):
     writer.writerow([])
 
     # Revenue by Method
-    revenue_by_method = payments.values('method').annotate(
-        total=Sum('amount'),
-        count=Count('id')
-    )
     writer.writerow(['REVENUE BY PAYMENT METHOD'])
     writer.writerow(['Method', 'Transactions', 'Revenue'])
     for item in revenue_by_method:

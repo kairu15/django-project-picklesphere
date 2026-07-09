@@ -4,8 +4,8 @@ from . import cms_views
 
 urlpatterns = [
     # Analytics Dashboard
-    path('dashboard/', views.admin_dashboard_view, name='super_admin_dashboard'),
-    path('dashboard/export/', views.dashboard_export_view, name='super_admin_dashboard_export'),
+    path('analytics/', views.admin_dashboard_view, name='super_admin_analytics'),
+    path('analytics/export/', views.dashboard_export_view, name='super_admin_analytics_export'),
     path('ratings/', views.rating_list_view, name='super_admin_rating_list'),
 
     # Homepage Content Management
@@ -107,6 +107,33 @@ urlpatterns = [
 
     # ========== MAINTENANCE MODE ==========
     path('maintenance/', cms_views.maintenance_mode_settings, name='super_admin_maintenance'),
+
+    # ========== FAQ PAGE CMS ==========
+    path('cms/faq/', cms_views.faq_cms_settings, name='super_admin_faq_cms'),
+    path('cms/faq/category/add/', cms_views.faq_category_add, name='super_admin_faq_category_add'),
+    path('cms/faq/category/<int:cat_id>/edit/', cms_views.faq_category_edit, name='super_admin_faq_category_edit'),
+    path('cms/faq/category/<int:cat_id>/delete/', cms_views.faq_category_delete, name='super_admin_faq_category_delete'),
+    path('cms/faq/item/add/', cms_views.faq_item_add, name='super_admin_faq_item_add'),
+    path('cms/faq/item/<int:item_id>/edit/', cms_views.faq_item_edit, name='super_admin_faq_item_edit'),
+    path('cms/faq/item/<int:item_id>/delete/', cms_views.faq_item_delete, name='super_admin_faq_item_delete'),
+
+    # ========== TERMS OF SERVICE CMS ==========
+    path('cms/terms/', cms_views.terms_cms_settings, name='super_admin_terms_cms'),
+    path('cms/terms/section/add/', cms_views.terms_section_add, name='super_admin_terms_section_add'),
+    path('cms/terms/section/<int:section_id>/edit/', cms_views.terms_section_edit, name='super_admin_terms_section_edit'),
+    path('cms/terms/section/<int:section_id>/delete/', cms_views.terms_section_delete, name='super_admin_terms_section_delete'),
+
+    # ========== PRIVACY POLICY CMS ==========
+    path('cms/privacy/', cms_views.privacy_cms_settings, name='super_admin_privacy_cms'),
+    path('cms/privacy/section/add/', cms_views.privacy_section_add, name='super_admin_privacy_section_add'),
+    path('cms/privacy/section/<int:section_id>/edit/', cms_views.privacy_section_edit, name='super_admin_privacy_section_edit'),
+    path('cms/privacy/section/<int:section_id>/delete/', cms_views.privacy_section_delete, name='super_admin_privacy_section_delete'),
+
+    # ========== MEDIA LIBRARY ==========
+    path('media/', cms_views.media_library_view, name='super_admin_media_library'),
+    path('media/upload/', cms_views.media_library_upload, name='super_admin_media_upload'),
+    path('media/<int:media_id>/edit/', cms_views.media_library_edit, name='super_admin_media_edit'),
+    path('media/<int:media_id>/delete/', cms_views.media_library_delete, name='super_admin_media_delete'),
 
     # ========== SITE SETTINGS ==========
     path('site-settings/', cms_views.site_settings_view, name='super_admin_site_settings'),

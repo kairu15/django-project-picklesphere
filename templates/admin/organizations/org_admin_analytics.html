@@ -1,0 +1,328 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Analytics - {{ organization.name }}{% endblock %}
+{% block page_title %}{{ organization.name }} Analytics{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item active">Analytics</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<style>
+.chart-container { position: relative; width: 100%; min-height: 220px; }
+.chart-container canvas { width: 100% !important; max-height: 220px; }
+@media (max-width: 767.98px) {
+    .chart-container { min-height: 180px; }
+    .chart-container canvas { max-height: 180px; }
+}
+</style>
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ revenue_stats.total_revenue|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Total Revenue</div>
+                    <small class="{% if revenue_growth > 0 %}text-success{% elif revenue_growth < 0 %}text-danger{% else %}text-muted{% endif %}">
+                        <i class="fas fa-{% if revenue_growth > 0 %}arrow-up{% elif revenue_growth < 0 %}arrow-down{% else %}minus{% endif %} me-1"></i>
+                        {{ revenue_growth }}% vs last month
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-calendar-check fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ total_reservations }}</div>
+                    <div class="stats-label text-muted">Total Reservations</div>
+                    <small class="text-info"><i class="fas fa-calendar-day me-1"></i>{{ today_reservations }} today</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-map-marker-alt fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ total_courts }}</div>
+                    <div class="stats-label text-muted">Active Courts</div>
+                    <small class="text-muted"><i class="fas fa-check-circle me-1"></i>Operational</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-undo fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">₱{{ total_refunds|floatformat:0 }}</div>
+                    <div class="stats-label text-muted">Total Refunded</div>
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ pending_reservations }} pending</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Row 1: Revenue Trend + Method Breakdown -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-chart-area text-success"></i>
+                    Revenue & Booking Trend
+                </h5>
+                <span class="badge bg-success">14-day view</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Daily revenue (bars) and booking count (line) for {{ organization.name }} over the last 14 days.
+                </p>
+                <div class="chart-container"><canvas id="orgRevenueTrendChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-chart-pie text-primary"></i>
+                    Revenue by Method
+                </h5>
+                <span class="badge bg-primary">{{ revenue_by_method|length }} methods</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Payment method distribution for your organization.
+                </p>
+                <div class="chart-container"><canvas id="orgMethodPieChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Row 2: Court Usage + Peak Hours -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-chart-bar text-info"></i>
+                    Court Usage
+                </h5>
+                <span class="badge bg-info">{{ court_usage|length }} courts</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Courts ranked by total reservation count. Larger bars indicate higher utilization.
+                </p>
+                <div class="chart-container"><canvas id="orgCourtUsageChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-clock text-warning"></i>
+                    Peak Booking Hours
+                </h5>
+                <span class="badge bg-warning text-dark">{{ peak_hours_labels|length }} slots</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Hourly booking distribution over the last 30 days for your organization.
+                </p>
+                <div class="chart-container"><canvas id="orgPeakHoursChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Reservations -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-clock text-primary"></i>
+            Recent Reservations
+        </h5>
+        <a href="{% url 'org_admin_reservations' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-list me-1"></i>View All
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if recent_reservations %}
+        <div class="admin-table-container">
+            <table class="table admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th data-label="ID">#</th>
+                        <th data-label="User">User</th>
+                        <th data-label="Court">Court</th>
+                        <th data-label="Date">Date</th>
+                        <th data-label="Time">Time</th>
+                        <th data-label="Amount" class="text-end">Amount</th>
+                        <th data-label="Status" class="text-end">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in recent_reservations %}
+                    <tr>
+                        <td data-label="ID" class="fw-semibold">#{{ res.id }}</td>
+                        <td data-label="User">{{ res.user.get_full_name|default:res.user.username }}</td>
+                        <td data-label="Court">{{ res.court.name }}</td>
+                        <td data-label="Date"><small>{{ res.date|date:"M d, Y" }}</small></td>
+                        <td data-label="Time"><small>{{ res.start_time|time:"g:i A" }} - {{ res.end_time|time:"g:i A" }}</small></td>
+                        <td data-label="Amount" class="text-end fw-semibold text-success">₱{{ res.total_amount|floatformat:2 }}</td>
+                        <td data-label="Status" class="text-end">
+                            <span class="status-badge {{ res.status }}">{{ res.get_status_display }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-calendar fa-2x text-muted"></i></div>
+            <h5 class="empty-state-title">No reservations yet</h5>
+            <p class="empty-state-text">Reservations will appear here once players start booking your courts.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const p = '#3B7A8C', g = '#28a745', w = '#ffc107', d = '#dc3545', i = '#17a2b8';
+
+    // 1. Revenue Trend
+    var rLabels = {{ revenue_trend_labels|safe }};
+    var rValues = {{ revenue_trend_values|safe }};
+    var bValues = {{ booking_trend_values|safe }};
+    var rCtx = document.getElementById('orgRevenueTrendChart');
+    if (rCtx && rLabels.length > 0) {
+        new Chart(rCtx, {
+            type: 'bar',
+            data: {
+                labels: rLabels,
+                datasets: [
+                    { label: 'Revenue (₱)', data: rValues, backgroundColor: 'rgba(40,167,69,0.7)', borderColor: g, borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+                    { label: 'Bookings', data: bValues, type: 'line', borderColor: p, backgroundColor: 'rgba(59,122,140,0.1)', fill: true, tension: 0.4, pointBackgroundColor: p, pointRadius: 3, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } } },
+                scales: {
+                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Revenue (₱)' } },
+                    y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Bookings' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // 2. Method Pie
+    var mLabels = [], mData = [], mColors = ['#28a745','#ffc107','#3B7A8C','#dc3545','#17a2b8'];
+    {% for item in revenue_by_method %}
+    mLabels.push('{{ item.method|title|default:"N/A" }}');
+    mData.push({{ item.total|default:0 }});
+    {% endfor %}
+    var mCtx = document.getElementById('orgMethodPieChart');
+    if (mCtx && mLabels.length > 0) {
+        new Chart(mCtx, {
+            type: 'doughnut',
+            data: { labels: mLabels, datasets: [{ data: mData, backgroundColor: mColors.slice(0, mLabels.length), borderWidth: 2, borderColor: '#fff' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } },
+                    tooltip: { callbacks: { label: function(ctx) { var t = ctx.dataset.data.reduce((a,b)=>a+b,0); return '₱' + ctx.parsed.toLocaleString() + ' (' + ((ctx.parsed/t)*100).toFixed(1) + '%)'; } } }
+                },
+                cutout: '55%'
+            }
+        });
+    } else if (mCtx) { mCtx.parentElement.innerHTML = '<div class="empty-state py-4"><p class="empty-state-text mb-0">No payment data available.</p></div>'; }
+
+    // 3. Court Usage
+    var cLabels = [], cData = [];
+    {% for court in court_usage %}
+    cLabels.push('{{ court.court__name|escapejs }}');
+    cData.push({{ court.total }});
+    {% endfor %}
+    var cCtx = document.getElementById('orgCourtUsageChart');
+    if (cCtx && cLabels.length > 0) {
+        new Chart(cCtx, {
+            type: 'bar',
+            data: {
+                labels: cLabels,
+                datasets: [{ label: 'Reservations', data: cData, backgroundColor: cData.map(function(v){ var m=Math.max.apply(null,cData); return v===m ? 'rgba(59,122,140,0.9)' : 'rgba(59,122,140,0.5)'; }), borderColor: p, borderWidth: 1, borderRadius: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, title: { display: true, text: 'Reservations' }, ticks: { stepSize: 1 } }, y: { grid: { display: false } } }
+            }
+        });
+    } else if (cCtx) { cCtx.parentElement.innerHTML = '<div class="empty-state py-4"><p class="empty-state-text mb-0">No court usage data available.</p></div>'; }
+
+    // 4. Peak Hours
+    var hLabels = {{ peak_hours_labels|safe }};
+    var hCounts = {{ peak_hours_counts|safe }};
+    var hRevenue = {{ peak_hours_revenue|safe }};
+    var hCtx = document.getElementById('orgPeakHoursChart');
+    if (hCtx && hLabels.length > 0) {
+        new Chart(hCtx, {
+            type: 'bar',
+            data: {
+                labels: hLabels,
+                datasets: [
+                    { label: 'Bookings', data: hCounts, backgroundColor: hCounts.map(function(v){ var m=Math.max.apply(null,hCounts); return v===m ? 'rgba(220,53,69,0.8)' : 'rgba(59,122,140,0.6)'; }), borderColor: hCounts.map(function(v){ var m=Math.max.apply(null,hCounts); return v===m ? d : p; }), borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+                    { label: 'Revenue (₱)', data: hRevenue, type: 'line', borderColor: g, backgroundColor: 'rgba(40,167,69,0.1)', fill: true, tension: 0.4, pointBackgroundColor: g, pointRadius: 3, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Bookings' }, ticks: { stepSize: 1 } },
+                    y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Revenue (₱)' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    } else if (hCtx) { hCtx.parentElement.innerHTML = '<div class="empty-state py-4"><p class="empty-state-text mb-0">No hourly data available.</p></div>'; }
+});
+</script>
+{% endblock %}

@@ -91,6 +91,16 @@ class OrganizationApprovalForm(forms.ModelForm):
         }
 
 
+class OrganizationVerificationForm(forms.ModelForm):
+    """Form for super admin to toggle verification status."""
+    class Meta:
+        model = Organization
+        fields = ['is_verified']
+        widgets = {
+            'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
 class SuperAdminOrganizationForm(forms.ModelForm):
     """Full organization management form for Super Admin"""
     

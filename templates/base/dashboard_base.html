@@ -7,6 +7,10 @@
 {% endblock %}
 
 {% block body %}
+<!-- Skip-to-content link for keyboard / screen reader users -->
+<a href="#mainContent" class="visually-hidden-focusable position-absolute start-0 z-3 p-3 bg-primary text-white text-decoration-none" style="top: 0; transform: translateY(-100%); transition: transform 0.2s ease;" onfocus="this.style.transform='translateY(0)'" onblur="this.style.transform='translateY(-100%)'" aria-label="Skip to main content">
+    <i class="fas fa-arrow-down me-2"></i>Skip to main content
+</a>
 <style>
 /* ===== UNIVERSAL FILTER BAR ===== */
 .filter-bar-standard {
@@ -823,7 +827,7 @@ body.sidebar-open {
                     <i class="fas fa-home"></i>
                     <span>View Site</span>
                 </a>
-                <a href="{% url 'super_admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
+                <a href="{% url 'super_admin_org_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_org_dashboard' %}active{% endif %}">
                     <i class="fas fa-crown"></i>
                     <span>Dashboard</span>
                 </a>
@@ -850,6 +854,14 @@ body.sidebar-open {
 
             <div class="nav-section">
                 <div class="nav-section-title">System Analytics</div>
+                <a href="{% url 'super_admin_analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics Dashboard</span>
+                </a>
+                <a href="{% url 'super_admin_revenue_report' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_revenue_report' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Revenue Reports</span>
+                </a>
                 <a href="{% url 'super_admin_rating_list' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_rating_list' %}active{% endif %}">
                     <i class="fas fa-star"></i>
                     <span>Customer Ratings</span>
@@ -898,6 +910,22 @@ body.sidebar-open {
                     <i class="fas fa-dollar-sign"></i>
                     <span>Pricing Page</span>
                 </a>
+                <a href="{% url 'super_admin_faq_cms' %}" class="nav-link {% if 'super_admin_faq_cms' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-question-circle"></i>
+                    <span>FAQ Page</span>
+                </a>
+                <a href="{% url 'super_admin_terms_cms' %}" class="nav-link {% if 'super_admin_terms_cms' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Terms of Service</span>
+                </a>
+                <a href="{% url 'super_admin_privacy_cms' %}" class="nav-link {% if 'super_admin_privacy_cms' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Privacy Policy</span>
+                </a>
+                <a href="{% url 'super_admin_media_library' %}" class="nav-link {% if 'super_admin_media_library' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-photo-video"></i>
+                    <span>Media Library</span>
+                </a>
                 <a href="{% url 'super_admin_maintenance' %}" class="nav-link {% if 'super_admin_maintenance' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-shield-alt"></i>
                     <span>Maintenance</span>
@@ -943,6 +971,10 @@ body.sidebar-open {
                 <a href="{% url 'org_admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_dashboard' %}active{% endif %}">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="{% url 'org_admin_analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
                 </a>
                 <a href="{% url 'org_admin_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_profile' %}active{% endif %}">
                     <i class="fas fa-cog"></i>
@@ -1273,8 +1305,13 @@ body.sidebar-open {
             </div>
             
             <div class="header-right">
+                <!-- Theme Toggle -->
+                <button class="header-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+
                 <div class="dropdown">
-                    <button class="header-icon-btn dropdown-toggle position-relative dropdown-toggle-hide-arrow" data-bs-toggle="dropdown">
+                    <button class="header-icon-btn dropdown-toggle position-relative dropdown-toggle-hide-arrow" data-bs-toggle="dropdown" aria-label="Notifications" title="View notifications">
                         <i class="fas fa-bell"></i>
                         {% if unread_notification_count > 0 %}
                             <span class="notification-badge">{{ unread_notification_count }}</span>
@@ -1338,7 +1375,7 @@ body.sidebar-open {
                 </div>
                 
                 <div class="dropdown">
-                    <button class="header-icon-btn dropdown-toggle dropdown-toggle-hide-arrow" data-bs-toggle="dropdown">
+                    <button class="header-icon-btn dropdown-toggle dropdown-toggle-hide-arrow" data-bs-toggle="dropdown" aria-label="User menu" title="User menu">
                         <i class="fas fa-user"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -1383,7 +1420,7 @@ body.sidebar-open {
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb">
                     {% if user.is_super_admin %}
-                        <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'super_admin_org_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
                     {% elif user.is_org_admin %}
                         <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Home</a></li>
                     {% elif user.is_org_staff %}
@@ -1596,5 +1633,40 @@ body.sidebar-open {
     }
 </script>
 
+<script>
+    // ===== Dark Mode Theme Toggle =====
+    function toggleTheme() {
+        var html = document.documentElement;
+        var currentTheme = html.getAttribute('data-theme') || 'light';
+        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('picklesphere-theme', newTheme);
+        updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+        var icon = document.getElementById('themeIcon');
+        if (!icon) return;
+        if (theme === 'dark') {
+            icon.className = 'fas fa-sun';
+        } else {
+            icon.className = 'fas fa-moon';
+        }
+    }
+
+    // Load saved theme on page load
+    (function() {
+        var savedTheme = localStorage.getItem('picklesphere-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            // Respect system preference
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('picklesphere-theme', 'dark');
+            updateThemeIcon('dark');
+        }
+    })();
+</script>
 {% block extra_js %}{% endblock %}
 {% endblock %}

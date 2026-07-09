@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.conf import settings
+from django.utils import timezone
 
 
 class Organization(models.Model):
@@ -40,6 +41,17 @@ class Organization(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     rejection_reason = models.TextField(blank=True, null=True)
     
+    # Verification badge
+    is_verified = models.BooleanField(
+        default=False,
+        help_text='Verified organizations get a badge on their public profile'
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='verified_organizations'
+    )
+    
     # Operating details
     operating_hours = models.TextField(blank=True, null=True, help_text="Operating hours description (e.g., Mon-Fri 6AM-10PM)")
     
@@ -72,6 +84,18 @@ class Organization(models.Model):
         super().save(*args, **kwargs)
 
     @property
+    def is_approved(self):
+        return self.status == 'approved'
+
+    @property
+    def is_pending(self):
+        return self.status == 'pending'
+
+    @property
+    def is_suspended(self):
+        return self.status == 'suspended'
+
+    @property
     def court_count(self):
         return self.courts.filter(is_active=True).count()
 
@@ -92,3 +116,52 @@ class Organization(models.Model):
 
     def can_add_staff(self):
         return self.staff_count < self.max_staff_accounts
+
+
+class OrganizationAuditLog(models.Model):
+    """Audit log for tracking all organization-related actions by admins."""
+    ACTION_CHOICES = [
+        ('created', 'Organization Created'),
+        ('approved', 'Organization Approved'),
+        ('rejected', 'Organization Rejected'),
+        ('suspended', 'Organization Suspended'),
+        ('reactivated', 'Organization Reactivated'),
+        ('verified', 'Organization Verified'),
+        ('unverified', 'Organization Unverified'),
+        ('updated', 'Organization Updated'),
+        ('status_changed', 'Status Changed'),
+        ('admin_assigned', 'Org Admin Assigned'),
+        ('admin_removed', 'Org Admin Removed'),
+        ('staff_added', 'Staff Added'),
+        ('staff_removed', 'Staff Removed'),
+        ('deleted', 'Organization Deleted'),
+        ('settings_changed', 'Settings Changed'),
+        ('other', 'Other'),
+    ]
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name='audit_logs'
+    )
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='org_audit_actions'
+    )
+    details = models.TextField(blank=True, null=True, help_text='Description of what was done')
+    changes = models.JSONField(blank=True, null=True, help_text='JSON with before/after values of changed fields')
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'organization_audit_logs'
+        ordering = ['-created_at']
+        verbose_name = 'Organization Audit Log'
+        verbose_name_plural = 'Organization Audit Logs'
+        indexes = [
+            models.Index(fields=['organization', '-created_at']),
+            models.Index(fields=['action', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.organization.name} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"

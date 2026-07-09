@@ -3,12 +3,23 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
-from django.http import JsonResponse, HttpResponse
-from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
-from .models import Organization
-from .forms import OrganizationRegistrationForm, OrganizationProfileForm, OrganizationApprovalForm, SuperAdminOrganizationForm, OrgStaffAssignmentForm
-from accounts.models import User
+from django.http import JsonResponse, HttpResponse, Http404
 from django.core.paginator import Paginator
+from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
+from .models import Organization, OrganizationAuditLog
+from .forms import (
+    OrganizationRegistrationForm, OrganizationProfileForm,
+    OrganizationApprovalForm, SuperAdminOrganizationForm,
+    OrgStaffAssignmentForm, OrganizationVerificationForm
+)
+from accounts.models import User
+from notifications.utils import (
+    notify_org_admin_org_status_change,
+    notify_org_admin_org_verified,
+    notify_super_admin_org_verified,
+    notify_org_owned_users_org_status_change,
+    notify_super_admin_new_organization,
+)
 
 
 # ==================== PUBLIC VIEWS ====================
@@ -66,6 +77,10 @@ def organization_register(request):
         form = OrganizationRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             org = form.save()
+            # Notify all super admins about the new registration
+            super_admins = User.objects.filter(role='super_admin', is_active=True)
+            for sa in super_admins:
+                notify_super_admin_new_organization(sa, org)
             messages.success(request, 
                 'Your organization has been registered successfully! '
                 'A super admin will review your application and approve it shortly. '
@@ -77,6 +92,18 @@ def organization_register(request):
     return render(request, 'public/organizations/organization_register.html', {
         'form': form,
     })
+
+
+def _create_org_audit_log(organization, action, performed_by, details='', changes=None, request=None):
+    """Helper to create an organization audit log entry."""
+    OrganizationAuditLog.objects.create(
+        organization=organization,
+        action=action,
+        performed_by=performed_by,
+        details=details,
+        changes=changes,
+        ip_address=request.META.get('REMOTE_ADDR') if request else None,
+    )
 
 
 # ==================== SUPER ADMIN VIEWS ====================
@@ -193,7 +220,7 @@ def super_admin_organization_detail(request, pk):
 @login_required
 @super_admin_required
 def super_admin_approve_organization(request, pk):
-    """Approve, reject, or suspend an organization"""
+    """Approve, reject, or suspend an organization with notifications and audit logging."""
     organization = get_object_or_404(Organization, pk=pk)
     
     old_status = organization.status
@@ -202,40 +229,105 @@ def super_admin_approve_organization(request, pk):
         form = OrganizationApprovalForm(request.POST, instance=organization)
         if form.is_valid():
             org = form.save(commit=False)
+            new_status = org.status
             
-            if org.status == 'approved' and old_status != 'approved':
-                org.approved_by = request.user
-                org.approved_at = timezone.now()
+            # Build changes dict for audit log
+            changes = {
+                'old_status': old_status,
+                'new_status': new_status,
+            }
+            
+            if new_status == 'approved':
+                if old_status != 'approved':
+                    org.approved_by = request.user
+                    org.approved_at = timezone.now()
+                rejection_reason = form.cleaned_data.get('rejection_reason', '')
+                if rejection_reason:
+                    org.rejection_reason = ''
                 messages.success(request, f'Organization "{org.name}" has been approved!')
-            elif org.status == 'rejected':
+                _create_org_audit_log(
+                    org, 'approved', request.user,
+                    f'Organization approved by {request.user.get_full_name() or request.user.username}',
+                    changes, request
+                )
+                # Notify org admin
+                org_admin = User.objects.filter(organization=org, role='org_admin').first()
+                if org_admin:
+                    notify_org_admin_org_status_change(org_admin, org, 'approved')
+                # Notify org members
+                notify_org_owned_users_org_status_change(org, 'approved')
+                
+            elif new_status == 'rejected':
+                rejection_reason = form.cleaned_data.get('rejection_reason', '')
+                changes['rejection_reason'] = rejection_reason
                 messages.info(request, f'Organization "{org.name}" has been rejected.')
-            elif org.status == 'suspended':
+                _create_org_audit_log(
+                    org, 'rejected', request.user,
+                    f'Organization rejected by {request.user.get_full_name() or request.user.username}. Reason: {rejection_reason}',
+                    changes, request
+                )
+                # Notify org admin
+                org_admin = User.objects.filter(organization=org, role='org_admin').first()
+                if org_admin:
+                    notify_org_admin_org_status_change(org_admin, org, 'rejected', old_status, rejection_reason)
+                
+            elif new_status == 'suspended':
                 messages.warning(request, f'Organization "{org.name}" has been suspended.')
-            else:
-                messages.info(request, f'Organization "{org.name}" has been updated.')
+                _create_org_audit_log(
+                    org, 'suspended', request.user,
+                    f'Organization suspended by {request.user.get_full_name() or request.user.username}',
+                    changes, request
+                )
+                # Notify org admin
+                org_admin = User.objects.filter(organization=org, role='org_admin').first()
+                if org_admin:
+                    notify_org_admin_org_status_change(org_admin, org, 'suspended', old_status)
+                # Notify org members
+                notify_org_owned_users_org_status_change(org, 'suspended')
+                
+            elif new_status == 'pending':
+                if old_status in ('rejected', 'suspended'):
+                    messages.info(request, f'Organization "{org.name}" has been reset to pending for re-review.')
+                    _create_org_audit_log(
+                        org, 'status_changed', request.user,
+                        f'Organization status reset to pending by {request.user.get_full_name() or request.user.username}',
+                        changes, request
+                    )
             
             org.save()
             return redirect('super_admin_organization_list')
     else:
         form = OrganizationApprovalForm(instance=organization)
     
+    # Get recent audit logs for this org
+    audit_logs = OrganizationAuditLog.objects.filter(organization=organization)[:10]
+    
     return render(request, 'admin/organizations/organization_approve.html', {
         'form': form,
         'organization': organization,
+        'old_status': old_status,
+        'audit_logs': audit_logs,
     })
 
 
 @login_required
 @super_admin_required
 def super_admin_toggle_org_status(request, pk):
-    """Quick toggle to activate/deactivate an organization"""
+    """Quick toggle to activate/deactivate an organization with audit logging."""
     organization = get_object_or_404(Organization, pk=pk)
     
     if request.method == 'POST':
-        organization.is_active = not organization.is_active
+        was_active = organization.is_active
+        organization.is_active = not was_active
         organization.save()
         
         status = "activated" if organization.is_active else "deactivated"
+        _create_org_audit_log(
+            organization, 'updated', request.user,
+            f'Organization {status} by {request.user.get_full_name() or request.user.username}',
+            {'old_status': 'active' if was_active else 'inactive', 'new_status': status},
+            request
+        )
         messages.success(request, f'Organization "{organization.name}" has been {status}.')
     
     return redirect('super_admin_organization_list')
@@ -323,14 +415,60 @@ def super_admin_organization_edit(request, pk):
 
 @login_required
 @super_admin_required
+def super_admin_verify_organization(request, pk):
+    """Toggle verification status for an organization."""
+    organization = get_object_or_404(Organization, pk=pk)
+    
+    if request.method == 'POST':
+        form = OrganizationVerificationForm(request.POST, instance=organization)
+        if form.is_valid():
+            was_verified = organization.is_verified
+            org = form.save(commit=False)
+            if org.is_verified and not was_verified:
+                org.verified_by = request.user
+                org.verified_at = timezone.now()
+                action = 'verified'
+                detail = f'Organization verified by {request.user.get_full_name() or request.user.username}'
+                msg = f'Organization "{org.name}" has been verified!'
+            elif not org.is_verified and was_verified:
+                org.verified_by = None
+                org.verified_at = None
+                action = 'unverified'
+                detail = f'Organization verification removed by {request.user.get_full_name() or request.user.username}'
+                msg = f'Organization "{org.name}" verification has been removed.'
+            else:
+                messages.info(request, 'No changes made to verification status.')
+                return redirect('super_admin_organization_detail', pk=pk)
+            
+            org.save()
+            _create_org_audit_log(organization, action, request.user, detail, {'is_verified': org.is_verified}, request)
+            messages.success(request, msg)
+            
+            # Notify org admin
+            org_admin = User.objects.filter(organization=org, role='org_admin').first()
+            if org_admin and org.is_verified:
+                notify_org_admin_org_verified(org_admin, org)
+            
+            return redirect('super_admin_organization_detail', pk=pk)
+    else:
+        form = OrganizationVerificationForm(instance=organization)
+    
+    return render(request, 'admin/organizations/organization_verify.html', {
+        'form': form,
+        'organization': organization,
+    })
+
+
+@login_required
+@super_admin_required
 def super_admin_organization_delete(request, pk):
     """Delete an organization with validation for active reservations/tournaments"""
     from reservations.models import Reservation
     from tournaments.models import Tournament
     from payments.models import Payment
-    
+
     organization = get_object_or_404(Organization, pk=pk)
-    
+
     # Check for active reservations
     org_court_ids = organization.courts.values_list('id', flat=True)
     active_reservation_statuses = ['pending', 'confirmed']
@@ -339,27 +477,27 @@ def super_admin_organization_delete(request, pk):
         status__in=active_reservation_statuses
     )
     active_reservation_count = active_reservations.count()
-    
+
     # Check for active tournaments
     active_tournament_statuses = ['draft', 'registration_open', 'registration_closed', 'in_progress']
     active_tournaments = organization.tournaments.filter(
         status__in=active_tournament_statuses
     )
     active_tournament_count = active_tournaments.count()
-    
+
     # Check for pending payments
     pending_payments = Payment.objects.filter(
         reservation__court_id__in=org_court_ids,
         status='pending'
     )
     pending_payment_count = pending_payments.count()
-    
+
     has_active_data = (
         active_reservation_count > 0 or
         active_tournament_count > 0 or
         pending_payment_count > 0
     )
-    
+
     if request.method == 'POST':
         if has_active_data:
             reasons = []
@@ -375,14 +513,19 @@ def super_admin_organization_delete(request, pk):
                 'Please cancel or complete them before deleting the organization.'
             )
             return redirect('super_admin_organization_list')
-        
+
         org_name = organization.name
         # Unassign all members
         User.objects.filter(organization=organization).update(organization=None)
+        _create_org_audit_log(
+            organization, 'deleted', request.user,
+            f'Organization "{org_name}" permanently deleted by {request.user.get_full_name() or request.user.username}',
+            None, request
+        )
         organization.delete()
         messages.success(request, f'Organization "{org_name}" has been permanently deleted.')
         return redirect('super_admin_organization_list')
-    
+
     return render(request, 'admin/organizations/organization_confirm_delete.html', {
         'organization': organization,
         'active_reservations': active_reservations,
@@ -391,6 +534,50 @@ def super_admin_organization_delete(request, pk):
         'active_tournament_count': active_tournament_count,
         'pending_payment_count': pending_payment_count,
         'has_active_data': has_active_data,
+    })
+
+
+@login_required
+@super_admin_required
+def super_admin_organization_activity_log(request):
+    """View all organization-related audit activity across the platform."""
+    pk = request.GET.get('org_id')
+    logs = OrganizationAuditLog.objects.select_related('organization', 'performed_by').all().order_by('-created_at')
+    
+    if pk:
+        try:
+            organization = get_object_or_404(Organization, pk=pk)
+            logs = logs.filter(organization=organization)
+        except (ValueError, Http404):
+            pass
+    
+    # Filter by action
+    action_filter = request.GET.get('action', '')
+    if action_filter:
+        logs = logs.filter(action=action_filter)
+    
+    # Filter by date
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        logs = logs.filter(created_at__date__gte=date_from)
+    if date_to:
+        logs = logs.filter(created_at__date__lte=date_to)
+    
+    # Pagination
+    paginator = Paginator(logs, 30)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'admin/organizations/activity_log.html', {
+        'logs': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'action_filter': action_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_count': OrganizationAuditLog.objects.count(),
+        'org_filter': pk,
     })
 
 
@@ -519,6 +706,143 @@ def org_admin_dashboard(request):
 @login_required
 @org_admin_required
 @org_required
+def org_admin_analytics_view(request):
+    """Org Admin analytics dashboard with org-scoped charts and metrics"""
+    from django.db.models.functions import ExtractHour
+    from reservations.models import Reservation
+    from payments.models import Payment, Refund
+    from courts.models import Court
+    from datetime import timedelta
+
+    organization = request.user.organization
+    today = timezone.now().date()
+
+    # Org-scoped queries
+    org_courts = Court.objects.filter(organization=organization, is_active=True)
+    org_reservations = Reservation.objects.filter(court__organization=organization)
+    org_payments = Payment.objects.filter(reservation__court__organization=organization)
+
+    # Key metrics
+    total_courts = org_courts.count()
+    total_reservations = org_reservations.exclude(status='cancelled').count()
+    pending_reservations = org_reservations.filter(status='pending').count()
+    confirmed_reservations = org_reservations.filter(status='confirmed').count()
+    today_reservations = org_reservations.filter(date=today).count()
+
+    # Revenue stats
+    revenue_stats = {
+        'total_revenue': org_payments.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0,
+        'today_revenue': org_payments.filter(status='paid', created_at__date=today).aggregate(Sum('amount'))['amount__sum'] or 0,
+        'month_revenue': org_payments.filter(status='paid', created_at__year=today.year, created_at__month=today.month).aggregate(Sum('amount'))['amount__sum'] or 0,
+        'pending_amount': org_payments.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0,
+    }
+
+    # Revenue trend (last 14 days)
+    fourteen_days_ago = today - timedelta(days=13)
+    daily_revenues = org_payments.filter(
+        status='paid',
+        created_at__date__gte=fourteen_days_ago
+    ).extra(
+        select={'day': 'DATE(created_at)'}
+    ).values('day').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('day')
+
+    revenue_trend_labels = []
+    revenue_trend_values = []
+    booking_trend_values = []
+    for i in range(13, -1, -1):
+        day = today - timedelta(days=i)
+        revenue_trend_labels.append(day.strftime('%b %d'))
+        found = next((item for item in daily_revenues if item['day'] == day), None)
+        revenue_trend_values.append(float(found['total'] or 0) if found else 0)
+        booking_trend_values.append(found['count'] if found else 0)
+
+    # Court usage
+    court_usage = org_reservations.filter(
+        status__in=['confirmed', 'completed']
+    ).values('court__name').annotate(
+        total=Count('id')
+    ).order_by('-total')[:10]
+
+    # Peak hours (last 30 days)
+    thirty_days_ago = today - timedelta(days=30)
+    hourly_bookings = org_reservations.filter(
+        created_at__date__gte=thirty_days_ago,
+        status__in=['confirmed', 'completed', 'pending']
+    ).annotate(
+        hour=ExtractHour('start_time')
+    ).values('hour').annotate(
+        count=Count('id'),
+        revenue=Sum('total_amount')
+    ).order_by('hour')
+
+    peak_hours_labels = []
+    peak_hours_counts = []
+    peak_hours_revenue = []
+    for h in range(8, 23):
+        peak_hours_labels.append(f"{h}:00")
+        found = next((item for item in hourly_bookings if item['hour'] == h), None)
+        peak_hours_counts.append(found['count'] if found else 0)
+        peak_hours_revenue.append(float(found['revenue'] or 0) if found else 0)
+
+    # Revenue by payment method
+    revenue_by_method = list(org_payments.filter(status='paid').values('method').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total'))
+
+    # Revenue comparison
+    this_month_revenue = org_payments.filter(
+        status='paid', created_at__year=today.year, created_at__month=today.month
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    last_month = today.month - 1 if today.month > 1 else 12
+    last_month_year = today.year if today.month > 1 else today.year - 1
+    last_month_revenue = org_payments.filter(
+        status='paid', created_at__year=last_month_year, created_at__month=last_month
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    revenue_growth = round(
+        ((this_month_revenue - last_month_revenue) / last_month_revenue * 100) if last_month_revenue > 0 else 0, 1
+    )
+
+    # Recent reservations
+    recent_reservations = org_reservations.select_related('user', 'court').order_by('-created_at')[:10]
+
+    # Refunds
+    total_refunds = Refund.objects.filter(
+        status='processed', payment__reservation__court__organization=organization
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    return render(request, 'admin/organizations/org_admin_analytics.html', {
+        'organization': organization,
+        'total_courts': total_courts,
+        'total_reservations': total_reservations,
+        'pending_reservations': pending_reservations,
+        'confirmed_reservations': confirmed_reservations,
+        'today_reservations': today_reservations,
+        'revenue_stats': revenue_stats,
+        'revenue_trend_labels': revenue_trend_labels,
+        'revenue_trend_values': revenue_trend_values,
+        'booking_trend_values': booking_trend_values,
+        'court_usage': court_usage,
+        'revenue_by_method': revenue_by_method,
+        'peak_hours_labels': peak_hours_labels,
+        'peak_hours_counts': peak_hours_counts,
+        'peak_hours_revenue': peak_hours_revenue,
+        'this_month_revenue': this_month_revenue,
+        'last_month_revenue': last_month_revenue,
+        'revenue_growth': revenue_growth,
+        'recent_reservations': recent_reservations,
+        'total_refunds': total_refunds,
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
 def org_admin_manage_staff(request):
     """Organization Admin manages staff members for their organization."""
     org = request.user.organization
@@ -598,6 +922,43 @@ def org_admin_manage_staff(request):
         'can_add': can_add,
         'staff_limit': staff_limit,
         'current_staff_count': staff_members.count(),
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_org_activity_log(request):
+    """Org Admin view of their own organization's audit activity."""
+    org = request.user.organization
+    logs = OrganizationAuditLog.objects.filter(organization=org).select_related('performed_by').order_by('-created_at')
+    
+    # Filter by action
+    action_filter = request.GET.get('action', '')
+    if action_filter:
+        logs = logs.filter(action=action_filter)
+    
+    # Filter by date
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        logs = logs.filter(created_at__date__gte=date_from)
+    if date_to:
+        logs = logs.filter(created_at__date__lte=date_to)
+    
+    # Pagination
+    paginator = Paginator(logs, 30)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'admin/organizations/activity_log.html', {
+        'logs': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'action_filter': action_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'organization': org,
     })
 
 

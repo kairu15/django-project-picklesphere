@@ -189,7 +189,7 @@ def home_view(request):
 def dashboard_view(request):
     """Redirect to appropriate dashboard based on user role"""
     if request.user.is_super_admin():
-        return redirect('super_admin_dashboard')
+        return redirect('super_admin_org_dashboard')
     elif request.user.is_org_admin():
         if request.user.organization:
             return redirect('org_admin_dashboard')
@@ -1206,130 +1206,119 @@ def homepage_delete_gallery(request, gallery_id):
 
 def privacy_policy_view(request):
     """Privacy Policy page - accessible to all users"""
-    return render(request, 'public/privacy_policy.html')
+    from .models import PrivacyContent, PrivacySection
+    
+    def get_content(section, default):
+        content = PrivacyContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+    
+    sections = PrivacySection.objects.filter(is_active=True).order_by('section_number')
+    
+    context = {
+        'hero_badge': get_content('hero_badge', 'Legal'),
+        'hero_title': get_content('hero_title', 'Privacy Policy'),
+        'hero_subtitle': get_content('hero_subtitle', ''),
+        'last_updated_text': get_content('last_updated_text', 'Last Updated:'),
+        'contact_email': get_content('contact_email', 'privacy@picklesphere.com'),
+        'contact_phone': get_content('contact_phone', '09455470173'),
+        'contact_address': get_content('contact_address', '123 Sports Complex Ave, Metro City'),
+        'sections': sections,
+    }
+    return render(request, 'public/privacy_policy.html', context)
 
 
 def terms_of_service_view(request):
     """Terms of Service page - accessible to all users"""
-    return render(request, 'public/terms_of_service.html')
+    from .models import TermsContent, TermsSection
+    
+    def get_content(section, default):
+        content = TermsContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+    
+    sections = TermsSection.objects.filter(is_active=True).order_by('section_number')
+    
+    context = {
+        'hero_badge': get_content('hero_badge', 'Legal'),
+        'hero_title': get_content('hero_title', 'Terms of Service'),
+        'hero_subtitle': get_content('hero_subtitle', ''),
+        'last_updated_text': get_content('last_updated_text', 'Last Updated:'),
+        'contact_email': get_content('contact_email', 'legal@picklesphere.com'),
+        'contact_phone': get_content('contact_phone', '09455470173'),
+        'contact_address': get_content('contact_address', '123 Sports Complex Ave, Metro City'),
+        'sections': sections,
+    }
+    return render(request, 'public/terms_of_service.html', context)
 
 
 def faq_view(request):
     """FAQ page - accessible to all users"""
-    faq_categories = [
-        {
-            'name': 'Reservations & Bookings',
-            'icon': 'fa-calendar-check',
-            'questions': [
-                {
-                    'question': 'How do I book a court?',
-                    'answer': 'You can book a court by navigating to the "Find Courts" page, selecting your preferred court, date, and time slot. Once selected, proceed to checkout and complete the payment process. You will receive a confirmation email once your booking is confirmed.'
-                },
-                {
-                    'question': 'Can I cancel or reschedule my reservation?',
-                    'answer': 'Yes, you can cancel or reschedule your reservation up to 24 hours before your scheduled time. Cancellations made within 24 hours may be subject to a cancellation fee. To cancel or reschedule, go to "My Reservations" and select the appropriate action.'
-                },
-                {
-                    'question': 'What happens if I am late for my reservation?',
-                    'answer': 'We hold reservations for 15 minutes past the start time. If you arrive after this grace period, your reservation may be forfeited and the court may be given to another player. No refunds will be issued for late arrivals.'
-                },
-                {
-                    'question': 'Can I book multiple courts at once?',
-                    'answer': 'Currently, you need to make separate bookings for each court. We are working on a group booking feature that will allow you to book multiple courts in a single transaction.'
-                }
-            ]
-        },
-        {
-            'name': 'Payments & Pricing',
-            'icon': 'fa-money-bill-wave',
-            'questions': [
-                {
-                    'question': 'What payment methods do you accept?',
-                    'answer': 'We accept various payment methods including credit/debit cards (Visa, Mastercard), GCash, PayMaya, and bank transfers. All payments are processed securely through our payment gateway.'
-                },
-                {
-                    'question': 'How do I get a refund?',
-                    'answer': 'Refund requests can be submitted through the "Payment History" page. Refunds are processed within 5-7 business days for eligible cancellations. Please refer to our cancellation policy for more details on refund eligibility.'
-                },
-                {
-                    'question': 'Do you offer membership discounts?',
-                    'answer': 'Yes! We offer Regular and Pro membership tiers with significant savings. Regular Members get 10 hours/month and 10% off additional bookings. Pro Members enjoy unlimited access and premium benefits.'
-                },
-                {
-                    'question': 'Are there any additional fees?',
-                    'answer': 'Our pricing is transparent. The rate you see is what you pay. Additional costs may include equipment rental, tournament entry fees, and coaching sessions if you choose to add these services.'
-                }
-            ]
-        },
-        {
-            'name': 'Equipment & Facilities',
-            'icon': 'fa-tools',
-            'questions': [
-                {
-                    'question': 'What equipment do you provide?',
-                    'answer': 'We offer paddle and ball rentals at affordable rates. Premium equipment is available for Pro Members. You can also bring your own equipment. All rental equipment is sanitized after each use.'
-                },
-                {
-                    'question': 'Do I need to wear specific footwear?',
-                    'answer': 'We recommend non-marking court shoes to protect our court surfaces. Running shoes and black-soled shoes are not permitted on the courts to prevent damage to the playing surface.'
-                },
-                {
-                    'question': 'Are lockers available?',
-                    'answer': 'Yes, we provide free lockers in our locker rooms. You will need to bring your own lock or rent one from our pro shop for a small fee.'
-                },
-                {
-                    'question': 'Is there a dress code?',
-                    'answer': 'We recommend comfortable athletic wear. Shirts and appropriate athletic footwear are required at all times. Please avoid wearing jeans, dress shoes, or jewelry that may damage the courts.'
-                }
-            ]
-        },
-        {
-            'name': 'Tournaments & Events',
-            'icon': 'fa-medal',
-            'questions': [
-                {
-                    'question': 'How do I register for a tournament?',
-                    'answer': 'Browse upcoming tournaments on the Tournaments page, select the one you are interested in, and click "Register". Fill in your details, select your division, and complete the registration payment.'
-                },
-                {
-                    'question': 'What skill levels do you offer?',
-                    'answer': 'We organize tournaments for all skill levels: Beginner (2.0-2.5), Intermediate (3.0-3.5), and Advanced (4.0+). Make sure to register for the appropriate division based on your skill level.'
-                },
-                {
-                    'question': 'Can I get a refund if I withdraw from a tournament?',
-                    'answer': 'Full refunds are available up to 7 days before the tournament. Withdrawals within 7 days may receive partial refunds depending on the tournament policy. No refunds are given for no-shows.'
-                },
-                {
-                    'question': 'Do you offer coaching or lessons?',
-                    'answer': 'Yes! We offer private and group coaching sessions with certified pickleball instructors. You can book lessons through our pro shop or contact us directly for more information.'
-                }
-            ]
-        },
-        {
-            'name': 'Account & Technical',
-            'icon': 'fa-user-circle',
-            'questions': [
-                {
-                    'question': 'How do I reset my password?',
-                    'answer': 'Click "Forgot Password" on the login page and enter your email address. We will send you a password reset link. If you do not receive the email, check your spam folder or contact support.'
-                },
-                {
-                    'question': 'Can I change my account information?',
-                    'answer': 'Yes, you can update your profile information, including name, contact details, and profile picture, by going to the "Profile" page from your dashboard.'
-                },
-                {
-                    'question': 'Is my personal information secure?',
-                    'answer': 'Absolutely. We use industry-standard encryption and security measures to protect your data. We never share your personal information with third parties without your consent.'
-                },
-                {
-                    'question': 'How do I contact customer support?',
-                    'answer': f'You can reach us through the Contact page, email us at {STATIC_CONTACT_EMAIL}, or call us at {STATIC_CONTACT_PHONE}. Our support team is available Monday to Saturday, 9 AM to 6 PM.'
-                }
-            ]
-        }
-    ]
+    from .models import FAQPageContent, FAQCategory, FAQItem
     
-    return render(request, 'public/faq.html', {'faq_categories': faq_categories})
+    # Get CMS content sections with fallback defaults
+    def get_content(section, default):
+        content = FAQPageContent.objects.filter(section=section, is_active=True).first()
+        return content.content if content else default
+    
+    cms_contents = {
+        'hero_badge': get_content('hero_badge', 'Need Help?'),
+        'hero_title': get_content('hero_title', 'Frequently Asked Questions'),
+        'hero_subtitle': get_content('hero_subtitle', 'Find answers to common questions about PickleSphere, our platform, and services'),
+        'search_placeholder': get_content('search_placeholder', 'Search for answers...'),
+        'contact_title': get_content('contact_title', 'Still Need Help?'),
+        'contact_text': get_content('contact_text', "Can't find what you're looking for? Our support team is here to help!"),
+        'cta_button_text': get_content('cta_button_text', 'Contact Us'),
+    }
+    
+    # Get categories and questions from database with fallback to defaults
+    db_categories = FAQCategory.objects.prefetch_related('questions').filter(is_active=True).order_by('display_order')
+    
+    if db_categories.exists():
+        faq_categories = []
+        for cat in db_categories:
+            questions = cat.questions.filter(is_active=True).order_by('display_order')
+            if questions.exists():
+                faq_categories.append({
+                    'name': cat.name,
+                    'icon': cat.icon,
+                    'questions': [
+                        {'question': q.question, 'answer': q.answer}
+                        for q in questions
+                    ]
+                })
+    
+    if not db_categories.exists() or not faq_categories:
+        # Fallback default FAQ categories
+        faq_categories = [
+            {
+                'name': 'Reservations & Bookings',
+                'icon': 'fa-calendar-check',
+                'questions': [
+                    {'question': 'How do I book a court?', 'answer': 'You can book a court by navigating to the "Find Courts" page, selecting your preferred court, date, and time slot.'},
+                    {'question': 'Can I cancel or reschedule my reservation?', 'answer': 'Yes, you can cancel or reschedule your reservation up to 24 hours before your scheduled time.'},
+                ]
+            },
+            {
+                'name': 'Payments & Pricing',
+                'icon': 'fa-money-bill-wave',
+                'questions': [
+                    {'question': 'What payment methods do you accept?', 'answer': 'We accept various payment methods including credit/debit cards, GCash, PayMaya, and bank transfers.'},
+                    {'question': 'How do I get a refund?', 'answer': 'Refund requests can be submitted through the "Payment History" page. Refunds are processed within 5-7 business days.'},
+                ]
+            },
+            {
+                'name': 'Account & Technical',
+                'icon': 'fa-user-circle',
+                'questions': [
+                    {'question': 'How do I reset my password?', 'answer': 'Click "Forgot Password" on the login page and enter your email address.'},
+                    {'question': 'How do I contact customer support?', 'answer': f'You can reach us through the Contact page, email us at {STATIC_CONTACT_EMAIL}, or call us at {STATIC_CONTACT_PHONE}.'},
+                ]
+            },
+        ]
+    
+    return render(request, 'public/faq.html', {
+        'faq_categories': faq_categories,
+        'cms_contents': cms_contents,
+    })
 
 
 # ============================================================================

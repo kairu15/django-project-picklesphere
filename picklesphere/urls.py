@@ -34,6 +34,7 @@ urlpatterns = [
     path('super-admin/', include('organizations.admin_urls')),
     path('super-admin/', include('tournaments.admin_urls')),
     path('super-admin/', include('notifications.admin_urls')),
+    path('super-admin/', include('payments.admin_urls')),
 
     # ========== ORGANIZATION ADMIN ROUTES (/org-admin/) ==========
     path('org-admin/', include('organizations.org_urls')),
@@ -66,6 +67,9 @@ urlpatterns = [
 
     # ========== SCORING ==========
     path('scoring/', include('scoring.urls')),
+
+    # ========== PAYMENT WEBHOOKS ==========
+    path('payments/stripe/webhook/', include('payments.webhooks_urls')),
 
     # ========== SESSION MANAGEMENT API ==========
     path('api/session/heartbeat/', session_views.session_heartbeat, name='session_heartbeat'),

@@ -64,7 +64,7 @@ def login_view(request):
             
             # Redirect based on role
             if user.is_super_admin():
-                return redirect('super_admin_dashboard')
+                return redirect('super_admin_org_dashboard')
             elif user.is_org_admin():
                 return redirect('org_admin_dashboard')
             elif user.is_org_staff():

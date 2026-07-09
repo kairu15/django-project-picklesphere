@@ -1062,6 +1062,228 @@ class GlobalAnnouncement(models.Model):
 
 
 # ============================================================================
+# FAQ PAGE CMS
+# ============================================================================
+
+class FAQPageContent(models.Model):
+    """Editable content sections for the FAQ page"""
+    SECTION_CHOICES = [
+        ('hero_badge', 'Hero Badge'),
+        ('hero_title', 'Hero Title'),
+        ('hero_subtitle', 'Hero Subtitle'),
+        ('search_placeholder', 'Search Placeholder Text'),
+        ('contact_title', 'Still Need Help Title'),
+        ('contact_text', 'Still Need Help Text'),
+        ('cta_button_text', 'CTA Button Text'),
+    ]
+    section = models.CharField(max_length=50, choices=SECTION_CHOICES, unique=True)
+    content = models.TextField()
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'FAQ Page Content'
+        verbose_name_plural = 'FAQ Page Contents'
+        ordering = ['section']
+
+    def __str__(self):
+        return self.get_section_display()
+
+
+class FAQCategory(models.Model):
+    """FAQ categories with questions and answers"""
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=50, default='fa-question-circle', help_text='Font Awesome icon class')
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'FAQ Category'
+        verbose_name_plural = 'FAQ Categories'
+        ordering = ['display_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FAQItem(models.Model):
+    """Individual FAQ question and answer"""
+    category = models.ForeignKey(FAQCategory, on_delete=models.CASCADE, related_name='questions')
+    question = models.CharField(max_length=300)
+    answer = models.TextField()
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'FAQ Item'
+        verbose_name_plural = 'FAQ Items'
+        ordering = ['display_order', '-created_at']
+
+    def __str__(self):
+        return f"[{self.category.name}] {self.question[:60]}"
+
+
+# ============================================================================
+# TERMS OF SERVICE CMS
+# ============================================================================
+
+class TermsContent(models.Model):
+    """Editable content sections for the Terms of Service page (singleton)"""
+    SECTION_CHOICES = [
+        ('hero_badge', 'Hero Badge'),
+        ('hero_title', 'Hero Title'),
+        ('hero_subtitle', 'Hero Subtitle'),
+        ('last_updated_text', 'Last Updated Label'),
+        ('contact_email', 'Contact Email'),
+        ('contact_phone', 'Contact Phone'),
+        ('contact_address', 'Contact Address'),
+    ]
+    section = models.CharField(max_length=50, choices=SECTION_CHOICES, unique=True)
+    content = models.TextField()
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Terms of Service Content'
+        verbose_name_plural = 'Terms of Service Contents'
+        ordering = ['section']
+
+    def __str__(self):
+        return self.get_section_display()
+
+
+class TermsSection(models.Model):
+    """Individual sections of the Terms of Service (numbered clauses)"""
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    icon = models.CharField(max_length=50, default='fa-file-contract', help_text='Font Awesome icon class')
+    icon_color = models.CharField(max_length=50, default='primary', help_text='Bootstrap color name')
+    section_number = models.PositiveIntegerField(default=1, help_text='Section number (1, 2, 3...) for ordering')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Terms of Service Section'
+        verbose_name_plural = 'Terms of Service Sections'
+        ordering = ['section_number']
+
+    def __str__(self):
+        return f"{self.section_number}. {self.title}"
+
+
+# ============================================================================
+# PRIVACY POLICY CMS
+# ============================================================================
+
+class PrivacyContent(models.Model):
+    """Editable content sections for the Privacy Policy page"""
+    SECTION_CHOICES = [
+        ('hero_badge', 'Hero Badge'),
+        ('hero_title', 'Hero Title'),
+        ('hero_subtitle', 'Hero Subtitle'),
+        ('last_updated_text', 'Last Updated Label'),
+        ('contact_email', 'Contact Email'),
+        ('contact_phone', 'Contact Phone'),
+        ('contact_address', 'Contact Address'),
+    ]
+    section = models.CharField(max_length=50, choices=SECTION_CHOICES, unique=True)
+    content = models.TextField()
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Privacy Policy Content'
+        verbose_name_plural = 'Privacy Policy Contents'
+        ordering = ['section']
+
+    def __str__(self):
+        return self.get_section_display()
+
+
+class PrivacySection(models.Model):
+    """Individual sections of the Privacy Policy (numbered clauses)"""
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    icon = models.CharField(max_length=50, default='fa-shield-alt', help_text='Font Awesome icon class')
+    icon_color = models.CharField(max_length=50, default='primary', help_text='Bootstrap color name')
+    section_number = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Privacy Policy Section'
+        verbose_name_plural = 'Privacy Policy Sections'
+        ordering = ['section_number']
+
+    def __str__(self):
+        return f"{self.section_number}. {self.title}"
+
+
+# ============================================================================
+# MEDIA LIBRARY
+# ============================================================================
+
+class MediaLibrary(models.Model):
+    """Centralized media library for CMS images and files"""
+    FILE_TYPE_CHOICES = [
+        ('image', 'Image'),
+        ('document', 'Document'),
+        ('other', 'Other'),
+    ]
+    title = models.CharField(max_length=200, help_text='Display name for the file')
+    file = models.FileField(upload_to='media_library/%Y/%m/')
+    file_type = models.CharField(max_length=20, choices=FILE_TYPE_CHOICES, default='image')
+    alt_text = models.CharField(max_length=300, blank=True, help_text='Alt text for accessibility')
+    caption = models.TextField(blank=True, help_text='Optional caption')
+    file_size = models.PositiveIntegerField(default=0, editable=False, help_text='File size in bytes')
+    uploaded_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Media Library Item'
+        verbose_name_plural = 'Media Library'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title or f"Media {self.id}"
+
+    def save(self, *args, **kwargs):
+        if self.file and hasattr(self.file, 'size'):
+            self.file_size = self.file.size
+        if not self.file_type and self.file:
+            ext = self.file.name.split('.')[-1].lower() if '.' in self.file.name else ''
+            if ext in ('jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'):
+                self.file_type = 'image'
+            elif ext in ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'):
+                self.file_type = 'document'
+        super().save(*args, **kwargs)
+
+    @property
+    def url(self):
+        return self.file.url if self.file else ''
+
+    @property
+    def size_display(self):
+        """Human-readable file size"""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024:
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return f"{size:.1f} TB"
+
+
+# ============================================================================
 # CONTENT VERSION HISTORY
 # ============================================================================
 

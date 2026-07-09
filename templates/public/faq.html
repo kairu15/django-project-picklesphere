@@ -6,19 +6,21 @@
 {% block body %}
 {% include 'components/header.html' %}
 
+{% with hero_badge=cms_contents.hero_badge|default:"Need Help?" hero_title=cms_contents.hero_title|default:"Frequently Asked Questions" hero_subtitle=cms_contents.hero_subtitle|default:"Find answers to common questions about PickleSphere, our platform, and services" search_placeholder=cms_contents.search_placeholder|default:"Search for answers..." contact_title=cms_contents.contact_title|default:"Still Need Help?" contact_text=cms_contents.contact_text|default:"Can't find what you're looking for? Our support team is here to help!" cta_button_text=cms_contents.cta_button_text|default:"Contact Us" %}
+
 <!-- Hero Section -->
 <section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.85), rgba(59, 122, 140, 0.9)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920') center/cover; padding: 100px 0 80px; position: relative;">
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
                 <span class="badge mb-3 px-4 py-2" style="background: var(--bg-white); color: var(--primary-color); font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;">
-                    <i class="fas fa-question-circle me-2"></i>Need Help?
+                    <i class="fas fa-question-circle me-2"></i>{{ hero_badge }}
                 </span>
                 <h1 class="display-3 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">
-                    Frequently Asked Questions
+                    {{ hero_title }}
                 </h1>
                 <p class="lead mb-0" style="color: rgba(255,255,255,0.85); text-shadow: 1px 2px 4px rgba(0,0,0,0.3); max-width: 600px; margin: 0 auto;">
-                    Find answers to common questions about PickleSphere, our platform, and services
+                    {{ hero_subtitle }}
                 </p>
             </div>
         </div>
@@ -36,7 +38,7 @@
                             <span class="input-group-text bg-white border-end-0" style="padding-left: 20px;">
                                 <i class="fas fa-search text-primary"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0" id="faqSearch" placeholder="Search for answers..." onkeyup="filterFAQ()" style="border-radius: 0 10px 10px 0;">
+                            <input type="text" class="form-control border-start-0" id="faqSearch" placeholder="{{ search_placeholder }}" onkeyup="filterFAQ()" style="border-radius: 0 10px 10px 0;">
                         </div>
                     </div>
                 </div>
@@ -99,11 +101,11 @@
                         <div class="mb-4" style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(59,122,140,0.3);">
                             <i class="fas fa-headset fa-2x text-white"></i>
                         </div>
-                        <h4 class="fw-bold mb-2" style="color: var(--text-dark);">Still Need Help?</h4>
-                        <p class="text-muted mb-4">Can't find what you're looking for? Our support team is here to help!</p>
+                        <h4 class="fw-bold mb-2" style="color: var(--text-dark);">{{ contact_title }}</h4>
+                        <p class="text-muted mb-4">{{ contact_text }}</p>
                         <div class="d-flex justify-content-center gap-3 flex-wrap">
                             <a href="{% url 'contact' %}" class="btn btn-primary btn-lg px-5" style="border-radius: var(--border-radius-sm);">
-                                <i class="fas fa-envelope me-2"></i>Contact Us
+                                <i class="fas fa-envelope me-2"></i>{{ cta_button_text }}
                             </a>
                             <a href="{% url 'all_courts' %}" class="btn btn-outline-primary btn-lg px-5" style="border-radius: var(--border-radius-sm);">
                                 <i class="fas fa-search me-2"></i>Find Courts
@@ -114,6 +116,12 @@
             </div>
         </div>
     </div>
+></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </section>
 
 <style>
