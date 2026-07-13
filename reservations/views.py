@@ -7,10 +7,12 @@ from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from django.http import JsonResponse
 from datetime import datetime, timedelta, date as date_type
+import calendar
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
-from payments.models import Payment, PaymentLog
+from payments.models import Payment, PaymentLog, Refund
+from scoring.models import MatchSettings
 from notifications.models import Notification
 from equipment.models import Equipment
 from accounts.models import User
@@ -87,7 +89,6 @@ def reservation_list_view(request):
 @login_required
 @user_required
 def reservation_create_view(request):
-    from scoring.models import MatchSettings
     active_settings = MatchSettings.objects.filter(is_active=True).first()
     
     if request.method == 'POST':
@@ -345,9 +346,8 @@ def reservation_edit_view(request, reservation_id):
             updated_reservation.hourly_rate = updated_reservation.court.hourly_rate
             
             # Recalculate duration from time slot (in case user changed it)
-            from datetime import datetime as dt_module
-            start_dt = dt_module.combine(updated_reservation.date, updated_reservation.start_time)
-            end_dt = dt_module.combine(updated_reservation.date, updated_reservation.end_time)
+            start_dt = datetime.combine(updated_reservation.date, updated_reservation.start_time)
+            end_dt = datetime.combine(updated_reservation.date, updated_reservation.end_time)
             duration_hours = (end_dt - start_dt).total_seconds() / 3600
             updated_reservation.duration_hours = duration_hours
             
@@ -485,7 +485,6 @@ def cancel_reservation_view(request, reservation_id):
                     payment.save()
 
                     # Create refund record with deducted amount
-                    from payments.models import Refund
                     Refund.objects.create(
                         payment=payment,
                         amount=refund_amount,
@@ -504,7 +503,6 @@ def cancel_reservation_view(request, reservation_id):
                 rental.equipment.save()
 
             # Notify staff
-            from accounts.models import User
             staff_users = User.objects.filter(role__in=['super_admin', 'org_admin', 'org_staff'])
             for staff in staff_users:
                 Notification.objects.create(
@@ -900,7 +898,6 @@ def calendar_view(request):
     year = int(request.GET.get('year', timezone.now().year))
     
     # Calculate calendar data
-    import calendar
     cal = calendar.Calendar(calendar.SUNDAY)
     month_days = cal.monthdayscalendar(year, month)
     
@@ -1163,7 +1160,6 @@ def get_monthly_availability_api(request):
     except Court.DoesNotExist:
         return JsonResponse({'error': 'Court not found'}, status=404)
 
-    import calendar
     cal = calendar.Calendar()
     month_days = [d for d in cal.itermonthdates(year, month) if d.month == month]
 

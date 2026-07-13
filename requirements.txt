@@ -8,3 +8,4 @@ channels-redis>=4.1.0
 django-crispy-forms>=2.0,<3.0
 django-filter>=24.0,<25.0
 staticmap>=0.5.7
+django-axes>=6.0,<7.0

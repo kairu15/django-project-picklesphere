@@ -55,6 +55,11 @@ class User(AbstractUser):
     
     class Meta:
         db_table = 'users'
+        indexes = [
+            models.Index(fields=['role', 'is_active']),
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['organization', 'role']),
+        ]
     
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

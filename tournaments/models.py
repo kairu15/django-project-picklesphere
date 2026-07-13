@@ -79,6 +79,11 @@ class Tournament(models.Model):
     class Meta:
         db_table = 'tournaments'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['organization', 'status']),
+            models.Index(fields=['tournament_start', 'status']),
+        ]
     
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"
@@ -167,6 +172,10 @@ class Registration(models.Model):
         db_table = 'tournament_registrations'
         unique_together = ['tournament', 'user']
         ordering = ['-registered_at']
+        indexes = [
+            models.Index(fields=['tournament', 'status']),
+            models.Index(fields=['user', '-registered_at']),
+        ]
     
     def __str__(self):
         return f"{self.user.username} - {self.tournament.name} ({self.status})"
@@ -240,6 +249,11 @@ class Match(models.Model):
     class Meta:
         db_table = 'tournament_matches'
         ordering = ['tournament', 'scheduled_date', 'scheduled_time', 'match_number']
+        indexes = [
+            models.Index(fields=['tournament', 'status']),
+            models.Index(fields=['scheduled_date', 'status']),
+            models.Index(fields=['court', 'scheduled_date']),
+        ]
     
     def __str__(self):
         if self.tournament.category == 'singles' and self.player1 and self.player2:

@@ -2,17 +2,25 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
+from django.db.models.functions import ExtractHour
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, Http404
 from django.core.paginator import Paginator
+from datetime import timedelta
+
 from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
+from accounts.models import User
+from courts.models import Court
+from dashboard.models import OrganizationPageSettings, FeaturedOrganization, OrganizationCategory
+from reservations.models import Reservation
+from tournaments.models import Tournament
+from payments.models import Payment, Refund
 from .models import Organization, OrganizationAuditLog
 from .forms import (
     OrganizationRegistrationForm, OrganizationProfileForm,
     OrganizationApprovalForm, SuperAdminOrganizationForm,
     OrgStaffAssignmentForm, OrganizationVerificationForm
 )
-from accounts.models import User
 from notifications.utils import (
     notify_org_admin_org_status_change,
     notify_org_admin_org_verified,
@@ -26,7 +34,6 @@ from notifications.utils import (
 
 def organization_directory(request):
     """Public directory of all approved organizations"""
-    from dashboard.models import OrganizationPageSettings, FeaturedOrganization, OrganizationCategory
     
     organizations = Organization.objects.filter(status='approved', is_active=True)
     
@@ -112,7 +119,6 @@ def _create_org_audit_log(organization, action, performed_by, details='', change
 @super_admin_required
 def super_admin_organization_list(request):
     """Super admin list of all organizations with full management controls"""
-    from reservations.models import Reservation
     
     organizations = Organization.objects.all().select_related('approved_by').annotate(
         court_count_prop=Count('courts', filter=Q(courts__is_active=True)),
@@ -184,8 +190,6 @@ def super_admin_organization_list(request):
 @super_admin_required
 def super_admin_organization_detail(request, pk):
     """Super admin view of a single organization"""
-    from reservations.models import Reservation
-    from payments.models import Payment
     
     organization = get_object_or_404(Organization, pk=pk)
     courts = organization.courts.all()
@@ -463,9 +467,6 @@ def super_admin_verify_organization(request, pk):
 @super_admin_required
 def super_admin_organization_delete(request, pk):
     """Delete an organization with validation for active reservations/tournaments"""
-    from reservations.models import Reservation
-    from tournaments.models import Tournament
-    from payments.models import Payment
 
     organization = get_object_or_404(Organization, pk=pk)
 
@@ -585,11 +586,6 @@ def super_admin_organization_activity_log(request):
 @super_admin_required
 def super_admin_dashboard(request):
     """Super Admin main dashboard with system-wide analytics"""
-    from accounts.models import User
-    from courts.models import Court
-    from reservations.models import Reservation
-    from tournaments.models import Tournament
-    from payments.models import Payment
     
     today = timezone.now().date()
     
@@ -615,7 +611,6 @@ def super_admin_dashboard(request):
     }
     
     # ========== REVENUE TREND (last 14 days) ==========
-    from datetime import timedelta
     fourteen_days_ago = today - timedelta(days=13)
     daily_revenues = Payment.objects.filter(
         status='paid',
@@ -665,8 +660,6 @@ def super_admin_dashboard(request):
 @org_required
 def org_admin_dashboard(request):
     """Organization Admin dashboard - scoped to their organization"""
-    from reservations.models import Reservation
-    from payments.models import Payment
     
     org = request.user.organization
     today = timezone.now().date()
@@ -708,11 +701,6 @@ def org_admin_dashboard(request):
 @org_required
 def org_admin_analytics_view(request):
     """Org Admin analytics dashboard with org-scoped charts and metrics"""
-    from django.db.models.functions import ExtractHour
-    from reservations.models import Reservation
-    from payments.models import Payment, Refund
-    from courts.models import Court
-    from datetime import timedelta
 
     organization = request.user.organization
     today = timezone.now().date()

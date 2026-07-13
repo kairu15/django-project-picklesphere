@@ -7,10 +7,13 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count, Q, Sum, F
 from django.views.decorators.http import require_POST
+from datetime import datetime, timedelta
+
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from courts.models import Court
 from accounts.models import UserActivity
-from .models import Tournament, Registration, Match, Team, Leaderboard
+from dashboard.models import TournamentPageSettings, FeaturedTournament, TournamentAnnouncement, TournamentCategory
+from .models import Tournament, Registration, Match, Team, Leaderboard, MatchNotification
 from .forms import (
     TournamentForm, RegistrationForm, RegistrationReviewForm, 
     MatchScoreForm, MatchScheduleForm, BulkScheduleForm,
@@ -23,8 +26,7 @@ from .utils import TournamentRandomizer, LeaderboardManager
 
 def tournament_list(request):
     """List all active tournaments"""
-    from dashboard.models import TournamentPageSettings, FeaturedTournament, TournamentAnnouncement, TournamentCategory
-    
+
     status_filter = request.GET.get('status', 'all')
     category_filter = request.GET.get('category', 'all')
     
@@ -195,7 +197,6 @@ def my_matches(request):
     ).select_related('tournament', 'court', 'team1', 'team2')
     
     # Combine and order
-    from django.db.models import Q as DQ
     all_matches = (singles_matches | doubles_matches).distinct().order_by('-scheduled_date', '-scheduled_time')
     
     upcoming = all_matches.filter(status__in=['scheduled', 'in_progress'])
@@ -392,7 +393,6 @@ def admin_registration_review(request, pk, reg_id):
             reg.save()
             
             # Send notification
-            from .models import MatchNotification
             if reg.status == 'approved':
                 MatchNotification.objects.create(
                     tournament=tournament,
@@ -546,7 +546,6 @@ def admin_match_edit(request, pk, match_id):
                 LeaderboardManager.update_leaderboard(updated_match)
                 
                 # Send notification
-                from .models import MatchNotification
                 participants = []
                 if tournament.category == 'singles':
                     participants = [updated_match.player1, updated_match.player2]
@@ -608,7 +607,6 @@ def admin_schedule_matches(request, pk):
             matches_per_day = form.cleaned_data['matches_per_day']
             duration = form.cleaned_data['match_duration']
             
-            from datetime import datetime, timedelta
             available_courts = list(Court.objects.filter(is_active=True))
             
             current_date = start_date
@@ -775,7 +773,6 @@ def admin_change_status(request, pk):
             
             # Send notifications based on status change
             if tournament.status == 'in_progress':
-                from .models import MatchNotification
                 for reg in tournament.registrations.filter(status='approved'):
                     MatchNotification.objects.create(
                         tournament=tournament,

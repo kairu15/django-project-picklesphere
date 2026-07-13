@@ -3,9 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 from django.utils import timezone
+from datetime import datetime
+
 from accounts.decorators import admin_required, super_admin_required
+from accounts.models import User
+from organizations.models import Organization
 from .models import Notification, NotificationPreference, BroadcastMessage, NotificationTemplate
 from .utils import broadcast_to_users, _get_notification_url_name
 
@@ -227,7 +231,6 @@ def notification_preferences_view(request):
         start = request.POST.get('quiet_hours_start')
         end = request.POST.get('quiet_hours_end')
         if start and end:
-            from datetime import datetime
             prefs.quiet_hours_start = datetime.strptime(start, '%H:%M').time()
             prefs.quiet_hours_end = datetime.strptime(end, '%H:%M').time()
         else:
@@ -283,7 +286,6 @@ def broadcast_create_view(request):
         category = request.POST.get('category', 'announcement')
         notification_type = request.POST.get('notification_type', 'info')
 
-        from accounts.models import User
         users = User.objects.filter(is_active=True)
 
         if target_type == 'roles' and target_roles:
@@ -316,7 +318,6 @@ def broadcast_create_view(request):
         messages.success(request, f'Broadcast sent to {len(sent)} users.')
         return redirect('super_admin_broadcast_list')
 
-    from organizations.models import Organization
     orgs = Organization.objects.filter(is_active=True)
     return render(request, 'staff/notifications/broadcast_create.html', {
         'organizations': orgs,
@@ -343,7 +344,6 @@ def broadcast_detail_view(request, broadcast_id):
 
 @login_required
 def get_broadcast_stats_api(request):
-    from django.db.models import Sum
     total_sent = BroadcastMessage.objects.filter(sent_by=request.user).aggregate(
         total=Sum('recipient_count')
     )['total'] or 0

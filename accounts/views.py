@@ -34,17 +34,21 @@ def password_reset_request(request):
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            user = User.objects.get(email__iexact=email)
-            token_generator = PasswordResetTokenGenerator()
-            token = token_generator.make_token(user)
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = request.build_absolute_uri(
-                reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
-            )
-            send_password_reset_email(user, reset_url)
+            try:
+                user = User.objects.get(email__iexact=email, is_active=True)
+                token_generator = PasswordResetTokenGenerator()
+                token = token_generator.make_token(user)
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                reset_url = request.build_absolute_uri(
+                    reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
+                )
+                send_password_reset_email(user, reset_url)
+            except User.DoesNotExist:
+                # Silently ignore inactive/nonexistent accounts to prevent info leakage
+                pass
             messages.success(
                 request,
-                'If an account exists with that email, a password reset link has been sent.'
+                'If an active account exists with that email, a password reset link has been sent.'
             )
             return redirect('login')
     else:

@@ -4,16 +4,17 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.utils import timezone
+from datetime import timedelta
+
 from accounts.decorators import admin_required, staff_or_admin_required, user_required, org_admin_required
 from .models import Equipment, EquipmentRental, EquipmentMaintenance
-from reservations.models import Reservation
 from .forms import EquipmentForm
-from datetime import timedelta
+from dashboard.models import EquipmentPageSettings, FeaturedEquipment, EquipmentCategory
+from reservations.models import Reservation
 
 
 def equipment_list_view(request):
-    from dashboard.models import EquipmentPageSettings, FeaturedEquipment, EquipmentCategory
-    
+
     equipment = Equipment.objects.filter(is_active=True)
 
     # Filter by type
@@ -182,7 +183,6 @@ def check_in_equipment_view(request, rental_id):
     rental = get_object_or_404(EquipmentRental, id=rental_id, status='rented')
     
     if request.method == 'POST':
-        from django.utils import timezone
         rental.status = 'returned'
         rental.returned_at = timezone.now()
         rental.checked_in_by = request.user
@@ -205,8 +205,6 @@ def check_in_equipment_view(request, rental_id):
     
     return render(request, 'staff/equipment/check_in.html', {'rental': rental})
 
-
-from django.utils import timezone
 
 
 # Admin CRUD Views

@@ -68,6 +68,11 @@ class Organization(models.Model):
         ordering = ['name']
         verbose_name = 'Organization'
         verbose_name_plural = 'Organizations'
+        indexes = [
+            models.Index(fields=['status', 'is_active']),
+            models.Index(fields=['city', 'is_active']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return self.name

@@ -1,21 +1,40 @@
+import csv
+import json
+from math import radians, sin, cos, sqrt, atan2
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Sum, Q, Avg
+from django.db.models import Count, Sum, Q, Avg, OuterRef, Subquery, FloatField
 from django.db.models.functions import ExtractHour
 from django.utils import timezone
+from django.conf import settings
+from django.core.mail import send_mail
+from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta
+
 from accounts.models import User, UserActivity
 from accounts.decorators import admin_required, staff_or_admin_required, user_required, super_admin_required
-from courts.models import Court, Site
+from courts.models import Court, Site, FavoriteCourt
 from organizations.models import Organization
+from tournaments.models import Tournament
 
 from reservations.models import Reservation
 from payments.models import Payment
 from scoring.models import Match, PlayerStats
 from equipment.models import Equipment, EquipmentRental
 from notifications.models import Notification
-from .models import ContactMessage, ContactInfo as CI
+from .models import (
+    AboutContent, AboutGalleryImage, Amenity, BusinessHour,
+    ContactMessage, ContactInfo as CI, ContactContent, ContactFAQ,
+    Facility, FAQPageContent, FAQCategory, FAQItem,
+    GalleryImage, HomePageContent, Milestone,
+    PricingContent, PricingTier, PricingFAQ,
+    PrivacyContent, PrivacySection,
+    Rating, SocialLink, SiteSettings,
+    TeamMember, TermsContent, TermsSection,
+    Testimonial, WhyChooseItem,
+)
 
 STATIC_CONTACT_PHONE = '09455470173'
 STATIC_CONTACT_EMAIL = 'picklesphere@gmail.com'
@@ -36,12 +55,6 @@ def _get_contact_info():
 
 def home_view(request):
     """Public home page with personalized recommendations"""
-    from tournaments.models import Tournament
-    from django.utils import timezone
-    from django.db.models import OuterRef, Subquery, Avg, FloatField
-    from .models import Rating, Amenity, GalleryImage, HomePageContent
-    from courts.models import FavoriteCourt, Court
-    from math import radians, sin, cos, sqrt, atan2
 
     # Annotate average rating on courts
     rating_subquery = Rating.objects.filter(
@@ -77,7 +90,6 @@ def home_view(request):
     ).order_by('tournament_start')[:3]
 
     # Get ratings for display (prioritize featured ratings, then fill with recent)
-    from django.db.models import Avg
     
     # Calculate average rating
     rating_stats = Rating.objects.aggregate(
@@ -158,14 +170,12 @@ def home_view(request):
         ]
 
     # Calculate stats for home page
-    from datetime import datetime
     current_year = datetime.now().year
     years_experience = max(1, current_year - 2024 + 1)
     tournaments_count = Tournament.objects.filter(status='completed').count()
     total_organizations = Organization.objects.filter(status='approved', is_active=True).count()
     
     # Apply SiteSettings overrides if set
-    from .models import SiteSettings
     site_settings = SiteSettings.objects.first()
     if site_settings:
         if site_settings.override_stat_courts is not None:
@@ -349,7 +359,6 @@ def user_dashboard_view(request):
     recent_activities = UserActivity.objects.filter(user=request.user).order_by('-created_at')[:5]
     
     # Unread notifications
-    from notifications.models import Notification
     unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
     unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
     
@@ -430,13 +439,8 @@ def staff_dashboard_view(request):
 
 def all_courts_view(request):
     """All courts page - accessible to all users"""
-    from reservations.models import Reservation
-    from datetime import datetime
-    from organizations.models import Organization
 
     # Annotate average rating on courts queryset
-    from django.db.models import OuterRef, Subquery, Avg, FloatField
-    from dashboard.models import Rating
     rating_subq = Rating.objects.filter(
         reservation__court=OuterRef('pk')
     ).values('reservation__court').annotate(
@@ -486,9 +490,6 @@ def all_courts_view(request):
 
 def court_view_view(request, court_id):
     """Court detail page - accessible to all users"""
-    from reservations.models import Reservation
-    from datetime import datetime
-    from django.shortcuts import get_object_or_404
 
     court = get_object_or_404(Court, id=court_id, is_active=True)
 
@@ -651,7 +652,6 @@ def admin_dashboard_view(request):
     }
     
     # ========== CUSTOMER RATINGS STATISTICS ==========
-    from .models import Rating
     
     rating_stats = Rating.objects.aggregate(
         average_rating=Avg('rating'),
@@ -715,8 +715,6 @@ def admin_dashboard_view(request):
 
 def pricing_view(request):
     """Pricing page - accessible to all users"""
-    from courts.models import Court
-    from .models import PricingContent, PricingTier, PricingFAQ
 
     courts = Court.objects.filter(is_active=True)
 
@@ -827,9 +825,6 @@ def pricing_view(request):
 
 def about_view(request):
     """About page - accessible to all users"""
-    from courts.models import Court
-    from accounts.models import User
-    from .models import AboutContent, ContactInfo
 
     # Get content from database with fallback defaults
     def get_content(section, default):
@@ -883,8 +878,6 @@ def about_view(request):
     }
 
     # Get dynamic stats
-    from datetime import datetime
-    from tournaments.models import Tournament
 
     # Auto-calculate years operating from 2024
     current_year = datetime.now().year
@@ -904,11 +897,9 @@ def about_view(request):
     }
 
     # Get gallery images from database
-    from .models import AboutGalleryImage
     gallery_images = AboutGalleryImage.objects.filter(is_active=True).order_by('display_order')
 
     # Calculate years experience for template
-    from datetime import datetime
     current_year = datetime.now().year
     years_experience = max(1, current_year - 2024 + 1)
 
@@ -924,9 +915,6 @@ def about_view(request):
 
 def contact_view(request):
     """Contact page - accessible to all users"""
-    from django.core.mail import send_mail
-    from django.conf import settings
-    from .models import ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
 
     # Get content from database with fallback defaults
     def get_content(section, default):
@@ -967,7 +955,6 @@ def contact_view(request):
 
         if name and email and subject and message:
             # Save to database
-            from .models import ContactMessage
             ContactMessage.objects.create(
                 name=name,
                 email=email,
@@ -1060,7 +1047,6 @@ def contact_view(request):
 def homepage_management(request):
     """Homepage content management page"""
 
-    from .models import Amenity, GalleryImage, HomePageContent
 
     amenities = Amenity.objects.filter(is_active=True).order_by('display_order')
     gallery_images = GalleryImage.objects.filter(is_active=True).order_by('display_order')
@@ -1080,7 +1066,6 @@ def homepage_management(request):
 def homepage_edit_content(request, content_id=None):
     """Edit a single homepage text content item"""
 
-    from .models import HomePageContent
 
     content_item = None
     if content_id:
@@ -1123,7 +1108,6 @@ def populate_homepage_content(request):
     if request.method != 'POST':
         return redirect('super_admin_homepage')
 
-    from .models import HomePageContent
 
     default_content = {
         'hero_title': 'Welcome to PickleSphere',
@@ -1162,7 +1146,6 @@ def populate_homepage_content(request):
 def toggle_featured_rating(request, rating_id):
     """Toggle featured status of a rating for homepage display"""
     
-    from .models import Rating
     rating = get_object_or_404(Rating, id=rating_id)
     
     # Toggle featured status
@@ -1182,7 +1165,6 @@ def toggle_featured_rating(request, rating_id):
 def homepage_edit_testimonial(request, testimonial_id=None):
     """Edit or create a testimonial"""
     
-    from .models import Testimonial
     
     testimonial = None
     if testimonial_id:
@@ -1233,7 +1215,6 @@ def homepage_edit_testimonial(request, testimonial_id=None):
 def homepage_edit_amenity(request, amenity_id=None):
     """Edit or create an amenity"""
     
-    from .models import Amenity
     
     amenity = None
     if amenity_id:
@@ -1276,7 +1257,6 @@ def homepage_edit_amenity(request, amenity_id=None):
 def homepage_edit_gallery(request, gallery_id=None):
     """Edit or create a gallery image"""
     
-    from .models import GalleryImage
     
     gallery = None
     if gallery_id:
@@ -1327,7 +1307,6 @@ def homepage_edit_gallery(request, gallery_id=None):
 def homepage_delete_testimonial(request, testimonial_id):
     """Delete a testimonial"""
     
-    from .models import Testimonial
     testimonial = get_object_or_404(Testimonial, id=testimonial_id)
     testimonial.delete()
     messages.success(request, 'Testimonial deleted successfully!')
@@ -1339,7 +1318,6 @@ def homepage_delete_testimonial(request, testimonial_id):
 def homepage_delete_amenity(request, amenity_id):
     """Delete an amenity"""
     
-    from .models import Amenity
     amenity = get_object_or_404(Amenity, id=amenity_id)
     amenity.delete()
     messages.success(request, 'Amenity deleted successfully!')
@@ -1351,7 +1329,6 @@ def homepage_delete_amenity(request, amenity_id):
 def homepage_delete_gallery(request, gallery_id):
     """Delete a gallery image"""
     
-    from .models import GalleryImage
     gallery = get_object_or_404(GalleryImage, id=gallery_id)
     gallery.delete()
     messages.success(request, 'Gallery image deleted successfully!')
@@ -1360,7 +1337,6 @@ def homepage_delete_gallery(request, gallery_id):
 
 def privacy_policy_view(request):
     """Privacy Policy page - accessible to all users"""
-    from .models import PrivacyContent, PrivacySection
     
     def get_content(section, default):
         content = PrivacyContent.objects.filter(section=section, is_active=True).first()
@@ -1383,7 +1359,6 @@ def privacy_policy_view(request):
 
 def terms_of_service_view(request):
     """Terms of Service page - accessible to all users"""
-    from .models import TermsContent, TermsSection
     
     def get_content(section, default):
         content = TermsContent.objects.filter(section=section, is_active=True).first()
@@ -1406,7 +1381,6 @@ def terms_of_service_view(request):
 
 def faq_view(request):
     """FAQ page - accessible to all users"""
-    from .models import FAQPageContent, FAQCategory, FAQItem
     
     # Get CMS content sections with fallback defaults
     def get_content(section, default):
@@ -1484,7 +1458,6 @@ def faq_view(request):
 def pricing_management(request):
     """Pricing page content management"""
     
-    from .models import PricingContent, PricingTier, PricingFAQ
     
     content = PricingContent.objects.filter(is_active=True).order_by('section')
     tiers = PricingTier.objects.all().order_by('display_order', 'price')
@@ -1504,7 +1477,6 @@ def pricing_management(request):
 def pricing_edit_content(request, content_id=None):
     """Edit or create pricing page content"""
     
-    from .models import PricingContent
     
     content_item = None
     if content_id:
@@ -1544,7 +1516,6 @@ def pricing_edit_content(request, content_id=None):
 def pricing_delete_content(request, content_id):
     """Delete pricing content"""
     
-    from .models import PricingContent
     content = get_object_or_404(PricingContent, id=content_id)
     content.delete()
     messages.success(request, 'Content deleted successfully!')
@@ -1556,8 +1527,6 @@ def pricing_delete_content(request, content_id):
 def pricing_edit_tier(request, tier_id=None):
     """Edit or create pricing tier"""
     
-    from .models import PricingTier
-    import json
     
     tier = None
     if tier_id:
@@ -1616,7 +1585,6 @@ def pricing_edit_tier(request, tier_id=None):
 def pricing_delete_tier(request, tier_id):
     """Delete pricing tier"""
     
-    from .models import PricingTier
     tier = get_object_or_404(PricingTier, id=tier_id)
     tier.delete()
     messages.success(request, 'Pricing tier deleted successfully!')
@@ -1628,7 +1596,6 @@ def pricing_delete_tier(request, tier_id):
 def pricing_edit_faq(request, faq_id=None):
     """Edit or create pricing FAQ"""
     
-    from .models import PricingFAQ
     
     faq = None
     if faq_id:
@@ -1670,7 +1637,6 @@ def pricing_edit_faq(request, faq_id=None):
 def pricing_delete_faq(request, faq_id):
     """Delete pricing FAQ"""
     
-    from .models import PricingFAQ
     faq = get_object_or_404(PricingFAQ, id=faq_id)
     faq.delete()
     messages.success(request, 'FAQ deleted successfully!')
@@ -1686,7 +1652,6 @@ def pricing_delete_faq(request, faq_id):
 def about_management(request):
     """About page content management"""
 
-    from .models import AboutContent, Milestone, TeamMember, Facility, WhyChooseItem, AboutGalleryImage
 
     content = AboutContent.objects.filter(is_active=True).order_by('section')
     milestones = Milestone.objects.all().order_by('display_order', 'year')
@@ -1712,7 +1677,6 @@ def about_management(request):
 def about_edit_content(request, content_id=None):
     """Edit or create about page content"""
     
-    from .models import AboutContent
     
     content_item = None
     if content_id:
@@ -1752,7 +1716,6 @@ def about_edit_content(request, content_id=None):
 def about_delete_content(request, content_id):
     """Delete about content"""
     
-    from .models import AboutContent
     content = get_object_or_404(AboutContent, id=content_id)
     content.delete()
     messages.success(request, 'Content deleted successfully!')
@@ -1764,7 +1727,6 @@ def about_delete_content(request, content_id):
 def about_edit_milestone(request, milestone_id=None):
     """Edit or create milestone"""
     
-    from .models import Milestone
     
     milestone = None
     if milestone_id:
@@ -1813,7 +1775,6 @@ def about_edit_milestone(request, milestone_id=None):
 def about_delete_milestone(request, milestone_id):
     """Delete milestone"""
     
-    from .models import Milestone
     milestone = get_object_or_404(Milestone, id=milestone_id)
     milestone.delete()
     messages.success(request, 'Milestone deleted successfully!')
@@ -1825,7 +1786,6 @@ def about_delete_milestone(request, milestone_id):
 def about_edit_team_member(request, member_id=None):
     """Edit or create team member"""
     
-    from .models import TeamMember
     
     member = None
     if member_id:
@@ -1883,7 +1843,6 @@ def about_edit_team_member(request, member_id=None):
 def about_delete_team_member(request, member_id):
     """Delete team member"""
     
-    from .models import TeamMember
     member = get_object_or_404(TeamMember, id=member_id)
     member.delete()
     messages.success(request, 'Team member deleted successfully!')
@@ -1895,7 +1854,6 @@ def about_delete_team_member(request, member_id):
 def about_edit_facility(request, facility_id=None):
     """Edit or create facility"""
     
-    from .models import Facility
     
     facility = None
     if facility_id:
@@ -1944,7 +1902,6 @@ def about_edit_facility(request, facility_id=None):
 def about_delete_facility(request, facility_id):
     """Delete facility"""
     
-    from .models import Facility
     facility = get_object_or_404(Facility, id=facility_id)
     facility.delete()
     messages.success(request, 'Facility deleted successfully!')
@@ -1956,7 +1913,6 @@ def about_delete_facility(request, facility_id):
 def about_edit_why_item(request, item_id=None):
     """Edit or create why choose item"""
     
-    from .models import WhyChooseItem
     
     item = None
     if item_id:
@@ -2005,7 +1961,6 @@ def about_edit_why_item(request, item_id=None):
 def about_delete_why_item(request, item_id):
     """Delete why choose item"""
     
-    from .models import WhyChooseItem
     item = get_object_or_404(WhyChooseItem, id=item_id)
     item.delete()
     messages.success(request, 'Item deleted successfully!')
@@ -2017,7 +1972,6 @@ def about_delete_why_item(request, item_id):
 def about_add_gallery_image(request):
     """Add gallery image for about page"""
     
-    from .models import AboutGalleryImage
     
     if request.method == 'POST':
         image = request.FILES.get('image')
@@ -2046,7 +2000,6 @@ def about_add_gallery_image(request):
 def about_delete_gallery_image(request, image_id):
     """Delete gallery image"""
     
-    from .models import AboutGalleryImage
     image = get_object_or_404(AboutGalleryImage, id=image_id)
     image.delete()
     messages.success(request, 'Gallery image deleted successfully!')
@@ -2062,7 +2015,6 @@ def about_delete_gallery_image(request, image_id):
 def contact_management(request):
     """Contact page content management"""
     
-    from .models import ContactContent, ContactInfo, BusinessHour, ContactFAQ, SocialLink
     
     content = ContactContent.objects.filter(is_active=True).order_by('section')
     contact_info = ContactInfo.objects.first()
@@ -2086,7 +2038,6 @@ def contact_management(request):
 def contact_edit_content(request, content_id=None):
     """Edit or create contact page content"""
     
-    from .models import ContactContent
     
     content_item = None
     if content_id:
@@ -2126,7 +2077,6 @@ def contact_edit_content(request, content_id=None):
 def contact_delete_content(request, content_id):
     """Delete contact content"""
     
-    from .models import ContactContent
     content = get_object_or_404(ContactContent, id=content_id)
     content.delete()
     messages.success(request, 'Content deleted successfully!')
@@ -2138,7 +2088,6 @@ def contact_delete_content(request, content_id):
 def contact_edit_info(request):
     """Edit contact information"""
     
-    from .models import ContactInfo
     
     contact_info = ContactInfo.objects.first()
     
@@ -2181,7 +2130,6 @@ def contact_edit_info(request):
 def contact_edit_business_hour(request, hour_id=None):
     """Edit or create business hour"""
     
-    from .models import BusinessHour
     
     hour = None
     if hour_id:
@@ -2227,7 +2175,6 @@ def contact_edit_business_hour(request, hour_id=None):
 def contact_delete_business_hour(request, hour_id):
     """Delete business hour"""
     
-    from .models import BusinessHour
     hour = get_object_or_404(BusinessHour, id=hour_id)
     hour.delete()
     messages.success(request, 'Business hour deleted successfully!')
@@ -2239,7 +2186,6 @@ def contact_delete_business_hour(request, hour_id):
 def contact_edit_faq(request, faq_id=None):
     """Edit or create contact FAQ"""
     
-    from .models import ContactFAQ
     
     faq = None
     if faq_id:
@@ -2285,7 +2231,6 @@ def contact_edit_faq(request, faq_id=None):
 def contact_delete_faq(request, faq_id):
     """Delete contact FAQ"""
     
-    from .models import ContactFAQ
     faq = get_object_or_404(ContactFAQ, id=faq_id)
     faq.delete()
     messages.success(request, 'FAQ deleted successfully!')
@@ -2297,7 +2242,6 @@ def contact_delete_faq(request, faq_id):
 def contact_edit_social_link(request, link_id=None):
     """Edit or create social link"""
     
-    from .models import SocialLink
     
     link = None
     if link_id:
@@ -2340,7 +2284,6 @@ def contact_edit_social_link(request, link_id=None):
 def contact_delete_social_link(request, link_id):
     """Delete social link"""
     
-    from .models import SocialLink
     link = get_object_or_404(SocialLink, id=link_id)
     link.delete()
     messages.success(request, 'Social link deleted successfully!')
@@ -2351,8 +2294,6 @@ def contact_delete_social_link(request, link_id):
 @user_required
 def submit_rating_view(request, reservation_id):
     """User view for submitting a rating for a completed reservation"""
-    from .models import Rating
-    from reservations.models import Reservation
     
     reservation = get_object_or_404(Reservation, id=reservation_id, user=request.user)
     
@@ -2405,9 +2346,6 @@ def submit_rating_view(request, reservation_id):
 @user_required
 def check_pending_rating_view(request):
     """AJAX view to check if user has any unrated completed reservations"""
-    from .models import Rating
-    from reservations.models import Reservation
-    from django.http import JsonResponse
     
     # Find completed reservations without ratings
     unrated_reservations = Reservation.objects.filter(
@@ -2507,8 +2445,6 @@ def contact_message_detail_view(request, message_id):
             message.save()
             
             # Find the user by email and create a notification
-            from accounts.models import User
-            from notifications.models import Notification
             try:
                 user = User.objects.get(email=message.email)
                 Notification.objects.create(
@@ -2521,8 +2457,6 @@ def contact_message_detail_view(request, message_id):
                 pass
             
             # Send email to the sender
-            from django.core.mail import send_mail
-            from django.conf import settings
             try:
                 send_mail(
                     f'Re: {message.get_subject_display()} - PickleSphere',
@@ -2587,8 +2521,6 @@ def admin_reject_testimonial_view(request, testimonial_id):
 @admin_required
 def dashboard_export_view(request):
     """Export dashboard analytics data as CSV"""
-    import csv
-    from django.http import HttpResponse
 
     today = timezone.now().date()
     thirty_days_ago = today - timedelta(days=30)
@@ -2657,8 +2589,6 @@ def dashboard_export_view(request):
 def rating_list_view(request):
     """Admin view to display all customer ratings with overview statistics"""
 
-    from .models import Rating
-    from django.db.models import Avg, Count
 
     # Get all ratings with related user and reservation
     ratings = Rating.objects.select_related('user', 'reservation', 'reservation__court').order_by('-created_at')

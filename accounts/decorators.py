@@ -84,9 +84,10 @@ def staff_or_admin_required(view_func):
             return redirect('login')
         if not request.user.is_staff_user():
             messages.error(request, 'You do not have permission to access this page.')
-            if request.user.is_super_admin():
-                return redirect('super_admin_org_dashboard')
-            return redirect('user_dashboard')
+            if request.user.is_normal_user():
+                return redirect('user_dashboard')
+            # Fallback for any other non-staff role
+            return redirect('dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

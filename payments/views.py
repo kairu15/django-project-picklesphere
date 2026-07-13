@@ -4,15 +4,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Sum, Count, Q, F
+from django.db.models import Sum, Count, Q, F, ExpressionWrapper, FloatField
+from django.db.models.functions import ExtractHour
 from django.utils import timezone
 from django.http import HttpResponse, Http404
+import os
+import csv
 from django.urls import reverse
 from datetime import datetime, timedelta
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
 from .stripe_integration import create_checkout_session, create_payment_intent, get_publishable_key
+from courts.models import Court
 from reservations.models import Reservation, CancellationRequest
 from reservations.models import ReservationEquipment
 from equipment.models import Equipment
@@ -33,15 +37,11 @@ def checkout_page_view(request, checkout_token):
         messages.error(request, 'Your checkout session has expired. Please start a new reservation.')
         return redirect('reservation_create')
     
-    from courts.models import Court
-    from reservations.models import Reservation as ResModel
-    from equipment.models import Equipment as EqModel
-    
     court = get_object_or_404(Court, id=checkout_data['court_id'], is_active=True)
     
     # Look up equipment objects and calculate total fee
     equipment_ids = checkout_data.get('equipment_ids', [])
-    equipment_objects = list(EqModel.objects.filter(id__in=equipment_ids, is_active=True)) if equipment_ids else []
+    equipment_objects = list(Equipment.objects.filter(id__in=equipment_ids, is_active=True)) if equipment_ids else []
     total_equipment_fee = sum(float(eq.rental_price) for eq in equipment_objects)
     
     # Reconstruct unbound forms for the template
@@ -78,12 +78,11 @@ def checkout_page_view(request, checkout_token):
             return _render_checkout()
         
         # Re-verify slot availability before creating reservation
-        from django.utils import timezone as tz
         date = datetime.strptime(checkout_data['date'], '%Y-%m-%d').date()
         start_time = datetime.strptime(checkout_data['start_time'], '%H:%M').time()
         end_time = datetime.strptime(checkout_data['end_time'], '%H:%M').time()
         
-        overlapping = ResModel.objects.filter(
+        overlapping = Reservation.objects.filter(
             court=court,
             date=date,
             status__in=['confirmed', 'pending']
@@ -100,9 +99,9 @@ def checkout_page_view(request, checkout_token):
         
         # Check if slot is in the past
         slot_datetime = datetime.combine(date, start_time)
-        if tz.is_naive(slot_datetime):
-            slot_datetime = tz.make_aware(slot_datetime)
-        if slot_datetime < tz.now():
+        if timezone.is_naive(slot_datetime):
+            slot_datetime = timezone.make_aware(slot_datetime)
+        if slot_datetime < timezone.now():
             messages.error(request, 'This time slot has already passed. Please start a new reservation.')
             request.session.pop('checkout_data', None)
             return redirect('reservation_create')
@@ -117,7 +116,7 @@ def checkout_page_view(request, checkout_token):
                         hourly_rate = checkout_data['hourly_rate']
                         subtotal = checkout_data['subtotal']
                         
-                        reservation = ResModel.objects.create(
+                        reservation = Reservation.objects.create(
                             user=request.user,
                             court=court,
                             date=date,
@@ -216,7 +215,7 @@ def checkout_page_view(request, checkout_token):
                         hourly_rate = checkout_data['hourly_rate']
                         subtotal = checkout_data['subtotal']
                         
-                        reservation = ResModel.objects.create(
+                        reservation = Reservation.objects.create(
                             user=request.user,
                             court=court,
                             date=date,
@@ -306,7 +305,7 @@ def checkout_page_view(request, checkout_token):
                     hourly_rate = checkout_data['hourly_rate']
                     subtotal = checkout_data['subtotal']
                     
-                    reservation = ResModel.objects.create(
+                    reservation = Reservation.objects.create(
                         user=request.user,
                         court=court,
                         date=date,
@@ -395,7 +394,7 @@ def checkout_page_view(request, checkout_token):
                     hourly_rate = checkout_data['hourly_rate']
                     subtotal = checkout_data['subtotal']
                     
-                    reservation = ResModel.objects.create(
+                    reservation = Reservation.objects.create(
                         user=request.user,
                         court=court,
                         date=date,
@@ -518,7 +517,6 @@ def payment_checkout_view(request, reservation_id):
                 )
                 
                 # Notify staff
-                from accounts.models import User
                 staff_users = User.objects.filter(role__in=['super_admin', 'org_admin', 'org_staff'])
                 for staff in staff_users:
                     Notification.objects.create(
@@ -974,7 +972,6 @@ def serve_payment_proof_image(request, payment_id):
             image_data = f.read()
 
         # Determine content type based on file extension
-        import os
         content_type = 'image/jpeg'
         if payment.gcash_proof_image.name.lower().endswith('.png'):
             content_type = 'image/png'
@@ -1380,7 +1377,6 @@ def revenue_report_view(request):
     # ==================== 5. DISCOUNTS AND PROMOTIONS ====================
 
     # Calculate potential discounts (difference between standard rate and actual)
-    from django.db.models import ExpressionWrapper, FloatField
     standard_rate_revenue = payments.aggregate(
         total=Sum(ExpressionWrapper(
             F('reservation__court__hourly_rate') * F('reservation__duration_hours'),
@@ -1446,7 +1442,6 @@ def revenue_report_view(request):
     ).order_by('-total')
 
     # Hourly distribution - use values from related reservation
-    from django.db.models.functions import ExtractHour
     hourly_distribution = payments.annotate(
         hour=ExtractHour('reservation__start_time')
     ).values('hour').annotate(
@@ -1467,7 +1462,6 @@ def revenue_report_view(request):
     }
 
     # Court list for filter
-    from courts.models import Court
     courts = Court.objects.filter(is_active=True)
 
     return render(request, 'admin/payments/revenue_report.html', {
@@ -1493,8 +1487,6 @@ def revenue_report_view(request):
 @admin_required
 def revenue_report_export_view(request):
     """Export revenue report as CSV or Excel (.xlsx)"""
-    import csv
-    from django.http import HttpResponse
 
     # Get filters
     date_from = request.GET.get('date_from', (timezone.now() - timedelta(days=30)).strftime('%Y-%m-%d'))

@@ -14,19 +14,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production-u)8z%#-sdlu@&bzp-8*q6k^o1$+^e0k1cut%tt^=aihi1**2m-')
+# Generate a unique key: https://djecrety.ir/
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.*,*.ngrok-free.app,*.ngrok-free.dev,*.ngrok.io').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8001',
     'http://localhost:8001',
-    'https://*.ngrok-free.app',
-    'https://*.ngrok-free.dev',
-    'https://*.ngrok.io',
 ]
 
 # Application definition
@@ -38,6 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party apps
+    'axes',
     # PickleSphere Apps
     'accounts',
     'organizations',
@@ -58,6 +58,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # django-axes must come after SessionMiddleware
+    'axes.middleware.AxesMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -154,6 +156,8 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # Authentication Settings
 AUTHENTICATION_BACKENDS = [
+    # django-axes must be first to track login attempts
+    'axes.backends.AxesStandaloneBackend',
     'accounts.backends.EmailOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
@@ -175,6 +179,18 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_SAVE_EVERY_REQUEST = True
 # Use database-backed sessions for reliability
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# ========== django-axes (Brute Force Protection) ==========
+# Number of failed login attempts before lockout
+AXES_FAILURE_LIMIT = 5
+# Duration of lockout in hours (1 hour)
+AXES_COOLOFF_TIME = 1
+# Reset failure count after a successful login
+AXES_RESET_ON_SUCCESS = True
+# Use the custom email/username backend for attempt tracking
+AXES_USERNAME_FORM_FIELD = 'username'
+# Log attempts for auditing
+AXES_ENABLE_ADMIN = True
 
 # CSRF settings
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)

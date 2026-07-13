@@ -2,20 +2,20 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery, Avg, FloatField
+from django.http import JsonResponse
 from urllib.parse import urlencode
+from datetime import datetime, timedelta, time
+
 from accounts.decorators import admin_required
-from .models import Site, Court
+from .models import Site, Court, FavoriteCourt
 from .forms import CourtForm, SiteForm
+from dashboard.models import CourtPageSettings, FeaturedCourt, Rating
+from organizations.models import Organization
 from reservations.models import Reservation
-from datetime import datetime, timedelta
 
 
 def court_list_view(request):
-    from organizations.models import Organization
-    from dashboard.models import CourtPageSettings, FeaturedCourt, Rating
-    from django.db.models import OuterRef, Subquery, Avg, FloatField
-
     rating_subq = Rating.objects.filter(
         reservation__court=OuterRef('pk')
     ).values('reservation__court').annotate(
@@ -137,7 +137,6 @@ def court_detail_view(request, court_id):
     ).select_related('site', 'organization').distinct()[:3]
     
     # Time slots for today
-    from datetime import time
     today_reservations = Reservation.objects.filter(
         court=court,
         date=today,
@@ -217,8 +216,6 @@ def court_availability_view(request, court_id):
 @login_required
 def toggle_favorite_view(request, court_id):
     """AJAX view to toggle a court as favorite"""
-    from django.http import JsonResponse
-    from .models import FavoriteCourt
 
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)

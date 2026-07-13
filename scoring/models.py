@@ -45,6 +45,10 @@ class Match(models.Model):
     class Meta:
         db_table = 'matches'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['reservation']),
+        ]
     
     def __str__(self):
         return f"Match #{self.id} - {self.reservation.court.name}"
@@ -123,6 +127,9 @@ class PlayerStats(models.Model):
     
     class Meta:
         db_table = 'player_stats'
+        indexes = [
+            models.Index(fields=['-wins', '-total_matches']),
+        ]
     
     def __str__(self):
         return f"{self.player.username} Stats"

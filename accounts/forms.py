@@ -178,7 +178,7 @@ class PasswordResetRequestForm(forms.Form):
         email = self.cleaned_data.get('email')
         from .models import User
         if not User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError('No account found with this email address.')
+            raise forms.ValidationError('If an active account exists with that email, a reset link will be sent.')
         return email
 
 

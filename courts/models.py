@@ -62,6 +62,11 @@ class Court(models.Model):
     class Meta:
         db_table = 'courts'
         ordering = ['site', 'name']
+        indexes = [
+            models.Index(fields=['organization', 'is_active']),
+            models.Index(fields=['status', 'is_active']),
+            models.Index(fields=['court_type', 'is_active']),
+        ]
     
     def __str__(self):
         return f"{self.name} ({self.site.name})" 

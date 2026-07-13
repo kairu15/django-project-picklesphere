@@ -52,6 +52,12 @@ class Reservation(models.Model):
     class Meta:
         db_table = 'reservations'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'date']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['court', 'date']),
+            models.Index(fields=['date', 'start_time']),
+        ]
     
     def __str__(self):
         return f"Reservation #{self.id} - {self.user.username} - {self.court.name}"
@@ -140,6 +146,10 @@ class CancellationRequest(models.Model):
     class Meta:
         db_table = 'cancellation_requests'
         ordering = ['-requested_at']
+        indexes = [
+            models.Index(fields=['reservation', 'approved']),
+            models.Index(fields=['requested_by', '-requested_at']),
+        ]
 
     def __str__(self):
         return f"Cancellation Request for Reservation #{self.reservation.id}"

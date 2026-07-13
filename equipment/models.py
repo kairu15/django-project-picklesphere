@@ -1,8 +1,9 @@
 from django.db import models
 from accounts.models import User
+from utils import SoftDeleteMixin
 
 
-class Equipment(models.Model):
+class Equipment(SoftDeleteMixin, models.Model):
     TYPE_CHOICES = (
         ('paddle', 'Paddle'),
         ('ball', 'Ball'),
@@ -55,6 +56,11 @@ class Equipment(models.Model):
         db_table = 'equipment'
         ordering = ['type', 'name']
         verbose_name_plural = 'Equipment'
+        indexes = [
+            models.Index(fields=['organization', 'is_active']),
+            models.Index(fields=['type', 'is_active']),
+            models.Index(fields=['condition', 'is_active']),
+        ]
     
     def __str__(self):
         return f"{self.name} ({self.type}) - Qty: {self.quantity_available}"
@@ -108,6 +114,11 @@ class EquipmentRental(models.Model):
     class Meta:
         db_table = 'equipment_rentals'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['equipment', 'status']),
+            models.Index(fields=['rented_by', 'status']),
+            models.Index(fields=['reserved_date', 'status']),
+        ]
     
     def __str__(self):
         return f"{self.equipment.name} rented by {self.rented_by.username}"

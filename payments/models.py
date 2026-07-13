@@ -46,6 +46,11 @@ class Payment(models.Model):
     class Meta:
         db_table = 'payments'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['reservation', 'status']),
+            models.Index(fields=['method', 'status']),
+        ]
     
     def __str__(self):
         return f"Payment #{self.id} - {self.reservation.user.username} - ₱{self.amount}"
@@ -75,6 +80,10 @@ class Refund(models.Model):
     class Meta:
         db_table = 'refunds'
         ordering = ['-requested_at']
+        indexes = [
+            models.Index(fields=['payment', 'status']),
+            models.Index(fields=['status', '-requested_at']),
+        ]
     
     def __str__(self):
         return f"Refund #{self.id} - Payment #{self.payment.id} - ₱{self.amount}"
