@@ -2,9 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.urls import reverse
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
@@ -12,10 +16,74 @@ from .forms import (
     UserRoleForm,
     AdminUserCreateForm,
     AdminUserUpdateForm,
+    PasswordResetRequestForm,
+    SetPasswordForm,
 )
 from .models import User, UserActivity
 from .decorators import admin_required, staff_or_admin_required, user_required
 from notifications.models import Notification
+from notifications.email_utils import send_password_reset_email
+
+
+def password_reset_request(request):
+    """Handle forgot password - send reset link to email."""
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.get(email__iexact=email)
+            token_generator = PasswordResetTokenGenerator()
+            token = token_generator.make_token(user)
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_url = request.build_absolute_uri(
+                reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
+            )
+            send_password_reset_email(user, reset_url)
+            messages.success(
+                request,
+                'If an account exists with that email, a password reset link has been sent.'
+            )
+            return redirect('login')
+    else:
+        form = PasswordResetRequestForm()
+
+    return render(request, 'auth/password_reset_request.html', {'form': form})
+
+
+def password_reset_confirm(request, uidb64, token):
+    """Handle password reset - validate token and set new password."""
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    token_generator = PasswordResetTokenGenerator()
+
+    if user is None or not token_generator.check_token(user, token):
+        messages.error(request, 'The password reset link is invalid or has expired.')
+        return redirect('password_reset_request')
+
+    if request.method == 'POST':
+        form = SetPasswordForm(request.POST)
+        if form.is_valid():
+            user.set_password(form.cleaned_data['new_password1'])
+            user.save()
+            messages.success(request, 'Your password has been reset successfully. Please sign in.')
+            return redirect('login')
+    else:
+        form = SetPasswordForm()
+
+    return render(request, 'auth/password_reset_confirm.html', {
+        'form': form,
+        'validlink': True,
+    })
 
 
 def register_view(request):
@@ -23,7 +91,7 @@ def register_view(request):
         return redirect('home')
     
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
+        form = UserRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
             user.role = 'user'
@@ -96,17 +164,68 @@ def profile_view(request):
     profile_form = UserProfileForm(instance=request.user)
     password_form = PasswordChangeForm(request.user)
     
-    # Get reservation history
     from reservations.models import Reservation
+    from tournaments.models import Registration
+    from scoring.models import Match
+    
+    # Reservation history (last 10)
     reservation_history = Reservation.objects.filter(
         user=request.user
     ).select_related('court', 'court__site').order_by('-date', '-start_time')[:10]
     
-    # Get tournament participation
-    from tournaments.models import Registration
+    # Reservation stats
+    total_reservations = Reservation.objects.filter(user=request.user).exclude(status='cancelled').count()
+    completed_reservations = Reservation.objects.filter(user=request.user, status='completed').count()
+    pending_reservations = Reservation.objects.filter(user=request.user, status='pending').count()
+    cancelled_reservations = Reservation.objects.filter(user=request.user, status='cancelled').count()
+    confirmed_reservations = Reservation.objects.filter(user=request.user, status='confirmed').count()
+    
+    # Tournament participation
     tournament_registrations = Registration.objects.filter(
         user=request.user
     ).select_related('tournament').order_by('-registered_at')[:10]
+    tournament_count = tournament_registrations.count()
+    
+    # Match history
+    match_history = Match.objects.filter(
+        Q(team1_player1=request.user) | Q(team1_player2=request.user) |
+        Q(team2_player1=request.user) | Q(team2_player2=request.user)
+    ).select_related(
+        'team1_player1', 'team1_player2', 'team2_player1', 'team2_player2'
+    ).prefetch_related('games').order_by('-created_at')[:10]
+    
+    # Match stats
+    completed_matches = Match.objects.filter(
+        Q(team1_player1=request.user) | Q(team1_player2=request.user) |
+        Q(team2_player1=request.user) | Q(team2_player2=request.user),
+        status='completed'
+    ).count()
+    
+    # Wins (completed matches where user's team won)
+    wins = 0
+    for m in match_history:
+        if m.status != 'completed' or not m.winner_team:
+            continue
+        if (m.team1_player1 == request.user or m.team1_player2 == request.user) and m.winner_team == 1:
+            wins += 1
+        elif (m.team2_player1 == request.user or m.team2_player2 == request.user) and m.winner_team == 2:
+            wins += 1
+    
+    # Favorite courts
+    from django.db.models import Count
+    favorite_courts_qs = Reservation.objects.filter(
+        user=request.user
+    ).exclude(status='cancelled').values(
+        'court__name'
+    ).annotate(
+        count=Count('id')
+    ).order_by('-count')[:3]
+    favorite_courts = [item['court__name'] for item in favorite_courts_qs if item['court__name']]
+    
+    # Recent activity (from UserActivity model)
+    recent_activities = UserActivity.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:10]
     
     if request.method == 'POST':
         if 'update_profile' in request.POST:
@@ -130,6 +249,17 @@ def profile_view(request):
         'password_form': password_form,
         'reservation_history': reservation_history,
         'tournament_registrations': tournament_registrations,
+        'match_history': match_history,
+        'recent_activities': recent_activities,
+        'total_reservations': total_reservations,
+        'completed_reservations': completed_reservations,
+        'pending_reservations': pending_reservations,
+        'cancelled_reservations': cancelled_reservations,
+        'confirmed_reservations': confirmed_reservations,
+        'completed_matches': completed_matches,
+        'tournament_count': tournament_count,
+        'wins': wins,
+        'favorite_courts': favorite_courts,
     })
 
 

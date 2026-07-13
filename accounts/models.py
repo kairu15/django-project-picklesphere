@@ -34,6 +34,10 @@ class User(AbstractUser):
     skill_level = models.CharField(max_length=20, choices=SKILL_LEVEL_CHOICES, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     
+    # Map Location
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, help_text='Latitude coordinate for map location')
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, help_text='Longitude coordinate for map location')
+    
     # Social links
     website_url = models.URLField(blank=True, null=True, max_length=500)
     twitter_url = models.URLField(blank=True, null=True, max_length=500, verbose_name='X (Twitter) URL')

@@ -35,12 +35,24 @@ def _get_contact_info():
 
 
 def home_view(request):
-    """Public home page"""
+    """Public home page with personalized recommendations"""
     from tournaments.models import Tournament
     from django.utils import timezone
+    from django.db.models import OuterRef, Subquery, Avg, FloatField
     from .models import Rating, Amenity, GalleryImage, HomePageContent
+    from courts.models import FavoriteCourt, Court
+    from math import radians, sin, cos, sqrt, atan2
 
-    featured_courts = Court.objects.filter(is_active=True, site__is_active=True)[:6]
+    # Annotate average rating on courts
+    rating_subquery = Rating.objects.filter(
+        reservation__court=OuterRef('pk')
+    ).values('reservation__court').annotate(
+        avg=Avg('rating')
+    ).values('avg')
+
+    featured_courts = Court.objects.filter(is_active=True, site__is_active=True).annotate(
+        rating_avg=Subquery(rating_subquery, output_field=FloatField())
+    )[:6]
     total_courts = Court.objects.filter(is_active=True).count()
     total_users = User.objects.filter(is_active=True).count()
     sites = Site.objects.filter(is_active=True)[:4]
@@ -167,6 +179,94 @@ def home_view(request):
         if site_settings.override_stat_years is not None:
             years_experience = site_settings.override_stat_years
 
+    # =================================================================
+    # PERSONALIZED RECOMMENDATIONS (for logged-in users only)
+    # =================================================================
+    recommended_courts = []
+    nearest_courts = []
+    user_favorite_ids = []
+
+    if request.user.is_authenticated:
+        user = request.user
+        # Get user's favorite court IDs
+        user_favorite_ids = list(FavoriteCourt.objects.filter(
+            user=user
+        ).values_list('court_id', flat=True))
+
+        # Get all active courts
+        all_courts = Court.objects.filter(
+            is_active=True, site__is_active=True
+        ).select_related('site', 'organization').annotate(
+            rating_avg=Subquery(rating_subquery, output_field=FloatField())
+        )[:50]
+
+        # Get user's reservation history for preference analysis
+        user_reservations = Reservation.objects.filter(
+            user=user
+        ).select_related('court')[:20]
+
+        # Extract preferred court types and organizations from history
+        preferred_types = set()
+        preferred_org_ids = set()
+        for r in user_reservations:
+            preferred_types.add(r.court.court_type)
+            if r.court.organization_id:
+                preferred_org_ids.add(r.court.organization_id)
+
+        # Score each court for recommendations
+        court_scores = []
+        for court in all_courts:
+            score = 0
+            # +1 for matching skill level recommendation (indoor/outdoor)
+            if court.court_type in preferred_types:
+                score += 3
+            # +1 for matching previously visited organization
+            if court.organization_id in preferred_org_ids:
+                score += 4
+            # +2 if user has favorited this court
+            if court.id in user_favorite_ids:
+                score += 5
+            # +1 if it's the same type as the user's skill level preference
+            if user.skill_level == 'beginner' and court.court_type == 'indoor':
+                score += 1
+            court_scores.append((court, score))
+
+        # Sort by score (highest first) and take top 6 for recommendations
+        court_scores.sort(key=lambda x: -x[1])
+        recommended_courts = [c for c, s in court_scores[:6] if s > 0]
+
+        # If no scored courts, fall back to popular courts
+        if not recommended_courts:
+            popular_ids = Reservation.objects.filter(
+                status__in=['confirmed', 'completed']
+            ).values('court_id').annotate(
+                cnt=Count('id')
+            ).order_by('-cnt').values_list('court_id', flat=True)[:6]
+            recommended_courts_list = [c for c in all_courts if c.id in popular_ids][:6]
+            if not recommended_courts_list:
+                recommended_courts_list = list(all_courts[:6])
+            recommended_courts = recommended_courts_list
+
+        # Nearest courts (using saved user coordinates)
+        if user.latitude and user.longitude:
+            user_lat = float(user.latitude)
+            user_lng = float(user.longitude)
+            courts_with_dist = []
+            for court in all_courts:
+                org = court.organization
+                if org and org.latitude and org.longitude:
+                    org_lat = float(org.latitude)
+                    org_lng = float(org.longitude)
+                    # Haversine formula
+                    dlon = radians(org_lng - user_lng)
+                    dlat = radians(org_lat - user_lat)
+                    a = sin(dlat/2)**2 + cos(radians(user_lat)) * cos(radians(org_lat)) * sin(dlon/2)**2
+                    c_val = 2 * atan2(sqrt(a), sqrt(1-a))
+                    distance_km = 6371 * c_val
+                    courts_with_dist.append((court, round(distance_km, 1)))
+            courts_with_dist.sort(key=lambda x: x[1])
+            nearest_courts = [{'court': c, 'distance_km': d} for c, d in courts_with_dist[:4]]
+
     return render(request, 'public/home.html', {
         'featured_courts': featured_courts,
         'total_courts': total_courts,
@@ -182,6 +282,9 @@ def home_view(request):
         'tournaments_count': tournaments_count,
         'total_organizations': total_organizations,
         'homepage_text': homepage_text,
+        'recommended_courts': recommended_courts,
+        'nearest_courts': nearest_courts,
+        'user_favorite_ids': user_favorite_ids,
     })
 
 
@@ -331,7 +434,18 @@ def all_courts_view(request):
     from datetime import datetime
     from organizations.models import Organization
 
-    courts = Court.objects.filter(is_active=True).select_related('organization')
+    # Annotate average rating on courts queryset
+    from django.db.models import OuterRef, Subquery, Avg, FloatField
+    from dashboard.models import Rating
+    rating_subq = Rating.objects.filter(
+        reservation__court=OuterRef('pk')
+    ).values('reservation__court').annotate(
+        avg=Avg('rating')
+    ).values('avg')
+
+    courts = Court.objects.filter(is_active=True).select_related('organization').annotate(
+        rating_avg=Subquery(rating_subq, output_field=FloatField())
+    )
     sites = Site.objects.filter(is_active=True)
     organizations = Organization.objects.filter(status='approved', is_active=True)
 
@@ -959,6 +1073,46 @@ def homepage_management(request):
         'page_title': 'Homepage Management'
     }
     return render(request, 'admin/homepage/homepage_management.html', context)
+
+
+@login_required
+@admin_required
+def homepage_edit_content(request, content_id=None):
+    """Edit a single homepage text content item"""
+
+    from .models import HomePageContent
+
+    content_item = None
+    if content_id:
+        content_item = get_object_or_404(HomePageContent, id=content_id)
+
+    if request.method == 'POST':
+        section = request.POST.get('section')
+        content_text = request.POST.get('content')
+        is_active = request.POST.get('is_active') == 'on'
+
+        if content_item:
+            content_item.section = section
+            content_item.content = content_text
+            content_item.is_active = is_active
+            content_item.save()
+            messages.success(request, 'Homepage content updated successfully!')
+        else:
+            HomePageContent.objects.create(
+                section=section,
+                content=content_text,
+                is_active=is_active
+            )
+            messages.success(request, 'Homepage content created successfully!')
+
+        return redirect('super_admin_homepage')
+
+    context = {
+        'content_item': content_item,
+        'section_choices': HomePageContent.SECTION_CHOICES,
+        'page_title': 'Edit Homepage Content' if content_item else 'New Homepage Content'
+    }
+    return render(request, 'admin/homepage/homepage_edit_content.html', context)
 
 
 @login_required

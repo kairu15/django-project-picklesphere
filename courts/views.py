@@ -13,9 +13,18 @@ from datetime import datetime, timedelta
 
 def court_list_view(request):
     from organizations.models import Organization
-    from dashboard.models import CourtPageSettings, FeaturedCourt
+    from dashboard.models import CourtPageSettings, FeaturedCourt, Rating
+    from django.db.models import OuterRef, Subquery, Avg, FloatField
 
-    courts = Court.objects.filter(is_active=True).select_related('site', 'organization')
+    rating_subq = Rating.objects.filter(
+        reservation__court=OuterRef('pk')
+    ).values('reservation__court').annotate(
+        avg=Avg('rating')
+    ).values('avg')
+
+    courts = Court.objects.filter(is_active=True).select_related('site', 'organization').annotate(
+        rating_avg=Subquery(rating_subq, output_field=FloatField())
+    )
     sites = Site.objects.filter(is_active=True)
     organizations = Organization.objects.filter(is_active=True)
     
@@ -203,6 +212,25 @@ def court_availability_view(request, court_id):
         'selected_date': selected_date,
         'time_slots': time_slots
     })
+
+
+@login_required
+def toggle_favorite_view(request, court_id):
+    """AJAX view to toggle a court as favorite"""
+    from django.http import JsonResponse
+    from .models import FavoriteCourt
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    court = get_object_or_404(Court, id=court_id, is_active=True)
+    fav, created = FavoriteCourt.objects.get_or_create(user=request.user, court=court)
+
+    if not created:
+        fav.delete()
+        return JsonResponse({'favorited': False, 'message': 'Removed from favorites'})
+
+    return JsonResponse({'favorited': True, 'message': 'Added to favorites'})
 
 
 @login_required

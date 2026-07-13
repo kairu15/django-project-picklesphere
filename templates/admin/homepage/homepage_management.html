@@ -154,6 +154,7 @@
                             <th>Section</th>
                             <th>Content Preview</th>
                             <th>Last Updated</th>
+                            <th class="text-center" style="width: 100px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -162,6 +163,11 @@
                             <td><span class="status-badge active">{{ item.get_section_display }}</span></td>
                             <td class="text-muted">{{ item.content|truncatechars:80 }}</td>
                             <td><small class="text-muted">{{ item.updated_at|date:"M d, Y H:i" }}</small></td>
+                            <td class="text-center">
+                                <a href="{% url 'super_admin_homepage_content_edit' item.id %}" class="btn btn-sm btn-outline-primary" title="Edit content">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

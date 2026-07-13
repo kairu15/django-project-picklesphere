@@ -10,6 +10,7 @@ urlpatterns = [
 
     # Homepage Content Management
     path('homepage/', views.homepage_management, name='super_admin_homepage'),
+    path('homepage/content/<int:content_id>/edit/', views.homepage_edit_content, name='super_admin_homepage_content_edit'),
     path('homepage/populate/', views.populate_homepage_content, name='super_admin_homepage_populate'),
     path('homepage/amenity/add/', views.homepage_edit_amenity, name='super_admin_homepage_amenity_add'),
     path('homepage/amenity/<int:amenity_id>/edit/', views.homepage_edit_amenity, name='super_admin_homepage_amenity_edit'),

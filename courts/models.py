@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Site(models.Model):
@@ -31,6 +32,16 @@ class Court(models.Model):
         ('outdoor', 'Outdoor'),
     )
     
+    SURFACE_TYPE_CHOICES = (
+        ('acrylic', 'Acrylic'),
+        ('concrete', 'Concrete'),
+        ('asphalt', 'Asphalt'),
+        ('turf', 'Turf'),
+        ('wood', 'Wood'),
+        ('rubber', 'Rubber'),
+        ('other', 'Other'),
+    )
+    
     name = models.CharField(max_length=100)
     site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='courts')
     organization = models.ForeignKey(
@@ -38,6 +49,7 @@ class Court(models.Model):
         related_name='courts', null=True, blank=True
     )
     court_type = models.CharField(max_length=20, choices=COURT_TYPE_CHOICES, default='indoor')
+    surface_type = models.CharField(max_length=20, choices=SURFACE_TYPE_CHOICES, blank=True, null=True, help_text='Court surface material')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, default=500.00)
     description = models.TextField(blank=True, null=True)
@@ -72,6 +84,22 @@ class Court(models.Model):
             end_time__lte=start_time
         )
         return not overlapping.exists()
+
+    @property
+    def average_rating(self):
+        """Calculate average rating from reservation ratings"""
+        from django.db.models import Avg
+        from dashboard.models import Rating
+        result = Rating.objects.filter(
+            reservation__court=self
+        ).aggregate(avg=Avg('rating'))
+        return round(result['avg'], 1) if result['avg'] else None
+    
+    @property
+    def rating_count(self):
+        """Count of ratings for this court"""
+        from dashboard.models import Rating
+        return Rating.objects.filter(reservation__court=self).count()
 
     def get_time_slots(self, date):
         """
@@ -155,3 +183,23 @@ class CourtAvailability(models.Model):
 
     def __str__(self):
         return f"{self.court.name} - Day {self.day_of_week}"
+
+
+class FavoriteCourt(models.Model):
+    """User's favorite/saved courts for recommendations"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='favorite_courts'
+    )
+    court = models.ForeignKey(Court, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'favorite_courts'
+        unique_together = ['user', 'court']
+        ordering = ['-created_at']
+        verbose_name = 'Favorite Court'
+        verbose_name_plural = 'Favorite Courts'
+
+    def __str__(self):
+        return f"{self.user.username} ♥ {self.court.name}"

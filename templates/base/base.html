@@ -18,19 +18,6 @@
     
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
-    <!-- Dark Mode Theme Initialization (prevents flash of unstyled content) -->
-    <script>
-        (function() {
-            var savedTheme = localStorage.getItem('picklesphere-theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('picklesphere-theme', 'dark');
-            }
-        })();
-    </script>
-
     <style>
         /* ===== Standardized Filter Bar =====
          * Shared across all admin, staff, user, and public interfaces.
@@ -129,35 +116,6 @@
     {% if user.is_authenticated %}
     <script src="{% static 'js/websocket.js' %}"></script>
     {% endif %}
-
-    <!-- Dark Mode Theme Toggle Script (Global) -->
-    <script>
-        function toggleTheme() {
-            var html = document.documentElement;
-            var currentTheme = html.getAttribute('data-theme') || 'light';
-            var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('picklesphere-theme', newTheme);
-            updateAllThemeIcons(newTheme);
-        }
-
-        function updateAllThemeIcons(theme) {
-            var icons = document.querySelectorAll('[id^="themeIcon"]');
-            icons.forEach(function(icon) {
-                if (theme === 'dark') {
-                    icon.className = 'fas fa-sun';
-                } else {
-                    icon.className = 'fas fa-moon';
-                }
-            });
-        }
-
-        // Sync icons on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            updateAllThemeIcons(currentTheme);
-        });
-    </script>
 
     <!-- Floating Toast Notification Script -->
     <script>
@@ -289,6 +247,105 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== PASSWORD TOGGLE SYSTEM ===== -->
+    <style>
+        /* Password visibility toggle — global styles */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            padding-right: 44px !important;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 38px;
+            height: 38px;
+            border: none;
+            background: transparent;
+            border-radius: 9px;
+            color: #adb5bd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        .password-toggle:hover {
+            background: #f0f0f0;
+            color: #3B7A8C;
+        }
+        .password-toggle:focus-visible {
+            outline: 2px solid #3B7A8C;
+            outline-offset: 2px;
+        }
+    </style>
+
+    <script>
+    // ===== CENTRALIZED PASSWORD TOGGLE =====
+    // Single reusable function for show/hide password on any field
+    window.togglePasswordVisibility = function(fieldId, btn) {
+        var field = document.getElementById(fieldId);
+        if (!field) return;
+        var icon = btn && btn.querySelector ? btn.querySelector('i') : null;
+        if (field.type === 'password') {
+            field.type = 'text';
+            if (icon) icon.className = 'fas fa-eye-slash';
+            if (btn) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-label', 'Hide password');
+            }
+        } else {
+            field.type = 'password';
+            if (icon) icon.className = 'fas fa-eye';
+            if (btn) {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-label', 'Show password');
+            }
+        }
+    };
+
+    // Auto-initialize: find all password fields and add toggle buttons if missing
+    function initPasswordToggles() {
+        document.querySelectorAll('input[type="password"]').forEach(function(field) {
+            // Skip if already inside a password-wrapper
+            if (field.closest('.password-wrapper')) return;
+            // Skip if field has no id (need id to toggle)
+            if (!field.id) return;
+            // Skip hidden fields
+            if (field.type === 'hidden') return;
+
+            // Wrap in password-wrapper
+            var wrapper = document.createElement('div');
+            wrapper.className = 'password-wrapper';
+            field.parentNode.insertBefore(wrapper, field);
+            wrapper.appendChild(field);
+
+            // Create toggle button
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'password-toggle';
+            btn.setAttribute('tabindex', '-1');
+            btn.setAttribute('aria-label', 'Show password');
+            btn.setAttribute('onclick', "togglePasswordVisibility('" + field.id + "', this)");
+            btn.innerHTML = '<i class="fas fa-eye"></i>';
+            wrapper.appendChild(btn);
+        });
+    }
+
+    // Run on page load and after any dynamic content changes
+    document.addEventListener('DOMContentLoaded', initPasswordToggles);
+
+    // Re-init after Bootstrap modal shows (for dynamic forms in modals)
+    document.addEventListener('shown.bs.modal', function() {
+        setTimeout(initPasswordToggles, 100);
+    });
+    </script>
 
     <style>
         /* Global Custom Confirm Modal Styles */

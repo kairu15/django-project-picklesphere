@@ -176,6 +176,22 @@
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <h6 class="card-title fw-bold mb-0" style="color: var(--text-dark);">{{ court.name }}</h6>
                         </div>
+                        <!-- Rating Stars + Surface Type -->
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            {% if court.rating_avg %}
+                                <div style="color: #ffc107; font-size: 0.7rem;">
+                                    {% for i in "12345" %}
+                                        <i class="{% if forloop.counter <= court.rating_avg %}fas{% else %}far{% endif %} fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted" style="font-size:0.7rem;">{{ court.rating_avg|floatformat:1 }}</small>
+                            {% else %}
+                                <small class="text-muted" style="font-size:0.7rem;">No ratings</small>
+                            {% endif %}
+                            {% if court.surface_type %}
+                                <span class="badge" style="background: #e9ecef; color: #495057; font-size:0.62rem; font-weight:500;">{{ court.get_surface_type_display }}</span>
+                            {% endif %}
+                        </div>
                         <p class="small mb-2" style="color: var(--text-muted);">
                             <i class="fas fa-map-marker-alt me-1" style="color: var(--primary-color);"></i>{{ court.site.name }}
                         </p>
