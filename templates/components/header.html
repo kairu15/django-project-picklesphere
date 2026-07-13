@@ -1,27 +1,36 @@
 {% load static %}
 
+{% if topbar_settings and topbar_settings.is_visible %}
 <!-- Top Bar -->
-<div class="top-bar">
+<div class="top-bar" style="background: linear-gradient({{ topbar_settings.background_gradient_start|default:'#1a3a42' }}, {{ topbar_settings.background_gradient_end|default:'#0f172a' }});">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
+                {% if topbar_settings.show_contact_info %}
                 <div class="top-bar-contact">
-                    <a href="tel:{{ site_contact_info.phone }}" class="top-bar-link">
+                    <a href="tel:{{ topbar_settings.phone_primary|default:site_contact_info.phone }}" class="top-bar-link">
                         <i class="fas fa-phone-alt"></i>
-                        <span>{{ site_contact_info.phone }}</span>
+                        <span>{{ topbar_settings.phone_primary|default:site_contact_info.phone }}</span>
                     </a>
-                    <a href="mailto:{{ site_contact_info.email }}" class="top-bar-link">
+                    <a href="mailto:{{ topbar_settings.email_primary|default:site_contact_info.email }}" class="top-bar-link">
                         <i class="fas fa-envelope"></i>
-                        <span>{{ site_contact_info.email }}</span>
+                        <span>{{ topbar_settings.email_primary|default:site_contact_info.email }}</span>
                     </a>
                 </div>
+                {% endif %}
             </div>
             <div class="col-md-4">
                 <div class="top-bar-actions">
+                    {% if topbar_settings.show_social_media and topbar_social_platforms %}
                     <div class="social-links">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        {% for platform in topbar_social_platforms %}
+                        <a href="{{ platform.url }}" aria-label="{{ platform.get_platform_display }}" {% if platform.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                            <i class="{{ platform.icon_class }}"></i>
+                        </a>
+                        {% endfor %}
                     </div>
+                    {% endif %}
+                    {% if topbar_settings.show_language_selector %}
                     <div class="dropdown language-dropdown">
                         <button class="language-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-globe"></i>
@@ -32,17 +41,18 @@
                             <li><a class="dropdown-item" href="#">Filipino</a></li>
                         </ul>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Navigation -->
 <style>
 /* Top Bar Styles */
 .top-bar {
-    background: linear-gradient(135deg, #1a3a42 0%, #0f172a 100%);
     padding: 0.5rem 0;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     position: relative;
@@ -329,11 +339,15 @@
     }
 }
 </style>
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top main-navbar">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top main-navbar" style="{% if navbar_settings %}background: {{ navbar_settings.background_color }};{% endif %}">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
-            <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="brand-logo">
-            <span>PickleSphere</span>
+            {% if site_branding and site_branding.header_logo %}
+                <img src="{{ site_branding.header_logo.url }}?_v={{ site_branding.cache_buster }}" alt="{{ site_branding.brand_name|default:'PickleSphere' }}" class="brand-logo">
+            {% else %}
+                <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="brand-logo">
+            {% endif %}
+            <span>{% if site_branding %}{{ site_branding.brand_name }}{% else %}PickleSphere{% endif %}</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -342,29 +356,47 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/all_courts/' in request.path or '/court/' in request.path %}active{% endif %}" href="{% url 'all_courts' %}">Courts</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/organizations/' in request.path %}active{% endif %}" href="{% url 'organization_directory' %}">Organizations</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/tournaments/' in request.path %}active{% endif %}" href="{% url 'tournament_list' %}">Tournaments</a>
-                </li>
-                {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link {% if '/equipment/' in request.path %}active{% endif %}" href="{% url 'equipment_list' %}">Equipment</a>
-                </li>
-                {% endif %}
+                {% if navbar_menu_items %}
+                    {% for item in navbar_menu_items %}
+                        {% if item.menu_position == 'left' %}
+                            {% if not item.requires_auth or user.is_authenticated %}
+                                {% if not item.hide_if_auth or not user.is_authenticated %}
                                 <li class="nav-item">
-                    <a class="nav-link {% if '/about/' in request.path %}active{% endif %}" href="{% url 'about' %}">About</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/contact/' in request.path %}active{% endif %}" href="{% url 'contact' %}">Contact</a>
-                </li>
+                                    <a class="nav-link" href="{{ item.get_url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                        {% if item.icon_class %}<i class="{{ item.icon_class }} me-1"></i>{% endif %}
+                                        {{ item.title }}
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <!-- Default menu items when no CMS items exist -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/all_courts/' in request.path or '/court/' in request.path %}active{% endif %}" href="{% url 'all_courts' %}">Courts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/organizations/' in request.path %}active{% endif %}" href="{% url 'organization_directory' %}">Organizations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/tournaments/' in request.path %}active{% endif %}" href="{% url 'tournament_list' %}">Tournaments</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/equipment/' in request.path %}active{% endif %}" href="{% url 'equipment_list' %}">Equipment</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/about/' in request.path %}active{% endif %}" href="{% url 'about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/contact/' in request.path %}active{% endif %}" href="{% url 'contact' %}">Contact</a>
+                    </li>
+                {% endif %}
             </ul>
         
 
@@ -443,7 +475,9 @@
                         <a class="nav-link" href="{% url 'login' %}">Sign In</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-nav-primary" href="{% url 'register' %}">Get Started</a>
+                        <a class="btn btn-nav-primary" href="{% url 'register' %}" style="{% if navbar_settings and navbar_settings.cta_button_color %}background: {{ navbar_settings.cta_button_color }};{% endif %}">
+                            {{ navbar_settings.cta_button_text|default:'Get Started' }}
+                        </a>
                     </li>
                 {% endif %}
             </ul>

@@ -145,6 +145,34 @@ urlpatterns = [
     path('site-settings/announcement/<int:ann_id>/edit/', cms_views.announcement_edit, name='super_admin_announcement_edit'),
     path('site-settings/announcement/<int:ann_id>/delete/', cms_views.announcement_delete, name='super_admin_announcement_delete'),
 
+    # ========== HERO SECTION CMS ==========
+    path('cms/hero/', cms_views.hero_section_settings, name='super_admin_hero_cms'),
+    path('cms/hero/preview/', cms_views.hero_section_preview, name='super_admin_hero_preview'),
+
+    # ========== WEBSITE BRANDING CMS ==========
+    path('cms/branding/', cms_views.site_branding_settings, name='super_admin_branding_cms'),
+    path('cms/branding/logo/<str:logo_field>/remove/', cms_views.site_branding_remove_logo, name='super_admin_branding_remove_logo'),
+    path('cms/branding/restore-defaults/', cms_views.site_branding_restore_defaults, name='super_admin_branding_restore'),
+
+    # ========== TOP BAR CMS ==========
+    path('cms/topbar/', cms_views.topbar_settings, name='super_admin_topbar_cms'),
+
+    # ========== NAVIGATION BAR CMS ==========
+    path('cms/navbar/', cms_views.navbar_settings, name='super_admin_navbar_cms'),
+    path('cms/navbar/menu/add/', cms_views.navbar_menu_item_add, name='super_admin_navbar_menu_add'),
+    path('cms/navbar/menu/<int:item_id>/edit/', cms_views.navbar_menu_item_edit, name='super_admin_navbar_menu_edit'),
+    path('cms/navbar/menu/<int:item_id>/delete/', cms_views.navbar_menu_item_delete, name='super_admin_navbar_menu_delete'),
+
+    # ========== FOOTER CMS ==========
+    path('cms/footer/', cms_views.footer_settings, name='super_admin_footer_cms'),
+    path('cms/footer/quick-link/add/', cms_views.footer_quick_link_add, name='super_admin_footer_quick_link_add'),
+    path('cms/footer/quick-link/<int:link_id>/edit/', cms_views.footer_quick_link_edit, name='super_admin_footer_quick_link_edit'),
+    path('cms/footer/quick-link/<int:link_id>/delete/', cms_views.footer_quick_link_delete, name='super_admin_footer_quick_link_delete'),
+
+    # ========== SOCIAL MEDIA CMS ==========
+    path('cms/social/', cms_views.social_media_settings, name='super_admin_social_cms'),
+    path('cms/social/<int:platform_id>/edit/', cms_views.social_platform_edit, name='super_admin_social_platform_edit'),
+
     # ========== CONTENT VERSION HISTORY ==========
     path('versions/', cms_views.content_version_list, name='super_admin_content_versions'),
 ]

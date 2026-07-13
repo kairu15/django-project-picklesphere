@@ -1,0 +1,109 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+{% block title %}Navigation Bar CMS{% endblock %}
+{% block page_title %}<i class="fas fa-bars me-2"></i>Navigation Bar CMS{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-card mb-4">
+            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-cog me-2"></i>Navbar Settings</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="is_sticky" class="form-check-input" id="isSticky" {% if settings.is_sticky %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="isSticky">Sticky Navigation</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="show_brand" class="form-check-input" id="showBrand" {% if settings.show_brand %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="showBrand">Show Brand</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="show_search" class="form-check-input" id="showSearch" {% if settings.show_search %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="showSearch">Show Search</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Brand Text</label>
+                            <input type="text" name="brand_text" class="form-control" value="{{ settings.brand_text }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Container Style</label>
+                            <select name="container_style" class="form-select">
+                                <option value="container" {% if settings.container_style == 'container' %}selected{% endif %}>Container</option>
+                                <option value="container-fluid" {% if settings.container_style == 'container-fluid' %}selected{% endif %}>Full Width</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Background Color</label>
+                            <input type="color" name="background_color" class="form-control form-control-color" value="{{ settings.background_color }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Text Color</label>
+                            <input type="text" name="text_color" class="form-control" value="{{ settings.text_color }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Hover Color</label>
+                            <input type="text" name="text_color_hover" class="form-control" value="{{ settings.text_color_hover }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">CTA Button Text</label>
+                            <input type="text" name="cta_button_text" class="form-control" value="{{ settings.cta_button_text }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">CTA Button Color</label>
+                            <input type="color" name="cta_button_color" class="form-control form-control-color" value="{{ settings.cta_button_color }}">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if settings.is_active %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="isActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="admin-card">
+            <div class="admin-card-header d-flex justify-content-between align-items-center">
+                <h5 class="admin-card-title mb-0"><i class="fas fa-list me-2"></i>Menu Items</h5>
+                <a href="{% url 'super_admin_navbar_menu_add' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Item</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>Order</th><th>Title</th><th>Type</th><th>Position</th><th>Auth</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            {% for item in menu_items %}
+                            <tr>
+                                <td>{{ item.display_order }}</td>
+                                <td><strong>{{ item.title }}</strong></td>
+                                <td><span class="badge bg-secondary">{{ item.get_link_type_display }}</span></td>
+                                <td>{{ item.get_menu_position_display }}</td>
+                                <td>{% if item.requires_auth %}<span class="badge bg-info">Login</span>{% endif %}{% if item.hide_if_auth %}<span class="badge bg-warning">Hidden</span>{% endif %}</td>
+                                <td>{% if item.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                                <td>
+                                    <a href="{% url 'super_admin_navbar_menu_edit' item.id %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                    <a href="{% url 'super_admin_navbar_menu_delete' item.id %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center py-4 text-muted">No menu items yet. Add one to customize the navigation bar.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

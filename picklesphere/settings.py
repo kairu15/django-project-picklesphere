@@ -65,6 +65,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'picklesphere.session_management.EnhancedSessionMiddleware',
     'picklesphere.session_management.SessionActivityMiddleware',
+    # Auth Audit - logs unauthenticated access to potential unprotected views (DEBUG only)
+    'dashboard.middleware.AuthAuditMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Maintenance Mode - blocks non-admin users when maintenance is active
@@ -239,3 +241,29 @@ CHANNEL_LAYERS = {
 #         },
 #     },
 # }
+
+
+# ========== CACHE CONFIGURATION ==========
+# Uses local memory cache by default (no Redis needed for dev)
+# Cache timeout for CMS content (5 minutes = 300 seconds)
+CMS_CACHE_TIMEOUT = config('CMS_CACHE_TIMEOUT', default=300, cast=int)
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'picklesphere-cms',
+        'TIMEOUT': CMS_CACHE_TIMEOUT,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        },
+    },
+    # Separate cache namespace for CMS to allow targeted flushing
+    'cms': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'picklesphere-cms-content',
+        'TIMEOUT': CMS_CACHE_TIMEOUT,
+        'OPTIONS': {
+            'MAX_ENTRIES': 200,
+        },
+    },
+}

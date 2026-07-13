@@ -1291,6 +1291,11 @@ class ContentVersion(models.Model):
     """Track content version history for CMS items"""
     CONTENT_TYPE_CHOICES = [
         ('homepage', 'Home Page'),
+        ('hero', 'Hero Section'),
+        ('branding', 'Website Branding'),
+        ('topbar', 'Top Bar'),
+        ('navbar', 'Navigation Bar'),
+        ('footer', 'Footer'),
         ('about', 'About Page'),
         ('contact', 'Contact Page'),
         ('pricing', 'Pricing Page'),
@@ -1321,3 +1326,399 @@ class ContentVersion(models.Model):
 
     def __str__(self):
         return f"{self.get_content_type_display()} v{self.version_number} - {self.section}"
+
+
+# ============================================================================
+# HERO SECTION CMS
+# ============================================================================
+
+class HeroSectionSettings(models.Model):
+    """Hero section configuration (singleton)"""
+    BACKGROUND_TYPE_CHOICES = [
+        ('solid', 'Solid Color'),
+        ('gradient', 'Gradient'),
+        ('image', 'Background Image'),
+    ]
+    
+    background_type = models.CharField(max_length=20, choices=BACKGROUND_TYPE_CHOICES, default='gradient')
+    solid_color = models.CharField(max_length=20, default='#1a3a42', help_text='Solid background color (hex)')
+    gradient_start = models.CharField(max_length=20, default='#1a3a42', help_text='Gradient start color (hex)')
+    gradient_end = models.CharField(max_length=20, default='#0f172a', help_text='Gradient end color (hex)')
+    gradient_direction = models.CharField(max_length=20, default='135deg', help_text='Gradient angle, e.g. 135deg, to right, to bottom')
+    background_image = models.ImageField(upload_to='cms/hero/', blank=True, null=True, help_text='Background image (1920x1080 recommended)')
+    overlay_color = models.CharField(max_length=20, default='#000000', help_text='Overlay color (hex)')
+    overlay_opacity = models.FloatField(default=0.6, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text='Overlay opacity (0.0 - 1.0)')
+    badge_text = models.CharField(max_length=100, default='The Ultimate Pickleball Platform', help_text='Hero badge text')
+    title = models.CharField(max_length=200, default='Welcome to PickleSphere', help_text='Hero main title')
+    subtitle = models.TextField(default='The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide.', help_text='Hero subtitle')
+    show_search_widget = models.BooleanField(default=True, help_text='Show the search/availability widget')
+    min_height = models.CharField(max_length=20, default='90vh', help_text='Minimum height, e.g. 90vh, 100vh, 600px')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Hero Section Setting'
+        verbose_name_plural = 'Hero Section Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"Hero Section - {self.get_background_type_display()}"
+
+    @property
+    def background_image_url(self):
+        """Safely return the background image URL or empty string if no file exists."""
+        try:
+            if self.background_image and self.background_image.name:
+                return self.background_image.url
+        except (ValueError, FileNotFoundError):
+            pass
+        return ''
+
+    def get_background_style(self):
+        """Return inline CSS for the hero background."""
+        if self.background_type == 'solid':
+            return f'background-color: {self.solid_color};'
+        elif self.background_type == 'gradient':
+            return f'background: linear-gradient({self.gradient_direction}, {self.gradient_start}, {self.gradient_end});'
+        elif self.background_type == 'image' and self.background_image:
+            overlay = f'rgba({int(self.overlay_color[1:3], 16)}, {int(self.overlay_color[3:5], 16)}, {int(self.overlay_color[5:7], 16)}, {self.overlay_opacity})'
+            return f'background: linear-gradient({overlay}, {overlay}), url("{self.background_image_url}") center/cover no-repeat;'
+        return 'background: linear-gradient(135deg, #1a3a42 0%, #0f172a 100%);'
+
+
+# ============================================================================
+# WEBSITE BRANDING (Logos, Favicon)
+# ============================================================================
+
+class SiteBranding(models.Model):
+    """Website branding logos and favicon (singleton)"""
+    website_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Website logo (200x200 recommended, square)')
+    header_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Header navigation logo (32x32 recommended)')
+    footer_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Footer logo (48x48 recommended)')
+    favicon = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Browser tab icon / favicon (32x32, .ico or .png)')
+    login_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Login page logo (200x200 recommended)')
+    loading_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Loading screen logo (optional)')
+    email_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Email template logo (optional)')
+    brand_name = models.CharField(max_length=100, default='PickleSphere', help_text='Website brand name')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Website Branding'
+        verbose_name_plural = 'Website Branding'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"Branding - {self.brand_name}"
+
+    @property
+    def has_logos(self):
+        """Check if any logos are set."""
+        return any([self.website_logo, self.header_logo, self.footer_logo, self.favicon, self.login_logo])
+
+    @property
+    def cache_buster(self):
+        """Return a version string for cache-busting logo URLs.
+        Uses Unix timestamp of updated_at so browsers always fetch
+        the latest logo after admin uploads a replacement.
+        """
+        if self.updated_at:
+            return str(int(self.updated_at.timestamp()))
+        return '1'
+
+
+# ============================================================================
+# TOP BAR SETTINGS
+# ============================================================================
+
+class TopBarSettings(models.Model):
+    """Top bar configuration (singleton)"""
+    is_visible = models.BooleanField(default=True, help_text='Show/hide the entire top bar')
+    show_contact_info = models.BooleanField(default=True, help_text='Show contact info section')
+    show_social_media = models.BooleanField(default=True, help_text='Show social media icons')
+    show_language_selector = models.BooleanField(default=True, help_text='Show language selector')
+    phone_primary = models.CharField(max_length=50, blank=True, default='09455470173', help_text='Primary phone number')
+    phone_secondary = models.CharField(max_length=50, blank=True, help_text='Secondary phone number (optional)')
+    email_primary = models.EmailField(blank=True, default='picklesphere@gmail.com', help_text='Primary email address')
+    email_secondary = models.EmailField(blank=True, help_text='Secondary email address (optional)')
+    office_hours = models.CharField(max_length=200, blank=True, default='Mon-Sat, 9AM - 6PM', help_text='Office hours text')
+    physical_address = models.TextField(blank=True, help_text='Physical address (optional)')
+    background_color = models.CharField(max_length=20, default='#1a3a42', help_text='Top bar background color (hex)')
+    background_gradient_start = models.CharField(max_length=20, default='#1a3a42', help_text='Gradient start for modern look')
+    background_gradient_end = models.CharField(max_length=20, default='#0f172a', help_text='Gradient end for modern look')
+    text_color = models.CharField(max_length=20, default='rgba(255,255,255,0.85)', help_text='Text color')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Top Bar Setting'
+        verbose_name_plural = 'Top Bar Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"Top Bar: {'Visible' if self.is_visible else 'Hidden'}"
+
+
+# ============================================================================
+# NAVIGATION BAR SETTINGS
+# ============================================================================
+
+class NavBarSettings(models.Model):
+    """Navigation bar settings (singleton)"""
+    is_sticky = models.BooleanField(default=True, help_text='Make navbar sticky on scroll')
+    show_brand = models.BooleanField(default=True, help_text='Show brand name/logo in navbar')
+    brand_text = models.CharField(max_length=100, default='PickleSphere', help_text='Brand text shown next to logo')
+    background_color = models.CharField(max_length=20, default='#0f172a', help_text='Navbar background color (hex)')
+    text_color = models.CharField(max_length=20, default='rgba(255,255,255,0.8)', help_text='Navbar link text color')
+    text_color_hover = models.CharField(max_length=20, default='#ffffff', help_text='Navbar link hover color')
+    cta_button_text = models.CharField(max_length=50, default='Get Started', help_text='CTA button text for non-logged-in users')
+    cta_button_color = models.CharField(max_length=20, default='#3B7A8C', help_text='CTA button background color')
+    show_search = models.BooleanField(default=False, help_text='Show search icon in navbar')
+    container_style = models.CharField(max_length=10, default='container', help_text='Bootstrap container: container or container-fluid')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Navigation Bar Setting'
+        verbose_name_plural = 'Navigation Bar Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"NavBar: {'Sticky' if self.is_sticky else 'Static'}"
+
+
+class NavBarMenuItem(models.Model):
+    """Navigation bar menu items"""
+    MENU_POSITION_CHOICES = [
+        ('left', 'Left (Main Menu)'),
+        ('right', 'Right (Actions)'),
+    ]
+    LINK_TYPE_CHOICES = [
+        ('home', 'Home'),
+        ('courts', 'Courts'),
+        ('organizations', 'Organizations'),
+        ('tournaments', 'Tournaments'),
+        ('equipment', 'Equipment'),
+        ('about', 'About'),
+        ('contact', 'Contact'),
+        ('pricing', 'Pricing'),
+        ('faq', 'FAQ'),
+        ('custom', 'Custom URL'),
+    ]
+    title = models.CharField(max_length=100)
+    link_type = models.CharField(max_length=30, choices=LINK_TYPE_CHOICES, default='custom')
+    custom_url = models.CharField(max_length=500, blank=True, help_text='Full URL for custom links')
+    menu_position = models.CharField(max_length=10, choices=MENU_POSITION_CHOICES, default='left')
+    requires_auth = models.BooleanField(default=False, help_text='Only show for authenticated users')
+    hide_if_auth = models.BooleanField(default=False, help_text='Hide for authenticated users')
+    open_in_new_tab = models.BooleanField(default=False)
+    icon_class = models.CharField(max_length=50, blank=True, help_text='Font Awesome icon class')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['menu_position', 'display_order', 'title']
+        verbose_name = 'Nav Bar Menu Item'
+        verbose_name_plural = 'Nav Bar Menu Items'
+
+    def __str__(self):
+        return self.title
+
+    def get_url(self):
+        """Resolve URL from link_type or use custom_url."""
+        from django.urls import reverse
+        url_map = {
+            'home': 'home',
+            'courts': 'all_courts',
+            'organizations': 'organization_directory',
+            'tournaments': 'tournament_list',
+            'equipment': 'equipment_list',
+            'about': 'about',
+            'contact': 'contact',
+            'pricing': 'pricing',
+            'faq': 'faq',
+        }
+        if self.link_type in url_map:
+            try:
+                return reverse(url_map[self.link_type])
+            except Exception:
+                return self.custom_url or '#'
+        return self.custom_url or '#'
+
+
+# ============================================================================
+# FOOTER SETTINGS
+# ============================================================================
+
+class FooterSettings(models.Model):
+    """Footer configuration (singleton)"""
+    is_visible = models.BooleanField(default=True, help_text='Show/hide the entire footer')
+    organization_name = models.CharField(max_length=100, default='PickleSphere', help_text='Organization name in footer')
+    short_description = models.TextField(blank=True, default='The ultimate platform connecting pickleball players with courts, organizations, and tournaments nationwide.')
+    copyright_text = models.CharField(max_length=200, blank=True, default='© PickleSphere. All rights reserved.')
+    show_newsletter = models.BooleanField(default=True, help_text='Show newsletter subscription section')
+    newsletter_heading = models.CharField(max_length=100, default='Newsletter', help_text='Newsletter section heading')
+    newsletter_description = models.TextField(blank=True, default='Subscribe to receive special offers, tournament updates, and exclusive deals.')
+    newsletter_button_text = models.CharField(max_length=50, default='Subscribe', help_text='Newsletter subscribe button text')
+    show_social_media = models.BooleanField(default=True, help_text='Show social media links')
+    show_contact_details = models.BooleanField(default=True, help_text='Show contact details column')
+    show_quick_links = models.BooleanField(default=True, help_text='Show quick links column')
+    developer_credit = models.CharField(max_length=200, blank=True, default='Developed by Kylle Ian D. Acibron', help_text='Developer credit text')
+    developer_contact = models.CharField(max_length=200, blank=True, default='kylleacibron@gmail.com', help_text='Developer contact')
+    version_text = models.CharField(max_length=50, blank=True, default='1.0.0', help_text='Version text')
+    background_gradient_start = models.CharField(max_length=20, default='#1a3a42', help_text='Footer background gradient start')
+    background_gradient_end = models.CharField(max_length=20, default='#0d1f23', help_text='Footer background gradient end')
+    text_color = models.CharField(max_length=20, default='rgba(255,255,255,0.7)', help_text='Footer text color')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Footer Setting'
+        verbose_name_plural = 'Footer Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"Footer: {'Visible' if self.is_visible else 'Hidden'}"
+
+
+class FooterQuickLink(models.Model):
+    """Footer quick links managed through CMS"""
+    LINK_TYPE_CHOICES = [
+        ('home', 'Home'),
+        ('courts', 'Courts / Book a Court'),
+        ('organizations', 'Organizations'),
+        ('tournaments', 'Tournaments'),
+        ('equipment', 'Equipment'),
+        ('leaderboard', 'Leaderboard'),
+        ('about', 'About'),
+        ('contact', 'Contact'),
+        ('pricing', 'Pricing'),
+        ('privacy', 'Privacy Policy'),
+        ('terms', 'Terms of Service'),
+        ('faq', 'FAQ'),
+        ('custom', 'Custom URL'),
+    ]
+    title = models.CharField(max_length=100)
+    link_type = models.CharField(max_length=30, choices=LINK_TYPE_CHOICES, default='custom')
+    custom_url = models.CharField(max_length=500, blank=True, help_text='Full URL for custom links')
+    open_in_new_tab = models.BooleanField(default=False)
+    icon_class = models.CharField(max_length=50, blank=True, help_text='Optional Font Awesome icon')
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', 'title']
+        verbose_name = 'Footer Quick Link'
+        verbose_name_plural = 'Footer Quick Links'
+
+    def __str__(self):
+        return self.title
+
+    def get_url(self):
+        """Resolve URL from link_type or use custom_url."""
+        from django.urls import reverse
+        url_map = {
+            'home': 'home',
+            'courts': 'court_list',
+            'organizations': 'organization_directory',
+            'tournaments': 'tournament_list',
+            'equipment': 'equipment_list',
+            'leaderboard': 'leaderboard',
+            'about': 'about',
+            'contact': 'contact',
+            'pricing': 'pricing',
+            'privacy': 'privacy_policy',
+            'terms': 'terms_of_service',
+            'faq': 'faq',
+        }
+        if self.link_type in url_map:
+            try:
+                return reverse(url_map[self.link_type])
+            except Exception:
+                return self.custom_url or '#'
+        return self.custom_url or '#'
+
+
+# ============================================================================
+# SOCIAL MEDIA PLATFORM SETTINGS
+# ============================================================================
+
+class SocialPlatformSettings(models.Model):
+    """Social media platform configuration for top bar and footer"""
+    PLATFORM_CHOICES = [
+        ('facebook', 'Facebook'),
+        ('twitter', 'X (Twitter)'),
+        ('instagram', 'Instagram'),
+        ('whatsapp', 'WhatsApp'),
+        ('linkedin', 'LinkedIn'),
+        ('youtube', 'YouTube'),
+        ('tiktok', 'TikTok'),
+        ('telegram', 'Telegram'),
+        ('messenger', 'Messenger'),
+    ]
+    platform = models.CharField(max_length=30, choices=PLATFORM_CHOICES, unique=True)
+    url = models.URLField(blank=True, help_text='Social media profile URL')
+    is_active = models.BooleanField(default=True, help_text='Show/hide this social media icon')
+    show_in_topbar = models.BooleanField(default=True, help_text='Show in top bar')
+    show_in_footer = models.BooleanField(default=True, help_text='Show in footer')
+    open_in_new_tab = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', 'platform']
+        verbose_name = 'Social Media Platform'
+        verbose_name_plural = 'Social Media Platforms'
+
+    def __str__(self):
+        return self.get_platform_display()
+
+    @property
+    def icon_class(self):
+        icons = {
+            'facebook': 'fab fa-facebook-f',
+            'twitter': 'fab fa-x-twitter',
+            'instagram': 'fab fa-instagram',
+            'whatsapp': 'fab fa-whatsapp',
+            'linkedin': 'fab fa-linkedin-in',
+            'youtube': 'fab fa-youtube',
+            'tiktok': 'fab fa-tiktok',
+            'telegram': 'fab fa-telegram-plane',
+            'messenger': 'fab fa-facebook-messenger',
+        }
+        return icons.get(self.platform, 'fas fa-link')

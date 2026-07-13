@@ -3,7 +3,7 @@
 <style>
 /* Footer Styles */
 .site-footer {
-    background: linear-gradient(135deg, #1a3a42 0%, #0d1f23 100%);
+    background: {% if footer_settings %}linear-gradient(135deg, {{ footer_settings.background_gradient_start|default:'#1a3a42' }} 0%, {{ footer_settings.background_gradient_end|default:'#0d1f23' }} 100%){% else %}linear-gradient(135deg, #1a3a42 0%, #0d1f23 100%){% endif %};
     color: #fff;
     padding: 4rem 0 0;
 }
@@ -357,45 +357,64 @@
 }
 </style>
 
+{% if not footer_settings or footer_settings.is_visible %}
 <footer class="site-footer">
     <div class="container">
         <div class="row g-4">
             <!-- Brand Column -->
             <div class="col-lg-3 col-md-6">
                 <div class="footer-brand">
-                    <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="footer-logo">
-                    <h5 class="footer-brand-title">PickleSphere</h5>
+                    {% if site_branding and site_branding.footer_logo %}
+                        <img src="{{ site_branding.footer_logo.url }}?_v={{ site_branding.cache_buster }}" alt="{{ footer_settings.organization_name|default:'PickleSphere' }}" class="footer-logo">
+                    {% else %}
+                        <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="footer-logo">
+                    {% endif %}
+                    <h5 class="footer-brand-title">{{ footer_settings.organization_name|default:'PickleSphere' }}</h5>
                 </div>
                 <p class="footer-description">
-                    The ultimate platform connecting pickleball players with courts, organizations, and tournaments nationwide. Find, book, and play — all in one place.
+                    {{ footer_settings.short_description|default:'The ultimate platform connecting pickleball players with courts, organizations, and tournaments nationwide. Find, book, and play — all in one place.' }}
                 </p>
+                {% if not footer_settings or footer_settings.show_social_media %}
+                {% if footer_social_platforms %}
                 <div class="footer-social">
-                    <a href="#" class="footer-social-link" aria-label="Facebook">
-                        <i class="fab fa-facebook-f"></i>
+                    {% for platform in footer_social_platforms %}
+                    <a href="{{ platform.url }}" class="footer-social-link" aria-label="{{ platform.get_platform_display }}" {% if platform.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                        <i class="{{ platform.icon_class }}"></i>
                     </a>
-                    <a href="#" class="footer-social-link" aria-label="Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" class="footer-social-link" aria-label="Twitter">
-                        <i class="fab fa-twitter"></i>
-                    </a>
+                    {% endfor %}
                 </div>
+                {% endif %}
+                {% endif %}
             </div>
 
             <!-- Quick Links -->
+            {% if not footer_settings or footer_settings.show_quick_links %}
             <div class="col-lg-2 col-md-6">
                 <h6 class="footer-section-title">Quick Links</h6>
                 <ul class="footer-links">
-                    <li><a href="{% url 'court_list' %}" class="footer-link">Book a Court</a></li>
-                    <li><a href="{% url 'tournament_list' %}" class="footer-link">Tournaments</a></li>
-                    <li><a href="{% url 'equipment_list' %}" class="footer-link">Equipment</a></li>
-                    <li><a href="{% url 'leaderboard' %}" class="footer-link">Leaderboard</a></li>
-                    <li><a href="{% url 'about' %}" class="footer-link">About Us</a></li>
-                    <li><a href="{% url 'contact' %}" class="footer-link">Contact</a></li>
+                    {% if footer_quick_links %}
+                        {% for link in footer_quick_links %}
+                        <li>
+                            <a href="{{ link.get_url }}" class="footer-link" {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                {% if link.icon_class %}<i class="{{ link.icon_class }} me-1"></i>{% endif %}
+                                {{ link.title }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li><a href="{% url 'court_list' %}" class="footer-link">Book a Court</a></li>
+                        <li><a href="{% url 'tournament_list' %}" class="footer-link">Tournaments</a></li>
+                        <li><a href="{% url 'equipment_list' %}" class="footer-link">Equipment</a></li>
+                        <li><a href="{% url 'leaderboard' %}" class="footer-link">Leaderboard</a></li>
+                        <li><a href="{% url 'about' %}" class="footer-link">About Us</a></li>
+                        <li><a href="{% url 'contact' %}" class="footer-link">Contact</a></li>
+                    {% endif %}
                 </ul>
             </div>
+            {% endif %}
 
             <!-- Contact Us -->
+            {% if not footer_settings or footer_settings.show_contact_details %}
             <div class="col-lg-3 col-md-6">
                 <h6 class="footer-section-title">Contact Us</h6>
                 <ul class="footer-contact-list">
@@ -413,24 +432,27 @@
                     </li>
                     <li class="footer-contact-item">
                         <i class="fas fa-clock footer-contact-icon"></i>
-                        <span class="footer-contact-text">Open Daily: 6AM - 10PM</span>
+                        <span class="footer-contact-text">{{ topbar_settings.office_hours|default:'Open Daily: 6AM - 10PM' }}</span>
                     </li>
                 </ul>
             </div>
+            {% endif %}
 
             <!-- Newsletter -->
+            {% if not footer_settings or footer_settings.show_newsletter %}
             <div class="col-lg-4 col-md-6">
-                <h6 class="footer-section-title">Newsletter</h6>
+                <h6 class="footer-section-title">{{ footer_settings.newsletter_heading|default:'Newsletter' }}</h6>
                 <p class="footer-newsletter-text">
-                    Subscribe to receive special offers, tournament updates, and exclusive deals.
+                    {{ footer_settings.newsletter_description|default:'Subscribe to receive special offers, tournament updates, and exclusive deals.' }}
                 </p>
                 <form class="footer-newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
                     <input type="email" class="footer-newsletter-input" placeholder="Your email address" required>
-                    <button type="submit" class="footer-newsletter-btn" aria-label="Subscribe">
+                    <button type="submit" class="footer-newsletter-btn" aria-label="{{ footer_settings.newsletter_button_text|default:'Subscribe' }}">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
             </div>
+            {% endif %}
         </div>
 
         <!-- Bottom Bar -->
@@ -438,7 +460,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <p class="footer-copyright">
-                        &copy; {% now "Y" %} PickleSphere. All rights reserved.
+                        {{ footer_settings.copyright_text|default:'© PickleSphere. All rights reserved.' }}
                     </p>
                 </div>
                 <div class="col-md-6">
@@ -454,7 +476,13 @@
         <!-- Developer Credit -->
         <div class="footer-credit">
             <p class="footer-credit-text">
-                Developed by <strong>Kylle Ian D. Acibron</strong> &bull; Contact: kylleacibron@gmail.com &bull; Version: 1.0.0
+                {% if footer_settings and footer_settings.developer_credit %}
+                    Developed by <strong>{{ footer_settings.developer_credit }}</strong>
+                    {% if footer_settings.developer_contact %} &bull; Contact: {{ footer_settings.developer_contact }}{% endif %}
+                    {% if footer_settings.version_text %} &bull; Version: {{ footer_settings.version_text }}{% endif %}
+                {% else %}
+                    Developed by <strong>Kylle Ian D. Acibron</strong> &bull; Contact: kylleacibron@gmail.com &bull; Version: 1.0.0
+                {% endif %}
             </p>
         </div>
     </div>
@@ -464,6 +492,7 @@
         <i class="fas fa-chevron-up"></i>
     </button>
 </footer>
+{% endif %}
 
 <script>
     // Back to Top Button

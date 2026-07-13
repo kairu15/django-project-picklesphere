@@ -1,17 +1,20 @@
 """
-Maintenance Mode Middleware
+Middleware modules for the PickleSphere dashboard app.
 
-Blocks all requests from non-super-admin users when maintenance mode is active.
-Super admins can still log in and access the system to perform maintenance.
-Also auto-disables maintenance if scheduled_end has passed.
-
-Uses caching to avoid a database hit on every request — the common case
-(maintenance is OFF) is served entirely from cache with zero DB queries.
+Contains:
+- MaintenanceModeMiddleware: Blocks non-admin users when maintenance is active.
+- AuthAuditMiddleware: Development-only audit of unauthenticated access patterns.
 """
+
+import logging
 
 from django.shortcuts import render
 from django.utils import timezone
 from django.core.cache import cache
+from django.conf import settings
+from django.urls import resolve, Resolver404
+
+logger = logging.getLogger('picklesphere.auth_audit')
 
 
 class MaintenanceModeMiddleware:
@@ -98,3 +101,137 @@ class MaintenanceModeMiddleware:
             'maintenance': data,
             'page_title': 'System Under Maintenance',
         })
+
+
+class AuthAuditMiddleware:
+    """
+    Development middleware that logs warnings when unauthenticated users
+    access views that might be missing @login_required protection.
+
+    How it works:
+    --------
+    1. Before the view runs, records the request path and resolved URL name.
+    2. After the response is generated, checks the outcome:
+       - If response is a 302 redirect to LOGIN_URL → the view IS protected.
+         Logged at INFO level (confirms protection is working).
+       - If response is 200 and view is not on the public-allowlist →
+         the view MIGHT be unprotected. Logged at WARNING level.
+
+    Only active when DEBUG=True. No performance impact in production.
+    """
+
+    # URL names of views that are intentionally public.
+    # Add any new public views here to avoid false warnings.
+    PUBLIC_URL_NAMES = frozenset({
+        # Dashboard public pages
+        'home',
+        'court_view',
+        'pricing',
+        'about',
+        'contact',
+        'privacy_policy',
+        'terms_of_service',
+        'faq',
+        # Auth pages
+        'login',
+        'register',
+        'password_reset_request',
+        'password_reset_confirm',
+        # Organizations public pages
+        'organization_directory',
+        'organization_register',
+        'organization_public_detail',
+        'static_map',
+        # Tournaments public pages
+        'tournament_list',
+        'tournament_detail',
+        # Courts public detail
+        'court_detail',
+    })
+
+    # Path prefixes that are always public (bypass URL resolution)
+    PUBLIC_PATH_PREFIXES = (
+        '/static/',
+        '/media/',
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Only active in DEBUG mode — no overhead in production
+        if not settings.DEBUG:
+            return self.get_response(request)
+
+        # If user is authenticated, nothing to audit
+        if request.user.is_authenticated:
+            return self.get_response(request)
+
+        # Skip known public path prefixes (static/media)
+        path = request.path_info
+        if path.startswith(self.PUBLIC_PATH_PREFIXES):
+            return self.get_response(request)
+
+        # Resolve the URL name for better logging
+        url_name = None
+        try:
+            match = resolve(path)
+            url_name = match.url_name
+        except Resolver404:
+            url_name = None
+
+        # If the URL name is in the public allowlist, skip silently
+        if url_name and url_name in self.PUBLIC_URL_NAMES:
+            return self.get_response(request)
+
+        # ---- Process the request ----
+        response = self.get_response(request)
+
+        # ---- Analyze the response ----
+        login_url = settings.LOGIN_URL  # e.g., '/accounts/login/'
+
+        if response.status_code == 302:
+            redirect_location = response.get('Location', '')
+            if redirect_location.startswith(login_url):
+                # View IS protected — redirected to login. Log at INFO.
+                logger.info(
+                    '[AUTH_AUDIT] ✅ Protected view → login redirect | '
+                    'path=%(path)s url_name=%(url_name)s method=%(method)s',
+                    {
+                        'path': path,
+                        'url_name': url_name,
+                        'method': request.method,
+                    },
+                )
+            else:
+                # Redirect elsewhere — might be a public view doing its own redirect
+                logger.debug(
+                    '[AUTH_AUDIT] Unauthenticated user redirected to %(location)s | '
+                    'path=%(path)s url_name=%(url_name)s',
+                    {
+                        'location': redirect_location,
+                        'path': path,
+                        'url_name': url_name,
+                    },
+                )
+
+        elif response.status_code == 200:
+            # View returned a 200 OK to an unauthenticated user.
+            # This view is NOT in the public allowlist — it might need @login_required.
+            extra = {
+                'path': path,
+                'url_name': url_name,
+                'method': request.method,
+                'ip': request.META.get('REMOTE_ADDR'),
+                'user_agent': request.META.get('HTTP_USER_AGENT', '')[:120],
+                'referrer': request.META.get('HTTP_REFERER', '')[:200],
+            }
+
+            logger.warning(
+                '[AUTH_AUDIT] ⚠️  POTENTIALLY UNPROTECTED VIEW | '
+                'path=%(path)s url_name=%(url_name)s method=%(method)s ip=%(ip)s',
+                extra,
+                extra={'audit_data': extra},
+            )
+
+        return response

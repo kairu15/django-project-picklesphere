@@ -6,19 +6,20 @@
 {% block body %}
 {% include 'components/header.html' %}
 
-<!-- Hero Section -->
-<section class="hero-section">
+<!-- Hero Section (CMS Managed) -->
+{% with hero=hero_settings %}
+<section class="hero-section" style="{% if hero %}{{ hero.get_background_style }}{% else %}background: linear-gradient(135deg, #1a3a42 0%, #0f172a 100%);{% endif %} min-height: {{ hero.min_height|default:'90vh' }};">
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-10">
                 <span class="badge bg-white text-primary mb-3 px-4 py-2" style="font-size: 0.875rem; letter-spacing: 1px; text-transform: uppercase;">
-                    <i class="fas fa-globe me-2"></i>The Ultimate Pickleball Platform
+                    <i class="fas fa-globe me-2"></i>{{ hero.badge_text|default:"The Ultimate Pickleball Platform" }}
                 </span>
                 <h1 class="display-2 fw-bold mb-4 text-white" style="text-shadow: 2px 4px 8px rgba(0,0,0,0.4); letter-spacing: -1px;">
-                    {{ homepage_text.hero_title|default:"Welcome to PickleSphere" }}
+                    {{ hero.title|default:"Welcome to PickleSphere" }}
                 </h1>
                 <p class="lead mb-5 text-white fs-4" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.3); opacity: 0.95; max-width: 750px; margin: 0 auto 2rem;">
-                    {{ homepage_text.hero_subtitle|default:"The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide. Find, book, and play — all in one place." }}
+                    {{ hero.subtitle|default:"The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide." }}
                 </p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
                     <a href="{% url 'all_courts' %}" class="btn btn-light btn-lg px-5">
@@ -36,6 +37,7 @@
             </div>
         </div>
 
+        {% if not hero or hero.show_search_widget %}
         <!-- Search Widget -->
         <div class="row mt-5">
             <div class="col-lg-10 mx-auto">
@@ -65,8 +67,10 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </section>
+{% endwith %}
 
 <!-- Stats Section -->
 <section class="py-5 marketing-section" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
@@ -684,14 +688,6 @@
         </div>
     </div>
 </section>
-
-<style>
-/* Hero Section Background & Height */
-.hero-section {
-    min-height: 90vh;
-    background: linear-gradient(rgba(26, 58, 66, 0.7), rgba(59, 122, 140, 0.85)), url('/static/images/hero-bg.jpg') center/cover;
-}
-</style>
 
 <!-- Gallery Modal -->
 <div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">

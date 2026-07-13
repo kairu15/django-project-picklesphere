@@ -1,0 +1,58 @@
+{% extends 'base/dashboard_base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_title %}<i class="fas fa-share-alt me-2"></i>{{ page_title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="admin-card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="text-center mb-4">
+                        <i class="{{ platform.icon_class }}" style="font-size:3rem;color:#3B7A8C;"></i>
+                        <h4 class="mt-2">{{ platform.get_platform_display }}</h4>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Profile URL</label>
+                            <input type="url" name="url" class="form-control" value="{{ platform.url }}" placeholder="https://{{ platform.platform }}.com/...">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if platform.is_active %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="isActive">Enabled</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="show_in_topbar" class="form-check-input" id="showTop" {% if platform.show_in_topbar %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="showTop">Show in Top Bar</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="show_in_footer" class="form-check-input" id="showFooter" {% if platform.show_in_footer %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="showFooter">Show in Footer</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="open_in_new_tab" class="form-check-input" id="newTab" {% if platform.open_in_new_tab %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="newTab">Open in New Tab</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Display Order</label>
+                            <input type="number" name="display_order" class="form-control" value="{{ platform.display_order }}">
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save</button>
+                        <a href="{% url 'super_admin_social_cms' %}" class="btn btn-outline-secondary">Back to List</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -13,6 +13,7 @@ from dashboard.models import EquipmentPageSettings, FeaturedEquipment, Equipment
 from reservations.models import Reservation
 
 
+@login_required
 def equipment_list_view(request):
 
     equipment = Equipment.objects.filter(is_active=True)

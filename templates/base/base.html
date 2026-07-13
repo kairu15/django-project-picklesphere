@@ -7,7 +7,7 @@
     <title>{% block title %}PickleSphere{% endblock %} - Pickleball Facility Management</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{% static 'PickleSphereLogo.png' %}">
+    <link rel="icon" type="image/png" href="{% if site_branding and site_branding.favicon %}{{ site_branding.favicon.url }}?_v={{ site_branding.cache_buster }}{% else %}{% static 'PickleSphereLogo.png' %}{% endif %}">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

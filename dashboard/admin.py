@@ -12,6 +12,12 @@ from .models import (
     MaintenanceMode, MaintenanceAuditLog,
     SiteSettings, Partner, GlobalAnnouncement,
     ContentVersion,
+    # NEW CMS Models
+    HeroSectionSettings, SiteBranding,
+    TopBarSettings,
+    NavBarSettings, NavBarMenuItem,
+    FooterSettings, FooterQuickLink,
+    SocialPlatformSettings,
 )
 
 
@@ -391,3 +397,128 @@ class ContentVersionAdmin(admin.ModelAdmin):
     list_filter = ['content_type', 'is_published', 'created_at']
     readonly_fields = ['content_type', 'section', 'old_value', 'new_value', 'changed_by', 'version_number', 'is_published', 'created_at']
     search_fields = ['section']
+
+
+# ============================================================================
+# NEW CMS Admin Registrations
+# ============================================================================
+
+@admin.register(HeroSectionSettings)
+class HeroSectionSettingsAdmin(admin.ModelAdmin):
+    list_display = ['background_type', 'badge_text', 'is_active', 'updated_at']
+    fieldsets = [
+        ('Background', {'fields': ['background_type', 'solid_color', 'gradient_start', 'gradient_end', 'gradient_direction', 'background_image', 'overlay_color', 'overlay_opacity']}),
+        ('Content', {'fields': ['badge_text', 'title', 'subtitle']}),
+        ('Settings', {'fields': ['show_search_widget', 'min_height', 'is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not HeroSectionSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(SiteBranding)
+class SiteBrandingAdmin(admin.ModelAdmin):
+    list_display = ['brand_name', 'has_logos_display', 'updated_at']
+    fieldsets = [
+        ('Brand Identity', {'fields': ['brand_name', 'website_logo', 'header_logo', 'footer_logo']}),
+        ('Platform Assets', {'fields': ['favicon', 'login_logo', 'loading_logo', 'email_logo']}),
+        ('Status', {'fields': ['is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not SiteBranding.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description='Has Logos', boolean=True)
+    def has_logos_display(self, obj):
+        return obj.has_logos
+
+
+@admin.register(TopBarSettings)
+class TopBarSettingsAdmin(admin.ModelAdmin):
+    list_display = ['is_visible', 'phone_primary', 'email_primary', 'updated_at']
+    fieldsets = [
+        ('Visibility', {'fields': ['is_visible', 'show_contact_info', 'show_social_media', 'show_language_selector']}),
+        ('Contact Information', {'fields': ['phone_primary', 'phone_secondary', 'email_primary', 'email_secondary', 'office_hours', 'physical_address']}),
+        ('Styling', {'fields': ['background_color', 'background_gradient_start', 'background_gradient_end', 'text_color']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not TopBarSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(NavBarSettings)
+class NavBarSettingsAdmin(admin.ModelAdmin):
+    list_display = ['is_sticky', 'brand_text', 'is_active', 'updated_at']
+    fieldsets = [
+        ('General', {'fields': ['is_sticky', 'show_brand', 'brand_text', 'container_style', 'show_search']}),
+        ('Styling', {'fields': ['background_color', 'text_color', 'text_color_hover', 'cta_button_text', 'cta_button_color']}),
+        ('Status', {'fields': ['is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not NavBarSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(NavBarMenuItem)
+class NavBarMenuItemAdmin(admin.ModelAdmin):
+    list_display = ['title', 'link_type', 'menu_position', 'is_active', 'display_order']
+    list_filter = ['is_active', 'menu_position', 'link_type']
+    list_editable = ['is_active', 'display_order', 'menu_position']
+    search_fields = ['title']
+    ordering = ['menu_position', 'display_order']
+
+
+@admin.register(FooterSettings)
+class FooterSettingsAdmin(admin.ModelAdmin):
+    list_display = ['organization_name', 'is_visible', 'show_newsletter', 'updated_at']
+    fieldsets = [
+        ('General', {'fields': ['is_visible', 'organization_name', 'short_description', 'copyright_text']}),
+        ('Sections', {'fields': ['show_quick_links', 'show_contact_details', 'show_social_media', 'show_newsletter']}),
+        ('Newsletter', {'fields': ['newsletter_heading', 'newsletter_description', 'newsletter_button_text']}),
+        ('Developer Credit', {'fields': ['developer_credit', 'developer_contact', 'version_text']}),
+        ('Styling', {'fields': ['background_gradient_start', 'background_gradient_end', 'text_color']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not FooterSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(FooterQuickLink)
+class FooterQuickLinkAdmin(admin.ModelAdmin):
+    list_display = ['title', 'link_type', 'is_active', 'display_order']
+    list_filter = ['is_active', 'link_type']
+    list_editable = ['is_active', 'display_order']
+    search_fields = ['title']
+    ordering = ['display_order']
+
+
+@admin.register(SocialPlatformSettings)
+class SocialPlatformSettingsAdmin(admin.ModelAdmin):
+    list_display = ['platform', 'url_short', 'is_active', 'show_in_topbar', 'show_in_footer', 'display_order']
+    list_filter = ['is_active', 'show_in_topbar', 'show_in_footer']
+    list_editable = ['is_active', 'show_in_topbar', 'show_in_footer', 'display_order']
+    readonly_fields = ['created_at', 'updated_at']
+
+    def url_short(self, obj):
+        return obj.url[:50] + '...' if len(obj.url) > 50 else obj.url
+    url_short.short_description = 'URL'
