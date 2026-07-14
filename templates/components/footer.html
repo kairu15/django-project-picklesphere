@@ -487,17 +487,21 @@
         </div>
     </div>
 
-    <!-- Back to Top Button -->
+    {% if not scroll_to_top_settings or not scroll_to_top_settings.is_visible or not scroll_to_top_settings.is_active %}
+    <!-- Fallback Back to Top Button (shown when CMS ScrollToTop is not active) -->
     <button class="back-to-top" id="backToTop" aria-label="Back to top">
         <i class="fas fa-chevron-up"></i>
     </button>
+    {% endif %}
 </footer>
 {% endif %}
 
 <script>
-    // Back to Top Button
+    // Back to Top Button (fallback if CMS settings not active)
+    {% if not scroll_to_top_settings or not scroll_to_top_settings.is_visible or not scroll_to_top_settings.is_active %}
     (function() {
         const backToTopBtn = document.getElementById('backToTop');
+        if (!backToTopBtn) return;
         
         function toggleBackToTop() {
             if (window.scrollY > 300) {
@@ -513,4 +517,5 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     })();
+    {% endif %}
 </script>

@@ -19,6 +19,107 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
     <style>
+        /* ===== CMS Design System Overrides =====
+         * These CSS custom properties come from the Admin CMS settings.
+         * They override the main.css defaults when the settings are active.
+         */
+        {% if global_design_settings and global_design_settings.is_active %}
+        {{ global_design_settings.get_css_variables|safe }}
+        {% endif %}
+
+        /* ===== Brand Button Colors (ALWAYS follow Global Design System) =====
+         * .btn-primary and .btn-outline-primary always use the global brand color
+         * so they stay in sync with the rest of the design system.
+         */
+        .btn-primary {
+            background: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_color }}{% else %}var(--primary-color, #3B7A8C){% endif %} !important;
+            border-color: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_color }}{% else %}var(--primary-color, #3B7A8C){% endif %} !important;
+            color: {% if button_style_settings and button_style_settings.is_active %}{{ button_style_settings.primary_text_color|default:'#ffffff' }}{% else %}#ffffff{% endif %} !important;
+        }
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_hover_color }}{% else %}var(--primary-hover, #2d5f6e){% endif %} !important;
+            border-color: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_hover_color }}{% else %}var(--primary-hover, #2d5f6e){% endif %} !important;
+        }
+        .btn-outline-primary {
+            border-color: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_color }}{% else %}var(--primary-color, #3B7A8C){% endif %} !important;
+            color: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_color }}{% else %}var(--primary-color, #3B7A8C){% endif %} !important;
+        }
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+            background: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_color }}{% else %}var(--primary-color, #3B7A8C){% endif %} !important;
+            border-color: {% if global_design_settings and global_design_settings.is_active %}{{ global_design_settings.primary_color }}{% else %}var(--primary-color, #3B7A8C){% endif %} !important;
+            color: #ffffff !important;
+        }
+
+        /* ===== Button Structure & Non-Brand Colors (Button Style Settings) ===== */
+        {% if button_style_settings and button_style_settings.is_active %}
+        .btn {
+            border-radius: {{ button_style_settings.button_border_radius|default:'8px' }} !important;
+            padding: {{ button_style_settings.button_padding_y|default:'0.625rem' }} {{ button_style_settings.button_padding_x|default:'1.5rem' }} !important;
+            font-weight: {{ button_style_settings.button_font_weight|default:'600' }} !important;
+            font-size: {{ button_style_settings.button_font_size|default:'0.875rem' }} !important;
+            text-transform: {{ button_style_settings.button_text_transform|default:'none' }} !important;
+            letter-spacing: {{ button_style_settings.button_letter_spacing|default:'0.3px' }} !important;
+        }
+        .btn-secondary {
+            background: {{ button_style_settings.secondary_bg|default:'#6c757d' }} !important;
+            border-color: {{ button_style_settings.secondary_bg|default:'#6c757d' }} !important;
+            color: {{ button_style_settings.secondary_text_color|default:'#ffffff' }} !important;
+        }
+        .btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+            background: {{ button_style_settings.secondary_hover_bg|default:'#5a6268' }} !important;
+            border-color: {{ button_style_settings.secondary_hover_bg|default:'#5a6268' }} !important;
+        }
+        .btn-success { background: {{ button_style_settings.success_bg|default:'#28a745' }} !important; border-color: {{ button_style_settings.success_bg|default:'#28a745' }} !important; }
+        .btn-danger { background: {{ button_style_settings.danger_bg|default:'#dc3545' }} !important; border-color: {{ button_style_settings.danger_bg|default:'#dc3545' }} !important; }
+        .btn-warning { background: {{ button_style_settings.warning_bg|default:'#ffc107' }} !important; border-color: {{ button_style_settings.warning_bg|default:'#ffc107' }} !important; }
+        .btn-info { background: {{ button_style_settings.info_bg|default:'#17a2b8' }} !important; border-color: {{ button_style_settings.info_bg|default:'#17a2b8' }} !important; }
+        .btn-lg {
+            padding: {{ button_style_settings.btn_lg_padding_y|default:'0.75rem' }} {{ button_style_settings.btn_lg_padding_x|default:'2rem' }} !important;
+            font-size: {{ button_style_settings.btn_lg_font_size|default:'1rem' }} !important;
+        }
+        .btn-sm {
+            padding: {{ button_style_settings.btn_sm_padding_y|default:'0.375rem' }} {{ button_style_settings.btn_sm_padding_x|default:'1rem' }} !important;
+            font-size: {{ button_style_settings.btn_sm_font_size|default:'0.8rem' }} !important;
+        }
+        {% endif %}
+
+        /* ===== Card Style Overrides ===== */
+        {% if card_style_settings and card_style_settings.is_active %}
+        .card {
+            background: {{ card_style_settings.card_background|default:'#ffffff' }} !important;
+            border-radius: {{ card_style_settings.card_border_radius|default:'12px' }} !important;
+            box-shadow: {{ card_style_settings.card_shadow|default:'0 2px 8px rgba(0,0,0,0.05)' }} !important;
+            border: {{ card_style_settings.card_border|default:'1px solid #e9ecef' }} !important;
+        }
+        .card:hover {
+            box-shadow: {{ card_style_settings.card_hover_shadow|default:'0 8px 30px rgba(0,0,0,0.12)' }} !important;
+        }
+        .card-body {
+            padding: {{ card_style_settings.card_body_padding|default:'1.5rem' }} !important;
+        }
+        .card-header {
+            background: {{ card_style_settings.card_header_bg|default:'#f8f9fa' }} !important;
+            color: {{ card_style_settings.card_header_text_color|default:'#212529' }} !important;
+            padding: {{ card_style_settings.card_header_padding|default:'1rem 1.5rem' }} !important;
+            border-bottom: {{ card_style_settings.card_header_border|default:'1px solid #e9ecef' }} !important;
+        }
+        .admin-card-header {
+            background: {{ card_style_settings.admin_card_header_bg|default:'#f8f9fa' }} !important;
+        }
+        .admin-card {
+            border-radius: {{ card_style_settings.admin_card_border_radius|default:'12px' }} !important;
+            box-shadow: {{ card_style_settings.admin_card_shadow|default:'0 2px 8px rgba(0,0,0,0.05)' }} !important;
+        }
+        section.marketing-section {
+            padding: {{ card_style_settings.section_padding|default:'4rem 0' }} !important;
+        }
+        @media (max-width: 767.98px) {
+            section.marketing-section {
+                padding: 2rem 0 !important;
+            }
+        }
+        {% endif %}
+
         /* ===== Standardized Filter Bar =====
          * Shared across all admin, staff, user, and public interfaces.
          * Defined here so public pages (base/base.html) can use them too.
@@ -40,7 +141,7 @@
             letter-spacing: 0.3px;
         }
         .filter-label i {
-            color: #3B7A8C;
+            color: var(--primary-color, #3B7A8C);
             width: 16px;
             margin-right: 4px;
         }
@@ -62,9 +163,9 @@
         }
         .filter-input:focus,
         .filter-select:focus {
-            border-color: #3B7A8C;
+            border-color: var(--primary-color, #3B7A8C);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59,122,140,0.12);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 59,122,140), 0.12);
         }
         .filter-btn-row {
             display: flex;
@@ -278,10 +379,10 @@
         }
         .password-toggle:hover {
             background: #f0f0f0;
-            color: #3B7A8C;
+            color: var(--primary-color, #3B7A8C);
         }
         .password-toggle:focus-visible {
-            outline: 2px solid #3B7A8C;
+            outline: 2px solid var(--primary-color, #3B7A8C);
             outline-offset: 2px;
         }
     </style>
@@ -534,6 +635,73 @@
     </script>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- ===== SCROLL TO TOP BUTTON (CMS Managed) ===== -->
+    {% if scroll_to_top_settings and scroll_to_top_settings.is_visible and scroll_to_top_settings.is_active %}
+    <style>
+        #cmsScrollToTop {
+            position: fixed;
+            right: {{ scroll_to_top_settings.position_right|default:'2rem' }};
+            bottom: {{ scroll_to_top_settings.position_bottom|default:'2rem' }};
+            width: {{ scroll_to_top_settings.size_px|default:'44px' }};
+            height: {{ scroll_to_top_settings.size_px|default:'44px' }};
+            background: {{ scroll_to_top_settings.background_color|default:'#3B7A8C' }};
+            color: {{ scroll_to_top_settings.icon_color|default:'#ffffff' }};
+            border: none;
+            border-radius: {{ scroll_to_top_settings.border_radius|default:'50%' }};
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            box-shadow: {{ scroll_to_top_settings.shadow|default:'0 4px 16px rgba(0,0,0,0.2)' }};
+            transition: all 0.3s ease;
+            font-size: {{ scroll_to_top_settings.icon_size|default:'18px' }};
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+        #cmsScrollToTop:hover {
+            background: {{ scroll_to_top_settings.hover_background_color|default:'#2d5f6e' }} !important;
+            color: {{ scroll_to_top_settings.hover_icon_color|default:'#ffffff' }} !important;
+            box-shadow: {{ scroll_to_top_settings.hover_shadow|default:'0 6px 24px rgba(0,0,0,0.3)' }} !important;
+            transform: translateY(-3px);
+        }
+        #cmsScrollToTop.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            display: flex;
+        }
+        #cmsScrollToTop i {
+            pointer-events: none;
+        }
+    </style>
+    <button id="cmsScrollToTop" aria-label="Scroll to top" title="Scroll to top">
+        <i class="{{ scroll_to_top_settings.icon_class|default:'fas fa-arrow-up' }}"></i>
+    </button>
+    <script>
+        (function() {
+            var btn = document.getElementById('cmsScrollToTop');
+            if (!btn) return;
+            var showAfter = {{ scroll_to_top_settings.show_after_scroll|default:'300' }};
+            var duration = {{ scroll_to_top_settings.scroll_duration|default:'500' }};
+            function toggleBtn() {
+                if (window.scrollY > showAfter) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            }
+            window.addEventListener('scroll', toggleBtn, { passive: true });
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            toggleBtn();
+        })();
+    </script>
+    {% endif %}
 
     {% if user.is_authenticated %}
     <!-- Session Timeout Warning Modal -->

@@ -1,0 +1,214 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+{% block title %}Global Design System CMS{% endblock %}
+{% block page_title %}<i class="fas fa-palette me-2"></i>Global Design System{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Typography Settings -->
+        <div class="admin-card mb-4">
+            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-font me-2"></i>Typography</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Heading Font Family</label>
+                            <input type="text" name="heading_font_family" class="form-control" value="{{ settings.heading_font_family }}" placeholder="'Inter', sans-serif">
+                            <small class="text-muted">CSS font-family for headings</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Body Font Family</label>
+                            <input type="text" name="body_font_family" class="form-control" value="{{ settings.body_font_family }}" placeholder="'Inter', sans-serif">
+                            <small class="text-muted">CSS font-family for body text</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Base Font Size</label>
+                            <input type="text" name="base_font_size" class="form-control" value="{{ settings.base_font_size }}" placeholder="16px">
+                            <small class="text-muted">Base body font size</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Heading Font Weight</label>
+                            <input type="text" name="heading_font_weight" class="form-control" value="{{ settings.heading_font_weight }}" placeholder="700">
+                            <small class="text-muted">e.g. 400, 600, 700, 800</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3"><i class="fas fa-paint-brush me-2"></i>Color Scheme</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Primary Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="primary_color" class="form-control form-control-color" value="{{ settings.primary_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.primary_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Primary Hover</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="primary_hover_color" class="form-control form-control-color" value="{{ settings.primary_hover_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.primary_hover_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Secondary Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="secondary_color" class="form-control form-control-color" value="{{ settings.secondary_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.secondary_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Accent Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="accent_color" class="form-control form-control-color" value="{{ settings.accent_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.accent_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Success Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="success_color" class="form-control form-control-color" value="{{ settings.success_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.success_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Warning Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="warning_color" class="form-control form-control-color" value="{{ settings.warning_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.warning_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Danger Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="danger_color" class="form-control form-control-color" value="{{ settings.danger_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.danger_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Info Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="info_color" class="form-control form-control-color" value="{{ settings.info_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.info_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Primary Text Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="text_primary_color" class="form-control form-control-color" value="{{ settings.text_primary_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.text_primary_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Muted Text Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="text_muted_color" class="form-control form-control-color" value="{{ settings.text_muted_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.text_muted_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Light Background</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="background_light_color" class="form-control form-control-color" value="{{ settings.background_light_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.background_light_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Dark Background</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" name="background_dark_color" class="form-control form-control-color" value="{{ settings.background_dark_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" value="{{ settings.background_dark_color }}" oninput="this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3"><i class="fas fa-square me-2"></i>Border Radius</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Small</label>
+                            <input type="text" name="border_radius_sm" class="form-control" value="{{ settings.border_radius_sm }}" placeholder="6px">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Medium</label>
+                            <input type="text" name="border_radius_md" class="form-control" value="{{ settings.border_radius_md }}" placeholder="12px">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Large</label>
+                            <input type="text" name="border_radius_lg" class="form-control" value="{{ settings.border_radius_lg }}" placeholder="20px">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Full / Pill</label>
+                            <input type="text" name="border_radius_full" class="form-control" value="{{ settings.border_radius_full }}" placeholder="50px">
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3"><i class="fas fa-layer-group me-2"></i>Shadows</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Small Shadow</label>
+                            <input type="text" name="shadow_sm" class="form-control" value="{{ settings.shadow_sm }}" placeholder="0 2px 8px rgba(0,0,0,0.05)">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Medium Shadow</label>
+                            <input type="text" name="shadow_md" class="form-control" value="{{ settings.shadow_md }}" placeholder="0 4px 16px rgba(0,0,0,0.08)">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Large Shadow</label>
+                            <input type="text" name="shadow_lg" class="form-control" value="{{ settings.shadow_lg }}" placeholder="0 8px 30px rgba(0,0,0,0.12)">
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3"><i class="fas fa-arrows-alt me-2"></i>Spacing & Layout</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Spacing Unit</label>
+                            <input type="text" name="spacing_unit" class="form-control" value="{{ settings.spacing_unit }}" placeholder="8px">
+                            <small class="text-muted">Base spacing for margins/padding</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Section Padding</label>
+                            <input type="text" name="section_padding" class="form-control" value="{{ settings.section_padding }}" placeholder="5rem 0">
+                            <small class="text-muted">Default vertical padding for sections</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Container Max Width</label>
+                            <input type="text" name="container_max_width" class="form-control" value="{{ settings.container_max_width }}" placeholder="1200px">
+                            <small class="text-muted">Maximum content width</small>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="form-check form-switch mb-3">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if settings.is_active %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="isActive">Active</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save me-2"></i>Save Design Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-card mb-4">
+            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-info-circle me-2"></i>About These Settings</h5></div>
+            <div class="card-body">
+                <p class="mb-3">These settings define the global visual design of your website. Changes will be injected as CSS custom properties (<code>:root</code> variables) on every page.</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Use hex color values (e.g. <code>#3B7A8C</code>) for consistent results across browsers.
+                </div>
+                <hr>
+                <h6 class="fw-bold"><i class="fas fa-palette me-2"></i>Color Preview</h6>
+                <div class="d-flex gap-2 flex-wrap mt-2">
+                    <span class="badge" style="background:{{ settings.primary_color }};width:32px;height:32px;border-radius:4px;" title="Primary"></span>
+                    <span class="badge" style="background:{{ settings.secondary_color }};width:32px;height:32px;border-radius:4px;" title="Secondary"></span>
+                    <span class="badge" style="background:{{ settings.accent_color }};width:32px;height:32px;border-radius:4px;" title="Accent"></span>
+                    <span class="badge" style="background:{{ settings.success_color }};width:32px;height:32px;border-radius:4px;" title="Success"></span>
+                    <span class="badge" style="background:{{ settings.warning_color }};width:32px;height:32px;border-radius:4px;" title="Warning"></span>
+                    <span class="badge" style="background:{{ settings.danger_color }};width:32px;height:32px;border-radius:4px;" title="Danger"></span>
+                    <span class="badge" style="background:{{ settings.info_color }};width:32px;height:32px;border-radius:4px;" title="Info"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

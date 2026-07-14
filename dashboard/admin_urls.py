@@ -173,6 +173,18 @@ urlpatterns = [
     path('cms/social/', cms_views.social_media_settings, name='super_admin_social_cms'),
     path('cms/social/<int:platform_id>/edit/', cms_views.social_platform_edit, name='super_admin_social_platform_edit'),
 
+    # ========== GLOBAL DESIGN SYSTEM CMS ==========
+    path('cms/design/global/', cms_views.global_design_settings, name='super_admin_global_design'),
+
+    # ========== BUTTON STYLES CMS ==========
+    path('cms/design/buttons/', cms_views.button_style_settings, name='super_admin_button_styles'),
+
+    # ========== CARD STYLES CMS ==========
+    path('cms/design/cards/', cms_views.card_style_settings, name='super_admin_card_styles'),
+
+    # ========== SCROLL TO TOP CMS ==========
+    path('cms/design/scroll-to-top/', cms_views.scroll_to_top_settings, name='super_admin_scroll_to_top'),
+
     # ========== CONTENT VERSION HISTORY ==========
     path('versions/', cms_views.content_version_list, name='super_admin_content_versions'),
 ]

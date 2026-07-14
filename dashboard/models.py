@@ -1722,3 +1722,275 @@ class SocialPlatformSettings(models.Model):
             'messenger': 'fab fa-facebook-messenger',
         }
         return icons.get(self.platform, 'fas fa-link')
+
+
+# ============================================================================
+# GLOBAL DESIGN SYSTEM (Typography, Colors, Shadows)
+# ============================================================================
+
+class GlobalDesignSettings(models.Model):
+    """Global visual design settings (singleton) — typography, colors, spacing."""
+    heading_font_family = models.CharField(max_length=200, default="'Inter', -apple-system, BlinkMacSystemFont, sans-serif", help_text='Heading font family (CSS)')
+    body_font_family = models.CharField(max_length=200, default="'Inter', -apple-system, BlinkMacSystemFont, sans-serif", help_text='Body font family (CSS)')
+    base_font_size = models.CharField(max_length=20, default='16px', help_text='Base font size for body text')
+    heading_font_weight = models.CharField(max_length=20, default='700', help_text='Heading font weight (e.g. 400, 600, 700)')
+    primary_color = models.CharField(max_length=20, default='#3B7A8C', help_text='Primary brand color')
+    primary_hover_color = models.CharField(max_length=20, default='#2d5f6e', help_text='Primary hover/dark variant')
+    secondary_color = models.CharField(max_length=20, default='#1a3a42', help_text='Secondary brand color')
+    accent_color = models.CharField(max_length=20, default='#4A9DA8', help_text='Accent/highlight color')
+    success_color = models.CharField(max_length=20, default='#28a745', help_text='Success/positive color')
+    warning_color = models.CharField(max_length=20, default='#ffc107', help_text='Warning color')
+    danger_color = models.CharField(max_length=20, default='#dc3545', help_text='Danger/error color')
+    info_color = models.CharField(max_length=20, default='#17a2b8', help_text='Info color')
+    text_primary_color = models.CharField(max_length=20, default='#212529', help_text='Primary text color')
+    text_muted_color = models.CharField(max_length=20, default='#6c757d', help_text='Muted/secondary text color')
+    background_light_color = models.CharField(max_length=20, default='#f8f9fa', help_text='Light section background')
+    background_dark_color = models.CharField(max_length=20, default='#0f172a', help_text='Dark section background')
+    border_radius_sm = models.CharField(max_length=20, default='6px', help_text='Small border radius')
+    border_radius_md = models.CharField(max_length=20, default='12px', help_text='Medium border radius')
+    border_radius_lg = models.CharField(max_length=20, default='20px', help_text='Large border radius')
+    border_radius_full = models.CharField(max_length=20, default='50px', help_text='Full/pill border radius')
+    shadow_sm = models.CharField(max_length=200, default='0 2px 8px rgba(0,0,0,0.05)', help_text='Small shadow (CSS box-shadow)')
+    shadow_md = models.CharField(max_length=200, default='0 4px 16px rgba(0,0,0,0.08)', help_text='Medium shadow (CSS box-shadow)')
+    shadow_lg = models.CharField(max_length=200, default='0 8px 30px rgba(0,0,0,0.12)', help_text='Large shadow (CSS box-shadow)')
+    spacing_unit = models.CharField(max_length=20, default='8px', help_text='Base spacing unit used for margins/padding')
+    section_padding = models.CharField(max_length=20, default='5rem 0', help_text='Default section vertical padding')
+    container_max_width = models.CharField(max_length=20, default='1200px', help_text='Max container width')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Global Design Setting'
+        verbose_name_plural = 'Global Design Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Global Design Settings'
+
+    def _hex_to_rgb(self, hex_color):
+        """Convert hex color to RGB comma-separated string (e.g. '#3B7A8C' -> '59, 122, 140')."""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 6:
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+            return f'{r}, {g}, {b}'
+        return '59, 122, 140'  # fallback to default
+
+    def get_css_variables(self):
+        """Return a CSS custom properties string for injection into templates."""
+        return f'''
+:root {{
+  --primary-color: {self.primary_color};
+  --primary-rgb: {self._hex_to_rgb(self.primary_color)};
+  --primary-hover: {self.primary_hover_color};
+  --secondary-color: {self.secondary_color};
+  --accent-color: {self.accent_color};
+  --success-color: {self.success_color};
+  --warning-color: {self.warning_color};
+  --danger-color: {self.danger_color};
+  --info-color: {self.info_color};
+  --text-primary: {self.text_primary_color};
+  --text-muted: {self.text_muted_color};
+  --bg-light: {self.background_light_color};
+  --bg-dark: {self.background_dark_color};
+  --border-radius-sm: {self.border_radius_sm};
+  --border-radius-md: {self.border_radius_md};
+  --border-radius-lg: {self.border_radius_lg};
+  --border-radius-full: {self.border_radius_full};
+  --shadow-sm: {self.shadow_sm};
+  --shadow-md: {self.shadow_md};
+  --shadow-lg: {self.shadow_lg};
+  --spacing-unit: {self.spacing_unit};
+  --section-padding: {self.section_padding};
+  --container-max-width: {self.container_max_width};
+  --heading-font: {self.heading_font_family};
+  --body-font: {self.body_font_family};
+  --base-font-size: {self.base_font_size};
+  --heading-font-weight: {self.heading_font_weight};
+}}'''
+
+
+# ============================================================================
+# BUTTON STYLE SETTINGS
+# ============================================================================
+
+class ButtonStyleSettings(models.Model):
+    """Global button style configuration (singleton)."""
+    button_border_radius = models.CharField(max_length=20, default='8px', help_text='Button border radius')
+    button_padding_y = models.CharField(max_length=20, default='0.625rem', help_text='Button vertical padding')
+    button_padding_x = models.CharField(max_length=20, default='1.5rem', help_text='Button horizontal padding')
+    button_font_weight = models.CharField(max_length=20, default='600', help_text='Button font weight')
+    button_font_size = models.CharField(max_length=20, default='0.875rem', help_text='Button font size')
+    button_text_transform = models.CharField(max_length=50, default='none', help_text='Text transform (none, uppercase, capitalize)')
+    button_letter_spacing = models.CharField(max_length=20, default='0.3px', help_text='Letter spacing')
+    primary_bg = models.CharField(max_length=20, default='#3B7A8C', help_text='Primary button background')
+    primary_hover_bg = models.CharField(max_length=20, default='#2d5f6e', help_text='Primary button hover background')
+    primary_text_color = models.CharField(max_length=20, default='#ffffff', help_text='Primary button text color')
+    secondary_bg = models.CharField(max_length=20, default='#6c757d', help_text='Secondary button background')
+    secondary_hover_bg = models.CharField(max_length=20, default='#5a6268', help_text='Secondary button hover background')
+    secondary_text_color = models.CharField(max_length=20, default='#ffffff', help_text='Secondary button text color')
+    outline_border_color = models.CharField(max_length=20, default='#3B7A8C', help_text='Outline button border color')
+    outline_hover_bg = models.CharField(max_length=20, default='#3B7A8C', help_text='Outline button hover background')
+    outline_text_color = models.CharField(max_length=20, default='#3B7A8C', help_text='Outline button text color')
+    outline_hover_text_color = models.CharField(max_length=20, default='#ffffff', help_text='Outline button hover text color')
+    success_bg = models.CharField(max_length=20, default='#28a745', help_text='Success button background')
+    danger_bg = models.CharField(max_length=20, default='#dc3545', help_text='Danger button background')
+    warning_bg = models.CharField(max_length=20, default='#ffc107', help_text='Warning button background')
+    info_bg = models.CharField(max_length=20, default='#17a2b8', help_text='Info button background')
+    btn_lg_padding_y = models.CharField(max_length=20, default='0.75rem', help_text='Large button vertical padding')
+    btn_lg_padding_x = models.CharField(max_length=20, default='2rem', help_text='Large button horizontal padding')
+    btn_lg_font_size = models.CharField(max_length=20, default='1rem', help_text='Large button font size')
+    btn_sm_padding_y = models.CharField(max_length=20, default='0.375rem', help_text='Small button vertical padding')
+    btn_sm_padding_x = models.CharField(max_length=20, default='1rem', help_text='Small button horizontal padding')
+    btn_sm_font_size = models.CharField(max_length=20, default='0.8rem', help_text='Small button font size')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Button Style Setting'
+        verbose_name_plural = 'Button Style Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Button Style Settings'
+
+
+# ============================================================================
+# CARD / SECTION STYLE SETTINGS
+# ============================================================================
+
+class CardStyleSettings(models.Model):
+    """Global card and section container styling (singleton)."""
+    card_background = models.CharField(max_length=20, default='#ffffff', help_text='Card background color')
+    card_border_radius = models.CharField(max_length=20, default='12px', help_text='Card border radius')
+    card_shadow = models.CharField(max_length=200, default='0 2px 8px rgba(0,0,0,0.05)', help_text='Card box shadow')
+    card_hover_shadow = models.CharField(max_length=200, default='0 8px 30px rgba(0,0,0,0.12)', help_text='Card hover box shadow')
+    card_border = models.CharField(max_length=20, default='1px solid #e9ecef', help_text='Card border')
+    card_padding = models.CharField(max_length=20, default='1.5rem', help_text='Card inner padding')
+    card_margin_bottom = models.CharField(max_length=20, default='1.5rem', help_text='Card bottom margin')
+    card_header_bg = models.CharField(max_length=20, default='#f8f9fa', help_text='Card header background')
+    card_header_text_color = models.CharField(max_length=20, default='#212529', help_text='Card header text color')
+    card_header_padding = models.CharField(max_length=20, default='1rem 1.5rem', help_text='Card header padding')
+    card_header_border = models.CharField(max_length=20, default='1px solid #e9ecef', help_text='Card header bottom border')
+    card_body_padding = models.CharField(max_length=20, default='1.5rem', help_text='Card body padding')
+    section_bg_light = models.CharField(max_length=20, default='#f8f9fa', help_text='Light section background')
+    section_bg_dark = models.CharField(max_length=20, default='#0f172a', help_text='Dark section background')
+    section_padding = models.CharField(max_length=20, default='4rem 0', help_text='Section vertical padding')
+    admin_card_border_radius = models.CharField(max_length=20, default='12px', help_text='Admin card border radius')
+    admin_card_shadow = models.CharField(max_length=200, default='0 2px 8px rgba(0,0,0,0.05)', help_text='Admin card shadow')
+    admin_card_header_bg = models.CharField(max_length=20, default='#f8f9fa', help_text='Admin card header background')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Card Style Setting'
+        verbose_name_plural = 'Card Style Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'Card Style Settings'
+
+
+# ============================================================================
+# SCROLL TO TOP BUTTON SETTINGS
+# ============================================================================
+
+class ScrollToTopSettings(models.Model):
+    """Scroll-to-top button configuration (singleton)."""
+    is_visible = models.BooleanField(default=True, help_text='Show the scroll-to-top button')
+    position_right = models.CharField(max_length=20, default='2rem', help_text='Distance from right edge')
+    position_bottom = models.CharField(max_length=20, default='2rem', help_text='Distance from bottom edge')
+    SIZE_CHOICES = [
+        ('sm', 'Small (36px)'),
+        ('md', 'Medium (44px)'),
+        ('lg', 'Large (52px)'),
+    ]
+    button_size = models.CharField(max_length=10, choices=SIZE_CHOICES, default='md', help_text='Button size')
+    background_color = models.CharField(max_length=20, default='#3B7A8C', help_text='Button background color')
+    hover_background_color = models.CharField(max_length=20, default='#2d5f6e', help_text='Button hover background color')
+    icon_color = models.CharField(max_length=20, default='#ffffff', help_text='Icon color')
+    hover_icon_color = models.CharField(max_length=20, default='#ffffff', help_text='Icon hover color')
+    border_radius = models.CharField(max_length=20, default='50%', help_text='Button border radius')
+    show_after_scroll = models.PositiveIntegerField(default=300, help_text='Show after scrolling this many pixels')
+    scroll_duration = models.PositiveIntegerField(default=500, help_text='Scroll animation duration in ms')
+    icon_class = models.CharField(max_length=50, default='fas fa-arrow-up', help_text='Font Awesome icon class')
+    shadow = models.CharField(max_length=200, default='0 4px 16px rgba(0,0,0,0.2)', help_text='Button shadow')
+    hover_shadow = models.CharField(max_length=200, default='0 6px 24px rgba(0,0,0,0.3)', help_text='Button hover shadow')
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Scroll to Top Setting'
+        verbose_name_plural = 'Scroll to Top Settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"Scroll to Top: {'Visible' if self.is_visible else 'Hidden'}"
+
+    @property
+    def size_px(self):
+        sizes = {'sm': '36px', 'md': '44px', 'lg': '52px'}
+        return sizes.get(self.button_size, '44px')
+
+    @property
+    def icon_size(self):
+        sizes = {'sm': '14px', 'md': '18px', 'lg': '22px'}
+        return sizes.get(self.button_size, '18px')
+
+    def get_inline_style(self):
+        size = self.size_px
+        return f'''
+#scrollToTop {{
+    position: fixed;
+    right: {self.position_right};
+    bottom: {self.position_bottom};
+    width: {size};
+    height: {size};
+    background: {self.background_color};
+    color: {self.icon_color};
+    border: none;
+    border-radius: {self.border_radius};
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    box-shadow: {self.shadow};
+    transition: all 0.3s ease;
+    font-size: {self.icon_size};
+}}
+#scrollToTop:hover {{
+    background: {self.hover_background_color};
+    color: {self.hover_icon_color};
+    box-shadow: {self.hover_shadow};
+    transform: translateY(-3px);
+}}
+#scrollToTop.visible {{
+    display: flex;
+}}'''
+

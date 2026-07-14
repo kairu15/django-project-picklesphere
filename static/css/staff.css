@@ -7,8 +7,9 @@
    CSS VARIABLES - Staff Theme
    ============================================ */
 :root {
-    --staff-primary: #3B7A8C;
-    --staff-primary-dark: #1a3a42;
+    --staff-primary: var(--primary-color);
+    --staff-primary-dark: var(--primary-dark);
+    --staff-primary-darker: #1a3a42;
     --staff-success: #28a745;
     --staff-warning: #ffc107;
     --staff-danger: #dc3545;
@@ -161,7 +162,7 @@
 
 /* Equipment Overview specific icon styles */
 .equipment-icon-box {
-    background: rgba(59,122,140,0.12);
+    background: rgba(var(--primary-rgb), 0.12);
 }
 
 .equipment-icon-box i {
@@ -185,7 +186,7 @@
 }
 
 /* Gradient backgrounds */
-.bg-gradient-primary { background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); }
+.bg-gradient-primary { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); }
 .bg-gradient-success { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
 .bg-gradient-warning { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
 .bg-gradient-danger { background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); }
@@ -215,12 +216,12 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #3B7A8C 0%, #2d5f6d 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     border: none;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #2d5f6d 0%, #1a3a42 100%);
+    background: linear-gradient(135deg, var(--staff-primary-dark) 0%, var(--staff-primary-darker) 100%);
 }
 
 .btn-success {
@@ -290,8 +291,8 @@
     font-size: 0.875rem;
 }
 
-.btn-staff-primary { background: linear-gradient(135deg, #3B7A8C 0%, #2d5f6d 100%); color: white; }
-.btn-staff-primary:hover { background: linear-gradient(135deg, #2d5f6d 0%, #1a3a42 100%); color: white; }
+.btn-staff-primary { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); color: white; }
+.btn-staff-primary:hover { background: linear-gradient(135deg, var(--staff-primary-dark) 0%, var(--staff-primary-darker) 100%); color: white; }
 
 .btn-staff-success { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; }
 .btn-staff-success:hover { background: linear-gradient(135deg, #1e7e34 0%, #155724 100%); color: white; }
@@ -304,12 +305,12 @@
 
 .btn-staff-outline {
     background: transparent;
-    border: 2px solid var(--staff-primary);
-    color: var(--staff-primary);
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
 }
 
 .btn-staff-outline:hover {
-    background: var(--staff-primary);
+    background: var(--primary-color);
     color: white;
 }
 
@@ -337,8 +338,8 @@
     box-shadow: var(--shadow-md);
 }
 
-.btn-action-view { background: rgba(59,122,140,0.1); color: var(--staff-primary); }
-.btn-action-view:hover { background: var(--staff-primary); color: white; }
+.btn-action-view { background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); }
+.btn-action-view:hover { background: var(--primary-color); color: white; }
 
 .btn-action-edit { background: rgba(255,193,7,0.1); color: #e0a800; }
 .btn-action-edit:hover { background: var(--staff-warning); color: #212529; }
@@ -367,8 +368,8 @@
     box-shadow: var(--shadow-md);
 }
 
-.action-btn.view { background: rgba(59,122,140,0.1); color: var(--staff-primary); }
-.action-btn.view:hover { background: var(--staff-primary); color: white; }
+.action-btn.view { background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); }
+.action-btn.view:hover { background: var(--primary-color); color: white; }
 
 .action-btn.edit { background: rgba(255,193,7,0.1); color: #e0a800; }
 .action-btn.edit:hover { background: var(--staff-warning); color: #212529; }
@@ -527,7 +528,7 @@
 
 .staff-form-control:focus {
     border-color: var(--staff-primary);
-    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
     outline: none;
 }
 
@@ -541,7 +542,7 @@
 
 .staff-form-select:focus {
     border-color: var(--staff-primary);
-    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
     outline: none;
 }
 
@@ -559,7 +560,7 @@
 
 .staff-check:hover {
     border-color: var(--staff-primary);
-    background: rgba(59,122,140,0.02);
+    background: rgba(var(--primary-rgb), 0.02);
 }
 
 .staff-check input[type="checkbox"],
@@ -760,7 +761,7 @@
 .timeline-icon {
     width: 44px;
     height: 44px;
-    background: rgba(59,122,140,0.1);
+    background: rgba(var(--primary-rgb), 0.1);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -769,7 +770,7 @@
 }
 
 .timeline-icon i {
-    color: var(--staff-primary);
+    color: var(--primary-color);
     font-size: 1.1rem;
 }
 
@@ -852,7 +853,7 @@
 .equipment-image-placeholder {
     width: 50px;
     height: 50px;
-    background: rgba(59,122,140,0.1);
+    background: rgba(var(--primary-rgb), 0.1);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -860,7 +861,7 @@
 }
 
 .equipment-image-placeholder i {
-    color: var(--staff-primary);
+    color: var(--primary-color);
     font-size: 1.25rem;
 }
 

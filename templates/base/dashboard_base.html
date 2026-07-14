@@ -902,6 +902,22 @@ body.sidebar-open {
                     <i class="fas fa-share-alt"></i>
                     <span>Social Media</span>
                 </a>
+                <a href="{% url 'super_admin_global_design' %}" class="nav-link {% if 'super_admin_global_design' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-palette"></i>
+                    <span>Global Design System</span>
+                </a>
+                <a href="{% url 'super_admin_button_styles' %}" class="nav-link {% if 'super_admin_button_styles' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-square-check"></i>
+                    <span>Button Styles</span>
+                </a>
+                <a href="{% url 'super_admin_card_styles' %}" class="nav-link {% if 'super_admin_card_styles' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-th"></i>
+                    <span>Card &amp; Section Styles</span>
+                </a>
+                <a href="{% url 'super_admin_scroll_to_top' %}" class="nav-link {% if 'super_admin_scroll_to_top' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Scroll to Top</span>
+                </a>
             </div>
 
             <div class="nav-section">

@@ -29,6 +29,7 @@
 :root {
     /* Primary Brand Colors */
     --primary-color: #3B7A8C;
+    --primary-rgb: 59, 122, 140;
     --primary-dark: #2D5F6E;
     --primary-light: #5A9AA8;
     --primary-lighter: #E8F4F6;
@@ -232,7 +233,7 @@ button:focus-visible,
    =================================================================== */
 .auth-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--sidebar-bg) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -252,7 +253,7 @@ button:focus-visible,
 
 .auth-image {
     flex: 1;
-    background: linear-gradient(135deg, rgba(59,122,140,0.9) 0%, rgba(26,58,66,0.9) 100%),
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.9) 0%, rgba(26,58,66,0.9) 100%),
                 url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800') center/cover;
     display: flex;
     align-items: center;
@@ -316,13 +317,13 @@ button:focus-visible,
 
 .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(59,122,140,0.1);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
 }
 
 .form-control:focus,
 .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
     transform: translateY(-1px);
 }
 
@@ -337,12 +338,12 @@ button:focus-visible,
 }
 
 .form-check-input:focus {
-    box-shadow: 0 0 0 4px rgba(59,122,140,0.1);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
 }
 
 .form-range::-webkit-slider-thumb {
     background: var(--primary-color);
-    box-shadow: 0 4px 15px rgba(59,122,140,0.3);
+    box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
 }
 
 .btn-primary {
@@ -977,7 +978,7 @@ button:focus-visible,
 
 .page-item.active .page-link {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    box-shadow: 0 4px 15px rgba(59,122,140,0.3);
+    box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
 }
 
 .tooltip-inner {
@@ -1102,7 +1103,7 @@ blockquote {
 }
 
 .accordion-button:not(.collapsed) {
-    background: linear-gradient(135deg, rgba(59,122,140,0.1) 0%, rgba(59,122,140,0.05) 100%);
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
     color: var(--primary-color);
 }
 
@@ -1128,7 +1129,7 @@ blockquote {
 
 .nav-link:hover {
     color: var(--primary-color);
-    background: rgba(59,122,140,0.05);
+    background: rgba(var(--primary-rgb), 0.05);
 }
 
 .nav-link.active {
@@ -1237,7 +1238,7 @@ blockquote {
 }
 
 .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(59,122,140,0.2);
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);
 }
 
 /* Stepper / Progress Indicator */
@@ -1403,7 +1404,7 @@ blockquote {
 }
 .filter-pill:hover {
     border-color: var(--primary-color);
-    background: rgba(59,122,140,0.05);
+    background: rgba(var(--primary-rgb), 0.05);
 }
 .filter-pill.active {
     background: var(--primary-color);
@@ -2137,7 +2138,7 @@ h6 { font-size: 0.875rem; }
 }
 
 .step-number {
-    box-shadow: 0 8px 25px rgba(59, 122, 140, 0.3);
+    box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.3);
 }
 
 .hover-card {
@@ -2348,7 +2349,7 @@ h6 { font-size: 0.875rem; }
     transform: translate(-50%, -50%) scale(0);
     width: 50px;
     height: 50px;
-    background: rgba(59,122,140,0.9);
+    background: rgba(var(--primary-rgb), 0.9);
     border-radius: 50%;
     display: flex;
     align-items: center;

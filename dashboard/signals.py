@@ -21,12 +21,16 @@ def _collect_cms_models():
             HeroSectionSettings, SiteBranding, TopBarSettings,
             NavBarSettings, NavBarMenuItem, FooterSettings,
             FooterQuickLink, SocialPlatformSettings,
+            GlobalDesignSettings, ButtonStyleSettings,
+            CardStyleSettings, ScrollToTopSettings,
         )
         CMS_MODELS = [
             ContactInfo, SiteSettings, GlobalAnnouncement, Partner,
             HeroSectionSettings, SiteBranding, TopBarSettings,
             NavBarSettings, NavBarMenuItem, FooterSettings,
             FooterQuickLink, SocialPlatformSettings,
+            GlobalDesignSettings, ButtonStyleSettings,
+            CardStyleSettings, ScrollToTopSettings,
         ]
     return CMS_MODELS
 

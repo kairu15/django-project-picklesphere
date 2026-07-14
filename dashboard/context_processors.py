@@ -9,7 +9,9 @@ from django.conf import settings
 from .models import (ContactInfo, SiteSettings, GlobalAnnouncement, Partner,
                       HeroSectionSettings, SiteBranding, TopBarSettings,
                       NavBarSettings, NavBarMenuItem, FooterSettings,
-                      FooterQuickLink, SocialPlatformSettings)
+                      FooterQuickLink, SocialPlatformSettings,
+                      GlobalDesignSettings, ButtonStyleSettings,
+                      CardStyleSettings, ScrollToTopSettings)
 
 
 DEFAULT_CONTACT_INFO = {
@@ -34,6 +36,10 @@ CACHE_KEYS = {
     'footer': f'{CMS_CACHE_PREFIX}footer',
     'footer_links': f'{CMS_CACHE_PREFIX}footer_links',
     'social_platforms': f'{CMS_CACHE_PREFIX}social_platforms',
+    'global_design': f'{CMS_CACHE_PREFIX}global_design',
+    'button_styles': f'{CMS_CACHE_PREFIX}button_styles',
+    'card_styles': f'{CMS_CACHE_PREFIX}card_styles',
+    'scroll_to_top': f'{CMS_CACHE_PREFIX}scroll_to_top',
 }
 
 
@@ -106,6 +112,22 @@ def _get_social_platforms_cached():
     return list(SocialPlatformSettings.objects.filter(is_active=True).order_by('display_order'))
 
 
+def _get_global_design_cached():
+    return GlobalDesignSettings.objects.first()
+
+
+def _get_button_styles_cached():
+    return ButtonStyleSettings.objects.first()
+
+
+def _get_card_styles_cached():
+    return CardStyleSettings.objects.first()
+
+
+def _get_scroll_to_top_cached():
+    return ScrollToTopSettings.objects.first()
+
+
 def site_contact_info(request):
     """
     Global context processor for all templates.
@@ -131,6 +153,10 @@ def site_contact_info(request):
     footer_settings, footer_quick_links = footer_data or (None, [])
     
     social_platforms = _cache_get_or_set(CACHE_KEYS['social_platforms'], _get_social_platforms_cached) or []
+    global_design = _cache_get_or_set(CACHE_KEYS['global_design'], _get_global_design_cached)
+    button_styles = _cache_get_or_set(CACHE_KEYS['button_styles'], _get_button_styles_cached)
+    card_styles = _cache_get_or_set(CACHE_KEYS['card_styles'], _get_card_styles_cached)
+    scroll_to_top_settings = _cache_get_or_set(CACHE_KEYS['scroll_to_top'], _get_scroll_to_top_cached)
 
     # Build contact info dict
     def ci_value(field_name):
@@ -163,4 +189,9 @@ def site_contact_info(request):
         'social_platforms': social_platforms,
         'topbar_social_platforms': topbar_social,
         'footer_social_platforms': footer_social,
+        # Website Design settings
+        'global_design_settings': global_design,
+        'button_style_settings': button_styles,
+        'card_style_settings': card_styles,
+        'scroll_to_top_settings': scroll_to_top_settings,
     }

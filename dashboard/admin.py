@@ -18,6 +18,11 @@ from .models import (
     NavBarSettings, NavBarMenuItem,
     FooterSettings, FooterQuickLink,
     SocialPlatformSettings,
+    # WEBSITE DESIGN CMS Models
+    GlobalDesignSettings,
+    ButtonStyleSettings,
+    CardStyleSettings,
+    ScrollToTopSettings,
 )
 
 
@@ -510,6 +515,97 @@ class FooterQuickLinkAdmin(admin.ModelAdmin):
     list_editable = ['is_active', 'display_order']
     search_fields = ['title']
     ordering = ['display_order']
+
+
+# ============================================================================
+# WEBSITE DESIGN CMS Admin Registrations
+# ============================================================================
+
+@admin.register(GlobalDesignSettings)
+class GlobalDesignSettingsAdmin(admin.ModelAdmin):
+    list_display = ['primary_color', 'base_font_size', 'is_active', 'updated_at']
+    fieldsets = [
+        ('Typography', {'fields': ['heading_font_family', 'body_font_family', 'base_font_size', 'heading_font_weight']}),
+        ('Color Scheme', {'fields': ['primary_color', 'primary_hover_color', 'secondary_color', 'accent_color',
+                                     'success_color', 'warning_color', 'danger_color', 'info_color',
+                                     'text_primary_color', 'text_muted_color', 'background_light_color', 'background_dark_color']}),
+        ('Border Radius', {'fields': ['border_radius_sm', 'border_radius_md', 'border_radius_lg', 'border_radius_full']}),
+        ('Shadows', {'fields': ['shadow_sm', 'shadow_md', 'shadow_lg']}),
+        ('Spacing & Layout', {'fields': ['spacing_unit', 'section_padding', 'container_max_width']}),
+        ('Status', {'fields': ['is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not GlobalDesignSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ButtonStyleSettings)
+class ButtonStyleSettingsAdmin(admin.ModelAdmin):
+    list_display = ['button_border_radius', 'primary_bg', 'is_active', 'updated_at']
+    fieldsets = [
+        ('General', {'fields': ['button_border_radius', 'button_padding_y', 'button_padding_x',
+                                'button_font_weight', 'button_font_size', 'button_text_transform', 'button_letter_spacing']}),
+        ('Primary Button', {'fields': ['primary_bg', 'primary_hover_bg', 'primary_text_color']}),
+        ('Secondary Button', {'fields': ['secondary_bg', 'secondary_hover_bg', 'secondary_text_color']}),
+        ('Outline Button', {'fields': ['outline_border_color', 'outline_hover_bg', 'outline_text_color', 'outline_hover_text_color']}),
+        ('Semantic Buttons', {'fields': ['success_bg', 'danger_bg', 'warning_bg', 'info_bg']}),
+        ('Size Variants', {'fields': ['btn_lg_padding_y', 'btn_lg_padding_x', 'btn_lg_font_size',
+                                      'btn_sm_padding_y', 'btn_sm_padding_x', 'btn_sm_font_size']}),
+        ('Status', {'fields': ['is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not ButtonStyleSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(CardStyleSettings)
+class CardStyleSettingsAdmin(admin.ModelAdmin):
+    list_display = ['card_border_radius', 'card_background', 'is_active', 'updated_at']
+    fieldsets = [
+        ('Default Card', {'fields': ['card_background', 'card_border_radius', 'card_shadow', 'card_hover_shadow',
+                                     'card_border', 'card_padding', 'card_margin_bottom']}),
+        ('Card Header', {'fields': ['card_header_bg', 'card_header_text_color', 'card_header_padding', 'card_header_border']}),
+        ('Card Body', {'fields': ['card_body_padding']}),
+        ('Section Containers', {'fields': ['section_bg_light', 'section_bg_dark', 'section_padding']}),
+        ('Admin Cards', {'fields': ['admin_card_border_radius', 'admin_card_shadow', 'admin_card_header_bg']}),
+        ('Status', {'fields': ['is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not CardStyleSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ScrollToTopSettings)
+class ScrollToTopSettingsAdmin(admin.ModelAdmin):
+    list_display = ['is_visible', 'button_size', 'background_color', 'is_active', 'updated_at']
+    fieldsets = [
+        ('Visibility', {'fields': ['is_visible']}),
+        ('Position', {'fields': ['position_right', 'position_bottom']}),
+        ('Size & Appearance', {'fields': ['button_size', 'border_radius', 'icon_class']}),
+        ('Colors', {'fields': ['background_color', 'hover_background_color', 'icon_color', 'hover_icon_color']}),
+        ('Shadow', {'fields': ['shadow', 'hover_shadow']}),
+        ('Behavior', {'fields': ['show_after_scroll', 'scroll_duration']}),
+        ('Status', {'fields': ['is_active']}),
+    ]
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        return not ScrollToTopSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(SocialPlatformSettings)
