@@ -1,4 +1,5 @@
 from django.test import TestCase, RequestFactory
+import utils.test_base  # noqa: F401 — patches Client.login for axes compatibility
 from django.urls import reverse
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.auth.models import AnonymousUser

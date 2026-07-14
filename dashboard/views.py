@@ -981,7 +981,7 @@ def contact_view(request):
             messages.error(request, 'Please fill in all fields.')
 
     # Get contact info from database or create default
-    contact_info_obj = ContactInfo.objects.first()
+    contact_info_obj = CI.objects.first()
     if contact_info_obj:
         contact_info = {
             'phone': STATIC_CONTACT_PHONE,
@@ -2018,7 +2018,7 @@ def contact_management(request):
     
     
     content = ContactContent.objects.filter(is_active=True).order_by('section')
-    contact_info = ContactInfo.objects.first()
+    contact_info = CI.objects.first()
     business_hours = BusinessHour.objects.all().order_by('display_order')
     faqs = ContactFAQ.objects.all().order_by('display_order')
     social_links = SocialLink.objects.all().order_by('display_order')
@@ -2090,7 +2090,7 @@ def contact_edit_info(request):
     """Edit contact information"""
     
     
-    contact_info = ContactInfo.objects.first()
+    contact_info = CI.objects.first()
     
     if request.method == 'POST':
         phone = request.POST.get('phone')
@@ -2108,7 +2108,7 @@ def contact_edit_info(request):
             contact_info.save()
             messages.success(request, 'Contact information updated successfully!')
         else:
-            ContactInfo.objects.create(
+            CI.objects.create(
                 phone=phone,
                 email=email,
                 address=address,
@@ -2640,3 +2640,5 @@ def rating_list_view(request):
     }
 
     return render(request, 'admin/analytics/ratings.html', context)
+
+

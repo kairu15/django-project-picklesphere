@@ -816,10 +816,39 @@ button:focus-visible,
 /* ===================================================================
    7. TABLES
    =================================================================== */
+/* ===== Table Wrapper (prevents overflow) =====
+ * Available utility: wrap any <table> in <div class="table-responsive-wrapper">
+ * for an extra layer of overflow protection on all screen sizes.
+ */
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius, 12px);
+}
+.table-responsive-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* ===== Base Table ===== */
 .table {
     margin: 0;
     border-collapse: separate;
     border-spacing: 0;
+    width: 100%;
+    max-width: 100%;
 }
 
 .table th {
@@ -828,6 +857,7 @@ button:focus-visible,
     color: #555;
     border: none;
     padding: 15px;
+    white-space: nowrap;
 }
 
 .table td {
@@ -850,19 +880,130 @@ button:focus-visible,
 
 .table tbody tr:hover {
     background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-    transform: scale(1.01);
 }
 
+/* ===== Responsive Table Wrapper =====
+ * Wrap any table in <div class="table-responsive"> to enable horizontal
+ * scrolling on small screens. This is the Bootstrap 5 compatible approach.
+ */
 .table-responsive {
-    overflow: visible;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--border-radius, 12px);
 }
-
+.table-responsive > .table {
+    margin-bottom: 0;
+    min-width: auto; /* Let table shrink naturally when possible */
+}
 .table-responsive::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+}
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
 }
 
-.table-responsive {
-    -ms-overflow-style: none;
+/* ===== Admin Table Container (overflow protection) =====
+ * Wraps all admin tables. Apply to the <div> around <table class="table admin-table">.
+ */
+.admin-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius, 12px);
+}
+.admin-table-container::-webkit-scrollbar {
+    height: 6px;
+}
+.admin-table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+.admin-table-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+.admin-table-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* ===== Card-style responsive tables (mobile) =====
+ * Converts table rows into stacked cards on small screens.
+ * Add .table-card class to the <table> element.
+ * Also applied to .admin-table and .staff-table automatically.
+ */
+@media (max-width: 767.98px) {
+    .table-card,
+    .admin-table,
+    .staff-table,
+    .table {
+        border: 0;
+    }
+    .table-card thead,
+    .admin-table thead,
+    .staff-table thead,
+    .table thead {
+        display: none !important;
+    }
+    .table-card tbody tr,
+    .admin-table tbody tr,
+    .staff-table tbody tr,
+    .table tbody tr {
+        display: block !important;
+        margin-bottom: 0.75rem !important;
+        border: 1px solid var(--border-color, #e9ecef) !important;
+        border-radius: 10px !important;
+        background: white !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+        padding: 0 !important;
+    }
+    .table-card tbody td,
+    .admin-table tbody td,
+    .staff-table tbody td,
+    .table tbody td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.625rem 0.875rem !important;
+        text-align: right !important;
+        border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+        min-height: 40px;
+    }
+    .table-card tbody td:last-child,
+    .admin-table tbody td:last-child,
+    .staff-table tbody td:last-child,
+    .table tbody td:last-child {
+        border-bottom: none !important;
+    }
+    .table-card tbody td::before,
+    .admin-table tbody td::before,
+    .staff-table tbody td::before,
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600 !important;
+        font-size: 0.6875rem !important;
+        color: var(--text-muted, #6c757d) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        flex-shrink: 0;
+        margin-right: 0.75rem;
+    }
+    .table-card tbody tr:hover,
+    .admin-table tbody tr:hover,
+    .staff-table tbody tr:hover,
+    .table tbody tr:hover {
+        transform: none !important;
+        background: white !important;
+    }
 }
 
 /* ===================================================================
@@ -1864,117 +2005,10 @@ h6 { font-size: 0.875rem; }
     }
 }
 
-/* Responsive Tables (global) */
+/* Responsive Tables (global) — card-style layout moved to §7 Tables */
+/* .admin-table/.staff-table/.table-card responsive styles are now
+   consolidated in the Tables section (Section 7) above. */
 @media (max-width: 767.98px) {
-    .admin-table thead,
-    .staff-table thead {
-        display: none !important;
-    }
-
-    .admin-table tbody tr,
-    .staff-table tbody tr {
-        display: block !important;
-        margin-bottom: 12px !important;
-        border: 1px solid var(--border-color, #e0e0e0) !important;
-        border-radius: 10px !important;
-        background: white !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
-    }
-
-    .admin-table tbody td,
-    .staff-table tbody td {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 10px 14px !important;
-        text-align: right !important;
-        border-bottom: 1px solid rgba(0,0,0,0.04) !important;
-    }
-
-    .admin-table tbody td:last-child,
-    .staff-table tbody td:last-child {
-        border-bottom: none !important;
-    }
-
-    .admin-table tbody td::before,
-    .staff-table tbody td::before {
-        content: attr(data-label);
-        float: left !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        font-size: 0.6875rem !important;
-        color: var(--text-muted, #6c757d) !important;
-        letter-spacing: 0.5px !important;
-        flex-shrink: 0;
-        margin-right: 12px;
-    }
-
-    .admin-table tbody tr:hover,
-    .staff-table tbody tr:hover {
-        transform: none !important;
-        background: white !important;
-    }
-
-    .table thead {
-        display: none;
-    }
-    .table tbody tr {
-        display: block;
-        margin-bottom: 10px;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-    }
-    .table tbody td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        text-align: right;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    .table tbody td:last-child {
-        border-bottom: none;
-    }
-    .table tbody td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        font-size: 0.75rem;
-        color: #6c757d;
-        text-transform: uppercase;
-    }
-
-    .table-card thead {
-        display: none !important;
-    }
-    .table-card tbody tr {
-        display: block !important;
-        margin-bottom: 12px !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 10px !important;
-        background: white !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
-    }
-    .table-card tbody td {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 10px 14px !important;
-        text-align: right !important;
-        border-bottom: 1px solid rgba(0,0,0,0.04) !important;
-    }
-    .table-card tbody td:last-child {
-        border-bottom: none !important;
-    }
-    .table-card tbody td::before {
-        content: attr(data-label);
-        float: left !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        font-size: 0.6875rem !important;
-        color: var(--text-muted) !important;
-        letter-spacing: 0.5px !important;
-    }
-
     .header {
         padding: 0 16px !important;
         height: 56px !important;
@@ -2539,7 +2573,7 @@ h6 { font-size: 0.875rem; }
     display: none;
 }
 
-/* Table Responsive Card */
+/* Table Responsive Card (see .table-card in Tables section for mobile card layout) */
 .table-responsive-card {
     border-radius: var(--border-radius);
     overflow: hidden;
