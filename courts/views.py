@@ -286,13 +286,15 @@ def admin_court_list_view(request):
 def admin_court_create_view(request):
 
     initial = {}
+    form_kwargs = {}
     
     # Auto-assign organization for org_admin users
     if request.user.is_org_admin() and request.user.organization:
         initial['organization'] = request.user.organization_id
+        form_kwargs['organization'] = request.user.organization
     
     if request.method == 'POST':
-        form = CourtForm(request.POST, request.FILES, initial=initial)
+        form = CourtForm(request.POST, request.FILES, initial=initial, **form_kwargs)
         if form.is_valid():
             created_court = form.save(commit=False)
             if request.user.is_org_admin() and request.user.organization:
@@ -301,11 +303,7 @@ def admin_court_create_view(request):
             messages.success(request, f'Court {created_court.name} created successfully.')
             return redirect('org_admin_court_list')
     else:
-        form = CourtForm(initial=initial)
-    
-    # Filter site choices for org_admin
-    if request.user.is_org_admin() and request.user.organization:
-        form.fields['site'].queryset = Site.objects.filter(organization=request.user.organization)
+        form = CourtForm(initial=initial, **form_kwargs)
     
     return render(request, 'admin/courts/court_form.html', {
         'form': form,
@@ -318,20 +316,23 @@ def admin_court_create_view(request):
 def admin_court_edit_view(request, court_id):
 
     court_qs = Court.objects.all()
+    form_kwargs = {}
+    
     # Org-scoping for org_admin
     if request.user.is_org_admin() and request.user.organization:
         court_qs = court_qs.filter(organization=request.user.organization)
+        form_kwargs['organization'] = request.user.organization
     
     court = get_object_or_404(court_qs, id=court_id)
 
     if request.method == 'POST':
-        form = CourtForm(request.POST, request.FILES, instance=court)
+        form = CourtForm(request.POST, request.FILES, instance=court, **form_kwargs)
         if form.is_valid():
             form.save()
             messages.success(request, f'Court {court.name} updated successfully.')
             return redirect('org_admin_court_list')
     else:
-        form = CourtForm(instance=court)
+        form = CourtForm(instance=court, **form_kwargs)
 
     return render(request, 'admin/courts/court_form.html', {
         'form': form,

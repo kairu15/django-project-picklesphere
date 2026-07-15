@@ -61,12 +61,24 @@ class ReservationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        # Accept optional organization param to scope equipment choices
+        org = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
         self.fields['court'].queryset = Court.objects.filter(is_active=True)
         # If user belongs to an organization, only show courts from their org
         if self.user and hasattr(self.user, 'organization') and self.user.organization:
             self.fields['court'].queryset = Court.objects.filter(
                 organization=self.user.organization, is_active=True
+            )
+        # Scope equipment choices to the given organization if provided
+        org_for_equipment = org or (
+            self.user.organization if self.user and hasattr(self.user, 'organization') and self.user.organization else None
+        )
+        if org_for_equipment:
+            self.fields['equipment_items'].queryset = Equipment.objects.filter(
+                organization=org_for_equipment,
+                quantity_available__gt=0,
+                is_active=True
             )
         # Make all match settings fields not required since they're set by admin
         self.fields['match_name'].required = False
@@ -229,6 +241,15 @@ class AdminReservationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         from accounts.models import User
         from courts.models import Court
+        # Accept optional organization param to scope user and court choices
+        org = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
         self.fields['user'].queryset = User.objects.filter(is_active=True)
         self.fields['court'].queryset = Court.objects.filter(is_active=True)
+        if org:
+            self.fields['user'].queryset = User.objects.filter(
+                is_active=True, organization=org
+            ) | User.objects.filter(is_active=True, role='user', organization__isnull=True)
+            self.fields['court'].queryset = Court.objects.filter(
+                organization=org, is_active=True
+            )

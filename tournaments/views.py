@@ -619,7 +619,14 @@ def admin_schedule_matches(request, pk):
             matches_per_day = form.cleaned_data['matches_per_day']
             duration = form.cleaned_data['match_duration']
             
-            available_courts = list(Court.objects.filter(is_active=True))
+            # Only use courts belonging to this tournament's organization
+            org = tournament.organization
+            if org:
+                available_courts = list(Court.objects.filter(
+                    organization=org, is_active=True
+                ))
+            else:
+                available_courts = list(Court.objects.filter(is_active=True))
             
             current_date = start_date
             current_time = datetime.combine(current_date, start_time)
@@ -670,10 +677,25 @@ def admin_schedule_matches(request, pk):
     else:
         form = BulkScheduleForm()
     
+    # Check if the organization has courts available for scheduling
+    org = tournament.organization
+    if org:
+        available_courts_count = Court.objects.filter(organization=org, is_active=True).count()
+    else:
+        available_courts_count = Court.objects.filter(is_active=True).count()
+    
+    if available_courts_count == 0 and unscheduled.count() > 0:
+        messages.warning(
+            request,
+            'No courts are available for scheduling matches. '
+            'Please create at least one court for your organization before scheduling.'
+        )
+    
     context = {
         'form': form,
         'tournament': tournament,
         'unscheduled_count': unscheduled.count(),
+        'available_courts_count': available_courts_count,
         'page_title': f'Schedule Matches - {tournament.name}'
     }
     return render(request, 'admin/tournaments/schedule_matches.html', context)

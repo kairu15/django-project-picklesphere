@@ -63,6 +63,7 @@ def home_view(request):
         avg=Avg('rating')
     ).values('avg')
 
+    # Will be updated with nearest courts if user has saved location
     featured_courts = Court.objects.filter(is_active=True, site__is_active=True).annotate(
         rating_avg=Subquery(rating_subquery, output_field=FloatField())
     )[:6]
@@ -258,6 +259,7 @@ def home_view(request):
             recommended_courts = recommended_courts_list
 
         # Nearest courts (using saved user coordinates)
+        # Also used to populate featured_courts with location-based results
         if user.latitude and user.longitude:
             user_lat = float(user.latitude)
             user_lng = float(user.longitude)
@@ -275,7 +277,10 @@ def home_view(request):
                     distance_km = 6371 * c_val
                     courts_with_dist.append((court, round(distance_km, 1)))
             courts_with_dist.sort(key=lambda x: x[1])
-            nearest_courts = [{'court': c, 'distance_km': d} for c, d in courts_with_dist[:4]]
+            # Use nearest 6 courts as featured (replaces generic list for logged-in users with location)
+            featured_courts = [c for c, d in courts_with_dist[:6]]
+            # Use the next 4 nearest courts for the "Near Your Location" section to avoid duplication
+            nearest_courts = [{'court': c, 'distance_km': d} for c, d in courts_with_dist[6:10]]
 
     return render(request, 'public/home.html', {
         'featured_courts': featured_courts,

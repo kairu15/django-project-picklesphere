@@ -103,13 +103,9 @@ def user_required(view_func):
             return redirect('login')
         if not request.user.is_normal_user():
             messages.error(request, 'You do not have permission to access this page.')
-            if request.user.is_super_admin():
-                return redirect('super_admin_org_dashboard')
-            elif request.user.is_org_admin():
-                return redirect('org_admin_dashboard')
-            elif request.user.is_org_staff():
-                return redirect('staff_dashboard')
-            return redirect('user_dashboard')
+            # Redirect through the role-based dashboard dispatcher to avoid redirect loops
+            # (e.g., org_admin without org → user_dashboard → back to org_admin_dashboard)
+            return redirect('dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
@@ -126,8 +122,8 @@ def org_required(view_func):
             return redirect('login')
         if not request.user.organization:
             messages.error(request, 'You are not associated with any organization.')
-            if request.user.is_super_admin():
-                return redirect('super_admin_org_dashboard')
-            return redirect('user_dashboard')
+            # Redirect through the role-based dashboard dispatcher to avoid redirect loops
+            # (e.g., org_admin without org → user_dashboard → back to org_admin_dashboard)
+            return redirect('dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view

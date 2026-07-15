@@ -741,19 +741,22 @@ def staff_payments_view(request):
 @staff_or_admin_required
 def verify_payment_view(request, payment_id):
 
-    payment = get_object_or_404(
-        Payment.objects.select_related(
-            'reservation',
-            'reservation__court',
-            'reservation__court__site',
-            'reservation__user',
-            'cash_received_by',
-        ).prefetch_related(
-            'reservation__rented_equipment',
-            'reservation__rented_equipment__equipment',
-        ),
-        id=payment_id
+    payment_qs = Payment.objects.select_related(
+        'reservation',
+        'reservation__court',
+        'reservation__court__site',
+        'reservation__user',
+        'cash_received_by',
+    ).prefetch_related(
+        'reservation__rented_equipment',
+        'reservation__rented_equipment__equipment',
     )
+
+    # Org-scoping for org_admin and org_staff
+    if request.user.organization:
+        payment_qs = payment_qs.filter(reservation__court__organization=request.user.organization)
+
+    payment = get_object_or_404(payment_qs, id=payment_id)
 
     # Determine template and redirect URL based on user role
     if request.user.is_org_admin():

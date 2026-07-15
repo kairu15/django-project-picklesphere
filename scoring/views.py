@@ -24,8 +24,8 @@ def match_list_view(request):
         ).order_by('-created_at')
     else:
         matches = Match.objects.all().order_by('-created_at')
-        # Org-scoping for org_admin users
-        if request.user.is_org_admin() and request.user.organization:
+        # Org-scoping for org_admin and org_staff users
+        if request.user.organization:
             matches = matches.filter(reservation__court__organization=request.user.organization)
     
     return render(request, 'scoring/match_list.html', {'matches': matches})
@@ -34,8 +34,8 @@ def match_list_view(request):
 @login_required
 def match_detail_view(request, match_id):
     match_qs = Match.objects.all()
-    # Org-scoping for org_admin
-    if request.user.is_org_admin() and request.user.organization:
+    # Org-scoping for org_admin and org_staff
+    if request.user.organization:
         match_qs = match_qs.filter(reservation__court__organization=request.user.organization)
     match = get_object_or_404(match_qs, id=match_id)
     
@@ -47,7 +47,8 @@ def match_detail_view(request, match_id):
 def start_match_view(request, reservation_id):
     
     res_qs = Reservation.objects.all()
-    if request.user.is_org_admin() and request.user.organization:
+    # Org-scoping for org_admin and org_staff
+    if request.user.organization:
         res_qs = res_qs.filter(court__organization=request.user.organization)
     reservation = get_object_or_404(res_qs, id=reservation_id)
     
@@ -105,7 +106,7 @@ def start_match_view(request, reservation_id):
 @login_required
 def match_live_view(request, match_id):
     match_qs = Match.objects.all()
-    if request.user.is_org_admin() and request.user.organization:
+    if request.user.organization:
         match_qs = match_qs.filter(reservation__court__organization=request.user.organization)
     match = get_object_or_404(match_qs, id=match_id)
     
@@ -129,7 +130,11 @@ def update_score_view(request, game_id):
     if not request.user.is_staff_user():
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
-    game = get_object_or_404(Game, id=game_id)
+    game_qs = Game.objects.all()
+    # Org-scoping for org_admin and org_staff
+    if request.user.organization:
+        game_qs = game_qs.filter(match__reservation__court__organization=request.user.organization)
+    game = get_object_or_404(game_qs, id=game_id)
     
     if request.method == 'POST':
         team = request.POST.get('team')
@@ -292,7 +297,11 @@ def update_player_stats(match):
 
 def match_score_api(request, match_id):
     """API endpoint for getting live match score"""
-    match = get_object_or_404(Match, id=match_id)
+    match_qs = Match.objects.all()
+    # Org-scoping for org_admin and org_staff
+    if request.user.is_authenticated and request.user.organization:
+        match_qs = match_qs.filter(reservation__court__organization=request.user.organization)
+    match = get_object_or_404(match_qs, id=match_id)
     current_game = match.games.filter(ended_at__isnull=True).first()
     
     data = {

@@ -99,8 +99,18 @@ def reservation_list_view(request):
 def reservation_create_view(request):
     active_settings = MatchSettings.objects.filter(is_active=True).first()
     
+    # Determine org context for equipment scoping
+    org_context = None
+    initial_court_id = request.GET.get('court') or request.POST.get('court')
+    if initial_court_id:
+        try:
+            court = Court.objects.get(id=initial_court_id, is_active=True)
+            org_context = court.organization
+        except Court.DoesNotExist:
+            pass
+    
     if request.method == 'POST':
-        form = ReservationForm(request.POST, user=request.user)
+        form = ReservationForm(request.POST, user=request.user, organization=org_context)
         equipment_ids = request.POST.getlist('equipment')
         
         if form.is_valid():
@@ -125,9 +135,12 @@ def reservation_create_view(request):
             
             if overlapping.exists():
                 messages.error(request, 'Sorry, this time slot was just booked. Please select a different slot.')
+                equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+                if court.organization:
+                    equipment_list = equipment_list.filter(organization=court.organization)
                 return render(request, 'user/reservations/reservation_create.html', {
                     'form': form,
-                    'equipment_list': Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+                    'equipment_list': equipment_list
                 })
             
             # Check if slot is in the past
@@ -136,9 +149,12 @@ def reservation_create_view(request):
                 slot_datetime = timezone.make_aware(slot_datetime)
             if slot_datetime < timezone.now():
                 messages.error(request, 'This time slot has already passed. Please select a future time.')
+                equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+                if court.organization:
+                    equipment_list = equipment_list.filter(organization=court.organization)
                 return render(request, 'user/reservations/reservation_create.html', {
                     'form': form,
-                    'equipment_list': Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+                    'equipment_list': equipment_list
                 })
             
             # Calculate duration and pricing
@@ -172,17 +188,18 @@ def reservation_create_view(request):
             return redirect('checkout_page', checkout_token=checkout_token)
         else:
             equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+            if org_context:
+                equipment_list = equipment_list.filter(organization=org_context)
             return render(request, 'user/reservations/reservation_create.html', {
                 'form': form,
                 'equipment_list': equipment_list
             })
     else:
         # GET request
-        initial_court = request.GET.get('court')
         initial_data = {}
-        if initial_court:
+        if initial_court_id:
             try:
-                court = Court.objects.get(id=initial_court, is_active=True)
+                court = Court.objects.get(id=initial_court_id, is_active=True)
                 initial_data['court'] = court.id
             except Court.DoesNotExist:
                 pass
@@ -195,9 +212,11 @@ def reservation_create_view(request):
             initial_data['games_to_win'] = active_settings.games_to_win
             initial_data['win_by_two'] = active_settings.win_by_two
         
-        form = ReservationForm(user=request.user, initial=initial_data)
+        form = ReservationForm(user=request.user, initial=initial_data, organization=org_context)
     
     equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+    if org_context:
+        equipment_list = equipment_list.filter(organization=org_context)
     
     return render(request, 'user/reservations/reservation_create.html', {
         'form': form,
@@ -348,8 +367,10 @@ def reservation_edit_view(request, reservation_id):
         messages.error(request, 'Only pending reservations can be edited.')
         return redirect('reservation_detail', reservation_id=reservation.id)
     
-    # Get available equipment
+    # Get available equipment (scoped to the reservation's court organization)
     equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
+    if reservation.court.organization:
+        equipment_list = equipment_list.filter(organization=reservation.court.organization)
     
     # Get currently rented equipment IDs
     current_equipment_ids = list(reservation.rented_equipment.values_list('equipment_id', flat=True))
@@ -1033,11 +1054,12 @@ def admin_reservation_list_view(request):
 @admin_required
 def admin_reservation_create_view(request):
 
+    form_kwargs = {}
+    if request.user.is_org_admin() and request.user.organization:
+        form_kwargs['organization'] = request.user.organization
+
     if request.method == 'POST':
-        form = AdminReservationForm(request.POST)
-        # Filter court choices for org_admin BEFORE validation to prevent cross-org submissions
-        if request.user.is_org_admin() and request.user.organization:
-            form.fields['court'].queryset = Court.objects.filter(organization=request.user.organization, is_active=True)
+        form = AdminReservationForm(request.POST, **form_kwargs)
         if form.is_valid():
             reservation = form.save(commit=False)
             # Set user if not provided
@@ -1060,10 +1082,7 @@ def admin_reservation_create_view(request):
             messages.success(request, f'Reservation #{reservation.id} created successfully.')
             return redirect('admin_reservation_list')
     else:
-        form = AdminReservationForm()
-        # Filter court choices for org_admin on GET for the dropdown
-        if request.user.is_org_admin() and request.user.organization:
-            form.fields['court'].queryset = Court.objects.filter(organization=request.user.organization, is_active=True)
+        form = AdminReservationForm(**form_kwargs)
 
     return render(request, 'admin/reservations/reservation_form.html', {
         'form': form,
@@ -1080,8 +1099,13 @@ def admin_reservation_edit_view(request, reservation_id):
     if request.user.is_org_admin() and request.user.organization:
         res_qs = res_qs.filter(court__organization=request.user.organization)
     reservation = get_object_or_404(res_qs, id=reservation_id)
+
+    form_kwargs = {'instance': reservation}
+    if request.user.is_org_admin() and request.user.organization:
+        form_kwargs['organization'] = request.user.organization
+
     if request.method == 'POST':
-        form = AdminReservationForm(request.POST, instance=reservation)
+        form = AdminReservationForm(request.POST, **form_kwargs)
         if form.is_valid():
             updated_reservation = form.save(commit=False)
             # Recalculate totals
@@ -1092,7 +1116,7 @@ def admin_reservation_edit_view(request, reservation_id):
             messages.success(request, f'Reservation #{reservation.id} updated successfully.')
             return redirect('admin_reservation_list')
     else:
-        form = AdminReservationForm(instance=reservation)
+        form = AdminReservationForm(**form_kwargs)
 
     return render(request, 'admin/reservations/reservation_form.html', {
         'form': form,

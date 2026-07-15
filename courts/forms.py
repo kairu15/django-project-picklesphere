@@ -38,5 +38,12 @@ class CourtForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # Accept optional organization param to scope site choices
+        org = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
-        self.fields['site'].queryset = Site.objects.filter(is_active=True).order_by('name')
+        if org:
+            self.fields['site'].queryset = Site.objects.filter(
+                organization=org, is_active=True
+            ).order_by('name')
+        else:
+            self.fields['site'].queryset = Site.objects.filter(is_active=True).order_by('name')

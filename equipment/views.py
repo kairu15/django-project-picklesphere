@@ -140,7 +140,11 @@ def staff_equipment_view(request):
 @staff_or_admin_required
 def check_out_equipment_view(request, rental_id):
     
-    rental = get_object_or_404(EquipmentRental, id=rental_id, status='reserved')
+    rental_qs = EquipmentRental.objects.filter(status='reserved')
+    # Org-scoping for org_admin and org_staff
+    if request.user.organization:
+        rental_qs = rental_qs.filter(equipment__organization=request.user.organization)
+    rental = get_object_or_404(rental_qs, id=rental_id)
     
     if request.method == 'POST':
         rental.status = 'rented'
@@ -188,7 +192,11 @@ def cancel_equipment_rental_view(request, rental_id):
 @staff_or_admin_required
 def check_in_equipment_view(request, rental_id):
 
-    rental = get_object_or_404(EquipmentRental, id=rental_id, status='rented')
+    rental_qs = EquipmentRental.objects.filter(status='rented')
+    # Org-scoping for org_admin and org_staff
+    if request.user.organization:
+        rental_qs = rental_qs.filter(equipment__organization=request.user.organization)
+    rental = get_object_or_404(rental_qs, id=rental_id)
     
     if request.method == 'POST':
         rental.status = 'returned'

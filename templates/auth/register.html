@@ -5,6 +5,217 @@
 
 {% block extra_css %}
 <style>
+/* ===== OTP MODAL OVERRIDES ===== */
+.otp-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: overlayFadeIn 0.3s ease;
+}
+.otp-modal-overlay.active {
+    display: flex;
+}
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.otp-modal-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+    padding: 48px 40px;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.otp-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f0f0f0;
+    color: #6c757d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+.otp-modal-close:hover {
+    background: #e0e0e0;
+    color: #dc3545;
+}
+.otp-modal-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: white;
+}
+.otp-modal-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a3a42;
+    margin: 0 0 6px;
+}
+.otp-modal-subtitle {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0 0 28px;
+    line-height: 1.5;
+}
+.otp-modal-subtitle strong {
+    color: #1a3a42;
+}
+.otp-modal-input-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.otp-modal-input {
+    width: 48px;
+    height: 58px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+    color: #1a3a42;
+    background: #f8f9fa;
+}
+.otp-modal-input:focus {
+    border-color: #3B7A8C;
+    box-shadow: 0 0 0 4px rgba(59,122,140,0.15);
+    background: white;
+}
+.otp-modal-input.filled {
+    border-color: #28a745;
+    background: #f0fff4;
+}
+.otp-modal-input.error {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+.otp-modal-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+.otp-modal-timer.warning {
+    color: #dc3545;
+    background: #fff5f5;
+}
+.otp-modal-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+.otp-modal-btn-primary {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: white;
+}
+.otp-modal-btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59,122,140,0.3);
+}
+.otp-modal-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.otp-modal-btn-secondary {
+    background: transparent;
+    color: #3B7A8C;
+    border: 2px solid #3B7A8C;
+}
+.otp-modal-btn-secondary:hover:not(:disabled) {
+    background: #f0f7fa;
+}
+.otp-modal-btn-secondary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.otp-modal-alert {
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+}
+.otp-modal-alert.show {
+    display: block;
+}
+.otp-modal-alert.error {
+    background: #fff5f5;
+    color: #dc3545;
+    border: 1px solid #fecaca;
+}
+.otp-modal-alert.success {
+    background: #f0fff4;
+    color: #28a745;
+    border: 1px solid #bbf7d0;
+}
+.otp-modal-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: otpSpin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+@keyframes otpSpin { to { transform: rotate(360deg); } }
+@media (max-width: 480px) {
+    .otp-modal-card { padding: 32px 20px; }
+    .otp-modal-input { width: 42px; height: 50px; font-size: 22px; }
+    .otp-modal-input-group { gap: 8px; }
+    .otp-modal-title { font-size: 19px; }
+}
+
 /* ===== AUTH LAYOUT (same as login) ===== */
 .auth-page {
     min-height: 100vh;
@@ -907,6 +1118,61 @@
     </div>
 </div>
 
+<!-- ===== OTP MODAL ===== -->
+<div class="otp-modal-overlay" id="otpModalOverlay">
+    <div class="otp-modal-card">
+        <button type="button" class="otp-modal-close" id="otpModalClose" aria-label="Close">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="otp-modal-icon">
+            <i class="fas fa-envelope-open-text"></i>
+        </div>
+        <h3 class="otp-modal-title">Verify Your Email</h3>
+        <p class="otp-modal-subtitle" id="otpModalSubtitle">
+            We've sent a 6-digit verification code to<br>
+            <strong id="otpModalEmail"></strong>
+        </p>
+
+        <div id="otpModalAlert" class="otp-modal-alert"></div>            <form id="otpModalForm" action="{% url 'verify_otp' %}" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="email" id="otpModalEmailInput" value="">
+            <input type="hidden" name="purpose" id="otpModalPurposeInput" value="registration">
+            
+            <div class="otp-modal-input-group" id="otpInputGroup">
+                {% for i in "123456" %}
+                <input type="text"
+                       class="otp-modal-input"
+                       id="otp_m_{{ forloop.counter0 }}"
+                       maxlength="1"
+                       inputmode="numeric"
+                       pattern="[0-9]"
+                       autocomplete="one-time-code"
+                       required>
+                {% endfor %}
+            </div>
+
+            <div id="otpModalTimer" class="otp-modal-timer">
+                <i class="fas fa-clock"></i>
+                <span id="otpModalTimerDisplay">{{ otp_expiry_minutes }}:00</span>
+            </div>
+
+            <button type="submit" id="otpVerifyBtn" class="otp-modal-btn otp-modal-btn-primary">
+                <i class="fas fa-check-circle"></i> Verify Code
+            </button>
+            
+            <button type="button" id="otpResendBtn" class="otp-modal-btn otp-modal-btn-secondary" disabled>
+                <i class="fas fa-redo"></i> Resend Code
+            </button>
+        </form>
+
+        <div class="otp-modal-alert" id="otpModalSuccessBanner" style="display:none; margin-top: 16px; padding: 16px; border-radius: 12px; background: #f0fff4; border: 1px solid #bbf7d0; text-align: center;">
+            <i class="fas fa-check-circle" style="color: #28a745; font-size: 32px; display: block; margin-bottom: 8px;"></i>
+            <h5 style="color: #1a3a42; font-weight: 700; margin: 0 0 4px;">Email Verified!</h5>
+            <p style="color: #6c757d; font-size: 14px; margin: 0;">Redirecting you to sign in...</p>
+        </div>
+    </div>
+</div>
+
 <script>
 (function() {
     'use strict';
@@ -926,7 +1192,6 @@
             }
             strengthSection.style.display = 'block';
 
-            // Check requirements
             const hasLength = val.length >= 8;
             const hasUpper = /[A-Z]/.test(val);
             const hasLower = /[a-z]/.test(val);
@@ -939,7 +1204,6 @@
             updateReq('reqNumber', hasNumber);
             updateReq('reqSpecial', hasSpecial);
 
-            // Calculate strength
             const metCount = [hasLength, hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
             let level, cls;
             if (metCount <= 1) { level = 'Weak'; cls = 'weak'; }
@@ -1007,16 +1271,387 @@
         });
     }
 
-    // ===== FORM SUBMISSION =====
-    const registerForm = document.getElementById('registerForm');
-    const registerBtn = document.getElementById('registerBtn');
-
-    if (registerForm) {
-        registerForm.addEventListener('submit', function() {
-            registerBtn.disabled = true;
-            registerBtn.classList.add('loading');
-        });
-    }
 })();
+
+// ===== OTP MODAL GLOBALS =====
+var otpTimerInterval = null;
+var otpTotalSeconds = 0;
+var otpInitialExpiryMinutes = {{ otp_expiry_minutes|default:"10" }};
+
+// ===== AJAX REGISTRATION FORM SUBMISSION =====
+(function() {
+    const form = document.getElementById('registerForm');
+    const btn = document.getElementById('registerBtn');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Basic client-side validation
+        const terms = document.getElementById('id_agree_terms');
+        if (terms && !terms.checked) {
+            showFormAlert('You must agree to the Terms of Service and Privacy Policy.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.classList.add('loading');
+
+        var formData = new FormData(form);
+        formData.append('X-Requested-With', 'XMLHttpRequest');
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(function(response) {
+            return response.json().then(function(data) {
+                return { status: response.status, data: data };
+            });
+        })
+        .then(function(result) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+
+            if (result.data.success) {
+                // Registration successful - show OTP modal
+                openOtpModal(result.data.email, otpInitialExpiryMinutes);
+            } else if (result.data.errors) {
+                // Show validation errors inline
+                var errs = result.data.errors;
+                for (var field in errs) {
+                    var errEl = document.getElementById(field + 'Error');
+                    if (errEl) {
+                        errEl.textContent = errs[field];
+                        errEl.style.display = 'flex';
+                    }
+                }
+                if (result.data.errors.non_field_errors) {
+                    showFormAlert(result.data.errors.non_field_errors);
+                }
+            } else {
+                showFormAlert(result.data.error || 'Registration failed. Please try again.');
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            showFormAlert('Network error. Please try again.');
+            console.error('Registration error:', err);
+        });
+    });
+})();
+
+function showFormAlert(message) {
+    var container = document.getElementById('toastContainer');
+    if (!container) return;
+    var toast = document.createElement('div');
+    toast.className = 'floating-toast error';
+    toast.innerHTML = '<div class="floating-toast-icon"><i class="fas fa-exclamation-circle"></i></div><div class="floating-toast-content">' + message + '</div><button type="button" class="floating-toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+    container.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 5000);
+}
+
+// ===== OTP MODAL CONTROLS =====
+function openOtpModal(email, expiryMinutes) {
+    var overlay = document.getElementById('otpModalOverlay');
+    var emailDisplay = document.getElementById('otpModalEmail');
+    var emailInput = document.getElementById('otpModalEmailInput');
+
+    if (emailDisplay) emailDisplay.textContent = email;
+    if (emailInput) emailInput.value = email;
+
+    // Reset inputs
+    var inputs = document.querySelectorAll('.otp-modal-input');
+    inputs.forEach(function(inp) {
+        inp.value = '';
+        inp.classList.remove('filled', 'error');
+    });
+
+    // Reset alert
+    var alert = document.getElementById('otpModalAlert');
+    if (alert) { alert.className = 'otp-modal-alert'; alert.textContent = ''; }
+
+    // Start timer
+    startOtpTimer(expiryMinutes);
+
+    // Enable verify, disable resend
+    document.getElementById('otpVerifyBtn').disabled = false;
+    document.getElementById('otpVerifyBtn').innerHTML = '<i class="fas fa-check-circle"></i> Verify Code';
+    var resendBtn = document.getElementById('otpResendBtn');
+    resendBtn.disabled = true;
+    resendBtn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+
+    // Show modal
+    overlay.classList.add('active');
+
+    // Focus first input after animation
+    setTimeout(function() {
+        if (inputs.length > 0) inputs[0].focus();
+    }, 400);
+}
+
+function closeOtpModal() {
+    document.getElementById('otpModalOverlay').classList.remove('active');
+    if (otpTimerInterval) {
+        clearInterval(otpTimerInterval);
+        otpTimerInterval = null;
+    }
+}
+
+// ===== OTP MODAL CLOSE =====
+document.getElementById('otpModalClose').addEventListener('click', closeOtpModal);
+document.getElementById('otpModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeOtpModal();
+});
+
+// ===== OTP INPUT AUTO-ADVANCE =====
+(function() {
+    var inputs = document.querySelectorAll('.otp-modal-input');
+    inputs.forEach(function(input, index) {
+        input.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length === 1) {
+                this.classList.add('filled');
+                this.classList.remove('error');
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            } else {
+                this.classList.remove('filled');
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                inputs[index - 1].focus();
+                inputs[index - 1].classList.remove('filled');
+            }
+            if (e.key === 'Enter') {
+                document.getElementById('otpVerifyBtn').click();
+            }
+        });
+
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var paste = (e.clipboardData || window.clipboardData).getData('text');
+            var digits = paste.replace(/[^0-9]/g, '').split('');
+            digits.forEach(function(digit, i) {
+                if (i < inputs.length) {
+                    inputs[i].value = digit;
+                    inputs[i].classList.add('filled');
+                }
+            });
+            var nextEmpty = Array.from(inputs).find(function(i) { return i.value === ''; });
+            if (nextEmpty) nextEmpty.focus();
+            else inputs[inputs.length - 1].focus();
+        });
+    });
+})();
+
+// ===== OTP TIMER =====
+function startOtpTimer(expiryMinutes) {
+    if (otpTimerInterval) clearInterval(otpTimerInterval);
+
+    otpTotalSeconds = expiryMinutes * 60;
+    var display = document.getElementById('otpModalTimerDisplay');
+    var timer = document.getElementById('otpModalTimer');
+
+    if (!display) return;
+
+    otpTimerInterval = setInterval(function() {
+        var minutes = Math.floor(otpTotalSeconds / 60);
+        var seconds = otpTotalSeconds % 60;
+        display.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+
+        if (otpTotalSeconds <= 60) {
+            timer.classList.add('warning');
+        }
+
+        if (otpTotalSeconds <= 0) {
+            clearInterval(otpTimerInterval);
+            otpTimerInterval = null;
+            display.textContent = 'Expired';
+            document.getElementById('otpVerifyBtn').disabled = true;
+            document.getElementById('otpResendBtn').disabled = false;
+            showOtpAlert('OTP has expired. Please request a new one.', 'error');
+        }
+        otpTotalSeconds--;
+    }, 1000);
+}
+
+// ===== OTP VERIFY SUBMIT =====
+(function() {
+    var form = document.getElementById('otpModalForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        var inputs = document.querySelectorAll('.otp-modal-input');
+        var otp = '';
+        inputs.forEach(function(i) { otp += i.value; });
+
+        if (otp.length !== 6) {
+            showOtpAlert('Please enter all 6 digits.', 'error');
+            return;
+        }
+
+        var btn = document.getElementById('otpVerifyBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="otp-modal-spinner"></span>Verifying...';
+
+        var formData = new FormData(form);
+        formData.append('otp', otp);
+
+        fetch('{% url "verify_otp" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(function(response) {
+            return response.json().then(function(data) {
+                return { status: response.status, data: data };
+            });
+        })
+        .then(function(result) {
+            if (result.data.success) {
+                // Show success banner and redirect
+                var banner = document.getElementById('otpModalSuccessBanner');
+                if (banner) banner.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Verified!';
+                document.getElementById('otpResendBtn').style.display = 'none';
+                if (otpTimerInterval) clearInterval(otpTimerInterval);
+
+                setTimeout(function() {
+                    window.location.href = result.data.redirect || '{% url "login" %}';
+                }, 2000);
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify Code';
+                showOtpAlert(result.data.error || 'Invalid verification code.', 'error');
+                // Shake inputs
+                inputs.forEach(function(i) {
+                    i.classList.add('error');
+                    setTimeout(function() { i.classList.remove('error'); }, 500);
+                });
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify Code';
+            showOtpAlert('Network error. Please try again.', 'error');
+            console.error('OTP verify error:', err);
+        });
+    });
+})();
+
+// ===== OTP RESEND =====
+(function() {
+    var btn = document.getElementById('otpResendBtn');
+    if (!btn) return;
+
+    btn.addEventListener('click', function() {
+        var email = document.getElementById('otpModalEmailInput').value;
+        var purpose = document.getElementById('otpModalPurposeInput').value;
+        if (!email) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="otp-modal-spinner"></span>Sending...';
+
+        var formData = new FormData();
+        formData.append('email', email);
+        formData.append('purpose', purpose);
+
+        fetch('{% url "resend_otp" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                // Reset timer
+                startOtpTimer(otpInitialExpiryMinutes);
+                var timer = document.getElementById('otpModalTimer');
+                if (timer) timer.classList.remove('warning');
+                document.getElementById('otpVerifyBtn').disabled = false;
+                showOtpAlert('New code sent!', 'success');
+
+                // Clear inputs
+                document.querySelectorAll('.otp-modal-input').forEach(function(i) {
+                    i.value = ''; i.classList.remove('filled');
+                });
+                var firstInput = document.querySelector('.otp-modal-input');
+                if (firstInput) firstInput.focus();
+
+                // Resend cooldown
+                btn.disabled = true;
+                var cooldown = 60;
+                btn.innerHTML = '<i class="fas fa-redo"></i> Resend in ' + cooldown + 's';
+                var cooldownInterval = setInterval(function() {
+                    cooldown--;
+                    if (cooldown <= 0) {
+                        clearInterval(cooldownInterval);
+                        btn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+                        btn.disabled = false;
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-redo"></i> Resend in ' + cooldown + 's';
+                    }
+                }, 1000);
+            } else {
+                btn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+                btn.disabled = false;
+                showOtpAlert(data.error || 'Failed to resend code', 'error');
+            }
+        })
+        .catch(function(err) {
+            btn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+            btn.disabled = false;
+            showOtpAlert('Network error. Please try again.', 'error');
+        });
+    });
+})();
+
+function showOtpAlert(message, type) {
+    var alert = document.getElementById('otpModalAlert');
+    if (!alert) return;
+    alert.textContent = message;
+    alert.className = 'otp-modal-alert show ' + type;
+    setTimeout(function() { alert.classList.remove('show'); }, 8000);
+}
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ===== TOAST DISMISS =====
+function dismissToast(el) {
+    var toast = el.closest('.floating-toast');
+    if (toast) {
+        toast.classList.add('hiding');
+        setTimeout(function() { toast.remove(); }, 300);
+    }
+}
 </script>
 {% endblock %}

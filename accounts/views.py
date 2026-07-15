@@ -138,6 +138,15 @@ def register_view(request):
                 request.session['otp_purpose'] = 'registration'
                 request.session['reg_user_id'] = user.id
                 
+                # AJAX request: return JSON for in-page modal
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'email': user.email,
+                        'otp_expiry_minutes': OTP_EXPIRY_MINUTES,
+                        'message': 'Account created! Please check your email for the verification code.',
+                    })
+                
                 messages.success(
                     request,
                     'Account created! Please check your email for the verification code.'
@@ -146,12 +155,24 @@ def register_view(request):
             else:
                 # OTP sending failed, delete the user and show error
                 user.delete()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': error or 'Failed to send verification email. Please try again.'
+                    }, status=400)
                 messages.error(request, error or 'Failed to send verification email. Please try again.')
                 return redirect('register')
+        else:
+            # Form validation errors - return JSON for AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors = {}
+                for field, field_errors in form.errors.items():
+                    errors[field] = field_errors[0]
+                return JsonResponse({'success': False, 'errors': errors}, status=400)
     else:
         form = UserRegistrationForm()
     
-    return render(request, 'auth/register.html', {'form': form})
+    return render(request, 'auth/register.html', {'form': form, 'otp_expiry_minutes': OTP_EXPIRY_MINUTES})
 
 
 def login_view(request):
@@ -348,6 +369,7 @@ def verify_otp_view(request):
     """
     OTP verification page for both registration and password reset.
     Displays 6-digit input fields with countdown timer and resend functionality.
+    Accepts both regular form POST and AJAX requests.
     """
     if request.user.is_authenticated:
         return redirect('home')
@@ -359,7 +381,11 @@ def verify_otp_view(request):
     email = request.session.get('otp_email')
     purpose = request.session.get('otp_purpose')
 
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     if not email or not purpose:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'No verification in progress. Please start again.'}, status=400)
         messages.error(request, 'No verification in progress. Please start again.')
         if purpose == 'password_reset':
             return redirect('password_reset_request')
@@ -369,6 +395,8 @@ def verify_otp_view(request):
         otp = request.POST.get('otp', '').strip()
         
         if not otp or len(otp) != 6 or not otp.isdigit():
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'Please enter a valid 6-digit code.'}, status=400)
             messages.error(request, 'Please enter a valid 6-digit code.')
             return render(request, 'auth/otp_verification.html', {
                 'email': email,
@@ -400,20 +428,39 @@ def verify_otp_view(request):
                     request.session.pop('otp_purpose', None)
                     request.session.pop('reg_user_id', None)
                     
+                    if is_ajax:
+                        return JsonResponse({
+                            'success': True,
+                            'redirect': reverse('login'),
+                            'message': 'Email verified! Your account is now active. Please sign in.'
+                        })
+                    
                     messages.success(request, 'Email verified! Your account is now active. Please sign in.')
                     return redirect('login')
                 except User.DoesNotExist:
+                    if is_ajax:
+                        return JsonResponse({'success': False, 'error': 'Account not found. Please register again.'}, status=400)
                     messages.error(request, 'Account not found. Please register again.')
                     return redirect('register')
             
             elif purpose == 'password_reset':
                 # Mark OTP as verified in session, redirect to set new password
                 request.session['otp_verified'] = True
+                if is_ajax:
+                    return JsonResponse({
+                        'success': True,
+                        'redirect': reverse('password_reset_confirm'),
+                        'message': 'Email verified! Please set a new password.'
+                    })
                 messages.success(request, 'Email verified! Please set a new password.')
                 return redirect('password_reset_confirm')
         else:
+            if is_ajax:
+                remaining = otp_obj.attempts if otp_obj and hasattr(otp_obj, 'attempts') else ''
+                return JsonResponse({'success': False, 'error': error or 'Invalid verification code.'}, status=400)
             messages.error(request, error or 'Invalid verification code.')
     
+    # Non-AJAX GET requests render the standalone page
     return render(request, 'auth/otp_verification.html', {
         'email': email,
         'purpose': purpose,
