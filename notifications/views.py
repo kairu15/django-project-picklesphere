@@ -352,3 +352,205 @@ def get_broadcast_stats_api(request):
         'total_sent': total_sent,
         'total_broadcasts': total_broadcasts,
     })
+
+
+# ==================== SMTP MANAGEMENT (Super Admin) ====================
+
+@login_required
+@super_admin_required
+def smtp_settings_view(request):
+    """View and edit SMTP configuration."""
+    from .email_service import get_smtp_config
+
+    config = SmtpConfiguration.objects.filter(is_active=True).first()
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'save')
+
+        if action == 'toggle':
+            if config:
+                config.status = 'disabled' if config.status == 'enabled' else 'enabled'
+                config.updated_by = request.user
+                config.save()
+                messages.success(request, f'SMTP configuration {"enabled" if config.status == "enabled" else "disabled"}.')
+            return redirect('super_admin_smtp_settings')
+
+        # Save SMTP settings
+        smtp_host = request.POST.get('smtp_host', '').strip()
+        smtp_port = request.POST.get('smtp_port', '587')
+        smtp_username = request.POST.get('smtp_username', '').strip()
+        smtp_password = request.POST.get('smtp_password', '').strip()
+        encryption = request.POST.get('encryption', 'tls')
+        sender_name = request.POST.get('sender_name', 'PickleSphere').strip()
+        sender_email = request.POST.get('sender_email', 'noreply@picklesphere.com').strip()
+        smtp_status = request.POST.get('status', 'enabled')
+
+        if not smtp_host:
+            messages.error(request, 'SMTP Host is required.')
+            return render(request, 'staff/notifications/smtp_settings.html', {'config': config})
+
+        if not sender_email:
+            messages.error(request, 'Sender Email is required.')
+            return render(request, 'staff/notifications/smtp_settings.html', {'config': config})
+
+        try:
+            smtp_port = int(smtp_port)
+        except (ValueError, TypeError):
+            messages.error(request, 'SMTP Port must be a number.')
+            return render(request, 'staff/notifications/smtp_settings.html', {'config': config})
+
+        if config:
+            config.smtp_host = smtp_host
+            config.smtp_port = smtp_port
+            config.smtp_username = smtp_username
+            if smtp_password:
+                config.smtp_password = smtp_password
+            config.encryption = encryption
+            config.sender_name = sender_name
+            config.sender_email = sender_email
+            config.status = smtp_status
+            config.updated_by = request.user
+            config.save()
+        else:
+            config = SmtpConfiguration.objects.create(
+                smtp_host=smtp_host,
+                smtp_port=smtp_port,
+                smtp_username=smtp_username,
+                smtp_password=smtp_password,
+                encryption=encryption,
+                sender_name=sender_name,
+                sender_email=sender_email,
+                status=smtp_status,
+                updated_by=request.user,
+            )
+
+        messages.success(request, 'SMTP settings saved successfully!')
+        return redirect('super_admin_smtp_settings')
+
+    # Get current SMTP settings from env as fallback info
+    env_config = get_smtp_config()
+
+    return render(request, 'staff/notifications/smtp_settings.html', {
+        'config': config,
+        'env_config': env_config,
+    })
+
+
+@login_required
+@super_admin_required
+def smtp_test_email_view(request):
+    """Send a test email to verify SMTP configuration."""
+    if request.method == 'POST':
+        test_email = request.POST.get('test_email', '').strip()
+
+        if not test_email:
+            messages.error(request, 'Please provide an email address to send the test to.')
+            return redirect('super_admin_smtp_settings')
+
+        from .email_utils import send_test_email
+        from accounts.models import User
+
+        # Use a dummy user object for the test
+        class DummyUser:
+            email = test_email
+            username = 'Test User'
+            get_full_name = lambda self: 'Test User'
+
+        dummy = DummyUser()
+
+        try:
+            # Try to find an actual user with this email
+            actual_user = User.objects.filter(email=test_email).first()
+            if actual_user:
+                success = send_test_email(actual_user)
+            else:
+                from .email_service import send_email
+                success = send_email(
+                    recipient_email=test_email,
+                    subject='Test Email from PickleSphere',
+                    html_template='emails/test_email.html',
+                    context={
+                        'title': 'Test Email',
+                        'message': 'If you received this email, your SMTP configuration is working correctly!',
+                        'user': dummy,
+                    },
+                    email_type='test',
+                )
+
+            if success:
+                messages.success(request, f'Test email sent successfully to {test_email}!')
+            else:
+                messages.error(request, 'Failed to send test email. Please check your SMTP settings and try again.')
+        except Exception as e:
+            messages.error(request, f'Error sending test email: {str(e)}')
+
+        return redirect('super_admin_smtp_settings')
+
+    return redirect('super_admin_smtp_settings')
+
+
+@login_required
+@super_admin_required
+def email_log_list_view(request):
+    """View email logs for auditing and debugging."""
+    logs = EmailLog.objects.all().order_by('-created_at')
+
+    # Filters
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        logs = logs.filter(status=status_filter)
+
+    email_type_filter = request.GET.get('email_type', '')
+    if email_type_filter:
+        logs = logs.filter(email_type=email_type_filter)
+
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        logs = logs.filter(
+            Q(recipient__icontains=search_query) |
+            Q(subject__icontains=search_query) |
+            Q(email_type__icontains=search_query)
+        )
+
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        logs = logs.filter(created_at__date__gte=date_from)
+    if date_to:
+        logs = logs.filter(created_at__date__lte=date_to)
+
+    # Stats
+    total_sent = EmailLog.objects.filter(status='sent').count()
+    total_failed = EmailLog.objects.filter(status='failed').count()
+    total_pending = EmailLog.objects.filter(status='pending').count()
+    total_all = EmailLog.objects.count()
+
+    # Pagination
+    paginator = Paginator(logs, 25)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'staff/notifications/email_log_list.html', {
+        'logs': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'status_filter': status_filter,
+        'email_type_filter': email_type_filter,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
+        'total_sent': total_sent,
+        'total_failed': total_failed,
+        'total_pending': total_pending,
+        'total_all': total_all,
+    })
+
+
+@login_required
+@super_admin_required
+def email_log_detail_view(request, log_id):
+    """View a single email log entry."""
+    log = get_object_or_404(EmailLog, id=log_id)
+    return render(request, 'staff/notifications/email_log_detail.html', {
+        'log': log,
+    })

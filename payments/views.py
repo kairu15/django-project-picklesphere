@@ -21,6 +21,13 @@ from reservations.models import Reservation, CancellationRequest
 from reservations.models import ReservationEquipment
 from equipment.models import Equipment
 from notifications.models import Notification
+from notifications.email_utils import (
+    send_payment_confirmed_email,
+    send_payment_verification_email,
+    send_payment_failed_email,
+    send_payment_receipt_email,
+    send_refund_confirmed_email,
+)
 from accounts.models import User
 
 
@@ -191,6 +198,9 @@ def checkout_page_view(request, checkout_token):
                                 user=staff,
                                 message=f"New GCash payment for reservation #{reservation.id} requires verification."
                             )
+                        
+                        # Send payment verification email to user
+                        send_payment_verification_email(request.user, payment)
                         
                         # Clear session data
                         request.session.pop('checkout_data', None)
@@ -458,10 +468,12 @@ def checkout_page_view(request, checkout_token):
                         message=f"Payment successful for reservation #{reservation.id}. Your reservation is confirmed!"
                     )
                     
+                    send_payment_confirmed_email(request.user, payment)
+
                     request.session.pop('checkout_data', None)
-                
-                messages.success(request, 'Payment successful! Your reservation is confirmed.')
-                return redirect('reservation_detail', reservation_id=reservation.id)
+
+                    messages.success(request, 'Payment successful! Your reservation is confirmed.')
+                    return redirect('reservation_detail', reservation_id=reservation.id)
                 
             except Exception as e:
                 messages.error(request, f'An error occurred while processing your payment. Please try again. Error: {str(e)}')
@@ -524,6 +536,9 @@ def payment_checkout_view(request, reservation_id):
                         message=f"New GCash payment for reservation #{reservation.id} requires verification."
                     )
                 
+                # Send payment verification email
+                send_payment_verification_email(request.user, payment)
+                
                 messages.success(request, 'GCash payment details submitted. Please wait for verification.')
                 return redirect('payment_status', payment_id=payment.id)
                 
@@ -565,6 +580,9 @@ def payment_checkout_view(request, reservation_id):
                 user=request.user,
                 message=f"Payment successful for reservation #{reservation.id}. Your reservation is confirmed!"
             )
+            
+            # Send payment confirmation email
+            send_payment_confirmed_email(request.user, payment)
             
             messages.success(request, 'Payment successful! Your reservation is confirmed.')
             return redirect('reservation_detail', reservation_id=reservation.id)
@@ -774,6 +792,7 @@ def verify_payment_view(request, payment_id):
                     user=payment.reservation.user,
                     message=f"Your payment for reservation #{payment.reservation.id} has been verified. Your reservation is confirmed!"
                 )
+                send_payment_confirmed_email(payment.reservation.user, payment)
 
             # Log the action
             PaymentLog.objects.create(
@@ -852,6 +871,7 @@ def cash_payment_confirmation_view(request, payment_id):
                 user=reservation.user,
                 message=f"Your cash payment for reservation #{reservation.id} has been received and confirmed at the counter. Your reservation is confirmed!"
             )
+            send_payment_confirmed_email(reservation.user, payment)
 
             messages.success(
                 request,
@@ -871,6 +891,12 @@ def cash_payment_confirmation_view(request, payment_id):
                 performed_by=request.user
             )
 
+            # Send payment failed notification
+            send_payment_failed_email(
+                payment.reservation.user,
+                payment,
+                'Cash payment rejected at the counter.'
+            )
             messages.warning(request, f'Cash payment #{payment.id} has been marked as not received.')
             return redirect('staff_payments')
 
@@ -1176,11 +1202,18 @@ def admin_cancellation_refunds_view(request):
             details=f'Payment status changed from {old_status} to refunded via Cancellation & Refund page. Refund record #{refund.id} {"created" if created else "updated"}.',
             performed_by=request.user
         )
-
+        
         Notification.objects.create(
             user=payment.reservation.user,
             message=f"Your payment for reservation #{payment.reservation.id} has been marked as refunded."
         )
+        # Send refund email
+        try:
+            cancellation = CancellationRequest.objects.filter(reservation=payment.reservation).first()
+            if cancellation:
+                send_refund_confirmed_email(payment.reservation.user, cancellation)
+        except Exception:
+            pass
 
         messages.success(request, f'Payment #{payment.id} has been updated to Refunded.')
         return redirect('super_admin_cancellation_refunds')

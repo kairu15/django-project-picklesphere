@@ -437,9 +437,8 @@ def staff_dashboard_view(request):
     })
 
 
-@login_required
 def all_courts_view(request):
-    """All courts page - requires login (essentially a book-a-court search tool)"""
+    """All courts page - accessible to all users"""
 
     # Annotate average rating on courts queryset
     rating_subq = Rating.objects.filter(

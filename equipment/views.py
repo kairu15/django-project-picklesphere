@@ -7,6 +7,10 @@ from django.utils import timezone
 from datetime import timedelta
 
 from accounts.decorators import admin_required, staff_or_admin_required, user_required, org_admin_required
+from notifications.email_utils import (
+    send_equipment_rental_email,
+    send_equipment_return_reminder_email,
+)
 from .models import Equipment, EquipmentRental, EquipmentMaintenance
 from .forms import EquipmentForm
 from dashboard.models import EquipmentPageSettings, FeaturedEquipment, EquipmentCategory
@@ -75,6 +79,7 @@ def equipment_rental_create_view(request):
         equipment.save()
 
         messages.success(request, f'Successfully reserved {equipment.name}.')
+        send_equipment_rental_email(request.user, equipment, 'reserved')
         return redirect('equipment_list')
 
     return redirect('equipment_list')
@@ -150,6 +155,8 @@ def check_out_equipment_view(request, rental_id):
         equipment.save()
         
         messages.success(request, f'{rental.equipment.name} checked out successfully.')
+        send_equipment_rental_email(rental.rented_by, rental.equipment, 'rented')
+        send_equipment_return_reminder_email(rental.rented_by, rental.equipment, rental)
         return redirect('staff_equipment')
     
     return render(request, 'staff/equipment/check_out.html', {'rental': rental})
@@ -201,6 +208,7 @@ def check_in_equipment_view(request, rental_id):
             messages.warning(request, f'Equipment returned in {rental.condition_in} condition. Consider maintenance.')
         else:
             messages.success(request, f'{rental.equipment.name} checked in successfully.')
+        send_equipment_rental_email(rental.rented_by, rental.equipment, 'returned')
         
         return redirect('staff_equipment')
     

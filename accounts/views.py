@@ -22,7 +22,16 @@ from .forms import (
 from .models import User, UserActivity
 from .decorators import admin_required, staff_or_admin_required, user_required
 from notifications.models import Notification
-from notifications.email_utils import send_password_reset_email
+from notifications.email_utils import (
+    send_password_reset_email,
+    send_welcome_email,
+    send_account_update_email,
+    send_password_changed_email,
+    send_account_suspension_email,
+    send_account_reactivation_email,
+    send_account_deletion_email,
+    send_login_security_alert_email,
+)
 
 
 def password_reset_request(request):
@@ -106,6 +115,9 @@ def register_view(request):
                 user=user,
                 message=f"Welcome to PickleSphere, {user.first_name}! Your account has been created successfully."
             )
+            
+            # Send welcome email
+            send_welcome_email(user)
             
             messages.success(request, 'Account created successfully! Please sign in.')
             return redirect('login')
@@ -237,12 +249,16 @@ def profile_view(request):
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Profile updated successfully!')
+                # Send profile update confirmation email
+                send_account_update_email(request.user, 'Your profile has been updated successfully.')
                 return redirect('profile')
         elif 'change_password' in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)
+                # Send password changed notification
+                send_password_changed_email(request.user)
                 messages.success(request, 'Password changed successfully!')
                 return redirect('profile')
             else:
@@ -398,7 +414,20 @@ def user_delete_view(request, user_id):
     user_to_delete.is_active = False
     user_to_delete.save(update_fields=['is_active'])
     
+    # Send account suspension notification
+    send_account_suspension_email(user_to_delete, 'Account deactivated by admin')
+    
     messages.success(request, f'User {user_to_delete.username} deactivated successfully.')
+    
+    # If user has an org_admin account, notify them
+    if user_to_delete.organization:
+        org_admins = User.objects.filter(organization=user_to_delete.organization, role='org_admin')
+        for admin in org_admins:
+            if admin != user_to_delete:
+                Notification.objects.create(
+                    user=admin,
+                    message=f"User {user_to_delete.username} has been deactivated."
+                )
     if request.user.is_super_admin():
         return redirect('super_admin_user_list')
     return redirect('org_admin_staff_list')

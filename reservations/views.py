@@ -14,6 +14,14 @@ from .forms import ReservationForm, ReservationApprovalForm, CancellationRequest
 from payments.models import Payment, PaymentLog, Refund
 from scoring.models import MatchSettings
 from notifications.models import Notification
+from notifications.email_utils import (
+    send_reservation_submitted_email,
+    send_reservation_confirmed_email,
+    send_reservation_rejected_email,
+    send_reservation_cancelled_email,
+    send_reservation_completed_email,
+    send_refund_confirmed_email,
+)
 from equipment.models import Equipment
 from accounts.models import User
 from courts.models import Court
@@ -309,6 +317,15 @@ def approve_reservation_view(request, reservation_id):
                 message=f"Your reservation #{reservation.id} has been {reservation.status}."
             )
             
+            # Send email notification
+            if reservation.status == 'confirmed':
+                send_reservation_confirmed_email(reservation.user, reservation)
+            elif reservation.status == 'rejected':
+                reason = form.cleaned_data.get('admin_notes', '')
+                send_reservation_rejected_email(reservation.user, reservation, reason)
+            elif reservation.status == 'completed':
+                send_reservation_completed_email(reservation.user, reservation)
+            
             messages.success(request, f'Reservation #{reservation.id} has been {reservation.status}.')
             return redirect('staff_reservations')
     else:
@@ -405,10 +422,12 @@ def reservation_edit_view(request, reservation_id):
                 pass
             
             # Notify user
+            from notifications.email_utils import send_reservation_modification_email
             Notification.objects.create(
                 user=request.user,
                 message=f"Your reservation #{reservation.id} has been updated."
             )
+            send_reservation_modification_email(request.user, reservation, 'Reservation details updated')
             
             messages.success(request, 'Reservation updated successfully!')
             return redirect('reservation_detail', reservation_id=reservation.id)
@@ -509,6 +528,9 @@ def cancel_reservation_view(request, reservation_id):
                     user=staff,
                     message=f"Reservation #{reservation.id} has been cancelled by {request.user.username} with {deduction_percentage}% deduction."
                 )
+            
+            # Send cancellation email to user
+            send_reservation_cancelled_email(reservation.user, reservation)
 
             # Format success message with refund details
             refund_method_display = dict(cancellation.REFUND_METHOD_CHOICES).get(cancellation.refund_method, 'GCash')

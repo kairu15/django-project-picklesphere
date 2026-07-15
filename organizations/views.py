@@ -28,6 +28,11 @@ from notifications.utils import (
     notify_org_owned_users_org_status_change,
     notify_super_admin_new_organization,
 )
+from notifications.email_utils import (
+    send_org_registration_confirmation_email,
+    send_org_status_change_email,
+    send_org_admin_created_email,
+)
 
 
 # ==================== PUBLIC VIEWS ====================
@@ -88,6 +93,9 @@ def organization_register(request):
             super_admins = User.objects.filter(role='super_admin', is_active=True)
             for sa in super_admins:
                 notify_super_admin_new_organization(sa, org)
+            # Send confirmation email
+            send_org_registration_confirmation_email(request.user, org)
+            
             messages.success(request, 
                 'Your organization has been registered successfully! '
                 'A super admin will review your application and approve it shortly. '
@@ -258,6 +266,7 @@ def super_admin_approve_organization(request, pk):
                 org_admin = User.objects.filter(organization=org, role='org_admin').first()
                 if org_admin:
                     notify_org_admin_org_status_change(org_admin, org, 'approved')
+                    send_org_status_change_email(org_admin, org, 'approved')
                 # Notify org members
                 notify_org_owned_users_org_status_change(org, 'approved')
                 
@@ -274,6 +283,7 @@ def super_admin_approve_organization(request, pk):
                 org_admin = User.objects.filter(organization=org, role='org_admin').first()
                 if org_admin:
                     notify_org_admin_org_status_change(org_admin, org, 'rejected', old_status, rejection_reason)
+                    send_org_status_change_email(org_admin, org, 'rejected', rejection_reason)
                 
             elif new_status == 'suspended':
                 messages.warning(request, f'Organization "{org.name}" has been suspended.')
@@ -286,6 +296,7 @@ def super_admin_approve_organization(request, pk):
                 org_admin = User.objects.filter(organization=org, role='org_admin').first()
                 if org_admin:
                     notify_org_admin_org_status_change(org_admin, org, 'suspended', old_status)
+                    send_org_status_change_email(org_admin, org, 'suspended')
                 # Notify org members
                 notify_org_owned_users_org_status_change(org, 'suspended')
                 
@@ -356,6 +367,14 @@ def super_admin_organization_create(request):
             if org_admin_user:
                 org_admin_user.organization = org
                 org_admin_user.save()
+            
+            # Send org admin created email if an admin was assigned
+            if org_admin_user:
+                import uuid
+                temp_password = str(uuid.uuid4())[:12]
+                org_admin_user.set_password(temp_password)
+                org_admin_user.save()
+                send_org_admin_created_email(org_admin_user, org, temp_password)
             
             messages.success(request, f'Organization "{org.name}" created successfully!')
             return redirect('super_admin_organization_list')
@@ -452,6 +471,7 @@ def super_admin_verify_organization(request, pk):
             org_admin = User.objects.filter(organization=org, role='org_admin').first()
             if org_admin and org.is_verified:
                 notify_org_admin_org_verified(org_admin, org)
+                send_org_status_change_email(org_admin, org, 'verified')
             
             return redirect('super_admin_organization_detail', pk=pk)
     else:

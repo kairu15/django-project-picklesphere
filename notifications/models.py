@@ -3,6 +3,116 @@ from django.utils import timezone
 from django.conf import settings
 
 
+class EmailLog(models.Model):
+    """
+    Tracks all sent emails for auditing and debugging.
+    """
+    STATUS_CHOICES = (
+        ('sent', 'Sent'),
+        ('failed', 'Failed'),
+        ('pending', 'Pending'),
+    )
+
+    recipient = models.EmailField()
+    recipient_name = models.CharField(max_length=255, blank=True, default='')
+    subject = models.CharField(max_length=500)
+    body_preview = models.TextField(blank=True, help_text='Plain text preview of email body')
+    email_type = models.CharField(max_length=100, blank=True, default='', help_text='e.g. welcome, password_reset, reservation_confirmed')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    error_message = models.TextField(blank=True, null=True)
+    retry_count = models.IntegerField(default=0)
+    max_retries = models.IntegerField(default=3)
+    related_object_id = models.CharField(max_length=50, blank=True, null=True, help_text='ID of related model (e.g. reservation ID)')
+    related_object_type = models.CharField(max_length=50, blank=True, null=True, help_text='Model name (e.g. Reservation, Payment)')
+    sent_by_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, help_text='User who triggered this email'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'email_logs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['email_type', '-created_at']),
+            models.Index(fields=['recipient', '-created_at']),
+        ]
+        verbose_name = 'Email Log'
+        verbose_name_plural = 'Email Logs'
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.email_type} -> {self.recipient}: {self.subject[:50]}"
+
+    def mark_sent(self):
+        self.status = 'sent'
+        self.sent_at = timezone.now()
+        self.save(update_fields=['status', 'sent_at'])
+
+    def mark_failed(self, error_message=''):
+        self.status = 'failed'
+        self.error_message = str(error_message)[:1000]
+        self.retry_count += 1
+        self.save(update_fields=['status', 'error_message', 'retry_count'])
+
+
+class SmtpConfiguration(models.Model):
+    """
+    Stores SMTP configuration for sending emails.
+    Only the super admin can manage these settings.
+    """
+    ENABLE_CHOICES = (
+        ('enabled', 'Enabled'),
+        ('disabled', 'Disabled'),
+    )
+    ENCRYPTION_CHOICES = (
+        ('tls', 'TLS'),
+        ('ssl', 'SSL'),
+        ('none', 'None'),
+    )
+
+    smtp_host = models.CharField(max_length=255, default='smtp.gmail.com')
+    smtp_port = models.IntegerField(default=587)
+    smtp_username = models.EmailField(max_length=255, default='', blank=True)
+    smtp_password = models.CharField(max_length=500, default='', blank=True, help_text='SMTP password or app password')
+    encryption = models.CharField(max_length=10, choices=ENCRYPTION_CHOICES, default='tls')
+    sender_name = models.CharField(max_length=255, default='PickleSphere')
+    sender_email = models.EmailField(max_length=255, default='noreply@picklesphere.com')
+    status = models.CharField(max_length=10, choices=ENABLE_CHOICES, default='enabled')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
+    class Meta:
+        db_table = 'smtp_configurations'
+        verbose_name = 'SMTP Configuration'
+        verbose_name_plural = 'SMTP Configurations'
+
+    def __str__(self):
+        return f"SMTP: {self.smtp_host}:{self.smtp_port} ({self.get_status_display()})"
+
+    def is_enabled(self):
+        return self.status == 'enabled' and self.is_active
+
+    def get_encryption_settings(self):
+        if self.encryption == 'tls':
+            return {'use_tls': True, 'use_ssl': False}
+        elif self.encryption == 'ssl':
+            return {'use_tls': False, 'use_ssl': True}
+        else:
+            return {'use_tls': False, 'use_ssl': False}
+
+    def get_sender_display(self):
+        if self.sender_name:
+            return f'{self.sender_name} <{self.sender_email}>'
+        return self.sender_email
+
+
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
         ('info', 'Info'),

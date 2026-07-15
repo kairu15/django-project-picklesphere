@@ -13,6 +13,13 @@ from accounts.decorators import admin_required, staff_or_admin_required, user_re
 from courts.models import Court
 from accounts.models import UserActivity
 from dashboard.models import TournamentPageSettings, FeaturedTournament, TournamentAnnouncement, TournamentCategory
+from notifications.email_utils import (
+    send_tournament_registration_email,
+    send_tournament_schedule_update_email,
+    send_tournament_cancellation_email,
+    send_tournament_results_email,
+    send_tournament_match_reminder_email,
+)
 from .models import Tournament, Registration, Match, Team, Leaderboard, MatchNotification
 from .forms import (
     TournamentForm, RegistrationForm, RegistrationReviewForm, 
@@ -151,6 +158,7 @@ def tournament_register(request, pk):
             )
             
             messages.success(request, 'Registration submitted! Please wait for admin approval.')
+            send_tournament_registration_email(request.user, tournament, 'pending')
             return redirect('tournament_detail', pk=pk)
     else:
         form = RegistrationForm()
@@ -401,6 +409,7 @@ def admin_registration_review(request, pk, reg_id):
                     message=f'Your registration for {tournament.name} has been approved!'
                 )
                 messages.success(request, f'Registration approved for {reg.user.username}.')
+                send_tournament_registration_email(reg.user, tournament, 'approved')
             elif reg.status == 'rejected':
                 MatchNotification.objects.create(
                     tournament=tournament,
@@ -408,6 +417,7 @@ def admin_registration_review(request, pk, reg_id):
                     notification_type='registration_rejected',
                     message=f'Your registration for {tournament.name} has been rejected.'
                 )
+                send_tournament_registration_email(reg.user, tournament, 'rejected')
                 messages.info(request, f'Registration rejected for {reg.user.username}.')
             
             return redirect('admin_registration_list', pk=pk)
@@ -564,6 +574,8 @@ def admin_match_edit(request, pk, match_id):
                             notification_type='match_completed',
                             message=f'Match completed: {updated_match.get_player1_display()} vs {updated_match.get_player2_display()} - Winner: {updated_match.get_winner_display()}'
                         )
+                        # Send match results email
+                        send_tournament_results_email(participant, tournament, updated_match.get_winner_display() if updated_match.winner == participant else '')
                 
                 messages.success(request, 'Match updated and leaderboard recalculated!')
             else:
@@ -637,6 +649,10 @@ def admin_schedule_matches(request, pk):
                         current_time += timedelta(minutes=duration)
                     
                     court_idx += 1
+            
+            # Send schedule update emails to all approved participants
+            for reg in tournament.registrations.filter(status='approved'):
+                send_tournament_schedule_update_email(reg.user, tournament, f'{unscheduled.count()} matches have been scheduled.')
             
             messages.success(request, f'Scheduled {unscheduled.count()} matches!')
             return redirect('admin_match_list', pk=pk)
@@ -780,6 +796,14 @@ def admin_change_status(request, pk):
                         notification_type='tournament_start',
                         message=f'{tournament.name} has started! Check your matches.'
                     )
+            elif tournament.status == 'completed':
+                # Send tournament results to all approved registrations
+                for reg in tournament.registrations.filter(status='approved'):
+                    send_tournament_results_email(reg.user, tournament)
+            elif tournament.status == 'cancelled':
+                # Send cancellation to all registrations
+                for reg in tournament.registrations.all():
+                    send_tournament_cancellation_email(reg.user, tournament)
             
             messages.success(request, f'Tournament status updated to {tournament.get_status_display()}.')
             return redirect('admin_tournament_manage', pk=pk)

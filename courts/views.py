@@ -15,7 +15,6 @@ from organizations.models import Organization
 from reservations.models import Reservation
 
 
-@login_required
 def court_list_view(request):
     rating_subq = Rating.objects.filter(
         reservation__court=OuterRef('pk')
@@ -166,7 +165,6 @@ def court_detail_view(request, court_id):
     })
 
 
-@login_required
 def court_availability_view(request, court_id):
     court = get_object_or_404(Court, id=court_id, is_active=True)
     

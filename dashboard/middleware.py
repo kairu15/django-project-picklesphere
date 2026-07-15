@@ -145,8 +145,11 @@ class AuthAuditMiddleware:
         # Tournaments public pages
         'tournament_list',
         'tournament_detail',
-        # Courts public detail
+        # Courts public views
         'court_detail',
+        'court_list',
+        'court_availability',
+        'all_courts',
     })
 
     # Path prefixes that are always public (bypass URL resolution)
