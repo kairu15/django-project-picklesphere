@@ -8,7 +8,7 @@ from datetime import datetime
 from smtplib import SMTPException
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives, BadHeaderError
+from django.core.mail import EmailMultiAlternatives, BadHeaderError, get_connection
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.utils import timezone
@@ -180,26 +180,59 @@ def send_email(
             if len(attachment) == 3:
                 msg.attach(*attachment)
 
+    # Create SMTP connection from DB config if available (overrides EMAIL_BACKEND)
+    connection = None
+    if smtp_config.get('host') and smtp_config.get('port') and smtp_config.get('username'):
+        try:
+            connection = get_connection(
+                backend='django.core.mail.backends.smtp.EmailBackend',
+                host=smtp_config['host'],
+                port=smtp_config['port'],
+                username=smtp_config['username'],
+                password=smtp_config['password'],
+                use_tls=smtp_config.get('use_tls', True),
+                use_ssl=smtp_config.get('use_ssl', False),
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create SMTP connection from config: {e}. Falling back to default backend.")
+
     # Attempt to send with retries
     last_error = None
     actual_retries = 0
-    for attempt in range(max_retries):
-        try:
-            msg.send()
-            email_log.mark_sent()
-            logger.info(f"Email sent: {email_type} -> {recipient_email} (subject: {full_subject[:60]})")
-            return True
-        except (SMTPException, ConnectionError, TimeoutError, BadHeaderError) as e:
-            last_error = e
-            actual_retries = attempt + 1
-            logger.warning(
-                f"Email send attempt {attempt + 1}/{max_retries} failed for "
-                f"{recipient_email}: {e}"
-            )
-            if attempt < max_retries - 1:
-                # Exponential backoff: wait 2^attempt seconds
-                import time
-                time.sleep(2 ** attempt)
+    try:
+        for attempt in range(max_retries):
+            try:
+                if connection:
+                    connection.send_messages([msg])
+                else:
+                    msg.send()
+                email_log.mark_sent()
+                logger.info(f"Email sent: {email_type} -> {recipient_email} (subject: {full_subject[:60]})")
+                return True
+            except (SMTPException, ConnectionError, TimeoutError, BadHeaderError) as e:
+                last_error = e
+                actual_retries = attempt + 1
+                logger.warning(
+                    f"Email send attempt {attempt + 1}/{max_retries} failed for "
+                    f"{recipient_email}: {e}"
+                )
+                if connection and attempt < max_retries - 1:
+                    # Reopen connection for retry in case it's in a bad state
+                    try:
+                        connection.close()
+                    except Exception:
+                        pass
+                    connection.open()
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(2 ** attempt)
+    finally:
+        if connection:
+            try:
+                connection.close()
+            except Exception:
+                pass
 
     # All attempts failed - pass actual retry count
     email_log.status = 'failed'

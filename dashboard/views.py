@@ -9,7 +9,7 @@ from django.db.models import Count, Sum, Q, Avg, OuterRef, Subquery, FloatField
 from django.db.models.functions import ExtractHour
 from django.utils import timezone
 from django.conf import settings
-from django.core.mail import send_mail
+from notifications.email_utils import send_contact_form_email
 from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta
 
@@ -962,20 +962,15 @@ def contact_view(request):
                 message=message
             )
             
-            # Send email (configure EMAIL settings in settings.py)
-            try:
-                send_mail(
-                    f'Contact Form: {subject}',
-                    f'From: {name} ({email})\n\n{message}',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [settings.DEFAULT_FROM_EMAIL],
-                    fail_silently=True
-                )
-                messages.success(request, 'Thank you for your message! We will get back to you soon.')
-                return redirect('contact')
-            except Exception:
-                messages.success(request, 'Thank you for your message! We will get back to you soon.')
-                return redirect('contact')
+            # Send email using centralized email service
+            send_contact_form_email({
+                "name": name,
+                "email": email,
+                "subject": subject,
+                "message": message,
+            })
+            messages.success(request, "Thank you for your message! We will get back to you soon.")
+            return redirect("contact")
         else:
             messages.error(request, 'Please fill in all fields.')
 

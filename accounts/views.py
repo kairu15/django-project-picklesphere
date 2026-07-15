@@ -2,13 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
 from django.urls import reverse
+from django.http import JsonResponse
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
@@ -21,21 +19,20 @@ from .forms import (
 )
 from .models import User, UserActivity
 from .decorators import admin_required, staff_or_admin_required, user_required
+from .otp_utils import create_and_send_otp, verify_otp_code, OTP_EXPIRY_MINUTES
 from notifications.models import Notification
 from notifications.email_utils import (
-    send_password_reset_email,
     send_welcome_email,
     send_account_update_email,
     send_password_changed_email,
     send_account_suspension_email,
     send_account_reactivation_email,
-    send_account_deletion_email,
     send_login_security_alert_email,
 )
 
 
 def password_reset_request(request):
-    """Handle forgot password - send reset link to email."""
+    """Handle forgot password - send OTP to email."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -45,20 +42,26 @@ def password_reset_request(request):
             email = form.cleaned_data['email']
             try:
                 user = User.objects.get(email__iexact=email, is_active=True)
-                token_generator = PasswordResetTokenGenerator()
-                token = token_generator.make_token(user)
-                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-                reset_url = request.build_absolute_uri(
-                    reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
+                ip = request.META.get('REMOTE_ADDR')
+                success, otp_obj, error = create_and_send_otp(
+                    email=email,
+                    purpose='password_reset',
+                    user=user,
+                    ip_address=ip,
+                    request=request,
                 )
-                send_password_reset_email(user, reset_url)
+                if success:
+                    # Store email in session for OTP verification
+                    request.session['otp_email'] = email
+                    request.session['otp_purpose'] = 'password_reset'
+                    return redirect('verify_otp')
+                else:
+                    messages.error(request, error or 'Failed to send OTP. Please try again.')
+                    return redirect('password_reset_request')
             except User.DoesNotExist:
                 # Silently ignore inactive/nonexistent accounts to prevent info leakage
                 pass
-            messages.success(
-                request,
-                'If an active account exists with that email, a password reset link has been sent.'
-            )
+            messages.success(request, 'If an account exists with that email, an OTP will be sent.')
             return redirect('login')
     else:
         form = PasswordResetRequestForm()
@@ -66,21 +69,23 @@ def password_reset_request(request):
     return render(request, 'auth/password_reset_request.html', {'form': form})
 
 
-def password_reset_confirm(request, uidb64, token):
-    """Handle password reset - validate token and set new password."""
+def password_reset_confirm(request):
+    """Handle password reset after OTP verification - set new password."""
     if request.user.is_authenticated:
         return redirect('home')
 
+    # Ensure OTP was verified for password reset
+    email = request.session.get('otp_email')
+    otp_verified = request.session.get('otp_purpose') == 'password_reset' and request.session.get('otp_verified')
+    
+    if not email or not otp_verified:
+        messages.error(request, 'Please verify your email first.')
+        return redirect('password_reset_request')
+
     try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    token_generator = PasswordResetTokenGenerator()
-
-    if user is None or not token_generator.check_token(user, token):
-        messages.error(request, 'The password reset link is invalid or has expired.')
+        user = User.objects.get(email__iexact=email, is_active=True)
+    except User.DoesNotExist:
+        messages.error(request, 'Account not found.')
         return redirect('password_reset_request')
 
     if request.method == 'POST':
@@ -88,6 +93,11 @@ def password_reset_confirm(request, uidb64, token):
         if form.is_valid():
             user.set_password(form.cleaned_data['new_password1'])
             user.save()
+            # Clear session flags
+            request.session.pop('otp_email', None)
+            request.session.pop('otp_purpose', None)
+            request.session.pop('otp_verified', None)
+            
             messages.success(request, 'Your password has been reset successfully. Please sign in.')
             return redirect('login')
     else:
@@ -96,6 +106,7 @@ def password_reset_confirm(request, uidb64, token):
     return render(request, 'auth/password_reset_confirm.html', {
         'form': form,
         'validlink': True,
+        'email': email,
     })
 
 
@@ -108,19 +119,35 @@ def register_view(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.role = 'user'
+            user.is_active = False  # Deactivate until OTP is verified
             user.save()
             
-            # Create welcome notification
-            Notification.objects.create(
+            # Send OTP for email verification
+            ip = request.META.get('REMOTE_ADDR')
+            success, otp_obj, error = create_and_send_otp(
+                email=user.email,
+                purpose='registration',
                 user=user,
-                message=f"Welcome to PickleSphere, {user.first_name}! Your account has been created successfully."
+                ip_address=ip,
+                request=request,
             )
             
-            # Send welcome email
-            send_welcome_email(user)
-            
-            messages.success(request, 'Account created successfully! Please sign in.')
-            return redirect('login')
+            if success:
+                # Store registration data and email in session
+                request.session['otp_email'] = user.email
+                request.session['otp_purpose'] = 'registration'
+                request.session['reg_user_id'] = user.id
+                
+                messages.success(
+                    request,
+                    'Account created! Please check your email for the verification code.'
+                )
+                return redirect('verify_otp')
+            else:
+                # OTP sending failed, delete the user and show error
+                user.delete()
+                messages.error(request, error or 'Failed to send verification email. Please try again.')
+                return redirect('register')
     else:
         form = UserRegistrationForm()
     
@@ -147,6 +174,11 @@ def login_view(request):
             messages.success(request, f'Welcome back, {user.first_name}!')
             
             # Redirect based on role
+            # Send login security alert for new IP addresses
+            ip_address = request.META.get('REMOTE_ADDR', '')
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            send_login_security_alert_email(user, ip_address, user_agent)
+
             if user.is_super_admin():
                 return redirect('super_admin_org_dashboard')
             elif user.is_org_admin():
@@ -173,6 +205,30 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('home')
+
+
+def _get_profile_urls(user):
+    """Return dashboard_url and profile_url based on user role."""
+    if user.is_super_admin():
+        return {
+            'dashboard_url': 'super_admin_org_dashboard',
+            'profile_url': 'super_admin_profile',
+        }
+    elif user.is_org_admin():
+        return {
+            'dashboard_url': 'org_admin_dashboard',
+            'profile_url': 'org_admin_personal_profile',
+        }
+    elif user.is_org_staff():
+        return {
+            'dashboard_url': 'staff_dashboard',
+            'profile_url': 'staff_profile',
+        }
+    else:
+        return {
+            'dashboard_url': 'user_dashboard',
+            'profile_url': 'profile',
+        }
 
 
 @login_required
@@ -243,6 +299,9 @@ def profile_view(request):
         user=request.user
     ).order_by('-created_at')[:10]
     
+    # Determine role-based URL names
+    urls = _get_profile_urls(request.user)
+    
     if request.method == 'POST':
         if 'update_profile' in request.POST:
             profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user)
@@ -251,7 +310,7 @@ def profile_view(request):
                 messages.success(request, 'Profile updated successfully!')
                 # Send profile update confirmation email
                 send_account_update_email(request.user, 'Your profile has been updated successfully.')
-                return redirect('profile')
+                return redirect(urls['profile_url'])
         elif 'change_password' in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
@@ -260,7 +319,7 @@ def profile_view(request):
                 # Send password changed notification
                 send_password_changed_email(request.user)
                 messages.success(request, 'Password changed successfully!')
-                return redirect('profile')
+                return redirect(urls['profile_url'])
             else:
                 messages.error(request, 'Please correct the password errors below.')
     
@@ -280,7 +339,142 @@ def profile_view(request):
         'tournament_count': tournament_count,
         'wins': wins,
         'favorite_courts': favorite_courts,
+        'dashboard_url': urls['dashboard_url'],
+        'profile_url': urls['profile_url'],
     })
+
+
+def verify_otp_view(request):
+    """
+    OTP verification page for both registration and password reset.
+    Displays 6-digit input fields with countdown timer and resend functionality.
+    """
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    # Clean up any expired OTP records
+    from .otp_utils import cleanup_expired_otps
+    cleanup_expired_otps()
+
+    email = request.session.get('otp_email')
+    purpose = request.session.get('otp_purpose')
+
+    if not email or not purpose:
+        messages.error(request, 'No verification in progress. Please start again.')
+        if purpose == 'password_reset':
+            return redirect('password_reset_request')
+        return redirect('register')
+
+    if request.method == 'POST':
+        otp = request.POST.get('otp', '').strip()
+        
+        if not otp or len(otp) != 6 or not otp.isdigit():
+            messages.error(request, 'Please enter a valid 6-digit code.')
+            return render(request, 'auth/otp_verification.html', {
+                'email': email,
+                'purpose': purpose,
+                'expiry_minutes': OTP_EXPIRY_MINUTES,
+            })
+        
+        success, otp_obj, error = verify_otp_code(email, otp, purpose)
+        
+        if success:
+            if purpose == 'registration':
+                # Activate the user account
+                user_id = request.session.get('reg_user_id')
+                try:
+                    user = User.objects.get(id=user_id, email=email)
+                    user.is_active = True
+                    user.save(update_fields=['is_active'])
+                    
+                    # Create welcome notification
+                    Notification.objects.create(
+                        user=user,
+                        message=f"Welcome to PickleSphere, {user.first_name}! Your account has been verified."
+                    )
+                    # Send welcome email
+                    send_welcome_email(user)
+                    
+                    # Clear session
+                    request.session.pop('otp_email', None)
+                    request.session.pop('otp_purpose', None)
+                    request.session.pop('reg_user_id', None)
+                    
+                    messages.success(request, 'Email verified! Your account is now active. Please sign in.')
+                    return redirect('login')
+                except User.DoesNotExist:
+                    messages.error(request, 'Account not found. Please register again.')
+                    return redirect('register')
+            
+            elif purpose == 'password_reset':
+                # Mark OTP as verified in session, redirect to set new password
+                request.session['otp_verified'] = True
+                messages.success(request, 'Email verified! Please set a new password.')
+                return redirect('password_reset_confirm')
+        else:
+            messages.error(request, error or 'Invalid verification code.')
+    
+    return render(request, 'auth/otp_verification.html', {
+        'email': email,
+        'purpose': purpose,
+        'expiry_minutes': OTP_EXPIRY_MINUTES,
+    })
+
+
+def resend_otp_view(request):
+    """AJAX endpoint to resend OTP code with IP-based rate limiting."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+    
+    # IP-based rate limiting to prevent abuse
+    from django.core.cache import cache
+    from .otp_utils import OTP_RESEND_MAX_PER_IP, OTP_RESEND_WINDOW_MINUTES
+    
+    ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+    cache_key = f'otp_resend_ip_{ip_address}'
+    timeout = OTP_RESEND_WINDOW_MINUTES * 60
+    
+    # Atomically initialize or increment the counter
+    if not cache.add(cache_key, 1, timeout=timeout):
+        attempts = cache.incr(cache_key)
+        if attempts > OTP_RESEND_MAX_PER_IP:
+            return JsonResponse({
+                'success': False,
+                'error': f'Too many resend attempts. Please try again in {OTP_RESEND_WINDOW_MINUTES} minutes.'
+            }, status=429)
+    
+    email = request.POST.get('email', '').strip()
+    purpose = request.POST.get('purpose', '').strip()
+    
+    if not email or purpose not in ['registration', 'password_reset']:
+        return JsonResponse({'success': False, 'error': 'Invalid request.'})
+    
+    user = None
+    if purpose == 'password_reset':
+        try:
+            user = User.objects.get(email__iexact=email, is_active=True)
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Account not found.'})
+    elif purpose == 'registration':
+        user_id = request.session.get('reg_user_id')
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                pass
+    
+    ip = request.META.get('REMOTE_ADDR')
+    success, otp_obj, error = create_and_send_otp(
+        email=email,
+        purpose=purpose,
+        user=user,
+        ip_address=ip,
+    )
+    
+    if success:
+        return JsonResponse({'success': True})
+    else:
+        return JsonResponse({'success': False, 'error': error or 'Failed to resend OTP.'})
 
 
 @login_required
@@ -348,7 +542,11 @@ def user_edit_view(request, user_id):
     if request.method == 'POST':
         form = AdminUserUpdateForm(request.POST, instance=user)
         if form.is_valid():
+            was_active = user.is_active
             form.save()
+            # Send reactivation email if user was reactivated
+            if not was_active and user.is_active:
+                send_account_reactivation_email(user)
             messages.success(request, f'User {user.username} updated successfully!')
             if request.user.is_super_admin():
                 return redirect('super_admin_user_list')
@@ -413,12 +611,12 @@ def user_delete_view(request, user_id):
     
     user_to_delete.is_active = False
     user_to_delete.save(update_fields=['is_active'])
-    
+
     # Send account suspension notification
     send_account_suspension_email(user_to_delete, 'Account deactivated by admin')
-    
+
     messages.success(request, f'User {user_to_delete.username} deactivated successfully.')
-    
+
     # If user has an org_admin account, notify them
     if user_to_delete.organization:
         org_admins = User.objects.filter(organization=user_to_delete.organization, role='org_admin')

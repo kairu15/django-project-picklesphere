@@ -845,6 +845,14 @@ body.sidebar-open {
             </div>
 
             <div class="nav-section">
+                <div class="nav-section-title">My Account</div>
+                <a href="{% url 'super_admin_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'super_admin_profile' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
                 <div class="nav-section-title">System Management</div>
                 <a href="{% url 'super_admin_user_list' %}" class="nav-link {% if 'super_admin_user' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-users"></i>
@@ -873,6 +881,14 @@ body.sidebar-open {
                 <a href="{% url 'super_admin_contact_messages' %}" class="nav-link {% if 'super_admin_contact_message' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-inbox"></i>
                     <span>Contact Messages</span>
+                </a>
+                <a href="{% url 'super_admin_smtp_settings' %}" class="nav-link {% if 'super_admin_smtp' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-cog"></i>
+                    <span>SMTP Settings</span>
+                </a>
+                <a href="{% url 'super_admin_email_logs' %}" class="nav-link {% if 'super_admin_email_log' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-envelope-open-text"></i>
+                    <span>Email Logs</span>
                 </a>
             </div>
 
@@ -1107,6 +1123,14 @@ body.sidebar-open {
             </div>
 
             <div class="nav-section">
+                <div class="nav-section-title">My Account</div>
+                <a href="{% url 'org_admin_personal_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_personal_profile' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
                 <div class="nav-section-title">Organization Admin</div>
                 <a href="{% url 'org_admin_manage_staff' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_manage_staff' %}active{% endif %}">
                     <i class="fas fa-users-gear"></i>
@@ -1181,6 +1205,14 @@ body.sidebar-open {
                 <a href="{% url 'match_list' %}" class="nav-link {% if 'match' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-trophy"></i>
                     <span>All Matches</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">My Account</div>
+                <a href="{% url 'staff_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_profile' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
                 </a>
             </div>
 
@@ -1418,7 +1450,15 @@ body.sidebar-open {
                         <i class="fas fa-user"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        {% if user.is_super_admin %}
+                        <li><a class="dropdown-item" href="{% url 'super_admin_profile' %}"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
+                        {% elif user.is_org_admin %}
+                        <li><a class="dropdown-item" href="{% url 'org_admin_personal_profile' %}"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
+                        {% elif user.is_org_staff %}
+                        <li><a class="dropdown-item" href="{% url 'staff_profile' %}"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
+                        {% else %}
+                        <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
+                        {% endif %}
                         <li><a class="dropdown-item" href="{% url 'user_dashboard' %}"><i class="fas fa-th-large me-2"></i>Dashboard</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>

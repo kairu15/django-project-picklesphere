@@ -650,9 +650,20 @@ def admin_schedule_matches(request, pk):
                     
                     court_idx += 1
             
-            # Send schedule update emails to all approved participants
+            # Send schedule update and match reminder emails to all approved participants
             for reg in tournament.registrations.filter(status='approved'):
                 send_tournament_schedule_update_email(reg.user, tournament, f'{unscheduled.count()} matches have been scheduled.')
+                # Send match reminders to players who have matches scheduled
+                player_matches = Match.objects.filter(
+                    tournament=tournament,
+                    scheduled_date__isnull=False
+                ).filter(
+                    Q(player1=reg.user) | Q(player2=reg.user) |
+                    Q(team1__player1=reg.user) | Q(team1__player2=reg.user) |
+                    Q(team2__player1=reg.user) | Q(team2__player2=reg.user)
+                )
+                for match in player_matches:
+                    send_tournament_match_reminder_email(reg.user, match)
             
             messages.success(request, f'Scheduled {unscheduled.count()} matches!')
             return redirect('admin_match_list', pk=pk)

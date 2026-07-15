@@ -113,6 +113,71 @@ class SmtpConfiguration(models.Model):
         return self.sender_email
 
 
+class EmailOTP(models.Model):
+    """
+    Stores One-Time Passwords for email verification (registration & password reset).
+    OTPs are hashed before storage for security.
+    """
+    PURPOSE_CHOICES = (
+        ('registration', 'Registration'),
+        ('password_reset', 'Password Reset'),
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, help_text='User (may be null during registration before user is fully created)'
+    )
+    email = models.EmailField()
+    otp_hash = models.CharField(max_length=128, help_text='SHA-256 hash of the OTP code')
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
+    is_used = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0, help_text='Number of verification attempts')
+    max_attempts = models.IntegerField(default=5, help_text='Max failed attempts before OTP is invalidated')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'email_otps'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['email', 'purpose', '-created_at']),
+            models.Index(fields=['expires_at']),
+        ]
+        verbose_name = 'Email OTP'
+        verbose_name_plural = 'Email OTPs'
+
+    def __str__(self):
+        return f"OTP for {self.email} ({self.get_purpose_display()})"
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_valid(self):
+        return not self.is_used and not self.is_expired and self.attempts < self.max_attempts
+
+    def verify_otp(self, otp_code):
+        """Verify the given OTP code against the stored hash."""
+        import hashlib
+        self.attempts += 1
+        if self.attempts >= self.max_attempts:
+            self.save(update_fields=['attempts'])
+            return False
+        
+        hashed = hashlib.sha256(otp_code.encode()).hexdigest()
+        if hashed == self.otp_hash and self.is_valid:
+            self.is_used = True
+            self.used_at = timezone.now()
+            self.save(update_fields=['is_used', 'used_at', 'attempts'])
+            return True
+        
+        self.save(update_fields=['attempts'])
+        return False
+
+
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
         ('info', 'Info'),

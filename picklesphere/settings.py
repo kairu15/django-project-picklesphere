@@ -9,6 +9,14 @@ from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Clean up empty env vars that would override .env values
+# (System env vars with empty values take priority over .env via decouple)
+for _key in ['EMAIL_BACKEND', 'EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_USE_TLS',
+             'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD',
+             'DEFAULT_FROM_EMAIL', 'DEFAULT_FROM_NAME']:
+    if _key in os.environ and not os.environ[_key]:
+        del os.environ[_key]
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

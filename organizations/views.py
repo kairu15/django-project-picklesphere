@@ -28,6 +28,8 @@ from notifications.utils import (
     notify_org_owned_users_org_status_change,
     notify_super_admin_new_organization,
 )
+import uuid
+
 from notifications.email_utils import (
     send_org_registration_confirmation_email,
     send_org_status_change_email,
@@ -370,7 +372,6 @@ def super_admin_organization_create(request):
             
             # Send org admin created email if an admin was assigned
             if org_admin_user:
-                import uuid
                 temp_password = str(uuid.uuid4())[:12]
                 org_admin_user.set_password(temp_password)
                 org_admin_user.save()

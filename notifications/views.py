@@ -10,7 +10,7 @@ from datetime import datetime
 from accounts.decorators import admin_required, super_admin_required
 from accounts.models import User
 from organizations.models import Organization
-from .models import Notification, NotificationPreference, BroadcastMessage, NotificationTemplate
+from .models import Notification, NotificationPreference, BroadcastMessage, NotificationTemplate, SmtpConfiguration, EmailLog
 from .utils import broadcast_to_users, _get_notification_url_name
 
 

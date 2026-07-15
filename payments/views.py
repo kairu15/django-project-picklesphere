@@ -469,6 +469,7 @@ def checkout_page_view(request, checkout_token):
                     )
                     
                     send_payment_confirmed_email(request.user, payment)
+                    send_payment_receipt_email(request.user, payment)
 
                     request.session.pop('checkout_data', None)
 
@@ -581,8 +582,9 @@ def payment_checkout_view(request, reservation_id):
                 message=f"Payment successful for reservation #{reservation.id}. Your reservation is confirmed!"
             )
             
-            # Send payment confirmation email
+            # Send payment confirmation and receipt emails
             send_payment_confirmed_email(request.user, payment)
+            send_payment_receipt_email(request.user, payment)
             
             messages.success(request, 'Payment successful! Your reservation is confirmed.')
             return redirect('reservation_detail', reservation_id=reservation.id)

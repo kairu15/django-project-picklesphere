@@ -3,7 +3,10 @@ Email utility module for PickleSphere transactional emails.
 Uses the centralized email_service for reliable delivery with retry logic and logging.
 """
 from django.conf import settings
-from .email_service import send_email_to_user, send_email
+from .email_service import send_email_to_user, send_email, validate_email_address
+
+
+# ==================== AUTHENTICATION EMAILS
 
 
 # ==================== AUTHENTICATION EMAILS ====================
@@ -226,6 +229,34 @@ def send_org_admin_created_email(user, organization, temp_password=''):
 
 
 # ==================== RESERVATION EMAILS ====================
+
+def send_reservation_reminder_email(user, reservation):
+    """
+    Send a reminder email 24 hours before a confirmed reservation.
+    """
+    return send_email_to_user(
+        user=user,
+        subject=f'Reminder: Your Court Reservation Tomorrow!',
+        html_template='emails/reservation_reminder.html',
+        context={
+            'title': 'Reservation Reminder',
+            'reservation': reservation,
+            'court_name': reservation.court.name,
+            'court_location': getattr(reservation.court, 'location', ''),
+            'date': reservation.date.strftime('%A, %B %d, %Y'),
+            'start_time': reservation.start_time.strftime('%I:%M %p'),
+            'end_time': reservation.end_time.strftime('%I:%M %p'),
+            'duration_hours': float(reservation.duration_hours),
+            'reservation_id': reservation.id,
+            'action_url': f'{settings.SITE_URL}/user/reservations/{reservation.id}/',
+            'action_text': 'View Reservation',
+            'cancel_url': f'{settings.SITE_URL}/user/reservations/{reservation.id}/cancel/',
+        },
+        email_type='reservation_reminder',
+        related_object_id=str(reservation.id),
+        related_object_type='Reservation',
+    )
+
 
 def send_reservation_submitted_email(user, reservation):
     """Send email when reservation is submitted (pending)."""
@@ -689,7 +720,6 @@ def send_contact_form_email(contact_data):
     
     # Send acknowledgment to the submitter
     if validate_email_address(contact_data.get('email', '')):
-        from .email_service import validate_email_address
         send_email(
             recipient_email=contact_data['email'],
             subject='We Received Your Message',

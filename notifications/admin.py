@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Notification, NotificationPreference, BroadcastMessage, NotificationTemplate, EmailLog, SmtpConfiguration
+from .models import Notification, NotificationPreference, BroadcastMessage, NotificationTemplate, EmailLog, SmtpConfiguration, EmailOTP
 
 
 @admin.register(Notification)
@@ -95,3 +95,28 @@ class SmtpConfigurationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(EmailOTP)
+class EmailOTPAdmin(admin.ModelAdmin):
+    list_display = ['email', 'purpose', 'is_used', 'attempts', 'max_attempts', 'created_at', 'expires_at', 'ip_address']
+    list_filter = ['purpose', 'is_used', 'created_at', 'expires_at']
+    search_fields = ['email', 'ip_address']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['email', 'otp_hash', 'purpose', 'is_used', 'attempts', 'max_attempts',
+                       'created_at', 'expires_at', 'used_at', 'ip_address', 'user']
+    fieldsets = (
+        ('User', {'fields': ['user', 'email']}),
+        ('OTP', {'fields': ['otp_hash', 'purpose']}),
+        ('Status', {'fields': ['is_used', 'attempts', 'max_attempts', 'created_at', 'expires_at', 'used_at']}),
+        ('Metadata', {'fields': ['ip_address']}),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser

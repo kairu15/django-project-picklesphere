@@ -1,8 +1,13 @@
 from django.urls import path
+from django.urls import path
 from . import views
 from . import cms_views
+from accounts import views as accounts_views
 
 urlpatterns = [
+    # Profile
+    path('profile/', accounts_views.profile_view, name='super_admin_profile'),
+
     # Analytics Dashboard
     path('analytics/', views.admin_dashboard_view, name='super_admin_analytics'),
     path('analytics/export/', views.dashboard_export_view, name='super_admin_analytics_export'),
