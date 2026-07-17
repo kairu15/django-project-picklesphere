@@ -2370,34 +2370,6 @@ def check_pending_rating_view(request):
 # Deprecated testimonial views - replaced by rating system
 # Kept for reference but no longer used in URLs
 @login_required
-def submit_testimonial_view(request):
-    """DEPRECATED: Use submit_rating_view instead"""
-    messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('user_dashboard')
-
-
-@login_required
-def my_testimonials_view(request):
-    """DEPRECATED: Testimonials replaced by rating system"""
-    messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('user_dashboard')
-
-
-@login_required
-def delete_my_testimonial_view(request, testimonial_id):
-    """DEPRECATED: Testimonials replaced by rating system"""
-    messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('user_dashboard')
-
-
-@login_required
-def admin_approve_testimonial_view(request, testimonial_id):
-    """DEPRECATED: Testimonials replaced by rating system"""
-    messages.info(request, 'Testimonials have been replaced by our new rating system.')
-    return redirect('super_admin_homepage')
-
-
-@login_required
 @admin_required
 def contact_messages_view(request):
     """Admin view to display all contact messages"""

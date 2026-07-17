@@ -635,14 +635,13 @@ def super_admin_dashboard(request):
     fourteen_days_ago = today - timedelta(days=13)
     daily_revenues = Payment.objects.filter(
         status='paid',
-        created_at__date__gte=fourteen_days_ago
-    ).extra(
-        select={'day': 'DATE(created_at)'}
+        created_at__date__gte=fourteen_days_ago    ).extra(
+        select={'day': 'DATE(payments.created_at)'}
     ).values('day').annotate(
         total=Sum('amount'),
         count=Count('id')
     ).order_by('day')
-    
+
     revenue_trend_labels = []
     revenue_trend_values = []
     booking_trend_values = []
@@ -752,7 +751,7 @@ def org_admin_analytics_view(request):
         status='paid',
         created_at__date__gte=fourteen_days_ago
     ).extra(
-        select={'day': 'DATE(created_at)'}
+        select={'day': 'DATE(payments.created_at)'}
     ).values('day').annotate(
         total=Sum('amount'),
         count=Count('id')

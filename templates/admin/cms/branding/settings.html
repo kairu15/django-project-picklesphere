@@ -2,6 +2,32 @@
 {% load static %}
 {% block title %}Website Branding CMS{% endblock %}
 {% block page_title %}<i class="fas fa-paint-brush me-2"></i>Website Branding{% endblock %}
+{% block extra_css %}
+<style>
+.color-input-group { display: flex; align-items: center; gap: 0.5rem; }
+.color-input-group input[type="color"] { width: 40px; height: 40px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+.color-input-group input[type="text"] { flex: 1; }
+.icon-picker-trigger-btn { cursor: pointer; transition: all 0.2s ease; border-radius: 8px; }
+.icon-picker-trigger-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(59,122,140,0.2); }
+.brand-preview-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 2rem;
+    text-align: center;
+}
+.brand-preview-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
@@ -13,12 +39,12 @@
                 </a>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="brandingForm">
                     {% csrf_token %}
                     <div class="row g-4">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Brand Name</label>
-                            <input type="text" name="brand_name" class="form-control form-control-lg" value="{{ branding.brand_name }}" placeholder="PickleSphere">
+                            <input type="text" name="brand_name" class="form-control form-control-lg" value="{{ branding.brand_name }}" placeholder="PickleSphere" id="brandName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Website Logo <small class="text-muted">(200x200, square)</small></label>
@@ -100,18 +126,42 @@
     </div>
     <div class="col-lg-4">
         <div class="admin-card mb-4">
-            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-info-circle me-2"></i>Tips</h5></div>
+            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-eye me-2"></i>Brand Preview</h5></div>
             <div class="card-body">
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Website Logo</strong>: 200x200px square PNG with transparent bg</li>
-                    <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Header Logo</strong>: 32x32px small logo for navbar</li>
-                    <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Footer Logo</strong>: 48x48px logo for footer</li>
-                    <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Favicon</strong>: 32x32px .ico or .png for browser tabs</li>
-                    <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Login Logo</strong>: 200x200px centered on login page</li>
+                <div class="brand-preview-card">
+                    <div class="brand-preview-logo" id="brandPreviewLogo" style="background:#3B7A8C;color:#fff;">
+                        <i class="fas fa-table-tennis"></i>
+                    </div>
+                    <h5 id="brandPreviewName" style="color:#1a3a42;font-weight:700;">{{ branding.brand_name|default:'PickleSphere' }}</h5>
+                    <p style="color:#6c757d;font-size:0.85rem;margin-bottom:0;">Brand identity preview</p>
+                </div>
+                <hr>
+                <h6 class="fw-bold"><i class="fas fa-info-circle me-2"></i>Tips</h6>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Website Logo</strong>: 200x200px square PNG with transparent bg</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Header Logo</strong>: 32x32px small logo for navbar</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Footer Logo</strong>: 48x48px logo for footer</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>Favicon</strong>: 32x32px .ico or .png for browser tabs</li>
                     <li class="mb-0"><i class="fas fa-info-circle text-info me-2"></i>Uploaded images are optimized automatically</li>
                 </ul>
+                <hr>
+                <div class="alert alert-info mb-0 py-2 small">
+                    <i class="fas fa-palette me-1"></i>Brand colors (primary, accent, etc.) are managed in <a href="{% url 'super_admin_global_design' %}" class="alert-link">Global Design Settings</a>.
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var brandNameInput = document.getElementById('brandName');
+    var brandPreview = document.getElementById('brandPreviewName');
+    if (brandNameInput && brandPreview) {
+        brandNameInput.addEventListener('input', function() {
+            brandPreview.textContent = this.value || 'PickleSphere';
+        });
+    }
+});
+</script>
 {% endblock %}

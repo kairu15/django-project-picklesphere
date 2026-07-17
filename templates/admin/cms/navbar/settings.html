@@ -2,15 +2,34 @@
 {% load static %}
 {% block title %}Navigation Bar CMS{% endblock %}
 {% block page_title %}<i class="fas fa-bars me-2"></i>Navigation Bar CMS{% endblock %}
+{% block extra_css %}
+<style>
+.color-input-group { display: flex; align-items: center; gap: 0.5rem; }
+.color-input-group input[type="color"] { width: 40px; height: 40px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+.color-input-group input[type="text"] { flex: 1; }
+.navbar-preview {
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    min-height: 56px;
+}
+.navbar-preview a { text-decoration: none; transition: color 0.2s ease; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
         <div class="admin-card mb-4">
             <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-cog me-2"></i>Navbar Settings</h5></div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="navbarForm">
                     {% csrf_token %}
-                    <div class="row g-3">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-eye me-2"></i>General Settings</h6>
+                    <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="form-check form-switch">
                                 <input type="checkbox" name="is_sticky" class="form-check-input" id="isSticky" {% if settings.is_sticky %}checked{% endif %}>
@@ -31,7 +50,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Brand Text</label>
-                            <input type="text" name="brand_text" class="form-control" value="{{ settings.brand_text }}">
+                            <input type="text" name="brand_text" class="form-control" value="{{ settings.brand_text }}" placeholder="PickleSphere" id="brandText">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Container Style</label>
@@ -40,25 +59,41 @@
                                 <option value="container-fluid" {% if settings.container_style == 'container-fluid' %}selected{% endif %}>Full Width</option>
                             </select>
                         </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3"><i class="fas fa-palette me-2"></i>Styling</h6>
+                    <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Background Color</label>
-                            <input type="color" name="background_color" class="form-control form-control-color" value="{{ settings.background_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="background_color" value="{{ settings.background_color }}" id="navBgColor">
+                                <input type="text" class="form-control" value="{{ settings.background_color }}" id="navBgColorText">
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Text Color</label>
-                            <input type="text" name="text_color" class="form-control" value="{{ settings.text_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="text_color" value="{{ settings.text_color }}" id="navTextColor">
+                                <input type="text" class="form-control" value="{{ settings.text_color }}" id="navTextColorText">
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Hover Color</label>
-                            <input type="text" name="text_color_hover" class="form-control" value="{{ settings.text_color_hover }}">
+                            <div class="color-input-group">
+                                <input type="color" name="text_color_hover" value="{{ settings.text_color_hover }}" id="navHoverColor">
+                                <input type="text" class="form-control" value="{{ settings.text_color_hover }}" id="navHoverColorText">
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">CTA Button Text</label>
-                            <input type="text" name="cta_button_text" class="form-control" value="{{ settings.cta_button_text }}">
+                            <input type="text" name="cta_button_text" class="form-control" value="{{ settings.cta_button_text }}" placeholder="Get Started" id="ctaText">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">CTA Button Color</label>
-                            <input type="color" name="cta_button_color" class="form-control form-control-color" value="{{ settings.cta_button_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="cta_button_color" value="{{ settings.cta_button_color }}" id="ctaColor">
+                                <input type="text" class="form-control" value="{{ settings.cta_button_color }}" id="ctaColorText">
+                            </div>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
@@ -68,7 +103,7 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Settings</button>
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save me-2"></i>Save Settings</button>
                     </div>
                 </form>
             </div>
@@ -81,12 +116,18 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>Order</th><th>Title</th><th>Type</th><th>Position</th><th>Auth</th><th>Status</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Order</th><th>Title</th><th>Icon</th><th>Type</th><th>Position</th><th>Auth</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody>
                             {% for item in menu_items %}
                             <tr>
                                 <td>{{ item.display_order }}</td>
-                                <td><strong>{{ item.title }}</strong></td>
+                                <td>
+                                    <strong>
+                                        {% if item.icon_class %}<i class="{{ item.icon_class }} me-1"></i>{% endif %}
+                                        {{ item.title }}
+                                    </strong>
+                                </td>
+                                <td><small class="text-muted">{{ item.icon_class|default:'—' }}</small></td>
                                 <td><span class="badge bg-secondary">{{ item.get_link_type_display }}</span></td>
                                 <td>{{ item.get_menu_position_display }}</td>
                                 <td>{% if item.requires_auth %}<span class="badge bg-info">Login</span>{% endif %}{% if item.hide_if_auth %}<span class="badge bg-warning">Hidden</span>{% endif %}</td>
@@ -97,7 +138,7 @@
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="7" class="text-center py-4 text-muted">No menu items yet. Add one to customize the navigation bar.</td></tr>
+                            <tr><td colspan="8" class="text-center py-4 text-muted">No menu items yet. Add one to customize the navigation bar.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -105,5 +146,73 @@
             </div>
         </div>
     </div>
+    <div class="col-lg-4">
+        <div class="admin-card mb-4">
+            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-eye me-2"></i>Live Preview</h5></div>
+            <div class="card-body p-0">
+                <div class="navbar-preview" id="navbarPreview">
+                    <div class="d-flex align-items-center gap-3">
+                        <span id="previewBrand" style="font-weight:700;">{{ settings.brand_text|default:'PickleSphere' }}</span>
+                        <a href="#" id="previewLink1" style="font-size:0.9rem;">Home</a>
+                        <a href="#" id="previewLink2" style="font-size:0.9rem;">Courts</a>
+                        <a href="#" id="previewLink3" style="font-size:0.9rem;">Tournaments</a>
+                    </div>
+                    <button id="previewCta" class="btn btn-sm" style="border-radius:6px;padding:0.375rem 1rem;font-size:0.8rem;border:none;color:#fff;">{{ settings.cta_button_text|default:'Get Started' }}</button>
+                </div>
+                <div class="p-3">
+                    <p class="text-muted small mb-0"><i class="fas fa-info-circle me-1"></i>Preview updates in real-time as you change colors and content above.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateNavPreview() {
+        const preview = document.getElementById('navbarPreview');
+        const bgColor = document.getElementById('navBgColor').value;
+        const textColor = document.getElementById('navTextColor').value;
+        const hoverColor = document.getElementById('navHoverColor').value;
+        const ctaColor = document.getElementById('ctaColor').value;
+        
+        preview.style.background = bgColor;
+        preview.style.color = textColor;
+        
+        document.getElementById('previewBrand').textContent = document.querySelector('[name="brand_text"]').value || 'PickleSphere';
+        document.getElementById('previewBrand').style.color = textColor;
+        
+        document.querySelectorAll('#navbarPreview a').forEach(a => {
+            a.style.color = textColor;
+        });
+        
+        const ctaBtn = document.getElementById('previewCta');
+        ctaBtn.style.background = ctaColor;
+        ctaBtn.textContent = document.querySelector('[name="cta_button_text"]').value || 'Get Started';
+    }
+    
+    // Sync color pickers with text inputs
+    document.querySelectorAll('.color-input-group input[type="color"]').forEach(picker => {
+        picker.addEventListener('input', function() {
+            const textInput = this.parentElement.querySelector('input[type="text"]');
+            if (textInput) textInput.value = this.value;
+            updateNavPreview();
+        });
+    });
+    document.querySelectorAll('.color-input-group input[type="text"]').forEach(text => {
+        text.addEventListener('input', function() {
+            const colorPicker = this.parentElement.querySelector('input[type="color"]');
+            if (colorPicker && /^#[0-9a-f]{6}$/i.test(this.value)) colorPicker.value = this.value;
+            updateNavPreview();
+        });
+    });
+    
+    document.querySelectorAll('#navbarForm input, #navbarForm select').forEach(el => {
+        el.addEventListener('input', updateNavPreview);
+        el.addEventListener('change', updateNavPreview);
+    });
+    
+    updateNavPreview();
+});
+</script>
 {% endblock %}

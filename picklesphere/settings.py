@@ -29,10 +29,19 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+# Add ngrok domains for external tunneling
+ALLOWED_HOSTS += ['*.ngrok-free.app', '*.ngrok-free.dev', '*.ngrok.io', '*.ngrok.app']
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8001',
     'http://localhost:8001',
+]
+# Add ngrok HTTPS origins for CSRF protection
+CSRF_TRUSTED_ORIGINS += [
+    'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev',
+    'https://*.ngrok.io',
+    'https://*.ngrok.app',
 ]
 
 # Application definition

@@ -2,13 +2,29 @@
 {% load static %}
 {% block title %}Scroll to Top Button CMS{% endblock %}
 {% block page_title %}<i class="fas fa-arrow-up me-2"></i>Scroll to Top Button{% endblock %}
+{% block extra_css %}
+<style>
+.color-input-group { display: flex; align-items: center; gap: 0.5rem; }
+.color-input-group input[type="color"] { width: 40px; height: 40px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+.color-input-group input[type="text"] { flex: 1; }
+.icon-picker-trigger-btn {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+.icon-picker-trigger-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(59,122,140,0.2);
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
         <div class="admin-card mb-4">
             <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-cog me-2"></i>Scroll to Top Settings</h5></div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="scrollTopForm">
                     {% csrf_token %}
                     <h6 class="fw-bold mb-3"><i class="fas fa-eye me-2"></i>Visibility</h6>
                     <div class="row g-3 mb-4">
@@ -31,14 +47,14 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Distance from Right</label>
                             <div class="input-group">
-                                <input type="text" name="position_right" class="form-control" value="{{ settings.position_right }}" placeholder="2rem">
+                                <input type="text" name="position_right" class="form-control" value="{{ settings.position_right }}" placeholder="2rem" id="posRight">
                                 <span class="input-group-text"><i class="fas fa-arrow-right"></i></span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Distance from Bottom</label>
                             <div class="input-group">
-                                <input type="text" name="position_bottom" class="form-control" value="{{ settings.position_bottom }}" placeholder="2rem">
+                                <input type="text" name="position_bottom" class="form-control" value="{{ settings.position_bottom }}" placeholder="2rem" id="posBottom">
                                 <span class="input-group-text"><i class="fas fa-arrow-down"></i></span>
                             </div>
                         </div>
@@ -48,7 +64,7 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Button Size</label>
-                            <select name="button_size" class="form-select">
+                            <select name="button_size" class="form-select" id="btnSize">
                                 <option value="sm" {% if settings.button_size == 'sm' %}selected{% endif %}>Small (36px)</option>
                                 <option value="md" {% if settings.button_size == 'md' %}selected{% endif %}>Medium (44px) - Default</option>
                                 <option value="lg" {% if settings.button_size == 'lg' %}selected{% endif %}>Large (52px)</option>
@@ -56,12 +72,22 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Border Radius</label>
-                            <input type="text" name="border_radius" class="form-control" value="{{ settings.border_radius }}" placeholder="50%">
+                            <input type="text" name="border_radius" class="form-control" value="{{ settings.border_radius }}" placeholder="50%" id="btnBorderRadius">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Icon Class</label>
-                            <input type="text" name="icon_class" class="form-control" value="{{ settings.icon_class }}" placeholder="fas fa-arrow-up">
-                            <small class="text-muted">Font Awesome class</small>
+                            <label class="form-label fw-semibold">Button Icon</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-preview-wrapper" data-icon-preview-for="scrollTopIcon">
+                                    <div class="icon-preview-container" style="width:36px;height:36px;">
+                                        <i class="{{ settings.icon_class|default:'fas fa-arrow-up' }}"></i>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary icon-picker-trigger-btn btn-sm flex-fill"
+                                        onclick="initIconPicker('scrollTopIcon', '{{ settings.icon_class|default:'fas fa-arrow-up' }}')">
+                                    <i class="fas fa-icons me-1"></i>Pick Icon
+                                </button>
+                            </div>
+                            <input type="hidden" name="icon_class" id="scrollTopIcon" value="{{ settings.icon_class|default:'fas fa-arrow-up' }}">
                         </div>
                     </div>
                     <hr>
@@ -69,30 +95,30 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Background</label>
-                            <div class="d-flex gap-2">
-                                <input type="color" name="background_color" class="form-control form-control-color" value="{{ settings.background_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
-                                <input type="text" class="form-control" value="{{ settings.background_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="background_color" value="{{ settings.background_color }}" id="bgColor">
+                                <input type="text" class="form-control" value="{{ settings.background_color }}" id="bgColorText">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Hover Background</label>
-                            <div class="d-flex gap-2">
-                                <input type="color" name="hover_background_color" class="form-control form-control-color" value="{{ settings.hover_background_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
-                                <input type="text" class="form-control" value="{{ settings.hover_background_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="hover_background_color" value="{{ settings.hover_background_color }}" id="hoverBgColor">
+                                <input type="text" class="form-control" value="{{ settings.hover_background_color }}" id="hoverBgColorText">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Icon Color</label>
-                            <div class="d-flex gap-2">
-                                <input type="color" name="icon_color" class="form-control form-control-color" value="{{ settings.icon_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
-                                <input type="text" class="form-control" value="{{ settings.icon_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="icon_color" value="{{ settings.icon_color }}" id="iconColor">
+                                <input type="text" class="form-control" value="{{ settings.icon_color }}" id="iconColorText">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Hover Icon Color</label>
-                            <div class="d-flex gap-2">
-                                <input type="color" name="hover_icon_color" class="form-control form-control-color" value="{{ settings.hover_icon_color }}" style="width:50px;flex-shrink:0;" oninput="this.nextElementSibling.value=this.value">
-                                <input type="text" class="form-control" value="{{ settings.hover_icon_color }}">
+                            <div class="color-input-group">
+                                <input type="color" name="hover_icon_color" value="{{ settings.hover_icon_color }}" id="hoverIconColor">
+                                <input type="text" class="form-control" value="{{ settings.hover_icon_color }}" id="hoverIconColorText">
                             </div>
                         </div>
                     </div>
@@ -101,11 +127,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Default Shadow</label>
-                            <input type="text" name="shadow" class="form-control" value="{{ settings.shadow }}" placeholder="0 4px 16px rgba(0,0,0,0.2)">
+                            <input type="text" name="shadow" class="form-control" value="{{ settings.shadow }}" placeholder="0 4px 16px rgba(0,0,0,0.2)" id="btnShadow">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Hover Shadow</label>
-                            <input type="text" name="hover_shadow" class="form-control" value="{{ settings.hover_shadow }}" placeholder="0 6px 24px rgba(0,0,0,0.3)">
+                            <input type="text" name="hover_shadow" class="form-control" value="{{ settings.hover_shadow }}" placeholder="0 6px 24px rgba(0,0,0,0.3)" id="btnHoverShadow">
                         </div>
                     </div>
                     <hr>
@@ -113,7 +139,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Show After Scrolling (px)</label>
-                            <input type="number" name="show_after_scroll" class="form-control" value="{{ settings.show_after_scroll }}" placeholder="300" min="0" step="50">
+                            <input type="number" name="show_after_scroll" class="form-control" value="{{ settings.show_after_scroll }}" placeholder="300" min="0" step="50" id="showAfterScroll">
                             <small class="text-muted">Pixels to scroll before button appears</small>
                         </div>
                         <div class="col-md-6">
@@ -131,18 +157,21 @@
     </div>
     <div class="col-lg-4">
         <div class="admin-card mb-4">
-            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-eye me-2"></i>Button Preview</h5></div>
+            <div class="admin-card-header"><h5 class="admin-card-title"><i class="fas fa-eye me-2"></i>Live Preview</h5></div>
             <div class="card-body text-center">
-                <div style="position:relative;height:180px;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%);border-radius:12px;overflow:hidden;">
-                    <div style="width:{{ settings.size_px }};height:{{ settings.size_px }};background:{{ settings.background_color }};color:{{ settings.icon_color }};border-radius:{{ settings.border_radius }};display:flex;align-items:center;justify-content:center;box-shadow:{{ settings.shadow }};margin-bottom:2rem;transition:all 0.3s ease;font-size:{{ settings.icon_size }};" onmouseover="this.style.background='{{ settings.hover_background_color }}';this.style.color='{{ settings.hover_icon_color }}';this.style.boxShadow='{{ settings.hover_shadow }}';this.style.transform='translateY(-3px)';" onmouseout="this.style.background='{{ settings.background_color }}';this.style.color='{{ settings.icon_color }}';this.style.boxShadow='{{ settings.shadow }}';this.style.transform='translateY(0)';">
-                        <i class="{{ settings.icon_class|default:'fas fa-arrow-up' }}"></i>
+                <div style="position:relative;height:200px;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%);border-radius:12px;overflow:hidden;">
+                    <div id="scrollTopPreview"
+                         style="display:flex;align-items:center;justify-content:center;margin-bottom:2rem;transition:all 0.3s ease;cursor:pointer;"
+                         onmouseover="this.style.background=document.getElementById('hoverBgColor').value;this.style.color=document.getElementById('hoverIconColor').value;this.style.boxShadow=document.getElementById('btnHoverShadow').value;this.style.transform='translateY(-3px)';"
+                         onmouseout="this.style.background=document.getElementById('bgColor').value;this.style.color=document.getElementById('iconColor').value;this.style.boxShadow=document.getElementById('btnShadow').value;this.style.transform='translateY(0)';">
+                        <i id="previewIcon" class="{{ settings.icon_class|default:'fas fa-arrow-up' }}"></i>
                     </div>
                 </div>
                 <div class="text-start mt-3">
-                    <p class="mb-1"><strong>Info:</strong></p>
-                    <ul class="small text-muted ps-3 mb-0">
+                    <p class="mb-1"><strong>Current Settings:</strong></p>
+                    <ul class="small text-muted ps-3 mb-0" id="previewInfo">
                         <li><strong>Position:</strong> Right {{ settings.position_right }}, Bottom {{ settings.position_bottom }}</li>
-                        <li><strong>Size:</strong> {{ settings.size_px }} × {{ settings.size_px }}</li>
+                        <li><strong>Size:</strong> <span id="previewSize">{{ settings.get_size_display|default:'44px' }}</span></li>
                         <li><strong>Show after:</strong> {{ settings.show_after_scroll }}px scroll</li>
                         <li><strong>Scroll duration:</strong> {{ settings.scroll_duration }}ms</li>
                     </ul>
@@ -151,4 +180,78 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updatePreview() {
+        const preview = document.getElementById('scrollTopPreview');
+        const previewIcon = document.getElementById('previewIcon');
+        const bgColor = document.getElementById('bgColor').value;
+        const iconColor = document.getElementById('iconColor').value;
+        const shadow = document.getElementById('btnShadow').value;
+        const radius = document.getElementById('btnBorderRadius').value;
+        const size = document.getElementById('btnSize').value;
+        
+        let sizePx = '44px';
+        let fontSize = '18px';
+        if (size === 'sm') { sizePx = '36px'; fontSize = '14px'; }
+        else if (size === 'md') { sizePx = '44px'; fontSize = '18px'; }
+        else if (size === 'lg') { sizePx = '52px'; fontSize = '22px'; }
+        
+        preview.style.width = sizePx;
+        preview.style.height = sizePx;
+        preview.style.background = bgColor;
+        preview.style.color = iconColor;
+        preview.style.boxShadow = shadow;
+        preview.style.borderRadius = radius;
+        preview.style.fontSize = fontSize;
+        
+        // Update icon from hidden field
+        const iconClass = document.getElementById('scrollTopIcon').value;
+        if (iconClass) {
+            previewIcon.className = 'fas ' + iconClass.replace('fas ', '');
+        }
+        
+        document.getElementById('previewSize').textContent = sizePx;
+    }
+    
+    // Sync color pickers with text inputs
+    document.querySelectorAll('.color-input-group input[type="color"]').forEach(picker => {
+        picker.addEventListener('input', function() {
+            const textInput = this.parentElement.querySelector('input[type="text"]');
+            if (textInput) textInput.value = this.value;
+            updatePreview();
+        });
+    });
+    document.querySelectorAll('.color-input-group input[type="text"]').forEach(text => {
+        text.addEventListener('input', function() {
+            const colorPicker = this.parentElement.querySelector('input[type="color"]');
+            if (colorPicker && /^#[0-9a-f]{6}$/i.test(this.value)) colorPicker.value = this.value;
+            updatePreview();
+        });
+    });
+    
+    // Listen for icon picker changes
+    document.getElementById('scrollTopIcon').addEventListener('change', function() {
+        const previewIcon = document.getElementById('previewIcon');
+        previewIcon.className = 'fas ' + this.value.replace('fas ', '');
+        // Also update the preview wrapper
+        const wrapper = document.querySelector('[data-icon-preview-for="scrollTopIcon"]');
+        if (wrapper) {
+            const icon = wrapper.querySelector('i');
+            if (icon) icon.className = 'fas ' + this.value.replace('fas ', '');
+        }
+    });
+    
+    // Listen for other input changes
+    document.querySelectorAll('#scrollTopForm input, #scrollTopForm select').forEach(el => {
+        el.addEventListener('input', updatePreview);
+        el.addEventListener('change', updatePreview);
+    });
+    
+    updatePreview();
+});
+</script>
+
+{% include 'components/icon_picker.html' %}
 {% endblock %}

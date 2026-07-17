@@ -615,34 +615,48 @@
 
 /* ===== PASSWORD STRENGTH ===== */
 .password-strength {
-    margin-top: 8px;
-    padding: 0 2px;
+    margin: 12px 0 8px;
+    padding: 14px;
+    background: #f8f9fa;
+    border-radius: 11px;
+    border: 1px solid #e9ecef;
+    width: 100%;
+    clear: both;
+}
+
+.strength-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
 }
 
 .strength-bar {
-    height: 4px;
-    border-radius: 2px;
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
     background: #e9ecef;
     overflow: hidden;
-    margin-bottom: 8px;
 }
 
 .strength-bar-fill {
     height: 100%;
     width: 0%;
-    border-radius: 2px;
-    transition: all 0.3s ease;
+    border-radius: 3px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.strength-bar-fill.weak { width: 25%; background: #dc3545; }
-.strength-bar-fill.fair { width: 50%; background: #ff9800; }
-.strength-bar-fill.good { width: 75%; background: #ffc107; }
+.strength-bar-fill.weak { width: 20%; background: #dc3545; }
+.strength-bar-fill.fair { width: 40%; background: #ff9800; }
+.strength-bar-fill.good { width: 65%; background: #e8b308; }
 .strength-bar-fill.strong { width: 100%; background: #28a745; }
 
 .strength-text {
     font-size: 0.78rem;
     font-weight: 600;
-    margin-bottom: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 130px;
 }
 
 .strength-text.weak { color: #dc3545; }
@@ -651,19 +665,20 @@
 .strength-text.strong { color: #16a34a; }
 
 .password-requirements {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 16px;
-    margin-top: 4px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+    margin-top: 0;
 }
 
 .password-req {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: #adb5bd;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: all 0.2s ease;
+    gap: 6px;
+    transition: all 0.25s ease;
+    padding: 2px 0;
 }
 
 .password-req.met {
@@ -671,7 +686,25 @@
 }
 
 .password-req i {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 420px) {
+    .password-requirements {
+        grid-template-columns: 1fr;
+    }
+    .strength-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    .strength-text {
+        white-space: normal;
+        min-width: auto;
+    }
 }
 
 /* ===== PROFILE PICTURE UPLOAD ===== */
@@ -1053,7 +1086,7 @@
                     </div>
                 </div>
 
-                <!-- Password Row -->
+                <!-- Password Fields -->
                 <div class="auth-row">
                     <div class="auth-input-group">
                         <i class="fas fa-lock input-icon"></i>
@@ -1062,18 +1095,6 @@
                             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('id_password1', this)" tabindex="-1" aria-label="Toggle password visibility">
                                 <i class="fas fa-eye"></i>
                             </button>
-                        </div>
-                        <!-- Password Strength -->
-                        <div class="password-strength" id="passwordStrength" style="display:none;">
-                            <div class="strength-bar"><div class="strength-bar-fill" id="strengthFill"></div></div>
-                            <div class="strength-text" id="strengthText"></div>
-                            <div class="password-requirements" id="passwordRequirements">
-                                <span class="password-req" id="reqLength"><i class="far fa-circle"></i> 8+ characters</span>
-                                <span class="password-req" id="reqUpper"><i class="far fa-circle"></i> Uppercase</span>
-                                <span class="password-req" id="reqLower"><i class="far fa-circle"></i> Lowercase</span>
-                                <span class="password-req" id="reqNumber"><i class="far fa-circle"></i> Number</span>
-                                <span class="password-req" id="reqSpecial"><i class="far fa-circle"></i> Special char</span>
-                            </div>
                         </div>
                         {% if form.password1.errors %}<div class="auth-field-error"><i class="fas fa-exclamation-circle"></i>{{ form.password1.errors.0 }}</div>{% endif %}
                     </div>
@@ -1088,6 +1109,21 @@
                         <div class="auth-field-error" id="passwordMatchError" style="display:none;"><i class="fas fa-exclamation-circle"></i> Passwords do not match</div>
                         <div class="auth-field-success" id="passwordMatchSuccess" style="display:none;"><i class="fas fa-check-circle"></i> Passwords match</div>
                         {% if form.password2.errors %}<div class="auth-field-error"><i class="fas fa-exclamation-circle"></i>{{ form.password2.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Password Strength Section (full width below password fields) -->
+                <div class="password-strength" id="passwordStrength" style="display:none;">
+                    <div class="strength-header">
+                        <span class="strength-text" id="strengthText"></span>
+                        <div class="strength-bar"><div class="strength-bar-fill" id="strengthFill"></div></div>
+                    </div>
+                    <div class="password-requirements" id="passwordRequirements">
+                        <span class="password-req" id="reqLength"><i class="far fa-circle"></i> 8+ characters</span>
+                        <span class="password-req" id="reqUpper"><i class="far fa-circle"></i> Uppercase letter</span>
+                        <span class="password-req" id="reqLower"><i class="far fa-circle"></i> Lowercase letter</span>
+                        <span class="password-req" id="reqNumber"><i class="far fa-circle"></i> Number</span>
+                        <span class="password-req" id="reqSpecial"><i class="far fa-circle"></i> Special character</span>
                     </div>
                 </div>
 
