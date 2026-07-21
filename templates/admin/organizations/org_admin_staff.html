@@ -5,18 +5,11 @@
 {% block page_title %}Staff Management{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
 /* ===== Animations ===== */
 @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse-dot {
@@ -30,41 +23,6 @@
 .animate-in-d3 { animation-delay: 0.15s; }
 .animate-in-d4 { animation-delay: 0.2s; }
 .animate-in-d5 { animation-delay: 0.25s; }
-
-/* ===== Stat Cards ===== */
-.stat-card {
-    border-radius: 16px;
-    border: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-    position: relative;
-}
-.stat-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    transform: translate(30%, -30%);
-}
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
-.stat-card .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(4px);
-}
 
 /* ===== Staff Avatar ===== */
 .staff-avatar-sm {
@@ -102,12 +60,12 @@
 .staff-table th .sort-icon { opacity: 0.3; margin-left: 3px; }
 .staff-table th.active-sort .sort-icon { opacity: 1; color: #0d6efd; }
 .staff-table td {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     padding: 0.65rem 0.5rem;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f5;
 }
-.staff-table tr {
+.staff-table tbody tr {
     transition: background 0.15s ease;
 }
 .staff-table tbody tr:hover {
@@ -138,7 +96,7 @@
 .status-suspended { background: #fee2e2; color: #991b1b; }
 .status-suspended .dot { background: #dc2626; }
 
-/* ===== Action Buttons ===== */
+/* ===== Action Dropdown ===== */
 .action-dropdown .dropdown-toggle {
     background: transparent;
     border: none;
@@ -146,6 +104,8 @@
     padding: 0.25rem 0.5rem;
     border-radius: 8px;
     transition: all 0.2s;
+    position: relative;
+    z-index: 3;
 }
 .action-dropdown .dropdown-toggle:hover {
     background: #e9ecef;
@@ -168,29 +128,68 @@
 .action-dropdown .dropdown-item.text-danger:hover { background: #fef2f2; }
 .action-dropdown .dropdown-divider { margin: 0.25rem 0; }
 
-/* ===== Search & Filter ===== */
+/* ===== Sort Link ===== */
+.sort-link {
+    text-decoration: none;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.sort-link:hover { color: #0d6efd; }
+.sort-link.active-sort { color: #0d6efd; }
+
+/* ===== Staff Name Link ===== */
+.staff-name-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+.staff-name-link:hover { color: #0d6efd; }
+
+/* ===== Filter Section using filter-bar-standard from dashboard_base ===== */
 .filter-section {
     background: #f8f9fa;
     border-radius: 12px;
     padding: 1rem;
     border: 1px solid #e9ecef;
 }
-.search-input {
-    border-radius: 10px;
-    border: 1.5px solid #e9ecef;
-    padding: 0.5rem 1rem 0.5rem 2.5rem;
-    transition: all 0.25s;
+.search-wrapper {
+    position: relative;
 }
-.search-input:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
-}
-.search-icon {
+.search-wrapper .search-icon {
     position: absolute;
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: #adb5bd;
+    pointer-events: none;
+    z-index: 5;
+}
+.search-wrapper .form-control {
+    padding-left: 2.5rem;
+}
+
+/* ===== Unified Button Sizing ===== */
+.btn-staff {
+    border-radius: 10px;
+}
+.btn-staff-sm {
+    border-radius: 8px;
+}
+
+/* ===== Form Control Standard ===== */
+.form-control-staff {
+    border-radius: 10px;
+    border: 1.5px solid #e9ecef;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.form-control-staff:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
 }
 
 /* ===== Pagination ===== */
@@ -230,22 +229,29 @@
     border-top: 1px solid #e9ecef;
     padding: 1rem 1.5rem;
 }
+.modal .section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0d6efd;
+    margin-bottom: 1rem;
+}
 .modal .form-label {
     font-weight: 600;
     font-size: 0.8rem;
     color: #374151;
     margin-bottom: 0.3rem;
 }
-.modal .form-control, .modal .form-select {
-    border-radius: 10px;
-    border: 1.5px solid #e5e7eb;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-.modal .form-control:focus, .modal .form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+
+/* ===== Confirm Icon for Delete ===== */
+.confirm-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
 }
 
 /* ===== Empty State ===== */
@@ -302,24 +308,31 @@
 .pw-strong { background: #28a745; width: 75%; }
 .pw-very-strong { background: #059669; width: 100%; }
 
-/* ===== Confirm Delete Modal ===== */
-.confirm-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 1.5rem;
+/* ===== Scrollable Create Modal ===== */
+#createStaffModal .modal-body {
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 768px) {
-    .stat-card { margin-bottom: 0.75rem; }
+@media (max-width: 767.98px) {
     .staff-table { font-size: 0.75rem; }
     .filter-section .row > div { margin-bottom: 0.5rem; }
     .action-dropdown .dropdown-menu { min-width: 160px; }
+    .staff-table td::before {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        color: #6c757d;
+        display: block;
+        margin-bottom: 2px;
+    }
+}
+@media (max-width: 575.98px) {
+    .staff-table td, .staff-table th {
+        white-space: normal;
+        word-break: break-word;
+    }
 }
 </style>
 {% endblock %}
@@ -354,74 +367,89 @@
     </div>
     <div class="d-flex gap-2">
         {% if can_add %}
-        <button class="btn btn-primary" style="border-radius: 10px; padding: 0.55rem 1.25rem; font-weight: 600;" 
+        <button class="btn btn-primary btn-staff px-3 py-2 fw-semibold"
                 data-bs-toggle="modal" data-bs-target="#createStaffModal">
             <i class="fas fa-plus-circle me-2"></i>Create Staff Account
         </button>
         {% endif %}
-        <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+        <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary btn-staff">
             <i class="fas fa-arrow-left me-1"></i>Dashboard
         </a>
     </div>
 </div>
 
-<!-- ===== STAT CARDS ===== -->
-<div class="row g-3 mb-4">
-    <div class="col-lg-2 col-md-4 col-6 animate-in animate-in-d1">
-        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #1a3a42, #0d262d);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon"><i class="fas fa-users" style="color: #fff; font-size: 1.1rem;"></i></div>
+<!-- ===== STAT CARDS (matching org admin dashboard) ===== -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4 animate-in animate-in-d1">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
                 <div>
-                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ total_staff }}</div>
-                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Total Staff</div>
+                    <div class="stats-value">{{ total_staff }}</div>
+                    <div class="stats-label text-muted">Total Staff</div>
+                    <small class="text-primary"><i class="fas fa-user-check me-1"></i>All organization staff</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 animate-in animate-in-d2">
-        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #1b5e20, #0d4015);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon"><i class="fas fa-check-circle" style="color: #fff; font-size: 1.1rem;"></i></div>
+    <div class="col-md-4 animate-in animate-in-d2">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-check-circle fa-lg"></i>
+                </div>
                 <div>
-                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ active_staff }}</div>
-                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Active Staff</div>
+                    <div class="stats-value">{{ active_staff }}</div>
+                    <div class="stats-label text-muted">Active Staff</div>
+                    <small class="text-success"><i class="fas fa-user-check me-1"></i>Currently working</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 animate-in animate-in-d3">
-        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #991b1b, #5c1010);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon"><i class="fas fa-pause-circle" style="color: #fff; font-size: 1.1rem;"></i></div>
+    <div class="col-md-4 animate-in animate-in-d3">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-danger text-white me-3">
+                    <i class="fas fa-pause-circle fa-lg"></i>
+                </div>
                 <div>
-                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ inactive_staff }}</div>
-                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Inactive Staff</div>
+                    <div class="stats-value">{{ inactive_staff }}</div>
+                    <div class="stats-label text-muted">Inactive Staff</div>
+                    <small class="text-danger"><i class="fas fa-user-slash me-1"></i>Not currently active</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6 col-6 animate-in animate-in-d4">
-        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #4c1d95, #2d0a57);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon"><i class="fas fa-clock" style="color: #fff; font-size: 1.1rem;"></i></div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-md-6 animate-in animate-in-d4">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
+                </div>
                 <div>
-                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ recently_added }}</div>
-                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Recently Added (30 days)</div>
+                    <div class="stats-value">{{ recently_added }}</div>
+                    <div class="stats-label text-muted">Recently Added</div>
+                    <small class="text-warning"><i class="fas fa-user-plus me-1"></i>Last 30 days</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6 col-12 animate-in animate-in-d5">
-        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #b45309, #78350f);">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="stat-icon"><i class="fas fa-layer-group" style="color: #fff; font-size: 1.1rem;"></i></div>
+    <div class="col-md-6 animate-in animate-in-d5">
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-info text-white me-3">
+                    <i class="fas fa-layer-group fa-lg"></i>
+                </div>
                 <div>
-                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">
-                        {% widthratio current_staff_count staff_limit 100 %}%
+                    <div class="stats-value">
+                        {% if staff_limit > 0 %}{% widthratio current_staff_count staff_limit 100 %}{% else %}0{% endif %}%
                     </div>
-                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">
-                        Capacity ({{ current_staff_count }}/{{ staff_limit }})
-                    </div>
+                    <div class="stats-label text-muted">Staff Capacity</div>
+                    <small class="text-info"><i class="fas fa-users me-1"></i>{{ current_staff_count }}/{{ staff_limit }} used</small>
                 </div>
             </div>
         </div>
@@ -432,19 +460,17 @@
 <div class="filter-section mb-4 animate-in animate-in-d3">
     <form method="get" class="row g-2 align-items-end" id="filterForm">
         <div class="col-lg-4 col-md-6">
-            <label class="form-label fw-semibold small mb-1"><i class="fas fa-search me-1"></i>Search</label>
-            <div style="position: relative;">
+            <label class="fw-semibold small mb-1"><i class="fas fa-search me-1"></i>Search</label>
+            <div class="search-wrapper">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" name="search" class="form-control search-input" 
-                       placeholder="Search by name, email, or Staff ID..." 
-                       value="{{ search_query }}" 
-                       style="padding-left: 2.5rem;">
+                <input type="text" name="search" class="form-control form-control-staff"
+                       placeholder="Search by name, email, or Staff ID..."
+                       value="{{ search_query }}">
             </div>
         </div>
         <div class="col-lg-2 col-md-3 col-6">
-            <label class="form-label fw-semibold small mb-1"><i class="fas fa-filter me-1"></i>Status</label>
-            <select name="status" class="form-select" style="border-radius: 10px; border: 1.5px solid #e9ecef; font-size: 0.85rem;"
-                    onchange="this.form.submit()">
+            <label class="fw-semibold small mb-1"><i class="fas fa-filter me-1"></i>Status</label>
+            <select name="status" class="form-select form-control-staff" onchange="this.form.submit()">
                 <option value="">All Status</option>
                 <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
                 <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
@@ -452,9 +478,8 @@
             </select>
         </div>
         <div class="col-lg-2 col-md-3 col-6">
-            <label class="form-label fw-semibold small mb-1"><i class="fas fa-building me-1"></i>Department</label>
-            <select name="department" class="form-select" style="border-radius: 10px; border: 1.5px solid #e9ecef; font-size: 0.85rem;"
-                    onchange="this.form.submit()">
+            <label class="fw-semibold small mb-1"><i class="fas fa-building me-1"></i>Department</label>
+            <select name="department" class="form-select form-control-staff" onchange="this.form.submit()">
                 <option value="">All Departments</option>
                 {% for dept in departments %}
                 <option value="{{ dept }}" {% if department_filter == dept %}selected{% endif %}>{{ dept }}</option>
@@ -462,22 +487,22 @@
             </select>
         </div>
         <div class="col-lg-2 col-md-6">
-            <label class="form-label fw-semibold small mb-1">&nbsp;</label>
+            <label class="fw-semibold small mb-1">&nbsp;</label>
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-fill" style="border-radius: 10px; font-size: 0.85rem;">
+                <button type="submit" class="btn btn-primary flex-fill btn-staff">
                     <i class="fas fa-search me-1"></i>Search
                 </button>
                 {% if search_query or status_filter or department_filter %}
-                <a href="{% url 'org_admin_manage_staff' %}" class="btn btn-outline-secondary" style="border-radius: 10px; font-size: 0.85rem;">
+                <a href="{% url 'org_admin_manage_staff' %}" class="btn btn-outline-secondary btn-staff">
                     <i class="fas fa-times"></i>
                 </a>
                 {% endif %}
             </div>
         </div>
         <div class="col-lg-2 col-md-6">
-            <label class="form-label fw-semibold small mb-1">&nbsp;</label>
+            <label class="fw-semibold small mb-1">&nbsp;</label>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-success flex-fill" style="border-radius: 10px; font-size: 0.85rem;"
+                <button type="button" class="btn btn-outline-success flex-fill btn-staff"
                         onclick="location.href='{% url 'org_admin_staff_export_csv' %}'">
                     <i class="fas fa-download me-1"></i>Export CSV
                 </button>
@@ -487,21 +512,21 @@
 </div>
 
 <!-- ===== STAFF TABLE ===== -->
-<div class="card border-0 shadow-sm animate-in animate-in-d4" style="border-radius: 16px; overflow: hidden;">
-    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-        <h6 class="fw-bold mb-0">
-            <i class="fas fa-list me-2 text-primary"></i>Staff Members
-            <span class="badge bg-light text-dark ms-2" style="border-radius: 20px; font-weight: 600;">
+<div class="admin-card animate-in animate-in-d4">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-list text-primary"></i>Staff Members
+            <span class="badge bg-light text-dark ms-2 rounded-pill fw-semibold">
                 {{ page_obj.paginator.count }} total
             </span>
-        </h6>
+        </h5>
         <div class="d-flex align-items-center gap-2">
             {% if can_add %}
-            <button class="btn btn-sm btn-primary" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#createStaffModal">
+            <button class="btn btn-sm btn-primary btn-staff-sm" data-bs-toggle="modal" data-bs-target="#createStaffModal">
                 <i class="fas fa-plus me-1"></i>Add New
             </button>
             {% endif %}
-            <button class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" onclick="location.reload()">
+            <button class="btn btn-sm btn-outline-secondary btn-staff-sm" onclick="location.reload()">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
@@ -515,7 +540,7 @@
                         <th style="width: 40px;">#</th>
                         <th style="min-width: 180px;">
                             <a href="?sort_by={% if sort_by == 'first_name' and sort_order == 'desc' %}-first_name{% else %}first_name{% endif %}&sort_order={% if sort_by == 'first_name' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
-                               class="text-decoration-none text-dark {% if sort_by == 'first_name' or sort_by == '-first_name' %}active-sort{% endif %}">
+                               class="sort-link {% if sort_by == 'first_name' or sort_by == '-first_name' %}active-sort{% endif %}">
                                 <i class="fas fa-user me-1"></i>Staff Member
                                 {% if sort_by == 'first_name' or sort_by == '-first_name' %}
                                 <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
@@ -526,7 +551,7 @@
                         </th>
                         <th>
                             <a href="?sort_by={% if sort_by == 'staff_id' and sort_order == 'desc' %}-staff_id{% else %}staff_id{% endif %}&sort_order={% if sort_by == 'staff_id' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
-                               class="text-decoration-none text-dark {% if sort_by == 'staff_id' or sort_by == '-staff_id' %}active-sort{% endif %}">
+                               class="sort-link {% if sort_by == 'staff_id' or sort_by == '-staff_id' %}active-sort{% endif %}">
                                 Staff ID
                                 {% if sort_by == 'staff_id' or sort_by == '-staff_id' %}
                                 <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
@@ -538,7 +563,7 @@
                         <th>Contact</th>
                         <th>
                             <a href="?sort_by={% if sort_by == 'department' and sort_order == 'desc' %}-department{% else %}department{% endif %}&sort_order={% if sort_by == 'department' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
-                               class="text-decoration-none text-dark {% if sort_by == 'department' or sort_by == '-department' %}active-sort{% endif %}">
+                               class="sort-link {% if sort_by == 'department' or sort_by == '-department' %}active-sort{% endif %}">
                                 Department
                                 {% if sort_by == 'department' or sort_by == '-department' %}
                                 <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
@@ -549,7 +574,7 @@
                         </th>
                         <th>
                             <a href="?sort_by={% if sort_by == '-is_active' %}-is_active{% else %}is_active{% endif %}&sort_order={% if sort_by == 'is_active' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
-                               class="text-decoration-none text-dark {% if sort_by == 'is_active' or sort_by == '-is_active' %}active-sort{% endif %}">
+                               class="sort-link {% if sort_by == 'is_active' or sort_by == '-is_active' %}active-sort{% endif %}">
                                 Status
                                 {% if sort_by == 'is_active' or sort_by == '-is_active' %}
                                 <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
@@ -560,7 +585,7 @@
                         </th>
                         <th>
                             <a href="?sort_by={% if sort_by == '-last_login' %}-last_login{% else %}last_login{% endif %}&sort_order={% if sort_by == 'last_login' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
-                               class="text-decoration-none text-dark {% if sort_by == 'last_login' or sort_by == '-last_login' %}active-sort{% endif %}">
+                               class="sort-link {% if sort_by == 'last_login' or sort_by == '-last_login' %}active-sort{% endif %}">
                                 Last Login
                                 {% if sort_by == 'last_login' or sort_by == '-last_login' %}
                                 <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
@@ -571,7 +596,7 @@
                         </th>
                         <th>
                             <a href="?sort_by={% if sort_by == '-created_at' %}-created_at{% else %}created_at{% endif %}&sort_order={% if sort_by == 'created_at' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
-                               class="text-decoration-none text-dark {% if sort_by == 'created_at' or sort_by == '-created_at' %}active-sort{% endif %}">
+                               class="sort-link {% if sort_by == 'created_at' or sort_by == '-created_at' %}active-sort{% endif %}">
                                 Created
                                 {% if sort_by == 'created_at' or sort_by == '-created_at' %}
                                 <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
@@ -580,60 +605,57 @@
                                 {% endif %}
                             </a>
                         </th>
-                        <th style="width: 60px; text-align: center;" class="text-center">Actions</th>
+                        <th style="width: 60px;" class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for staff in staff_members %}
                     {% with initial=staff.get_full_name|default:staff.username|first|upper %}
-                    {% with avatar_class="staff-avatar-"|add:colors|cut:" " %}
                     <tr>
-                        <td class="text-muted text-center" style="font-size: 0.75rem;">
+                        <td class="text-muted text-center small">
                             {{ page_obj.start_index|add:forloop.counter0 }}
                         </td>
-                        <td>
+                        <td data-label="Staff Member">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="staff-avatar-sm 
                                     {% cycle 'staff-avatar-purple' 'staff-avatar-teal' 'staff-avatar-green' 'staff-avatar-orange' 'staff-avatar-blue' 'staff-avatar-red' %}">
                                     <span class="text-white" style="font-size: 0.75rem;">{{ initial }}</span>
                                 </div>
-                                <div>
-                                    <div class="fw-semibold" style="font-size: 0.85rem;">
-                                        <a href="{% url 'org_admin_staff_detail' staff.id %}" class="text-decoration-none text-dark stretched-link">
-                                            {{ staff.get_full_name|default:staff.username }}
-                                        </a>
-                                    </div>
+                                <div class="min-w-0">
+                                    <a href="{% url 'org_admin_staff_detail' staff.id %}" class="staff-name-link">
+                                        {{ staff.get_full_name|default:staff.username }}
+                                    </a>
                                     {% if staff.middle_name %}
                                     <div class="text-muted" style="font-size: 0.7rem;">{{ staff.middle_name }}</div>
                                     {% endif %}
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Staff ID">
                             {% if staff.staff_id %}
-                            <code style="font-size: 0.75rem; background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">{{ staff.staff_id }}</code>
+                            <code class="small px-1" style="background:#f1f3f5;border-radius:4px;">{{ staff.staff_id }}</code>
                             {% else %}
-                            <span class="text-muted" style="font-size: 0.75rem;">—</span>
+                            <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td>
-                            <div style="font-size: 0.8rem;">
-                                <div><i class="fas fa-envelope me-1 text-muted" style="font-size: 0.65rem;"></i>{{ staff.email }}</div>
+                        <td data-label="Contact">
+                            <div class="small">
+                                <div><i class="fas fa-envelope me-1 text-muted" style="font-size:0.65rem;"></i>{{ staff.email }}</div>
                                 {% if staff.phone_number %}
-                                <div class="mt-1"><i class="fas fa-phone me-1 text-muted" style="font-size: 0.65rem;"></i>{{ staff.phone_number }}</div>
+                                <div class="mt-1"><i class="fas fa-phone me-1 text-muted" style="font-size:0.65rem;"></i>{{ staff.phone_number }}</div>
                                 {% endif %}
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Department">
                             {% if staff.department %}
-                            <span class="badge bg-light text-dark" style="border-radius: 20px; font-size: 0.7rem; font-weight: 500;">
+                            <span class="badge bg-light text-dark" style="border-radius:20px;font-size:0.7rem;font-weight:500;">
                                 {{ staff.department }}
                             </span>
                             {% else %}
-                            <span class="text-muted" style="font-size: 0.75rem;">—</span>
+                            <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Status">
                             {% if staff.employment_status == 'active' and staff.is_active %}
                             <span class="status-badge status-active"><span class="dot"></span>Active</span>
                             {% elif staff.employment_status == 'suspended' %}
@@ -642,22 +664,22 @@
                             <span class="status-badge status-inactive"><span class="dot"></span>Inactive</span>
                             {% endif %}
                         </td>
-                        <td style="font-size: 0.78rem; white-space: nowrap;">
+                        <td data-label="Last Login" class="small text-nowrap">
                             {% if staff.last_login %}
                             <span title="{{ staff.last_login|date:'M d, Y h:i A' }}">
-                                <i class="fas fa-clock me-1 text-muted" style="font-size: 0.65rem;"></i>
+                                <i class="fas fa-clock me-1 text-muted" style="font-size:0.65rem;"></i>
                                 {{ staff.last_login|date:"M d, Y" }}
                             </span>
                             {% else %}
                             <span class="text-muted"><i class="fas fa-minus me-1"></i>Never</span>
                             {% endif %}
                         </td>
-                        <td style="font-size: 0.75rem; white-space: nowrap;">
+                        <td data-label="Created" class="small text-nowrap">
                             <span title="{{ staff.created_at|date:'M d, Y h:i A' }}">
                                 {{ staff.created_at|date:"M d, Y" }}
                             </span>
                         </td>
-                        <td class="position-relative" style="position: relative; z-index: 2;">
+                        <td class="text-center position-relative">
                             <div class="dropdown action-dropdown">
                                 <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-ellipsis-vertical"></i>
@@ -739,7 +761,6 @@
                         </td>
                     </tr>
                     {% endwith %}
-                    {% endwith %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -752,13 +773,13 @@
             <h6 class="fw-bold mb-2">No Staff Members Found</h6>
             {% if search_query or status_filter or department_filter %}
             <p class="text-muted small mb-3">No staff match your current filters. Try adjusting your search criteria.</p>
-            <a href="{% url 'org_admin_manage_staff' %}" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">
+            <a href="{% url 'org_admin_manage_staff' %}" class="btn btn-outline-primary btn-sm btn-staff-sm">
                 <i class="fas fa-times me-1"></i>Clear Filters
             </a>
             {% else %}
             <p class="text-muted small mb-3">Start building your team by creating your first staff account.</p>
             {% if can_add %}
-            <button class="btn btn-primary" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#createStaffModal">
+            <button class="btn btn-primary btn-staff" data-bs-toggle="modal" data-bs-target="#createStaffModal">
                 <i class="fas fa-plus-circle me-2"></i>Create Staff Account
             </button>
             {% endif %}
@@ -820,22 +841,23 @@
 <!-- ===== Staff Settings Card ===== -->
 <div class="row g-4 mt-2 animate-in animate-in-d5">
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
-            <div class="card-header bg-white border-bottom py-3 px-4">
-                <h6 class="fw-bold mb-0"><i class="fas fa-sliders me-2 text-warning"></i>Staff Limit Settings</h6>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="admin-card-title">
+                    <i class="fas fa-sliders text-warning"></i>Staff Limit Settings
+                </h5>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body">
                 <form method="post" class="row g-2 align-items-end">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="update_max">
                     <div class="col-8">
                         <label class="form-label fw-semibold small">Maximum Staff Accounts</label>
-                        <input type="number" name="max_staff_accounts" class="form-control" 
-                               value="{{ staff_limit }}" min="1" max="100"
-                               style="border-radius: 10px; border: 1.5px solid #e9ecef;">
+                        <input type="number" name="max_staff_accounts" class="form-control form-control-staff"
+                               value="{{ staff_limit }}" min="1" max="100">
                     </div>
                     <div class="col-4">
-                        <button type="submit" class="btn btn-outline-primary w-100" style="border-radius: 10px; font-weight: 600;">
+                        <button type="submit" class="btn btn-outline-primary w-100 btn-staff fw-semibold">
                             <i class="fas fa-save me-1"></i>Save
                         </button>
                     </div>
@@ -850,8 +872,8 @@
         </div>
     </div>
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-            <div class="card-body p-4">
+        <div class="admin-card" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+            <div class="card-body">
                 <div class="d-flex align-items-start gap-3">
                     <div style="width: 44px; height: 44px; background: rgba(255,193,7,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="fas fa-lightbulb text-warning"></i>
@@ -873,7 +895,7 @@
 
 <!-- ===== CREATE STAFF ACCOUNT MODAL ===== -->
 <div class="modal fade" id="createStaffModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">
@@ -885,7 +907,7 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <!-- Personal Information -->
-                    <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #0d6efd;">
+                    <h6 class="section-title">
                         <i class="fas fa-user-circle me-2"></i>Personal Information
                     </h6>
                     <div class="row g-3 mb-4">
@@ -930,7 +952,7 @@
                     </div>
 
                     <!-- Account Information -->
-                    <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #0d6efd;">
+                    <h6 class="section-title">
                         <i class="fas fa-lock me-2"></i>Account Information
                     </h6>
                     <div class="row g-3 mb-4">
@@ -943,10 +965,10 @@
                         <div class="col-md-6">
                             <label class="form-label">Password <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="password" name="password" class="form-control" required 
+                                <input type="password" name="password" class="form-control" required
                                        placeholder="Min. 8 characters" id="passwordInput">
-                                <button class="btn btn-outline-secondary" type="button" 
-                                        style="border-radius: 0 10px 10px 0; border: 1.5px solid #e5e7eb;"
+                                <button class="btn btn-outline-secondary" type="button"
+                                        style="border-radius:0 10px 10px 0;"
                                         onclick="togglePasswordVisibility('passwordInput', this)">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -959,10 +981,10 @@
                         <div class="col-md-6">
                             <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="password" name="confirm_password" class="form-control" required 
+                                <input type="password" name="confirm_password" class="form-control" required
                                        placeholder="Repeat password" id="confirmPasswordInput">
-                                <button class="btn btn-outline-secondary" type="button" 
-                                        style="border-radius: 0 10px 10px 0; border: 1.5px solid #e5e7eb;"
+                                <button class="btn btn-outline-secondary" type="button"
+                                        style="border-radius:0 10px 10px 0;"
                                         onclick="togglePasswordVisibility('confirmPasswordInput', this)">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -972,7 +994,7 @@
                     </div>
 
                     <!-- Staff Information -->
-                    <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #0d6efd;">
+                    <h6 class="section-title">
                         <i class="fas fa-briefcase me-2"></i>Staff Information
                     </h6>
                     <div class="row g-3">
@@ -984,15 +1006,8 @@
                         <div class="col-md-6">
                             <label class="form-label">Employment Status</label>
                             <select name="employment_status" class="form-select">
-                                <option value="active" selected>Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Employment Status</label>
-                            <select name="employment_status" class="form-select">
-                                <option value="active" selected>Active</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="active" {% if form_data.employment_status != 'inactive' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if form_data.employment_status == 'inactive' %}selected{% endif %}>Inactive</option>
                             </select>
                         </div>
                         <div class="col-md-12">
@@ -1003,10 +1018,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-outline-secondary btn-staff" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i>Cancel
                     </button>
-                    <button type="submit" class="btn btn-primary" style="border-radius: 10px; font-weight: 600;" id="submitStaffBtn">
+                    <button type="submit" class="btn btn-primary btn-staff fw-semibold" id="submitStaffBtn">
                         <i class="fas fa-check-circle me-1"></i>Create Staff Account
                     </button>
                 </div>
@@ -1028,10 +1043,10 @@
                 <form method="post" action="" id="deleteStaffForm">
                     {% csrf_token %}
                     <div class="d-flex gap-2 justify-content-center">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-staff-sm" data-bs-dismiss="modal">
                             <i class="fas fa-times me-1"></i>Cancel
                         </button>
-                        <button type="submit" class="btn btn-danger btn-sm" style="border-radius: 8px;">
+                        <button type="submit" class="btn btn-danger btn-sm btn-staff-sm">
                             <i class="fas fa-trash-can me-1"></i>Delete
                         </button>
                     </div>

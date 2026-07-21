@@ -74,117 +74,6 @@
     padding: 1.5rem;
 }
 
-/* ============================================
-   STAT CARDS - Gradient Variants
-   ============================================ */
-.stat-card-gradient {
-    border-radius: var(--card-radius);
-    border: none;
-    overflow: hidden;
-    transition: all var(--transition-normal);
-    position: relative;
-}
-
-.stat-card-gradient::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.6s ease;
-}
-
-.stat-card-gradient:hover::before {
-    left: 100%;
-}
-
-.stat-card-gradient:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-hover);
-}
-
-.stat-card-gradient .card-body {
-    padding: 1.5rem;
-    color: white;
-}
-
-.stat-card-gradient .stat-icon-wrapper {
-    width: 56px;
-    height: 56px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-    transition: transform var(--transition-normal);
-}
-
-.stat-card-gradient:hover .stat-icon-wrapper {
-    transform: scale(1.1) rotate(5deg);
-}
-
-.stat-card-gradient .stat-icon-wrapper i {
-    font-size: 1.5rem;
-    color: white;
-}
-
-.stat-card-gradient .stat-value {
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin: 0;
-    line-height: 1.2;
-}
-
-.stat-card-gradient .stat-label {
-    font-size: 0.875rem;
-    opacity: 0.85;
-    margin: 0;
-    font-weight: 500;
-}
-
-/* Base stat-icon-wrapper styles for non-gradient contexts */
-.stat-icon-wrapper {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.stat-icon-wrapper i {
-    font-size: 1.5rem;
-}
-
-/* Equipment Overview specific icon styles */
-.equipment-icon-box {
-    background: rgba(var(--primary-rgb), 0.12);
-}
-
-.equipment-icon-box i {
-    font-size: 1.4rem;
-}
-
-.equipment-icon-warning {
-    background: rgba(255,193,7,0.15);
-}
-
-.equipment-icon-warning i {
-    font-size: 1.4rem;
-}
-
-.equipment-icon-success {
-    background: rgba(40,167,69,0.12);
-}
-
-.equipment-icon-success i {
-    font-size: 1.4rem;
-}
-
 /* Gradient backgrounds */
 .bg-gradient-primary { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); }
 .bg-gradient-success { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
@@ -920,43 +809,7 @@
         font-size: 1rem !important;
     }
     
-    .stat-card-gradient .card-body {
-        padding: 1.25rem !important;
-    }
-    
-    .stat-card-gradient .stat-value {
-        font-size: 1.375rem !important;
-    }
-    
-    .stat-card-gradient .stat-icon-wrapper {
-        width: 44px !important;
-        height: 44px !important;
-    }
-    
-    .stat-card-gradient .stat-icon-wrapper i {
-        font-size: 1.25rem !important;
-    }
-    
-    .stat-icon-wrapper {
-        width: 44px !important;
-        height: 44px !important;
-    }
-    
-    .stat-icon-wrapper i {
-        font-size: 1.25rem !important;
-    }
-    
-    .equipment-icon-box,
-    .equipment-icon-warning,
-    .equipment-icon-success {
-        width: 44px !important;
-        height: 44px !important;
-    }
-    .equipment-icon-box i,
-    .equipment-icon-warning i,
-    .equipment-icon-success i {
-        font-size: 1.125rem !important;
-    }
+
     
     .quick-actions {
         padding: 1rem !important;
@@ -1039,9 +892,7 @@
         --card-radius: 12px;
     }
     
-    .stat-card-gradient .stat-value {
-        font-size: 1.5rem;
-    }
+
     
     .staff-table thead {
         display: none !important;
@@ -1142,9 +993,7 @@
         padding: 0.75rem 1rem !important;
     }
     
-    .stat-card-gradient .card-body {
-        padding: 1.25rem !important;
-    }
+
 }
 
 /* Print styles */

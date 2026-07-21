@@ -160,5 +160,13 @@ class StaffPermission(models.Model):
         verbose_name = 'Staff Permission'
         verbose_name_plural = 'Staff Permissions'
 
+    def get_enabled_count(self):
+        """Return the number of enabled permissions."""
+        count = 0
+        for field_name, _ in self.MODULE_CHOICES:
+            if getattr(self, field_name, False):
+                count += 1
+        return count
+
     def __str__(self):
         return f"Permissions for {self.user.username}"

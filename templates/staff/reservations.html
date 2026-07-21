@@ -49,25 +49,7 @@
     box-shadow: 0 0 0 3px rgba(59,122,140,0.12);
 }
 
-.stat-card {
-    border-radius: 16px;
-    border: none;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-.stat-card .card-body { padding: 1.25rem 1.5rem; }
-.stat-icon {
-    width: 48px; height: 48px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 1.2rem;
-}
-.stat-number { font-size: 1.6rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.15rem; }
-.stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.8); margin-bottom: 0; letter-spacing: 0.3px; }
+/* Stat labels use base .stat-value / .stat-label from dashboard_base.html */
 
 .rsv-card {
     border-radius: 14px;
@@ -139,7 +121,6 @@
 
 @media (max-width: 768px) {
     .filter-bar .row > div { margin-bottom: 0.5rem; }
-    .stat-number { font-size: 1.3rem; }
 }
 </style>
 {% endblock %}
@@ -155,17 +136,18 @@
 {% endblock %}
 
 {% block content %}
-<!-- Stats Cards -->
+<!-- Stats Cards (matching org admin dashboard) -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="admin-card h-100">
             <div class="card-body p-4 d-flex align-items-center">
-                <div class="stats-icon bg-gradient-primary text-white me-3">
+                <div class="stats-icon bg-gradient-info text-white me-3">
                     <i class="fas fa-calendar-check fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">{{ total_count }}</div>
                     <div class="stats-label text-muted">Total Reservations</div>
+                    <small class="text-info"><i class="fas fa-list me-1"></i>All time records</small>
                 </div>
             </div>
         </div>
@@ -179,6 +161,7 @@
                 <div>
                     <div class="stats-value">{{ pending_count }}</div>
                     <div class="stats-label text-muted">Pending</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting confirmation</small>
                 </div>
             </div>
         </div>
@@ -192,6 +175,7 @@
                 <div>
                     <div class="stats-value">{{ confirmed_count }}</div>
                     <div class="stats-label text-muted">Confirmed</div>
+                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>Ready for play</small>
                 </div>
             </div>
         </div>
@@ -199,12 +183,13 @@
     <div class="col-md-3">
         <div class="admin-card h-100">
             <div class="card-body p-4 d-flex align-items-center">
-                <div class="stats-icon bg-gradient-info text-white me-3">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
                     <i class="fas fa-check-double fa-lg"></i>
                 </div>
                 <div>
                     <div class="stats-value">{{ completed_count }}</div>
                     <div class="stats-label text-muted">Completed</div>
+                    <small class="text-primary"><i class="fas fa-calendar-check me-1"></i>Finished bookings</small>
                 </div>
             </div>
         </div>

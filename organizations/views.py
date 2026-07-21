@@ -20,7 +20,7 @@ from .models import Organization, OrganizationAuditLog
 from .forms import (
     OrganizationRegistrationForm, OrganizationProfileForm,
     OrganizationApprovalForm, SuperAdminOrganizationForm,
-    OrgStaffAssignmentForm, OrganizationVerificationForm,
+    OrganizationVerificationForm,
     StaffAccountCreateForm, StaffEditForm, StaffPermissionForm
 )
 from notifications.utils import (
@@ -36,6 +36,7 @@ from notifications.email_utils import (
     send_org_registration_confirmation_email,
     send_org_status_change_email,
     send_org_admin_created_email,
+    send_password_reset_email,
 )
 
 
@@ -867,37 +868,7 @@ def org_admin_manage_staff(request):
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        if action == 'add':
-            form = OrgStaffAssignmentForm(request.POST, org=org)
-            if form.is_valid():
-                user = form.cleaned_data['user']
-                user.organization = org
-                user.role = 'org_staff'
-                user.save()
-                staff_name = user.get_full_name() or user.username
-                _create_org_audit_log(org, 'staff_added', request.user,
-                    f'Staff member "{staff_name}" added by {request.user.get_full_name() or request.user.username}',
-                    request=request)
-                messages.success(request, f'"{staff_name}" has been added as a staff member.')
-                return redirect('org_admin_manage_staff')
-            else:
-                messages.error(request, 'Please select a valid user to add.')
-
-        elif action == 'remove':
-            user_id = request.POST.get('user_id')
-            if user_id:
-                user = get_object_or_404(User, id=user_id, organization=org, role='org_staff')
-                username = user.get_full_name() or user.username
-                user.organization = None
-                user.role = 'user'
-                user.save()
-                _create_org_audit_log(org, 'staff_removed', request.user,
-                    f'Staff member "{username}" removed by {request.user.get_full_name() or request.user.username}',
-                    request=request)
-                messages.success(request, f'"{username}" has been removed from staff.')
-                return redirect('org_admin_manage_staff')
-
-        elif action == 'update_max':
+        if action == 'update_max':
             max_staff = request.POST.get('max_staff_accounts')
             if max_staff and max_staff.isdigit():
                 val = int(max_staff)
@@ -959,7 +930,6 @@ def org_admin_manage_staff(request):
 
     can_add = org.can_add_staff()
     staff_limit = org.max_staff_accounts
-    create_form = StaffAccountCreateForm(org=org)
 
     return render(request, 'admin/organizations/org_admin_staff.html', {
         'organization': org,
@@ -979,8 +949,6 @@ def org_admin_manage_staff(request):
         'can_add': can_add,
         'staff_limit': staff_limit,
         'current_staff_count': total_staff,
-        'create_form': create_form,
-        'form': OrgStaffAssignmentForm(org=org),
     })
 
 
@@ -1063,6 +1031,21 @@ def org_admin_staff_create(request):
     can_add = org.can_add_staff()
     staff_limit = org.max_staff_accounts
 
+    # Build form_data dict from submitted POST data for inline form display
+    form_data = {
+        'first_name': request.POST.get('first_name', ''),
+        'middle_name': request.POST.get('middle_name', ''),
+        'last_name': request.POST.get('last_name', ''),
+        'email': request.POST.get('email', ''),
+        'username': request.POST.get('username', ''),
+        'phone_number': request.POST.get('phone_number', ''),
+        'gender': request.POST.get('gender', ''),
+        'birth_date': request.POST.get('birth_date', ''),
+        'department': request.POST.get('department', ''),
+        'employment_status': request.POST.get('employment_status', 'active'),
+        'notes': request.POST.get('notes', ''),
+    }
+
     # Create a simple paginator for template compatibility
     paginator = Paginator(staff_members, 10)
     page_obj = paginator.get_page(1)
@@ -1087,8 +1070,7 @@ def org_admin_staff_create(request):
         'can_add': can_add,
         'staff_limit': staff_limit,
         'current_staff_count': total_staff,
-        'create_form': form,
-        'form': OrgStaffAssignmentForm(org=org),
+        'form_data': form_data,
         'form_open': True,  # Flag to auto-open the create modal
     })
 
@@ -1240,6 +1222,46 @@ def org_admin_staff_reset_password(request, staff_id):
         return response
 
     messages.info(request, 'Click "Reset Password" again to confirm.')
+    return redirect('org_admin_staff_detail', staff_id=staff.id)
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_send_reset_email(request, staff_id):
+    """Send a password reset email to a staff member."""
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+    from django.conf import settings
+
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    if request.method == 'POST':
+        try:
+            # Generate password reset token
+            uidb64 = urlsafe_base64_encode(force_bytes(staff.pk))
+            token = default_token_generator.make_token(staff)
+            reset_url = f'{settings.SITE_URL}/reset/{uidb64}/{token}/'
+            
+            # Send the email
+            send_password_reset_email(staff, reset_url)
+            
+            _create_org_audit_log(org, 'updated', request.user,
+                f'Password reset email sent to staff "{staff.get_full_name() or staff.username}" by {request.user.get_full_name() or request.user.username}',
+                request=request)
+            UserActivity.objects.create(
+                user=request.user,
+                action='Sent password reset email',
+                details=f'Password reset email sent to {staff.email}'
+            )
+            messages.success(request, f'Password reset email sent to {staff.email}.')
+        except Exception as e:
+            messages.error(request, f'Failed to send password reset email: {str(e)}')
+        
+        return redirect('org_admin_staff_detail', staff_id=staff.id)
+
     return redirect('org_admin_staff_detail', staff_id=staff.id)
 
 

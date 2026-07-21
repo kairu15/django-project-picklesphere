@@ -15,6 +15,7 @@ urlpatterns = [
     path('staff/<int:staff_id>/permissions/', views.org_admin_staff_permissions, name='org_admin_staff_permissions'),
     path('staff/<int:staff_id>/toggle-status/', views.org_admin_staff_toggle_status, name='org_admin_staff_toggle_status'),
     path('staff/<int:staff_id>/reset-password/', views.org_admin_staff_reset_password, name='org_admin_staff_reset_password'),
+    path('staff/<int:staff_id>/send-reset-email/', views.org_admin_staff_send_reset_email, name='org_admin_staff_send_reset_email'),
     path('staff/<int:staff_id>/delete/', views.org_admin_staff_delete, name='org_admin_staff_delete'),
     path('location/', views.org_admin_location_setup, name='org_admin_location_setup'),
     path('activity-log/', views.org_admin_org_activity_log, name='org_admin_org_activity_log'),

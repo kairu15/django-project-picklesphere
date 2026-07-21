@@ -187,6 +187,9 @@ def reservation_create_view(request):
             messages.success(request, 'Please review your booking and complete payment.')
             return redirect('checkout_page', checkout_token=checkout_token)
         else:
+            # Convert non-field validation errors to floating toast messages
+            for error in form.non_field_errors():
+                messages.error(request, error)
             equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
             if org_context:
                 equipment_list = equipment_list.filter(organization=org_context)
@@ -566,6 +569,11 @@ def cancel_reservation_view(request, reservation_id):
 
             messages.success(request, success_message)
             return redirect('reservation_list')
+        else:
+            # Convert form field errors to floating toast messages
+            for field_errors in form.errors.values():
+                for error in field_errors:
+                    messages.error(request, error)
     else:
         form = CancellationRequestForm()
 

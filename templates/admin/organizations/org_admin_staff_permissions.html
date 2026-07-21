@@ -5,6 +5,7 @@
 {% block page_title %}Staff Permissions{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
 @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -156,10 +157,10 @@
             <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold mb-0"><i class="fas fa-shield-halved text-primary me-2"></i>Module Permissions</h6>
                 <span class="badge bg-light text-dark" style="border-radius: 20px; font-weight: 500;">
-                    <span id="enabledCount">{{ form.instance.get_enabled_count|default:0 }}</span>/{{ form.fields|length }} enabled
+                    <span id="enabledCount">{{ form.instance.get_enabled_count }}</span>/{{ form.fields|length }} enabled
                 </span>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-3">
                 <form method="post" id="permissionsForm">
                     {% csrf_token %}
 
@@ -179,21 +180,20 @@
                         </div>
                     </div>
 
-                    <!-- Permission Toggles -->
                     <div class="row g-3">
                         {% for field in form %}
                         <div class="col-md-6">
                             <div class="perm-card p-3" id="card_{{ field.name }}">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="perm-icon" style="background: {% cycle '#eef2ff' '#f0fdf4' '#fef2f2' '#fffbeb' '#f5f3ff' '#ecfeff' '#f8fafc' '#fff7ed' '#fdf2f8' as card_bg %}">
-                                        {% cycle '📋' '💰' '↩️' '🔧' '🏆' '🔔' '📊' '🎾' '🌐' as card_icon %}
+                                    <div class="perm-icon" style="background: {% cycle '#eef2ff' '#f0fdf4' '#fef2f2' '#fffbeb' '#f5f3ff' '#ecfeff' '#f8fafc' '#fff7ed' '#fdf2f8' %}">
+                                        <i class="fas {% cycle 'fa-calendar-check' 'fa-money-bill-wave' 'fa-undo-alt' 'fa-tools' 'fa-trophy' 'fa-bell' 'fa-chart-bar' 'fa-map-marker-alt' 'fa-globe-asia' %}"></i>
                                     </div>
                                     <div class="flex-grow-1">
                                         <label for="{{ field.id_for_label }}" class="fw-semibold mb-0" style="font-size: 0.88rem; cursor: pointer;">
                                             {{ field.label }}
                                         </label>
                                         <div class="text-muted" style="font-size: 0.72rem;">
-                                            {% cycle 'Allow managing reservations & bookings' 'Allow processing payments' 'Allow processing refunds' 'Allow managing equipment inventory' 'Allow managing tournaments' 'Allow sending notifications' 'Allow viewing reports & analytics' 'Allow managing courts' 'Allow managing sites & branches' as card_desc %}
+                                            {% cycle 'Allow managing reservations & bookings' 'Allow processing payments' 'Allow processing refunds' 'Allow managing equipment inventory' 'Allow managing tournaments' 'Allow sending notifications' 'Allow viewing reports & analytics' 'Allow managing courts' 'Allow managing sites & branches' %}
                                         </div>
                                     </div>
                                     <label class="toggle-switch ms-3">
@@ -225,7 +225,7 @@
             <div class="card-header bg-white border-bottom py-3 px-4">
                 <h6 class="fw-bold mb-0"><i class="fas fa-user-circle text-primary me-2"></i>Staff Summary</h6>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-3">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     {% with initial=staff.get_full_name|default:staff.username|first|upper %}
                     <div class="staff-badge-sm 
@@ -263,7 +263,7 @@
 
         <!-- Info Card -->
         <div class="card border-0 shadow-sm mt-4 animate-in animate-in-d2" style="border-radius: 16px; background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
-            <div class="card-body p-4">
+            <div class="card-body p-3">
                 <h6 class="fw-bold mb-2"><i class="fas fa-lightbulb text-warning me-2"></i>About Permissions</h6>
                 <ul class="small text-muted mb-0" style="padding-left: 1.2rem; line-height: 1.9;">
                     <li>Permissions control what modules a staff member can access.</li>
@@ -278,6 +278,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 // ===== Update enabled count =====
 function updateCount() {

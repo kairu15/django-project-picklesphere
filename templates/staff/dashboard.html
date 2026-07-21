@@ -5,6 +5,7 @@
 {% block page_title %}Staff Dashboard{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/staff.css' %}">
 {% endblock %}
 
@@ -52,77 +53,61 @@
     </div>
 </div>
 
-<!-- Stats Cards -->
+<!-- Stats Cards (matching org admin dashboard) -->
 <div class="row g-4 mb-4">
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.1s;">
-        <div class="card stat-card-gradient bg-gradient-primary h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper" style="background: rgba(255,255,255,0.2);">
-                        <i class="fas fa-calendar-day"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ today_reservations|length }}</h3>
-                        <p class="stat-label">Today's Reservations</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-calendar-day fa-lg"></i>
                 </div>
-                <small class="d-block mt-2" style="opacity: 0.75;">
-                    <i class="fas fa-calendar-alt me-1"></i>Scheduled for today
-                </small>
+                <div>
+                    <div class="stats-value">{{ today_reservations|length }}</div>
+                    <div class="stats-label text-muted">Today's Reservations</div>
+                    <small class="text-primary"><i class="fas fa-calendar-alt me-1"></i>Scheduled for today</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.2s;">
-        <div class="card stat-card-gradient bg-gradient-warning h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper" style="background: rgba(255,255,255,0.2);">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ pending_reservations }}</h3>
-                        <p class="stat-label">Pending Approval</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-clock fa-lg"></i>
                 </div>
-                <small class="d-block mt-2" style="opacity: 0.75;">
-                    <i class="fas fa-hourglass-half me-1"></i>Awaiting confirmation
-                </small>
+                <div>
+                    <div class="stats-value">{{ pending_reservations }}</div>
+                    <div class="stats-label text-muted">Pending Approval</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting confirmation</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.3s;">
-        <div class="card stat-card-gradient bg-gradient-success h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper" style="background: rgba(255,255,255,0.2);">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ pending_payments }}</h3>
-                        <p class="stat-label">Pending Payments</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-wallet fa-lg"></i>
                 </div>
-                <small class="d-block mt-2" style="opacity: 0.75;">
-                    <i class="fas fa-money-bill-wave me-1"></i>Needs verification
-                </small>
+                <div>
+                    <div class="stats-value">{{ pending_payments }}</div>
+                    <div class="stats-label text-muted">Pending Payments</div>
+                    <small class="text-success"><i class="fas fa-money-bill-wave me-1"></i>Needs verification</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.4s;">
-        <div class="card stat-card-gradient bg-gradient-danger h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper" style="background: rgba(255,255,255,0.2);">
-                        <i class="fas fa-play-circle"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ active_matches }}</h3>
-                        <p class="stat-label">Active Matches</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-danger text-white me-3">
+                    <i class="fas fa-play-circle fa-lg"></i>
                 </div>
-                <small class="d-block mt-2" style="opacity: 0.75;">
-                    <i class="fas fa-trophy me-1"></i>Currently in progress
-                </small>
+                <div>
+                    <div class="stats-value">{{ active_matches }}</div>
+                    <div class="stats-label text-muted">Active Matches</div>
+                    <small class="text-danger"><i class="fas fa-trophy me-1"></i>Currently in progress</small>
+                </div>
             </div>
         </div>
     </div>
@@ -145,8 +130,8 @@
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3">
-                    <div class="stat-icon-wrapper equipment-icon-box">
-                        <i class="fas fa-box text-primary"></i>
+                    <div style="width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(59,122,140,0.12);">
+                        <i class="fas fa-box text-primary" style="font-size:1.4rem;"></i>
                     </div>
                     <div>
                         <h4 class="mb-1 fw-bold">{{ equipment_stats.total }}</h4>
@@ -156,8 +141,8 @@
             </div>
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3">
-                    <div class="stat-icon-wrapper equipment-icon-warning">
-                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                    <div style="width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,193,7,0.15);">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size:1.4rem;"></i>
                     </div>
                     <div>
                         <h4 class="mb-1 fw-bold">{{ equipment_stats.low_stock }}</h4>
@@ -167,8 +152,8 @@
             </div>
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3">
-                    <div class="stat-icon-wrapper equipment-icon-success">
-                        <i class="fas fa-handshake text-success"></i>
+                    <div style="width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(40,167,69,0.12);">
+                        <i class="fas fa-handshake text-success" style="font-size:1.4rem;"></i>
                     </div>
                     <div>
                         <h4 class="mb-1 fw-bold">{{ equipment_stats.active_rentals }}</h4>

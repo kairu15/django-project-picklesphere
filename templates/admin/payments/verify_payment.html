@@ -5,6 +5,7 @@
 {% block page_title %}Verify Payment #{{ payment.id }}{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 <style>
     .admin-verify-card {

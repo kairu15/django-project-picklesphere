@@ -483,12 +483,51 @@ body::-webkit-scrollbar {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Enhanced Stats Cards */
+/* ===== Standardized Stat Cards (Design System) ===== */
+/* All dashboard stat cards across the system use these base styles. */
+:root {
+    --stat-icon-size: 48px;
+    --stat-icon-radius: 12px;
+    --stat-icon-font-size: 1.15rem;
+    --stat-value-size: 1.5rem;
+    --stat-label-size: 0.65rem;
+    --stat-card-radius: 16px;
+}
+
 .stat-card {
+    border: none;
+    border-radius: var(--stat-card-radius);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
+.stat-card .card-body {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+.stat-card .card-body > div:last-child {
+    min-width: 0;
+    flex: 1;
+}
+.stat-card .stat-value {
+    font-size: var(--stat-value-size);
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.stat-card .stat-label {
+    font-size: var(--stat-label-size);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Shine hover effect */
 .stat-card::before {
     content: '';
     position: absolute;
@@ -498,6 +537,7 @@ body::-webkit-scrollbar {
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
     transition: left 0.5s ease;
+    pointer-events: none;
 }
 .stat-card:hover::before {
     left: 100%;
@@ -506,18 +546,73 @@ body::-webkit-scrollbar {
     transform: translateY(-4px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.15);
 }
+
 .stat-icon {
-    width: var(--stat-icon-size);
-    height: var(--stat-icon-size);
-    border-radius: var(--stat-icon-radius);
+    width: var(--stat-icon-size, 48px);
+    height: var(--stat-icon-size, 48px);
+    border-radius: var(--stat-icon-radius, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--stat-icon-font-size);
+    font-size: var(--stat-icon-font-size, 1.15rem);
     transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 .stat-card:hover .stat-icon {
     transform: scale(1.1) rotate(5deg);
+}
+
+/* Flex utility: allows flex items to shrink below content width */
+.min-w-0 {
+    min-width: 0;
+}
+
+/* Stat card responsive breakpoints */
+@media (max-width: 1199.98px) {
+    .stat-card .card-body {
+        padding: 1.1rem;
+        gap: 0.9rem;
+    }
+}
+@media (max-width: 991.98px) {
+    .stat-card .card-body {
+        padding: 1rem;
+        gap: 0.85rem;
+    }
+    :root {
+        --stat-icon-size: 44px;
+        --stat-icon-font-size: 1.05rem;
+        --stat-value-size: 1.3rem;
+    }
+}
+@media (max-width: 767.98px) {
+    .stat-card .card-body {
+        padding: 0.9rem;
+        gap: 0.8rem;
+    }
+    .stat-card .stat-value {
+        font-size: calc(var(--stat-value-size) * 0.9);
+    }
+}
+@media (max-width: 575.98px) {
+    .stat-card .card-body {
+        padding: 0.85rem;
+        gap: 0.75rem;
+    }
+    :root {
+        --stat-icon-size: 40px;
+        --stat-icon-font-size: 0.95rem;
+        --stat-value-size: 1.15rem;
+        --stat-label-size: 0.6rem;
+    }
+    .stat-card .stat-value {
+        white-space: normal;
+        word-break: break-all;
+    }
+    .stat-card .stat-label {
+        white-space: normal;
+        word-break: break-word;
+    }
 }
 
 /* ===== Dashboard Responsive Adjustments ===== */

@@ -5,6 +5,7 @@
 {% block page_title %}Equipment Management{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/staff.css' %}">
 {% endblock %}
 
@@ -18,64 +19,60 @@
 {% endblock %}
 
 {% block content %}
-<!-- Stats -->
+<!-- Stats Cards (matching org admin dashboard) -->
 <div class="row g-4 mb-4">
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.1s;">
-        <div class="card stat-card-gradient bg-gradient-primary h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-boxes"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ stats.total }}</h3>
-                        <p class="stat-label">Total Items</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-primary text-white me-3">
+                    <i class="fas fa-boxes fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ stats.total }}</div>
+                    <div class="stats-label text-muted">Total Items</div>
+                    <small class="text-primary"><i class="fas fa-cube me-1"></i>All equipment</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.2s;">
-        <div class="card stat-card-gradient bg-gradient-warning h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ stats.low_stock }}</h3>
-                        <p class="stat-label">Low Stock</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-warning text-white me-3">
+                    <i class="fas fa-exclamation-triangle fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ stats.low_stock }}</div>
+                    <div class="stats-label text-muted">Low Stock</div>
+                    <small class="text-warning"><i class="fas fa-box-open me-1"></i>Need restocking</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.3s;">
-        <div class="card stat-card-gradient bg-gradient-danger h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-times-circle"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ stats.out_of_stock }}</h3>
-                        <p class="stat-label">Out of Stock</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-danger text-white me-3">
+                    <i class="fas fa-times-circle fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ stats.out_of_stock }}</div>
+                    <div class="stats-label text-muted">Out of Stock</div>
+                    <small class="text-danger"><i class="fas fa-ban me-1"></i>Currently unavailable</small>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 animate-fadeInUp" style="animation-delay: 0.4s;">
-        <div class="card stat-card-gradient bg-gradient-success h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-hand-holding"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h3 class="stat-value">{{ stats.active_rentals }}</h3>
-                        <p class="stat-label">Active Rentals</p>
-                    </div>
+        <div class="admin-card h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="stats-icon bg-gradient-success text-white me-3">
+                    <i class="fas fa-hand-holding fa-lg"></i>
+                </div>
+                <div>
+                    <div class="stats-value">{{ stats.active_rentals }}</div>
+                    <div class="stats-label text-muted">Active Rentals</div>
+                    <small class="text-success"><i class="fas fa-handshake me-1"></i>Currently rented</small>
                 </div>
             </div>
         </div>

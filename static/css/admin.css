@@ -82,11 +82,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: var(--stat-icon-font-size, 1.25rem);
+    flex-shrink: 0;
     transition: transform 0.3s ease;
 }
 
+.admin-card:hover .stats-icon,
 .stats-card:hover .stats-icon {
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(5deg);
 }
 
 .stats-value {

@@ -5,6 +5,7 @@
 {% block page_title %}My Profile{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 /* ============================================================
@@ -150,45 +151,7 @@
     font-weight: 600;
 }
 
-/* ----- Stat Cards ----- */
-.stat-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: 100%;
-}
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-}
-.stat-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-.stat-card-info h6 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 0;
-    color: #1a1a2e;
-    line-height: 1.2;
-}
-.stat-card-info p {
-    margin: 0;
-    font-size: 0.78rem;
-    color: #6c757d;
-    font-weight: 500;
-}
+/* ----- Stat Cards (light variant - uses base .stat-card system) ----- */
 
 /* ----- Section Header (reusable) ----- */
 .section-header {
@@ -511,9 +474,7 @@
     .profile-name { font-size: 1.25rem; }
     .profile-stat-num { font-size: 1rem; }
     .profile-stat-cell { padding: 10px 6px; min-width: 60px; }
-    .stat-card { padding: 14px 16px; }
-    .stat-card-icon { width: 40px; height: 40px; font-size: 1rem; }
-    .stat-card-info h6 { font-size: 1.15rem; }
+    .stat-card .stat-value { font-size: calc(var(--stat-value-size, 1.5rem) * 0.85); }
     .section-header { padding: 12px 16px; }
     .timeline-item, .activity-item, .res-card { padding: 12px 16px; }
     .skill-badge-dot { width: 24px; height: 24px; font-size: 0.55rem; bottom: 4px; right: 4px; }
@@ -777,50 +738,58 @@
         </div>
 
         <!-- ============================================================
-             QUICK STATS ROW
+             QUICK STATS ROW (standardized)
              ============================================================ -->
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-card-icon" style="background: rgba(59,122,140,0.1); color: #3B7A8C;">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-card-info">
-                        <h6>{{ total_reservations }}</h6>
-                        <p>Total Reservations</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-card-icon" style="background: rgba(40,167,69,0.1); color: #28a745;">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-card-info">
-                        <h6>{{ confirmed_reservations }}</h6>
-                        <p>Confirmed</p>
+                <div class="card stat-card h-100" style="background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <div class="card-body">
+                        <div class="stat-icon" style="background: rgba(59,122,140,0.1); color: #3B7A8C;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="stat-value" style="color: #1a1a2e;">{{ total_reservations }}</div>
+                            <div class="stat-label" style="color: #6c757d;">Total Reservations</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-card-icon" style="background: rgba(255,193,7,0.12); color: #856404;">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-card-info">
-                        <h6>{{ pending_reservations }}</h6>
-                        <p>Pending</p>
+                <div class="card stat-card h-100" style="background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <div class="card-body">
+                        <div class="stat-icon" style="background: rgba(40,167,69,0.1); color: #28a745;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="stat-value" style="color: #1a1a2e;">{{ confirmed_reservations }}</div>
+                            <div class="stat-label" style="color: #6c757d;">Confirmed</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-card-icon" style="background: rgba(111,66,193,0.1); color: #6f42c1;">
-                        <i class="fas fa-trophy"></i>
+                <div class="card stat-card h-100" style="background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <div class="card-body">
+                        <div class="stat-icon" style="background: rgba(255,193,7,0.12); color: #856404;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="stat-value" style="color: #1a1a2e;">{{ pending_reservations }}</div>
+                            <div class="stat-label" style="color: #6c757d;">Pending</div>
+                        </div>
                     </div>
-                    <div class="stat-card-info">
-                        <h6>{{ wins }}</h6>
-                        <p>Matches Won</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card h-100" style="background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <div class="card-body">
+                        <div class="stat-icon" style="background: rgba(111,66,193,0.1); color: #6f42c1;">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="stat-value" style="color: #1a1a2e;">{{ wins }}</div>
+                            <div class="stat-label" style="color: #6c757d;">Matches Won</div>
+                        </div>
                     </div>
                 </div>
             </div>

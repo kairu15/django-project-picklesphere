@@ -148,7 +148,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- Stats Cards -->
+<!-- Stats Cards (matching org admin dashboard) -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="admin-card h-100">
@@ -159,6 +159,7 @@
                 <div>
                     <div class="stats-value">₱{{ total_paid|floatformat:0 }}</div>
                     <div class="stats-label text-muted">Total Paid</div>
+                    <small class="text-success"><i class="fas fa-coins me-1"></i>All-time revenue</small>
                 </div>
             </div>
         </div>
@@ -172,6 +173,7 @@
                 <div>
                     <div class="stats-value">{{ pending_count }}</div>
                     <div class="stats-label text-muted">Pending</div>
+                    <small class="text-warning"><i class="fas fa-hourglass-half me-1"></i>Awaiting verification</small>
                 </div>
             </div>
         </div>
@@ -185,6 +187,7 @@
                 <div>
                     <div class="stats-value">{{ paid_count }}</div>
                     <div class="stats-label text-muted">Paid Count</div>
+                    <small class="text-primary"><i class="fas fa-check-circle me-1"></i>Completed payments</small>
                 </div>
             </div>
         </div>
@@ -198,6 +201,7 @@
                 <div>
                     <div class="stats-value">₱{{ today_revenue|floatformat:0 }}</div>
                     <div class="stats-label text-muted">Today's Revenue</div>
+                    <small class="text-info"><i class="fas fa-calendar-alt me-1"></i>Earned today</small>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@
 {% block title %}Payment Receipt #{{ payment.id }}{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
 @media print {
     .no-print { display: none !important; }
