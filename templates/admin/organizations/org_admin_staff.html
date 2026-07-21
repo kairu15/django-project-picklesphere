@@ -1,111 +1,325 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}Manage Staff — {{ organization.name }}{% endblock %}
-{% block page_title %}Manage Staff{% endblock %}
+{% block title %}Staff Management — {{ organization.name }}{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
 
 {% block extra_css %}
 <style>
+/* ===== Animations ===== */
 @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
 }
-.animate-in {
-    animation: fadeSlideUp 0.35s ease forwards;
-    opacity: 0;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+.animate-in { animation: fadeSlideUp 0.35s ease forwards; opacity: 0; }
 .animate-in-d1 { animation-delay: 0.05s; }
 .animate-in-d2 { animation-delay: 0.1s; }
 .animate-in-d3 { animation-delay: 0.15s; }
 .animate-in-d4 { animation-delay: 0.2s; }
+.animate-in-d5 { animation-delay: 0.25s; }
 
-.staff-card {
-    border-radius: 14px;
-    border: 1.5px solid #e9ecef;
-    transition: all 0.25s ease;
-    background: #fff;
-    height: 100%;
+/* ===== Stat Cards ===== */
+.stat-card {
+    border-radius: 16px;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
 }
-.staff-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-    transform: translateY(-2px);
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    transform: translate(30%, -30%);
 }
-
-.staff-avatar {
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+.stat-card .stat-icon {
     width: 48px;
     height: 48px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+}
+
+/* ===== Staff Avatar ===== */
+.staff-avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 0.85rem;
     flex-shrink: 0;
 }
-.staff-avatar.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.staff-avatar.teal { background: linear-gradient(135deg, #17a2b8 0%, #0d7a8c 100%); }
-.staff-avatar.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-.staff-avatar.orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-.staff-avatar.blue { background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%); }
+.staff-avatar-purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+.staff-avatar-teal { background: linear-gradient(135deg, #17a2b8, #0d7a8c); }
+.staff-avatar-green { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.staff-avatar-orange { background: linear-gradient(135deg, #fa709a, #fee140); }
+.staff-avatar-blue { background: linear-gradient(135deg, #3B7A8C, #1a3a42); }
+.staff-avatar-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
 
-.stat-dashboard-card {
+/* ===== Table ===== */
+.staff-table th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    font-weight: 700;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0.75rem 0.5rem;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.staff-table th:hover { color: #0d6efd; }
+.staff-table th .sort-icon { opacity: 0.3; margin-left: 3px; }
+.staff-table th.active-sort .sort-icon { opacity: 1; color: #0d6efd; }
+.staff-table td {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+}
+.staff-table tr {
+    transition: background 0.15s ease;
+}
+.staff-table tbody tr:hover {
+    background: rgba(13, 110, 253, 0.035);
+}
+
+/* ===== Status Badges ===== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+.status-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.status-active { background: #d1fae5; color: #065f46; }
+.status-active .dot { background: #059669; animation: pulse-dot 2s infinite; }
+.status-inactive { background: #f3f4f6; color: #6b7280; }
+.status-inactive .dot { background: #9ca3af; }
+.status-suspended { background: #fee2e2; color: #991b1b; }
+.status-suspended .dot { background: #dc2626; }
+
+/* ===== Action Buttons ===== */
+.action-dropdown .dropdown-toggle {
+    background: transparent;
+    border: none;
+    color: #6c757d;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.action-dropdown .dropdown-toggle:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+.action-dropdown .dropdown-menu {
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    padding: 0.35rem;
+    min-width: 190px;
+}
+.action-dropdown .dropdown-item {
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+}
+.action-dropdown .dropdown-item:hover { background: #f8f9fa; }
+.action-dropdown .dropdown-item.text-danger:hover { background: #fef2f2; }
+.action-dropdown .dropdown-divider { margin: 0.25rem 0; }
+
+/* ===== Search & Filter ===== */
+.filter-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+.search-input {
+    border-radius: 10px;
+    border: 1.5px solid #e9ecef;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    transition: all 0.25s;
+}
+.search-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+}
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+}
+
+/* ===== Pagination ===== */
+.pagination-custom .page-link {
+    border-radius: 10px !important;
+    margin: 0 2px;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.2s;
+}
+.pagination-custom .page-link:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    color: #212529;
+}
+.pagination-custom .page-item.active .page-link {
+    background: linear-gradient(135deg, #3B7A8C, #1a3a42);
+    border-color: #3B7A8C;
+    color: white;
+    box-shadow: 0 3px 8px rgba(59,122,140,0.3);
+}
+
+/* ===== Modal ===== */
+.modal-content {
     border-radius: 16px;
     border: none;
-    transition: all 0.3s ease;
-    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
 }
-.stat-dashboard-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.25rem 1.5rem;
+}
+.modal-body { padding: 1.5rem; }
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+}
+.modal .form-label {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #374151;
+    margin-bottom: 0.3rem;
+}
+.modal .form-control, .modal .form-select {
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.modal .form-control:focus, .modal .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
 }
 
-.btn-remove-staff {
-    border-radius: 10px;
-    background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
-    border: none;
-    color: white;
-    font-weight: 600;
-    padding: 0.4rem 1rem;
-    font-size: 0.78rem;
-    transition: all 0.25s;
-    box-shadow: 0 3px 10px rgba(220,53,69,0.25);
-}
-.btn-remove-staff:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(220,53,69,0.35);
-    color: white;
-}
-.btn-add-staff {
-    border-radius: 10px;
-    background: linear-gradient(135deg, #3B7A8C 0%, #2c5f6e 100%);
-    border: none;
-    color: white;
-    font-weight: 600;
-    padding: 0.65rem 1.5rem;
-    transition: all 0.25s;
-    box-shadow: 0 3px 12px rgba(59,122,140,0.3);
-}
-.btn-add-staff:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 18px rgba(59,122,140,0.4);
-    color: white;
-}
-
+/* ===== Empty State ===== */
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
 }
-.empty-state-icon {
-    width: 72px;
-    height: 72px;
+.empty-state-illustration {
+    width: 96px;
+    height: 96px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 1.25rem;
+    color: #adb5bd;
+    font-size: 2rem;
+}
+
+/* ===== Loading Overlay ===== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.loading-overlay.show { display: flex; }
+.spinner-custom {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e9ecef;
+    border-top-color: #0d6efd;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Password Strength ===== */
+.password-strength {
+    height: 4px;
+    border-radius: 2px;
+    transition: all 0.3s;
+    margin-top: 6px;
+}
+.pw-weak { background: #dc3545; width: 25%; }
+.pw-medium { background: #ffc107; width: 50%; }
+.pw-strong { background: #28a745; width: 75%; }
+.pw-very-strong { background: #059669; width: 100%; }
+
+/* ===== Confirm Delete Modal ===== */
+.confirm-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto 1rem;
-    color: #6c757d;
     font-size: 1.5rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .stat-card { margin-bottom: 0.75rem; }
+    .staff-table { font-size: 0.75rem; }
+    .filter-section .row > div { margin-bottom: 0.5rem; }
+    .action-dropdown .dropdown-menu { min-width: 160px; }
 }
 </style>
 {% endblock %}
@@ -120,178 +334,495 @@
 {% endblock %}
 
 {% block content %}
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="text-center">
+        <div class="spinner-custom mx-auto"></div>
+        <p class="mt-2 text-muted small">Processing...</p>
+    </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 animate-in">
     <div>
-        <h5 class="fw-bold mb-1"><i class="fas fa-users-gear text-primary me-2"></i>Staff Management</h5>
+        <h4 class="fw-bold mb-1">
+            <i class="fas fa-users-gear text-primary me-2"></i>Staff Management
+        </h4>
         <p class="text-muted mb-0 small">
             Manage who has access to manage <strong>{{ organization.name }}</strong>'s operations
         </p>
     </div>
-    <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
-        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
-    </a>
+    <div class="d-flex gap-2">
+        {% if can_add %}
+        <button class="btn btn-primary" style="border-radius: 10px; padding: 0.55rem 1.25rem; font-weight: 600;" 
+                data-bs-toggle="modal" data-bs-target="#createStaffModal">
+            <i class="fas fa-plus-circle me-2"></i>Create Staff Account
+        </button>
+        {% endif %}
+        <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+            <i class="fas fa-arrow-left me-1"></i>Dashboard
+        </a>
+    </div>
 </div>
 
 <!-- ===== STAT CARDS ===== -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4 animate-in animate-in-d1">
-        <div class="card stat-dashboard-card h-100" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
+    <div class="col-lg-2 col-md-4 col-6 animate-in animate-in-d1">
+        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #1a3a42, #0d262d);">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i class="fas fa-users text-white"></i>
-                </div>
+                <div class="stat-icon"><i class="fas fa-users" style="color: #fff; font-size: 1.1rem;"></i></div>
                 <div>
-                    <div class="text-white" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">{{ current_staff_count }}</div>
-                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.78); letter-spacing: 0.3px;">Current Staff</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ total_staff }}</div>
+                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Total Staff</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4 animate-in animate-in-d2">
-        <div class="card stat-dashboard-card h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+    <div class="col-lg-2 col-md-4 col-6 animate-in animate-in-d2">
+        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #1b5e20, #0d4015);">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i class="fas fa-user-plus text-white"></i>
-                </div>
+                <div class="stat-icon"><i class="fas fa-check-circle" style="color: #fff; font-size: 1.1rem;"></i></div>
                 <div>
-                    <div class="text-white" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">{% widthratio current_staff_count staff_limit 100 %}%</div>
-                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.78); letter-spacing: 0.3px;">Capacity Used ({{ current_staff_count }}/{{ staff_limit }})</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ active_staff }}</div>
+                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Active Staff</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4 animate-in animate-in-d3">
-        <div class="card stat-dashboard-card h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="col-lg-2 col-md-4 col-6 animate-in animate-in-d3">
+        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #991b1b, #5c1010);">
             <div class="card-body d-flex align-items-center gap-3">
-                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i class="fas fa-user-tie text-white"></i>
-                </div>
+                <div class="stat-icon"><i class="fas fa-pause-circle" style="color: #fff; font-size: 1.1rem;"></i></div>
                 <div>
-                    <div class="text-white" style="font-size: 1.6rem; font-weight: 800; line-height: 1.2;">{{ staff_limit|add:"0" }}</div>
-                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.78); letter-spacing: 0.3px;">Max Staff Limit</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ inactive_staff }}</div>
+                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Inactive Staff</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-6 animate-in animate-in-d4">
+        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #4c1d95, #2d0a57);">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon"><i class="fas fa-clock" style="color: #fff; font-size: 1.1rem;"></i></div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">{{ recently_added }}</div>
+                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">Recently Added (30 days)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-12 animate-in animate-in-d5">
+        <div class="card stat-card h-100" style="background: linear-gradient(135deg, #b45309, #78350f);">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon"><i class="fas fa-layer-group" style="color: #fff; font-size: 1.1rem;"></i></div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #ffffff;">
+                        {% widthratio current_staff_count staff_limit 100 %}%
+                    </div>
+                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.8); letter-spacing: 0.3px;">
+                        Capacity ({{ current_staff_count }}/{{ staff_limit }})
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <!-- ===== LEFT: Current Staff ===== -->
-    <div class="col-lg-7 animate-in animate-in-d2">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px;">
-            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0"><i class="fas fa-users me-2 text-primary"></i>Current Staff Members</h6>
-                <span class="badge bg-light text-dark px-3 py-2" style="border-radius: 20px;">{{ staff_members|length }} active</span>
+<!-- ===== FILTERS & SEARCH ===== -->
+<div class="filter-section mb-4 animate-in animate-in-d3">
+    <form method="get" class="row g-2 align-items-end" id="filterForm">
+        <div class="col-lg-4 col-md-6">
+            <label class="form-label fw-semibold small mb-1"><i class="fas fa-search me-1"></i>Search</label>
+            <div style="position: relative;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="search" class="form-control search-input" 
+                       placeholder="Search by name, email, or Staff ID..." 
+                       value="{{ search_query }}" 
+                       style="padding-left: 2.5rem;">
             </div>
-            <div class="card-body p-4">
-                {% if staff_members %}
-                <div class="d-flex flex-column gap-3">
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+            <label class="form-label fw-semibold small mb-1"><i class="fas fa-filter me-1"></i>Status</label>
+            <select name="status" class="form-select" style="border-radius: 10px; border: 1.5px solid #e9ecef; font-size: 0.85rem;"
+                    onchange="this.form.submit()">
+                <option value="">All Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+            <label class="form-label fw-semibold small mb-1"><i class="fas fa-building me-1"></i>Department</label>
+            <select name="department" class="form-select" style="border-radius: 10px; border: 1.5px solid #e9ecef; font-size: 0.85rem;"
+                    onchange="this.form.submit()">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept }}" {% if department_filter == dept %}selected{% endif %}>{{ dept }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label fw-semibold small mb-1">&nbsp;</label>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill" style="border-radius: 10px; font-size: 0.85rem;">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+                {% if search_query or status_filter or department_filter %}
+                <a href="{% url 'org_admin_manage_staff' %}" class="btn btn-outline-secondary" style="border-radius: 10px; font-size: 0.85rem;">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <label class="form-label fw-semibold small mb-1">&nbsp;</label>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-success flex-fill" style="border-radius: 10px; font-size: 0.85rem;"
+                        onclick="location.href='{% url 'org_admin_staff_export_csv' %}'">
+                    <i class="fas fa-download me-1"></i>Export CSV
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ===== STAFF TABLE ===== -->
+<div class="card border-0 shadow-sm animate-in animate-in-d4" style="border-radius: 16px; overflow: hidden;">
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Staff Members
+            <span class="badge bg-light text-dark ms-2" style="border-radius: 20px; font-weight: 600;">
+                {{ page_obj.paginator.count }} total
+            </span>
+        </h6>
+        <div class="d-flex align-items-center gap-2">
+            {% if can_add %}
+            <button class="btn btn-sm btn-primary" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#createStaffModal">
+                <i class="fas fa-plus me-1"></i>Add New
+            </button>
+            {% endif %}
+            <button class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if staff_members %}
+        <div class="table-responsive">
+            <table class="table staff-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th style="min-width: 180px;">
+                            <a href="?sort_by={% if sort_by == 'first_name' and sort_order == 'desc' %}-first_name{% else %}first_name{% endif %}&sort_order={% if sort_by == 'first_name' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
+                               class="text-decoration-none text-dark {% if sort_by == 'first_name' or sort_by == '-first_name' %}active-sort{% endif %}">
+                                <i class="fas fa-user me-1"></i>Staff Member
+                                {% if sort_by == 'first_name' or sort_by == '-first_name' %}
+                                <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
+                                {% else %}
+                                <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort_by={% if sort_by == 'staff_id' and sort_order == 'desc' %}-staff_id{% else %}staff_id{% endif %}&sort_order={% if sort_by == 'staff_id' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
+                               class="text-decoration-none text-dark {% if sort_by == 'staff_id' or sort_by == '-staff_id' %}active-sort{% endif %}">
+                                Staff ID
+                                {% if sort_by == 'staff_id' or sort_by == '-staff_id' %}
+                                <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
+                                {% else %}
+                                <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Contact</th>
+                        <th>
+                            <a href="?sort_by={% if sort_by == 'department' and sort_order == 'desc' %}-department{% else %}department{% endif %}&sort_order={% if sort_by == 'department' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
+                               class="text-decoration-none text-dark {% if sort_by == 'department' or sort_by == '-department' %}active-sort{% endif %}">
+                                Department
+                                {% if sort_by == 'department' or sort_by == '-department' %}
+                                <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
+                                {% else %}
+                                <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort_by={% if sort_by == '-is_active' %}-is_active{% else %}is_active{% endif %}&sort_order={% if sort_by == 'is_active' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
+                               class="text-decoration-none text-dark {% if sort_by == 'is_active' or sort_by == '-is_active' %}active-sort{% endif %}">
+                                Status
+                                {% if sort_by == 'is_active' or sort_by == '-is_active' %}
+                                <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
+                                {% else %}
+                                <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort_by={% if sort_by == '-last_login' %}-last_login{% else %}last_login{% endif %}&sort_order={% if sort_by == 'last_login' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
+                               class="text-decoration-none text-dark {% if sort_by == 'last_login' or sort_by == '-last_login' %}active-sort{% endif %}">
+                                Last Login
+                                {% if sort_by == 'last_login' or sort_by == '-last_login' %}
+                                <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
+                                {% else %}
+                                <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort_by={% if sort_by == '-created_at' %}-created_at{% else %}created_at{% endif %}&sort_order={% if sort_by == 'created_at' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}"
+                               class="text-decoration-none text-dark {% if sort_by == 'created_at' or sort_by == '-created_at' %}active-sort{% endif %}">
+                                Created
+                                {% if sort_by == 'created_at' or sort_by == '-created_at' %}
+                                <i class="fas fa-sort-{{ sort_order|default:'desc' }} sort-icon"></i>
+                                {% else %}
+                                <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th style="width: 60px; text-align: center;" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {% for staff in staff_members %}
-                    {% with colors="purple,teal,green,orange,blue" %}
-                    {% with color_list=colors|cut:" " %}
-                    <div class="staff-card p-3">
-                        <div class="d-flex align-items-center justify-content-between gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="staff-avatar {% cycle 'purple' 'teal' 'green' 'orange' 'blue' %}">
-                                    <span class="text-white">{{ staff.get_full_name|default:staff.username|first|upper }}</span>
+                    {% with initial=staff.get_full_name|default:staff.username|first|upper %}
+                    {% with avatar_class="staff-avatar-"|add:colors|cut:" " %}
+                    <tr>
+                        <td class="text-muted text-center" style="font-size: 0.75rem;">
+                            {{ page_obj.start_index|add:forloop.counter0 }}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="staff-avatar-sm 
+                                    {% cycle 'staff-avatar-purple' 'staff-avatar-teal' 'staff-avatar-green' 'staff-avatar-orange' 'staff-avatar-blue' 'staff-avatar-red' %}">
+                                    <span class="text-white" style="font-size: 0.75rem;">{{ initial }}</span>
                                 </div>
                                 <div>
-                                    <div class="fw-semibold">{{ staff.get_full_name|default:staff.username }}</div>
-                                    <div class="small text-muted">{{ staff.email }}</div>
-                                    <div>
-                                        <span class="badge bg-light text-dark" style="border-radius: 20px; font-size: 0.65rem;">
-                                            <i class="fas fa-user-tag me-1"></i>Staff
-                                        </span>
-                                        {% if staff.last_login %}
-                                        <small class="text-muted ms-2">Last login: {{ staff.last_login|date:"M d, Y" }}</small>
-                                        {% endif %}
+                                    <div class="fw-semibold" style="font-size: 0.85rem;">
+                                        <a href="{% url 'org_admin_staff_detail' staff.id %}" class="text-decoration-none text-dark stretched-link">
+                                            {{ staff.get_full_name|default:staff.username }}
+                                        </a>
                                     </div>
+                                    {% if staff.middle_name %}
+                                    <div class="text-muted" style="font-size: 0.7rem;">{{ staff.middle_name }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <form method="post" onsubmit="return confirm('Remove {{ staff.get_full_name|default:staff.username }} from staff? They will become a regular user.')" style="flex-shrink: 0;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="remove">
-                                <input type="hidden" name="user_id" value="{{ staff.id }}">
-                                <button type="submit" class="btn-remove-staff btn-sm">
-                                    <i class="fas fa-user-minus me-1"></i>Remove
+                        </td>
+                        <td>
+                            {% if staff.staff_id %}
+                            <code style="font-size: 0.75rem; background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">{{ staff.staff_id }}</code>
+                            {% else %}
+                            <span class="text-muted" style="font-size: 0.75rem;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="font-size: 0.8rem;">
+                                <div><i class="fas fa-envelope me-1 text-muted" style="font-size: 0.65rem;"></i>{{ staff.email }}</div>
+                                {% if staff.phone_number %}
+                                <div class="mt-1"><i class="fas fa-phone me-1 text-muted" style="font-size: 0.65rem;"></i>{{ staff.phone_number }}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if staff.department %}
+                            <span class="badge bg-light text-dark" style="border-radius: 20px; font-size: 0.7rem; font-weight: 500;">
+                                {{ staff.department }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted" style="font-size: 0.75rem;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if staff.employment_status == 'active' and staff.is_active %}
+                            <span class="status-badge status-active"><span class="dot"></span>Active</span>
+                            {% elif staff.employment_status == 'suspended' %}
+                            <span class="status-badge status-suspended"><span class="dot"></span>Suspended</span>
+                            {% else %}
+                            <span class="status-badge status-inactive"><span class="dot"></span>Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.78rem; white-space: nowrap;">
+                            {% if staff.last_login %}
+                            <span title="{{ staff.last_login|date:'M d, Y h:i A' }}">
+                                <i class="fas fa-clock me-1 text-muted" style="font-size: 0.65rem;"></i>
+                                {{ staff.last_login|date:"M d, Y" }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted"><i class="fas fa-minus me-1"></i>Never</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.75rem; white-space: nowrap;">
+                            <span title="{{ staff.created_at|date:'M d, Y h:i A' }}">
+                                {{ staff.created_at|date:"M d, Y" }}
+                            </span>
+                        </td>
+                        <td class="position-relative" style="position: relative; z-index: 2;">
+                            <div class="dropdown action-dropdown">
+                                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-vertical"></i>
                                 </button>
-                            </form>
-                        </div>
-                    </div>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'org_admin_staff_detail' staff.id %}">
+                                            <i class="fas fa-eye me-2 text-primary" style="width: 16px;"></i>View Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'org_admin_staff_edit' staff.id %}">
+                                            <i class="fas fa-pen me-2 text-warning" style="width: 16px;"></i>Edit Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'org_admin_staff_permissions' staff.id %}">
+                                            <i class="fas fa-shield-halved me-2 text-info" style="width: 16px;"></i>Permissions
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    {% if staff.is_active and staff.employment_status == 'active' %}
+                                    <li>
+                                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status_action" value="deactivate">
+                                            <button type="submit" class="dropdown-item text-warning">
+                                                <i class="fas fa-pause me-2" style="width: 16px;"></i>Deactivate
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status_action" value="suspend">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fas fa-ban me-2" style="width: 16px;"></i>Suspend
+                                            </button>
+                                        </form>
+                                    </li>
+                                    {% elif staff.employment_status == 'suspended' %}
+                                    <li>
+                                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status_action" value="activate">
+                                            <button type="submit" class="dropdown-item text-success">
+                                                <i class="fas fa-play me-2" style="width: 16px;"></i>Activate
+                                            </button>
+                                        </form>
+                                    </li>
+                                    {% else %}
+                                    <li>
+                                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status_action" value="activate">
+                                            <button type="submit" class="dropdown-item text-success">
+                                                <i class="fas fa-play me-2" style="width: 16px;"></i>Activate
+                                            </button>
+                                        </form>
+                                    </li>
+                                    {% endif %}
+                                    <li>
+                                        <form method="post" action="{% url 'org_admin_staff_reset_password' staff.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item" onclick="return confirm('Reset password for {{ staff.get_full_name|default:staff.username }}?')">
+                                                <i class="fas fa-key me-2 text-danger" style="width: 16px;"></i>Reset Password
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger" 
+                                                onclick="confirmDelete({{ staff.id }}, '{{ staff.get_full_name|default:staff.username|escapejs }}')">
+                                            <i class="fas fa-trash-can me-2" style="width: 16px;"></i>Delete
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
                     {% endwith %}
                     {% endwith %}
                     {% endfor %}
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-users-slash"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">No staff members yet</h6>
-                    <p class="text-muted small mb-0">Staff members help manage reservations, courts, and equipment.</p>
-                </div>
-                {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-illustration">
+                <i class="fas fa-users-slash"></i>
             </div>
+            <h6 class="fw-bold mb-2">No Staff Members Found</h6>
+            {% if search_query or status_filter or department_filter %}
+            <p class="text-muted small mb-3">No staff match your current filters. Try adjusting your search criteria.</p>
+            <a href="{% url 'org_admin_manage_staff' %}" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">
+                <i class="fas fa-times me-1"></i>Clear Filters
+            </a>
+            {% else %}
+            <p class="text-muted small mb-3">Start building your team by creating your first staff account.</p>
+            {% if can_add %}
+            <button class="btn btn-primary" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#createStaffModal">
+                <i class="fas fa-plus-circle me-2"></i>Create Staff Account
+            </button>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% if is_paginated %}
+    <div class="card-footer bg-white border-top py-3 px-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-muted">
+                Showing <strong>{{ page_obj.start_index }}</strong>–<strong>{{ page_obj.end_index }}</strong> 
+                of <strong>{{ page_obj.paginator.count }}</strong> staff members
+            </small>
+            <nav>
+                <ul class="pagination pagination-custom mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i><i class="fas fa-chevron-left" style="margin-left: -5px;"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                    <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if department_filter %}&department={{ department_filter }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i><i class="fas fa-chevron-right" style="margin-left: -5px;"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
     </div>
+    {% endif %}
+</div>
 
-    <!-- ===== RIGHT: Add Staff + Settings ===== -->
-    <div class="col-lg-5 animate-in animate-in-d3">
-        <!-- Add Staff -->
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
-            <div class="card-header bg-white border-bottom py-3 px-4">
-                <h6 class="fw-bold mb-0"><i class="fas fa-user-plus me-2 text-success"></i>Add Staff Member</h6>
-            </div>
-            <div class="card-body p-4">
-                {% if can_add %}
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="add">
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Select User</label>
-                        {{ form.user }}
-                        {% if form.user.errors %}
-                        <div class="text-danger small mt-1">{{ form.user.errors }}</div>
-                        {% endif %}
-                        {% if form.user.queryset.count == 0 %}
-                        <div class="alert alert-info rounded-3 small mt-2 mb-0 py-2">
-                            <i class="fas fa-info-circle me-1"></i>
-                            No eligible users available. All users are already staff or affiliated with your organization.
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="alert alert-info rounded-3 small mb-3 py-2">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Only regular users with no organization affiliation can be assigned as staff.
-                    </div>
-
-                    {% if form.user.queryset.count > 0 %}
-                    <button type="submit" class="btn-add-staff w-100">
-                        <i class="fas fa-user-plus me-2"></i>Assign as Staff
-                    </button>
-                    {% else %}
-                    <button type="submit" class="btn btn-secondary w-100" style="border-radius: 10px;" disabled>
-                        <i class="fas fa-ban me-2"></i>No Eligible Users
-                    </button>
-                    {% endif %}
-                </form>
-                {% else %}
-                <div class="alert alert-warning rounded-3 small mb-0">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Staff limit reached ({{ current_staff_count }}/{{ staff_limit }}). 
-                    Remove an existing staff member or increase the limit below.
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Staff Limit Settings -->
+<!-- ===== Staff Settings Card ===== -->
+<div class="row g-4 mt-2 animate-in animate-in-d5">
+    <div class="col-lg-6">
         <div class="card border-0 shadow-sm" style="border-radius: 16px;">
             <div class="card-header bg-white border-bottom py-3 px-4">
-                <h6 class="fw-bold mb-0"><i class="fas fa-sliders me-2 text-warning"></i>Staff Limit</h6>
+                <h6 class="fw-bold mb-0"><i class="fas fa-sliders me-2 text-warning"></i>Staff Limit Settings</h6>
             </div>
             <div class="card-body p-4">
                 <form method="post" class="row g-2 align-items-end">
@@ -301,36 +832,332 @@
                         <label class="form-label fw-semibold small">Maximum Staff Accounts</label>
                         <input type="number" name="max_staff_accounts" class="form-control" 
                                value="{{ staff_limit }}" min="1" max="100"
-                               style="border-radius: 10px;">
+                               style="border-radius: 10px; border: 1.5px solid #e9ecef;">
                     </div>
                     <div class="col-4">
-                        <button type="submit" class="btn btn-outline-primary w-100" style="border-radius: 10px;">
+                        <button type="submit" class="btn btn-outline-primary w-100" style="border-radius: 10px; font-weight: 600;">
                             <i class="fas fa-save me-1"></i>Save
                         </button>
                     </div>
                     <div class="col-12">
                         <small class="text-muted">
                             <i class="fas fa-info-circle me-1"></i>
-                            Set the maximum number of staff accounts allowed for your organization.
                             Current usage: <strong>{{ current_staff_count }} / {{ staff_limit }}</strong>
                         </small>
                     </div>
                 </form>
             </div>
         </div>
-
-        <!-- Info Card -->
-        <div class="card border-0 shadow-sm mt-4" style="border-radius: 16px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
             <div class="card-body p-4">
-                <h6 class="fw-bold mb-2"><i class="fas fa-lightbulb text-warning me-2"></i>About Staff Roles</h6>
-                <ul class="small text-muted mb-0" style="padding-left: 1.2rem; line-height: 1.8;">
-                    <li>Staff members can manage reservations, payments, and equipment.</li>
-                    <li>Staff cannot change organization settings or manage other staff.</li>
-                    <li>Removing a staff member demotes them to a regular user.</li>
-                    <li>Users must have a regular user account before becoming staff.</li>
-                </ul>
+                <div class="d-flex align-items-start gap-3">
+                    <div style="width: 44px; height: 44px; background: rgba(255,193,7,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-2">About Staff Management</h6>
+                        <ul class="small text-muted mb-0" style="padding-left: 1.2rem; line-height: 1.9;">
+                            <li>Staff members can help manage daily operations within your organization.</li>
+                            <li>Each staff member has customizable <strong>permissions</strong> to control their access.</li>
+                            <li>Staff accounts can be activated, suspended, or removed at any time.</li>
+                            <li>All staff actions are recorded in the <strong>activity logs</strong> for accountability.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- ===== CREATE STAFF ACCOUNT MODAL ===== -->
+<div class="modal fade" id="createStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-user-plus text-success me-2"></i>Create Staff Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'org_admin_staff_create' %}" id="createStaffForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- Personal Information -->
+                    <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #0d6efd;">
+                        <i class="fas fa-user-circle me-2"></i>Personal Information
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required 
+                                   placeholder="John" value="{{ form_data.first_name|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control" 
+                                   placeholder="M." value="{{ form_data.middle_name|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" name="last_name" class="form-control" required 
+                                   placeholder="Doe" value="{{ form_data.last_name|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" required 
+                                   placeholder="staff@example.com" value="{{ form_data.email|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile Number</label>
+                            <input type="text" name="phone_number" class="form-control" 
+                                   placeholder="09XXXXXXXXX" value="{{ form_data.phone_number|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            <select name="gender" class="form-select">
+                                <option value="">Prefer not to say</option>
+                                <option value="M" {% if form_data.gender == 'M' %}selected{% endif %}>Male</option>
+                                <option value="F" {% if form_data.gender == 'F' %}selected{% endif %}>Female</option>
+                                <option value="O" {% if form_data.gender == 'O' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Birth Date</label>
+                            <input type="date" name="birth_date" class="form-control" value="{{ form_data.birth_date|default:'' }}">
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #0d6efd;">
+                        <i class="fas fa-lock me-2"></i>Account Information
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">Username <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control" required 
+                                   placeholder="johndoe" value="{{ form_data.username|default:'' }}" id="usernameInput">
+                            <div id="usernameFeedback" class="small mt-1"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control" required 
+                                       placeholder="Min. 8 characters" id="passwordInput">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        style="border-radius: 0 10px 10px 0; border: 1.5px solid #e5e7eb;"
+                                        onclick="togglePasswordVisibility('passwordInput', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <div class="d-flex gap-2 mt-1">
+                                <small class="text-muted" id="strengthText">Enter a password</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" name="confirm_password" class="form-control" required 
+                                       placeholder="Repeat password" id="confirmPasswordInput">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        style="border-radius: 0 10px 10px 0; border: 1.5px solid #e5e7eb;"
+                                        onclick="togglePasswordVisibility('confirmPasswordInput', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div id="passwordMatch" class="small mt-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Staff Information -->
+                    <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #0d6efd;">
+                        <i class="fas fa-briefcase me-2"></i>Staff Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            <input type="text" name="department" class="form-control" 
+                                   placeholder="e.g. Front Desk, Operations" value="{{ form_data.department|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Employment Status</label>
+                            <select name="employment_status" class="form-select">
+                                <option value="active" selected>Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Employment Status</label>
+                            <select name="employment_status" class="form-select">
+                                <option value="active" selected>Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-control" rows="2" 
+                                      placeholder="Optional notes about this staff member">{{ form_data.notes|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 10px;" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 10px; font-weight: 600;" id="submitStaffBtn">
+                        <i class="fas fa-check-circle me-1"></i>Create Staff Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DELETE CONFIRMATION MODAL ===== -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content text-center p-3">
+            <div class="modal-body">
+                <div class="confirm-icon" style="background: #fef2f2; color: #dc2626;">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Delete Staff Account</h6>
+                <p class="small text-muted mb-3" id="deleteStaffName">Are you sure?</p>
+                <form method="post" action="" id="deleteStaffForm">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger btn-sm" style="border-radius: 8px;">
+                            <i class="fas fa-trash-can me-1"></i>Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== Toggle Password Visibility =====
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+}
+
+// ===== Password Strength Indicator =====
+const passwordInput = document.getElementById('passwordInput');
+const strengthBar = document.getElementById('passwordStrength');
+const strengthText = document.getElementById('strengthText');
+
+if (passwordInput) {
+    passwordInput.addEventListener('input', function() {
+        const val = this.value;
+        let strength = 0;
+        
+        if (val.length >= 8) strength += 25;
+        if (val.match(/[a-z]/) && val.match(/[A-Z]/)) strength += 25;
+        if (val.match(/\d/)) strength += 25;
+        if (val.match(/[^a-zA-Z0-9]/)) strength += 25;
+        
+        strengthBar.className = 'password-strength';
+        if (strength <= 25) {
+            strengthBar.classList.add('pw-weak');
+            strengthText.textContent = 'Weak — try adding uppercase, numbers & symbols';
+            strengthText.style.color = '#dc3545';
+        } else if (strength <= 50) {
+            strengthBar.classList.add('pw-medium');
+            strengthText.textContent = 'Fair — add more variety';
+            strengthText.style.color = '#ffc107';
+        } else if (strength <= 75) {
+            strengthBar.classList.add('pw-strong');
+            strengthText.textContent = 'Good password';
+            strengthText.style.color = '#28a745';
+        } else {
+            strengthBar.classList.add('pw-very-strong');
+            strengthText.textContent = 'Very strong password!';
+            strengthText.style.color = '#059669';
+        }
+    });
+}
+
+// ===== Password Match Checker =====
+const confirmInput = document.getElementById('confirmPasswordInput');
+const matchMsg = document.getElementById('passwordMatch');
+
+if (confirmInput && passwordInput) {
+    function checkMatch() {
+        if (confirmInput.value.length === 0) {
+            matchMsg.textContent = '';
+            return;
+        }
+        if (confirmInput.value === passwordInput.value) {
+            matchMsg.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Passwords match';
+            matchMsg.style.color = '#059669';
+        } else {
+            matchMsg.innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i>Passwords do not match';
+            matchMsg.style.color = '#dc3545';
+        }
+    }
+    confirmInput.addEventListener('input', checkMatch);
+    passwordInput.addEventListener('input', checkMatch);
+}
+
+// ===== Delete Confirmation =====
+function confirmDelete(staffId, staffName) {
+    const modal = document.getElementById('deleteConfirmModal');
+    document.getElementById('deleteStaffName').textContent = `Remove "${staffName}" from staff? This will demote them to a regular user.`;
+    document.getElementById('deleteStaffForm').action = `/org-admin/staff/${staffId}/delete/`;
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+// ===== Username Availability Check (simple) =====
+const usernameInput = document.getElementById('usernameInput');
+const usernameFeedback = document.getElementById('usernameFeedback');
+
+if (usernameInput) {
+    usernameInput.addEventListener('blur', function() {
+        const val = this.value.trim();
+        if (val.length >= 3) {
+            // Simple client-side validation — the form will validate server-side
+            usernameFeedback.innerHTML = '<i class="fas fa-spinner fa-spin text-muted me-1"></i>Checking...';
+            setTimeout(() => {
+                if (!val.match(/^[a-zA-Z0-9_]+$/)) {
+                    usernameFeedback.innerHTML = '<i class="fas fa-exclamation-circle text-danger me-1"></i>Username can only contain letters, numbers, and underscores';
+                } else {
+                    usernameFeedback.innerHTML = '';
+                }
+            }, 300);
+        }
+    });
+}
+
+// ===== Loading Overlay =====
+document.getElementById('createStaffForm')?.addEventListener('submit', function() {
+    document.getElementById('loadingOverlay').classList.add('show');
+});
+
+// ===== Auto-show modal if validation failed =====
+{% if form_open %}
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = new bootstrap.Modal(document.getElementById('createStaffModal'));
+    modal.show();
+    // Scroll to top of modal to show errors
+    document.querySelector('.modal-body')?.scrollTo({ top: 0, behavior: 'smooth' });
+});
+{% endif %}
+</script>
 {% endblock %}

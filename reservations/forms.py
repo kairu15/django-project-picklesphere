@@ -174,11 +174,27 @@ class ReservationApprovalForm(forms.ModelForm):
 
 
 class CancellationRequestForm(forms.ModelForm):
+    REASON_CHOICES = CancellationRequest.REASON_CATEGORY_CHOICES
+
+    reason_category = forms.ChoiceField(
+        choices=REASON_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    custom_reason = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Please specify your reason...',
+            'style': 'min-height: 85px; resize: vertical; border-radius: 10px;'
+        })
+    )
+
     class Meta:
         model = CancellationRequest
-        fields = ['reason', 'refund_method', 'gcash_number', 'account_name', 'paypal_email']
+        fields = ['reason', 'reason_category', 'refund_method', 'gcash_number', 'account_name', 'paypal_email']
         widgets = {
-            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Please provide a reason for cancellation...'}),
+            'reason': forms.HiddenInput(),
             'refund_method': forms.RadioSelect(choices=CancellationRequest.REFUND_METHOD_CHOICES),
             'gcash_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
             'account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full Name'}),
@@ -187,13 +203,38 @@ class CancellationRequestForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['reason'].required = False
         self.fields['refund_method'].required = True
         self.fields['gcash_number'].required = False
         self.fields['account_name'].required = False
         self.fields['paypal_email'].required = False
 
+        # Pre-populate from instance if editing
+        if self.instance and self.instance.pk and self.instance.reason_category:
+            self.fields['reason_category'].initial = self.instance.reason_category
+            if self.instance.reason_category == 'other':
+                self.fields['custom_reason'].initial = self.instance.reason
+
     def clean(self):
         cleaned_data = super().clean()
+        reason_category = cleaned_data.get('reason_category')
+        custom_reason = cleaned_data.get('custom_reason', '')
+
+        # Validate reason fields
+        if reason_category:
+            if reason_category == 'other':
+                if not custom_reason or not custom_reason.strip():
+                    self.add_error('custom_reason', 'Please provide a reason for cancellation.')
+                else:
+                    cleaned_data['reason'] = custom_reason.strip()
+            else:
+                # Store the human-readable display value of the selected choice
+                reason_display = dict(self.REASON_CHOICES).get(reason_category, reason_category)
+                cleaned_data['reason'] = reason_display
+        else:
+            self.add_error('reason_category', 'Please select a reason for cancellation.')
+
+        # Validate refund fields
         refund_method = cleaned_data.get('refund_method')
         gcash_number = cleaned_data.get('gcash_number')
         account_name = cleaned_data.get('account_name')

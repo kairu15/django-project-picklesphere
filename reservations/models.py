@@ -114,6 +114,22 @@ class CancellationPolicy(models.Model):
 
 
 class CancellationRequest(models.Model):
+    REASON_CATEGORY_CHOICES = (
+        ('change_of_plans', 'Change of Plans'),
+        ('scheduling_conflict', 'Scheduling Conflict'),
+        ('personal_emergency', 'Personal Emergency'),
+        ('health_reasons', 'Health Reasons'),
+        ('weather_conditions', 'Weather Conditions'),
+        ('court_no_longer_needed', 'Court No Longer Needed'),
+        ('found_another_venue', 'Found Another Venue'),
+        ('duplicate_reservation', 'Duplicate Reservation'),
+        ('payment_issue', 'Payment Issue'),
+        ('booking_mistake', 'Booking Mistake'),
+        ('transportation_problem', 'Transportation Problem'),
+        ('tournament_cancelled', 'Tournament Cancelled'),
+        ('other', 'Other'),
+    )
+
     REFUND_METHOD_CHOICES = (
         ('gcash', 'GCash'),
         ('paypal', 'PayPal'),
@@ -122,6 +138,13 @@ class CancellationRequest(models.Model):
 
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE, related_name='cancellation_request')
     reason = models.TextField()
+    reason_category = models.CharField(
+        max_length=50,
+        choices=REASON_CATEGORY_CHOICES,
+        blank=True,
+        null=True,
+        help_text='Predefined reason category selected by the user'
+    )
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE)
     requested_at = models.DateTimeField(auto_now_add=True)
     approved = models.BooleanField(null=True, blank=True)

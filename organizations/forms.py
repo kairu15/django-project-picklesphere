@@ -1,7 +1,8 @@
 from django import forms
 from django.db.models import Q
 from .models import Organization
-from accounts.models import User
+from accounts.models import User, StaffPermission
+import re
 
 
 class OrganizationRegistrationForm(forms.ModelForm):
@@ -65,7 +66,6 @@ class OrgStaffAssignmentForm(forms.Form):
         org = kwargs.pop('org', None)
         super().__init__(*args, **kwargs)
         if org:
-            # Show users who are NOT already staff/admin of this org, and not super_admin
             existing_staff = User.objects.filter(
                 organization=org,
                 role__in=['org_admin', 'org_staff']
@@ -76,8 +76,162 @@ class OrgStaffAssignmentForm(forms.Form):
             ).exclude(id__in=existing_staff).order_by('username')
             if not self.fields['user'].queryset.exists():
                 self.fields['user'].empty_label = "No eligible users available"
+
+
+class StaffAccountCreateForm(forms.ModelForm):
+    """Form for org admin to create a new staff account from scratch."""
     
+    password = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter password'}),
+        min_length=8
+    )
+    confirm_password = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm password'})
+    )
     
+    class Meta:
+        model = User
+        fields = [
+            'first_name', 'middle_name', 'last_name', 'email', 'username',
+            'phone_number', 'gender', 'birth_date',
+            'department', 'employment_status', 'notes'
+        ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Middle name (optional)'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Choose a username'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'department': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Front Desk, Operations'}),
+            'employment_status': forms.Select(attrs={'class': 'form-select'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional notes about this staff member'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.org = kwargs.pop('org', None)
+        super().__init__(*args, **kwargs)
+        self.fields['gender'].required = False
+        self.fields['birth_date'].required = False
+        self.fields['middle_name'].required = False
+        self.fields['department'].required = False
+        self.fields['employment_status'].required = False
+        self.fields['notes'].required = False
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError('This username is already taken.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('A user with this email already exists.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm = cleaned_data.get('confirm_password')
+        if password and confirm and password != confirm:
+            self.add_error('confirm_password', 'Passwords do not match.')
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        user.role = 'org_staff'
+        user.organization = self.org
+        # Generate staff ID
+        prefix = ''.join(re.findall(r'[A-Z]', self.org.name.upper()))[:3] if self.org else 'STF'
+        if not prefix:
+            prefix = 'STF'
+        last_staff = User.objects.filter(
+            staff_id__startswith=f'{prefix}-'
+        ).order_by('-staff_id').first()
+        if last_staff and last_staff.staff_id:
+            last_num = int(last_staff.staff_id.split('-')[1])
+            user.staff_id = f'{prefix}-{last_num + 1:04d}'
+        else:
+            user.staff_id = f'{prefix}-0001'
+        if commit:
+            user.save()
+            # Create default permissions
+            StaffPermission.objects.create(
+                user=user,
+            )
+        return user
+
+
+class StaffEditForm(forms.ModelForm):
+    """Form for org admin to edit staff details."""
+    class Meta:
+        model = User
+        fields = [
+            'first_name', 'middle_name', 'last_name', 'email',
+            'phone_number', 'gender', 'birth_date',
+            'department', 'employment_status', 'notes', 'is_active'
+        ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'employment_status': forms.Select(attrs={'class': 'form-select'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['gender'].required = False
+        self.fields['birth_date'].required = False
+        self.fields['middle_name'].required = False
+        self.fields['department'].required = False
+        self.fields['employment_status'].required = False
+        self.fields['notes'].required = False
+        self.fields['employment_status'].label = 'Employment Status'
+
+
+class StaffPermissionForm(forms.ModelForm):
+    """Form for org admin to configure staff permissions."""
+    class Meta:
+        model = StaffPermission
+        fields = [
+            'manage_reservations', 'manage_payments', 'manage_refunds',
+            'manage_equipment', 'manage_tournaments', 'manage_notifications',
+            'view_reports', 'manage_courts', 'manage_sites'
+        ]
+        widgets = {
+            field: forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            for field in [
+                'manage_reservations', 'manage_payments', 'manage_refunds',
+                'manage_equipment', 'manage_tournaments', 'manage_notifications',
+                'view_reports', 'manage_courts', 'manage_sites'
+            ]
+        }
+        labels = {
+            'manage_reservations': 'Can manage reservations',
+            'manage_payments': 'Can manage payments',
+            'manage_refunds': 'Can process refunds',
+            'manage_equipment': 'Can manage equipment',
+            'manage_tournaments': 'Can manage tournaments',
+            'manage_notifications': 'Can send notifications',
+            'view_reports': 'Can view reports',
+            'manage_courts': 'Can manage courts',
+            'manage_sites': 'Can manage sites',
+        }
+
+
 class OrganizationApprovalForm(forms.ModelForm):
     """Form for super admin to approve/reject organizations"""
     
@@ -141,10 +295,8 @@ class SuperAdminOrganizationForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter org_admin dropdown to only unassigned users (or the current assigned one)
         admin_qs = User.objects.filter(role='org_admin', is_active=True)
         if self.instance.pk:
-            # When editing, include the currently assigned admin
             admin_qs = admin_qs.filter(
                 Q(organization=self.instance) |
                 Q(organization__isnull=True)
@@ -153,7 +305,6 @@ class SuperAdminOrganizationForm(forms.ModelForm):
             admin_qs = admin_qs.filter(organization__isnull=True)
         self.fields['org_admin'].queryset = admin_qs.order_by('username')
         
-        # Set initial value if editing
         if self.instance.pk:
             current_admin = User.objects.filter(
                 organization=self.instance, role='org_admin'

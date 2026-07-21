@@ -5,11 +5,12 @@ from django.db.models import Count, Sum, Q
 from django.db.models.functions import ExtractHour
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, Http404
+import csv
 from django.core.paginator import Paginator
 from datetime import timedelta
 
 from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
-from accounts.models import User
+from accounts.models import User, StaffPermission, UserActivity
 from courts.models import Court
 from dashboard.models import OrganizationPageSettings, FeaturedOrganization, OrganizationCategory
 from reservations.models import Reservation
@@ -19,7 +20,8 @@ from .models import Organization, OrganizationAuditLog
 from .forms import (
     OrganizationRegistrationForm, OrganizationProfileForm,
     OrganizationApprovalForm, SuperAdminOrganizationForm,
-    OrgStaffAssignmentForm, OrganizationVerificationForm
+    OrgStaffAssignmentForm, OrganizationVerificationForm,
+    StaffAccountCreateForm, StaffEditForm, StaffPermissionForm
 )
 from notifications.utils import (
     notify_org_admin_org_status_change,
@@ -855,13 +857,13 @@ def org_admin_manage_staff(request):
     """Organization Admin manages staff members for their organization."""
     org = request.user.organization
 
-    # Get current staff (org_staff role, belonging to this org)
+    # Get all staff members
     staff_members = User.objects.filter(
         organization=org,
         role='org_staff'
     ).order_by('username')
 
-    # Handle POST: add or remove staff
+    # Handle POST actions
     if request.method == 'POST':
         action = request.POST.get('action')
 
@@ -873,10 +875,10 @@ def org_admin_manage_staff(request):
                 user.role = 'org_staff'
                 user.save()
                 staff_name = user.get_full_name() or user.username
-                messages.success(
-                    request,
-                    f'"{staff_name}" has been added as a staff member.'
-                )
+                _create_org_audit_log(org, 'staff_added', request.user,
+                    f'Staff member "{staff_name}" added by {request.user.get_full_name() or request.user.username}',
+                    request=request)
+                messages.success(request, f'"{staff_name}" has been added as a staff member.')
                 return redirect('org_admin_manage_staff')
             else:
                 messages.error(request, 'Please select a valid user to add.')
@@ -889,10 +891,10 @@ def org_admin_manage_staff(request):
                 user.organization = None
                 user.role = 'user'
                 user.save()
-                messages.success(
-                    request,
-                    f'"{username}" has been removed from staff and is now a regular user.'
-                )
+                _create_org_audit_log(org, 'staff_removed', request.user,
+                    f'Staff member "{username}" removed by {request.user.get_full_name() or request.user.username}',
+                    request=request)
+                messages.success(request, f'"{username}" has been removed from staff.')
                 return redirect('org_admin_manage_staff')
 
         elif action == 'update_max':
@@ -907,30 +909,365 @@ def org_admin_manage_staff(request):
                     messages.error(request, 'Maximum staff accounts must be between 1 and 100.')
             return redirect('org_admin_manage_staff')
 
-    else:
-        form = OrgStaffAssignmentForm(org=org)
+    # Search and filtering
+    search_query = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', '')
+    department_filter = request.GET.get('department', '')
 
-    # Get eligible regular users (role='user', no org affiliation or with this org only)
-    eligible_users = User.objects.filter(
-        role='user',
-        is_active=True
-    ).exclude(
-        organization=org,
-        role__in=['org_admin', 'org_staff']
-    ).order_by('username')[:50]
+    filtered_staff = staff_members
+    if search_query:
+        filtered_staff = filtered_staff.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(staff_id__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+    if status_filter == 'active':
+        filtered_staff = filtered_staff.filter(is_active=True, employment_status='active')
+    elif status_filter == 'inactive':
+        filtered_staff = filtered_staff.filter(Q(is_active=False) | Q(employment_status='inactive'))
+    elif status_filter == 'suspended':
+        filtered_staff = filtered_staff.filter(employment_status='suspended')
+    if department_filter:
+        filtered_staff = filtered_staff.filter(department__iexact=department_filter)
+
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-created_at')
+    sort_order = request.GET.get('sort_order', 'desc')
+    allowed_sort_fields = ['username', 'first_name', 'last_name', 'email', 'staff_id', 'department', 'is_active', 'created_at', 'last_login']
+    if sort_by.lstrip('-') in allowed_sort_fields:
+        if sort_order == 'asc' and sort_by.startswith('-'):
+            sort_by = sort_by[1:]
+        elif sort_order == 'desc' and not sort_by.startswith('-'):
+            sort_by = '-' + sort_by
+        filtered_staff = filtered_staff.order_by(sort_by)
+
+    # Pagination
+    paginator = Paginator(filtered_staff, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # Stats
+    total_staff = staff_members.count()
+    active_staff = staff_members.filter(is_active=True, employment_status='active').count()
+    inactive_staff = staff_members.filter(Q(is_active=False) | Q(employment_status='inactive')).count()
+    recently_added = staff_members.filter(created_at__gte=timezone.now() - timedelta(days=30)).count()
+
+    # Departments list for filter
+    departments = staff_members.exclude(department__isnull=True).exclude(department='').values_list('department', flat=True).distinct().order_by('department')
 
     can_add = org.can_add_staff()
     staff_limit = org.max_staff_accounts
+    create_form = StaffAccountCreateForm(org=org)
 
     return render(request, 'admin/organizations/org_admin_staff.html', {
         'organization': org,
-        'staff_members': staff_members,
-        'form': form,
-        'eligible_users': eligible_users,
+        'staff_members': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'department_filter': department_filter,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'total_staff': total_staff,
+        'active_staff': active_staff,
+        'inactive_staff': inactive_staff,
+        'recently_added': recently_added,
+        'departments': departments,
         'can_add': can_add,
         'staff_limit': staff_limit,
-        'current_staff_count': staff_members.count(),
+        'current_staff_count': total_staff,
+        'create_form': create_form,
+        'form': OrgStaffAssignmentForm(org=org),
     })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_export_csv(request):
+    """Export staff list as CSV."""
+    org = request.user.organization
+    staff_members = User.objects.filter(
+        organization=org,
+        role='org_staff'
+    ).order_by('username')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{org.name}_staff_{timezone.now().strftime("%Y%m%d")}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Staff ID', 'First Name', 'Middle Name', 'Last Name', 'Email', 'Phone', 'Department', 'Status', 'Employment Status', 'Last Login', 'Created At'])
+    
+    for staff in staff_members:
+        writer.writerow([
+            staff.staff_id or '',
+            staff.first_name,
+            staff.middle_name or '',
+            staff.last_name,
+            staff.email,
+            staff.phone_number or '',
+            staff.department or '',
+            'Active' if staff.is_active else 'Inactive',
+            staff.get_employment_status_display() if staff.employment_status else '',
+            staff.last_login.strftime('%Y-%m-%d %H:%M:%S') if staff.last_login else '',
+            staff.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        ])
+    
+    return response
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_create(request):
+    """Create a new staff account within the organization.
+    Renders inline on validation errors instead of redirecting with messages."""
+    org = request.user.organization
+
+    if not org.can_add_staff():
+        messages.error(request, 'Staff limit reached. Increase the limit or remove an existing staff member.')
+        return redirect('org_admin_manage_staff')
+
+    form = StaffAccountCreateForm(org=org)
+
+    if request.method == 'POST':
+        form = StaffAccountCreateForm(request.POST, request.FILES, org=org)
+        if form.is_valid():
+            user = form.save()
+            _create_org_audit_log(org, 'staff_added', request.user,
+                f'Staff account "{user.get_full_name() or user.username}" (ID: {user.staff_id}) created by {request.user.get_full_name() or request.user.username}',
+                request=request)
+            UserActivity.objects.create(
+                user=request.user,
+                action=f'Created staff account: {user.get_full_name() or user.username} ({user.staff_id})'
+            )
+            # Send welcome email if SMTP configured
+            try:
+                from notifications.email_utils import send_staff_welcome_email
+                send_staff_welcome_email(user, org, form.cleaned_data.get('password', ''))
+            except Exception:
+                pass  # Email sending is best-effort
+            messages.success(request, f'Staff account created successfully! Staff ID: {user.staff_id}')
+            return redirect('org_admin_manage_staff')
+
+    # Re-render the staff management page with the form errors shown inline
+    staff_members = User.objects.filter(organization=org, role='org_staff').order_by('username')
+    total_staff = staff_members.count()
+    active_staff = staff_members.filter(is_active=True, employment_status='active').count()
+    inactive_staff = staff_members.filter(Q(is_active=False) | Q(employment_status='inactive')).count()
+    recently_added = staff_members.filter(created_at__gte=timezone.now() - timedelta(days=30)).count()
+    departments = staff_members.exclude(department__isnull=True).exclude(department='').values_list('department', flat=True).distinct().order_by('department')
+    can_add = org.can_add_staff()
+    staff_limit = org.max_staff_accounts
+
+    # Create a simple paginator for template compatibility
+    paginator = Paginator(staff_members, 10)
+    page_obj = paginator.get_page(1)
+    sort_by = '-created_at'
+    sort_order = 'desc'
+
+    return render(request, 'admin/organizations/org_admin_staff.html', {
+        'organization': org,
+        'staff_members': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'search_query': '',
+        'status_filter': '',
+        'department_filter': '',
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'total_staff': total_staff,
+        'active_staff': active_staff,
+        'inactive_staff': inactive_staff,
+        'recently_added': recently_added,
+        'departments': departments,
+        'can_add': can_add,
+        'staff_limit': staff_limit,
+        'current_staff_count': total_staff,
+        'create_form': form,
+        'form': OrgStaffAssignmentForm(org=org),
+        'form_open': True,  # Flag to auto-open the create modal
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_detail(request, staff_id):
+    """View a staff member's full profile."""
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    # Get recent activity
+    recent_activities = UserActivity.objects.filter(user=staff).order_by('-created_at')[:20]
+
+    # Get permissions
+    permissions = StaffPermission.objects.filter(user=staff).first()
+
+    return render(request, 'admin/organizations/org_admin_staff_detail.html', {
+        'organization': org,
+        'staff': staff,
+        'recent_activities': recent_activities,
+        'permissions': permissions,
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_edit(request, staff_id):
+    """Edit a staff member's details."""
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    if request.method == 'POST':
+        form = StaffEditForm(request.POST, request.FILES, instance=staff)
+        if form.is_valid():
+            form.save()
+            _create_org_audit_log(org, 'updated', request.user,
+                f'Staff "{staff.get_full_name() or staff.username}" updated by {request.user.get_full_name() or request.user.username}',
+                request=request)
+            messages.success(request, 'Staff account updated successfully.')
+            return redirect('org_admin_staff_detail', staff_id=staff.id)
+    else:
+        form = StaffEditForm(instance=staff)
+
+    return render(request, 'admin/organizations/org_admin_staff_detail.html', {
+        'organization': org,
+        'staff': staff,
+        'form': form,
+        'edit_mode': True,
+        'permissions': StaffPermission.objects.filter(user=staff).first(),
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_permissions(request, staff_id):
+    """Manage staff permissions."""
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    permissions, created = StaffPermission.objects.get_or_create(
+        user=staff
+    )
+
+    if request.method == 'POST':
+        form = StaffPermissionForm(request.POST, instance=permissions)
+        if form.is_valid():
+            form.save()
+            _create_org_audit_log(org, 'settings_changed', request.user,
+                f'Permissions updated for staff "{staff.get_full_name() or staff.username}" by {request.user.get_full_name() or request.user.username}',
+                request=request)
+            messages.success(request, 'Staff permissions updated successfully.')
+            return redirect('org_admin_staff_detail', staff_id=staff.id)
+    else:
+        form = StaffPermissionForm(instance=permissions)
+
+    return render(request, 'admin/organizations/org_admin_staff_permissions.html', {
+        'organization': org,
+        'staff': staff,
+        'form': form,
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_toggle_status(request, staff_id):
+    """Activate or deactivate a staff account."""
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    if request.method == 'POST':
+        action = request.POST.get('status_action', 'toggle')
+        if action == 'activate':
+            staff.is_active = True
+            staff.employment_status = 'active'
+            msg = 'activated'
+        elif action == 'deactivate':
+            staff.is_active = False
+            staff.employment_status = 'inactive'
+            msg = 'deactivated'
+        elif action == 'suspend':
+            staff.is_active = False
+            staff.employment_status = 'suspended'
+            msg = 'suspended'
+        else:
+            staff.is_active = not staff.is_active
+            staff.employment_status = 'active' if staff.is_active else 'inactive'
+            msg = 'activated' if staff.is_active else 'deactivated'
+
+        staff.save(update_fields=['is_active', 'employment_status'])
+        _create_org_audit_log(org, 'updated', request.user,
+            f'Staff "{staff.get_full_name() or staff.username}" {msg} by {request.user.get_full_name() or request.user.username}',
+            request=request)
+        messages.success(request, f'Staff account {msg} successfully.')
+
+    return redirect('org_admin_manage_staff')
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_reset_password(request, staff_id):
+    """Reset a staff member's password and show it on a dedicated page."""
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    if request.method == 'POST':
+        import uuid as uuid_lib
+        new_password = str(uuid_lib.uuid4())[:12]
+        staff.set_password(new_password)
+        staff.save(update_fields=['password'])
+        _create_org_audit_log(org, 'updated', request.user,
+            f'Password reset for staff "{staff.get_full_name() or staff.username}" by {request.user.get_full_name() or request.user.username}',
+            request=request)
+        # Render the password reset confirmation page securely (not in flash message)
+        from django.template.response import TemplateResponse
+        response = TemplateResponse(request, 'admin/organizations/org_admin_staff_password_reset.html', {
+            'organization': org,
+            'staff': staff,
+            'new_password': new_password,
+        })
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
+
+    messages.info(request, 'Click "Reset Password" again to confirm.')
+    return redirect('org_admin_staff_detail', staff_id=staff.id)
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_staff_delete(request, staff_id):
+    """Delete a staff account (demote to regular user)."""
+    org = request.user.organization
+    staff = get_object_or_404(User, id=staff_id, organization=org, role='org_staff')
+
+    if request.method == 'POST':
+        staff_name = staff.get_full_name() or staff.username
+        # Remove organization and demote to user
+        staff.organization = None
+        staff.role = 'user'
+        staff.is_active = False
+        staff.staff_id = None
+        staff.sync_employment_status()
+        staff.save(update_fields=['organization', 'role', 'is_active', 'staff_id', 'employment_status'])
+        # Remove permissions
+        StaffPermission.objects.filter(user=staff).delete()
+        _create_org_audit_log(org, 'staff_removed', request.user,
+            f'Staff "{staff_name}" deleted/demoted by {request.user.get_full_name() or request.user.username}',
+            request=request)
+        messages.success(request, f'Staff account "{staff_name}" has been removed.')
+
+    return redirect('org_admin_manage_staff')
 
 
 @login_required

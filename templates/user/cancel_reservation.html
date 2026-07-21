@@ -416,16 +416,32 @@
                         </div>
                     </div>
 
-                    <!-- Reason -->
+                    <!-- Reason: Dropdown + Custom -->
                     <div class="animate-in animate-in-d4 mt-4">
-                        <label for="{{ form.reason.id_for_label }}" class="form-label fw-bold">
-                            <i class="fas fa-comment-alt me-2 text-primary"></i>Reason for Cancellation <span class="text-danger">*</span>
+                        <label for="{{ form.reason_category.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-list me-2 text-primary"></i>Reason for Cancellation <span class="text-danger">*</span>
                         </label>
-                        {{ form.reason }}
-                        {% if form.reason.errors %}
-                            <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.reason.errors.0 }}</div>
-                        {% endif %}
-                        <div class="text-muted small mt-1">
+                        <div class="mb-2">
+                            <select name="reason_category" id="reason-category" class="form-select" style="border-radius: 10px; border: 1.5px solid #e9ecef; padding: 0.6rem 0.9rem; transition: all 0.2s;">
+                                <option value="" {% if not form.reason_category.value %}selected{% endif %}>Select a reason…</option>
+                                {% for value, label in form.REASON_CHOICES %}
+                                <option value="{{ value }}" {% if form.reason_category.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.reason_category.errors %}
+                            <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.reason_category.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div id="custom-reason-wrapper" class="mt-3 d-none">
+                            <label for="custom_reason" class="form-label fw-semibold small text-muted">
+                                <i class="fas fa-pen me-1"></i>Please specify your reason <span class="text-danger">*</span>
+                            </label>
+                            {{ form.custom_reason }}
+                            {% if form.custom_reason.errors %}
+                            <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.custom_reason.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-muted small mt-2" id="reason-hint">
                             <i class="fas fa-info-circle me-1"></i>This helps us improve our service
                         </div>
                     </div>
@@ -626,6 +642,29 @@
     document.getElementById('countdown-display').textContent = '--:--';
     {% endif %}
 
+    // ===== Reason Category Dropdown =====
+    const reasonCat = document.getElementById('reason-category');
+    const customWrapper = document.getElementById('custom-reason-wrapper');
+    const reasonHint = document.getElementById('reason-hint');
+
+    function toggleCustomReason() {
+        const isOther = reasonCat.value === 'other';
+        customWrapper.classList.toggle('d-none', !isOther);
+        if (isOther) {
+            reasonHint.innerHTML = '<i class="fas fa-info-circle me-1"></i>Please describe your reason in detail';
+        } else {
+            reasonHint.innerHTML = '<i class="fas fa-info-circle me-1"></i>This helps us improve our service';
+        }
+    }
+
+    if (reasonCat) {
+        reasonCat.addEventListener('change', toggleCustomReason);
+        // Run on load to handle form validation errors preserving selection
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleCustomReason();
+        });
+    }
+
     // ===== Refund Method Selection =====
     window.selectRefundMethod = function(method) {
         // Update radio
@@ -658,16 +697,33 @@
     // ===== Submit via Modal =====
     window.submitCancellation = function() {
         // Basic client-side validation
-        const reason = document.querySelector('textarea[name="reason"]');
-        if (!reason || !reason.value.trim()) {
-            reason?.classList.add('is-invalid');
-            if (!reason?.nextElementSibling?.classList.contains('text-danger')) {
+        const reasonCategory = document.getElementById('reason-category');
+        if (!reasonCategory || !reasonCategory.value) {
+            reasonCategory?.classList.add('is-invalid');
+            const wrapper = reasonCategory?.closest('.mb-2');
+            if (wrapper && !wrapper.querySelector('.text-danger')) {
                 const err = document.createElement('div');
-                err.className = 'text-danger small mt-1';
-                err.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Please provide a reason for cancellation';
-                reason?.parentNode.appendChild(err);
+                err.className = 'text-danger small mt-2';
+                err.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Please select a reason for cancellation';
+                wrapper.appendChild(err);
             }
             return;
+        }
+
+        // If "Other" selected, validate custom reason
+        if (reasonCategory.value === 'other') {
+            const customReason = document.querySelector('textarea[name="custom_reason"]');
+            if (!customReason || !customReason.value.trim()) {
+                customReason?.classList.add('is-invalid');
+                const wrapper = document.getElementById('custom-reason-wrapper');
+                if (wrapper && !wrapper.querySelector('.text-danger')) {
+                    const err = document.createElement('div');
+                    err.className = 'text-danger small mt-2';
+                    err.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Please specify your reason';
+                    wrapper.appendChild(err);
+                }
+                return;
+            }
         }
 
         // Dismiss any open modals
@@ -685,15 +741,15 @@
     };
 
     // ===== Style form controls =====
-    document.querySelectorAll('textarea, input').forEach(function(el) {
+    document.querySelectorAll('textarea, input:not(.form-check-input)').forEach(function(el) {
         if (!el.classList.contains('form-check-input')) {
             el.classList.add('form-control');
             el.style.borderRadius = '10px';
         }
     });
-    document.querySelectorAll('textarea[name="reason"]').forEach(function(ta) {
-        ta.style.minHeight = '110px';
-        ta.style.resize = 'vertical';
+    document.querySelectorAll('select:not(.form-check-input)').forEach(function(el) {
+        el.classList.add('form-control');
+        el.style.borderRadius = '10px';
     });
 
 })();

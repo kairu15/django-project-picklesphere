@@ -1,0 +1,739 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ staff.get_full_name|default:staff.username }} — Staff Profile{% endblock %}
+{% block page_title %}Staff Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.animate-in { animation: fadeSlideUp 0.35s ease forwards; opacity: 0; }
+.animate-in-d1 { animation-delay: 0.05s; }
+.animate-in-d2 { animation-delay: 0.1s; }
+.animate-in-d3 { animation-delay: 0.15s; }
+
+/* ===== Profile Header ===== */
+.profile-header {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+.profile-cover {
+    height: 180px;
+    background: linear-gradient(135deg, #1a3a42 0%, #2c5f6e 50%, #3B7A8C 100%);
+    position: relative;
+}
+.profile-cover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.3));
+}
+.profile-avatar-wrapper {
+    position: relative;
+    margin-top: -56px;
+    padding: 0 2rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 1.25rem;
+}
+.profile-avatar-lg {
+    width: 96px;
+    height: 96px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+}
+.avatar-purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+.avatar-teal { background: linear-gradient(135deg, #17a2b8, #0d7a8c); }
+.avatar-green { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.avatar-orange { background: linear-gradient(135deg, #fa709a, #fee140); }
+.avatar-blue { background: linear-gradient(135deg, #3B7A8C, #1a3a42); }
+
+/* ===== Info Cards ===== */
+.info-card {
+    border-radius: 14px;
+    border: 1.5px solid #e9ecef;
+    transition: all 0.25s ease;
+    background: #fff;
+    height: 100%;
+}
+.info-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.info-card .card-header {
+    background: transparent;
+    border-bottom: 1px solid #f1f3f5;
+    padding: 1rem 1.25rem;
+}
+.info-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+.info-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #212529;
+}
+
+/* ===== Activity Timeline ===== */
+.activity-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: #e9ecef;
+}
+.activity-item {
+    position: relative;
+    padding-bottom: 1rem;
+}
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: -1.35rem;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #0d6efd;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #0d6efd;
+}
+.activity-item:last-child { padding-bottom: 0; }
+
+/* ===== Permission Badge ===== */
+.perm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.35rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+.perm-granted { background: #d1fae5; color: #065f46; }
+.perm-denied { background: #f3f4f6; color: #9ca3af; }
+
+/* ===== Action Buttons ===== */
+.status-badge-lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-active-lg { background: #d1fae5; color: #065f46; }
+.status-inactive-lg { background: #f3f4f6; color: #6b7280; }
+.status-suspended-lg { background: #fee2e2; color: #991b1b; }
+
+/* ===== Form Styles ===== */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+}
+
+@media (max-width: 768px) {
+    .profile-cover { height: 120px; }
+    .profile-avatar-lg { width: 72px; height: 72px; font-size: 1.6rem; }
+    .profile-avatar-wrapper { padding: 0 1rem; }
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_manage_staff' %}">Staff</a></li>
+        <li class="breadcrumb-item active">{{ staff.get_full_name|default:staff.username }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- ===== PROFILE HEADER ===== -->
+<div class="profile-header shadow-sm animate-in">
+    <div class="profile-cover">
+        {% if staff.cover_photo %}
+        <img src="{{ staff.cover_photo.url }}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+        {% endif %}
+    </div>
+    <div class="bg-white pb-4">
+        <div class="profile-avatar-wrapper">
+            {% with initial=staff.get_full_name|default:staff.username|first|upper %}
+            <div class="profile-avatar-lg 
+                {% cycle 'avatar-purple' 'avatar-teal' 'avatar-green' 'avatar-orange' 'avatar-blue' as avatar_colors %}">
+                {% if staff.profile_picture %}
+                <img src="{{ staff.profile_picture.url }}" alt="{{ initial }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
+                {% else %}
+                {{ initial }}
+                {% endif %}
+            </div>
+            {% endwith %}
+            <div class="flex-grow-1 pt-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-1">{{ staff.get_full_name|default:staff.username }}</h5>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            {% if staff.staff_id %}
+                            <code style="font-size: 0.78rem; background: #f1f3f5; padding: 3px 8px; border-radius: 6px;">
+                                <i class="fas fa-id-badge me-1"></i>{{ staff.staff_id }}
+                            </code>
+                            {% endif %}
+                            <span class="text-muted" style="font-size: 0.8rem;">
+                                <i class="fas fa-building me-1"></i>{{ organization.name }}
+                            </span>
+                            {% if staff.department %}
+                            <span class="badge bg-light text-dark" style="border-radius: 20px; font-weight: 500;">
+                                <i class="fas fa-folder me-1"></i>{{ staff.department }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% if staff.is_active and staff.employment_status == 'active' %}
+                        <span class="status-badge-lg status-active-lg"><span class="dot" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #059669;"></span>Active</span>
+                        {% elif staff.employment_status == 'suspended' %}
+                        <span class="status-badge-lg status-suspended-lg"><span class="dot" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #dc2626;"></span>Suspended</span>
+                        {% else %}
+                        <span class="status-badge-lg status-inactive-lg"><span class="dot" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #9ca3af;"></span>Inactive</span>
+                        {% endif %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm" style="border-radius: 10px;" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); min-width: 200px;">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'org_admin_staff_edit' staff.id %}">
+                                        <i class="fas fa-pen me-2 text-warning"></i>Edit Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'org_admin_staff_permissions' staff.id %}">
+                                        <i class="fas fa-shield-halved me-2 text-info"></i>Permissions
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% if staff.is_active and staff.employment_status == 'active' %}
+                                <li>
+                                    <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status_action" value="deactivate">
+                                        <button type="submit" class="dropdown-item text-warning">
+                                            <i class="fas fa-pause me-2"></i>Deactivate
+                                        </button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status_action" value="suspend">
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="fas fa-ban me-2"></i>Suspend
+                                        </button>
+                                    </form>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status_action" value="activate">
+                                        <button type="submit" class="dropdown-item text-success">
+                                            <i class="fas fa-play me-2"></i>Activate
+                                        </button>
+                                    </form>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <form method="post" action="{% url 'org_admin_staff_reset_password' staff.id %}" onsubmit="return confirm('Reset password for {{ staff.get_full_name|default:staff.username }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-key me-2 text-danger"></i>Reset Password
+                                        </button>
+                                    </form>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button type="button" class="dropdown-item text-danger" onclick="confirmProfileDelete({{ staff.id }}, '{{ staff.get_full_name|default:staff.username|escapejs }}')">
+                                        <i class="fas fa-trash-can me-2"></i>Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PROFILE BODY ===== -->
+<div class="row g-4 mt-2">
+    <!-- ===== LEFT COLUMN ===== -->
+    <div class="col-lg-4">
+        <!-- Personal Info -->
+        <div class="card info-card animate-in animate-in-d1">
+            <div class="card-header">
+                <h6 class="fw-bold mb-0"><i class="fas fa-user-circle text-primary me-2"></i>Personal Info</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">{{ staff.get_full_name|default:staff.username }}</div>
+                </div>
+                {% if staff.middle_name %}
+                <div class="mb-3">
+                    <div class="info-label">Middle Name</div>
+                    <div class="info-value">{{ staff.middle_name }}</div>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <div class="info-label">Gender</div>
+                    <div class="info-value">{{ staff.get_gender_display|default:'Not specified' }}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">Birth Date</div>
+                    <div class="info-value">{{ staff.birth_date|date:'F d, Y'|default:'Not specified' }}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">Username</div>
+                    <div class="info-value"><code>@{{ staff.username }}</code></div>
+                </div>
+                <div>
+                    <div class="info-label">Staff ID</div>
+                    <div class="info-value">
+                        {% if staff.staff_id %}
+                        <code>{{ staff.staff_id }}</code>
+                        {% else %}
+                        <span class="text-muted">Not assigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="card info-card mt-4 animate-in animate-in-d2">
+            <div class="card-header">
+                <h6 class="fw-bold mb-0"><i class="fas fa-address-card text-primary me-2"></i>Contact</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value">
+                        <a href="mailto:{{ staff.email }}" class="text-decoration-none">{{ staff.email }}</a>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">Phone Number</div>
+                    <div class="info-value">{{ staff.phone_number|default:'Not provided' }}</div>
+                </div>
+                {% if staff.address %}
+                <div>
+                    <div class="info-label">Address</div>
+                    <div class="info-value">{{ staff.address }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Organization Info -->
+        <div class="card info-card mt-4 animate-in animate-in-d3">
+            <div class="card-header">
+                <h6 class="fw-bold mb-0"><i class="fas fa-building text-primary me-2"></i>Organization</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <div class="info-label">Organization</div>
+                    <div class="info-value">{{ organization.name }}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">Role</div>
+                    <div class="info-value">
+                        <span class="badge bg-primary" style="border-radius: 20px; font-weight: 500;">Organization Staff</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="info-label">Department</div>
+                    <div class="info-value">{{ staff.department|default:'Not assigned' }}</div>
+                </div>
+                <div>
+                    <div class="info-label">Employment Status</div>
+                    <div class="info-value">
+                        <span class="status-badge-lg 
+                            {% if staff.employment_status == 'active' %}status-active-lg
+                            {% elif staff.employment_status == 'suspended' %}status-suspended-lg
+                            {% else %}status-inactive-lg{% endif %}">
+                            {{ staff.get_employment_status_display|default:staff.employment_status|title }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== RIGHT COLUMN ===== -->
+    <div class="col-lg-8">
+        <!-- Edit Form (if in edit mode) -->
+        {% if edit_mode and form %}
+        <div class="card info-card animate-in animate-in-d1 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-pen text-primary me-2"></i>Edit Staff Details</h6>
+                <a href="{% url 'org_admin_staff_detail' staff.id %}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Middle Name</label>
+                            {{ form.middle_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            {{ form.phone_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            {{ form.gender }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Birth Date</label>
+                            {{ form.birth_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            {{ form.department }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Active</label>
+                            <div class="form-check mt-2">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Account is active</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Notes</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary" style="border-radius: 10px; font-weight: 600;">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Permissions Summary -->
+        <div class="card info-card animate-in animate-in-d2 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-shield-halved text-primary me-2"></i>Permissions</h6>
+                <a href="{% url 'org_admin_staff_permissions' staff.id %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                    <i class="fas fa-pen me-1"></i>Manage
+                </a>
+            </div>
+            <div class="card-body p-4">
+                {% if permissions %}
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_reservations %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_reservations %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Reservations
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_payments %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_payments %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Payments
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_refunds %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_refunds %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Refunds
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_equipment %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_equipment %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Equipment
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_tournaments %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_tournaments %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Tournaments
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_notifications %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_notifications %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Notifications
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.view_reports %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.view_reports %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Reports
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_courts %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_courts %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Courts
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="perm-badge {% if permissions.manage_sites %}perm-granted{% else %}perm-denied{% endif %}">
+                            <i class="fas fa-{% if permissions.manage_sites %}check-circle{% else %}times-circle{% endif %}"></i>
+                            Sites
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        No specific permissions configured. Default permissions apply.
+                        <a href="{% url 'org_admin_staff_permissions' staff.id %}" class="text-primary">Configure now</a>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card info-card animate-in animate-in-d2 mb-4">
+            <div class="card-header">
+                <h6 class="fw-bold mb-0"><i class="fas fa-bolt text-primary me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-2">
+                    <div class="col-md-4 col-6">
+                        <a href="{% url 'org_admin_staff_edit' staff.id %}" class="btn btn-outline-primary w-100" style="border-radius: 10px;">
+                            <i class="fas fa-pen me-1"></i>Edit
+                        </a>
+                    </div>
+                    {% if staff.is_active and staff.employment_status == 'active' %}
+                    <div class="col-md-4 col-6">
+                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status_action" value="deactivate">
+                            <button type="submit" class="btn btn-outline-warning w-100" style="border-radius: 10px;">
+                                <i class="fas fa-pause me-1"></i>Deactivate
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status_action" value="suspend">
+                            <button type="submit" class="btn btn-outline-danger w-100" style="border-radius: 10px;">
+                                <i class="fas fa-ban me-1"></i>Suspend
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="col-md-4 col-6">
+                        <form method="post" action="{% url 'org_admin_staff_toggle_status' staff.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status_action" value="activate">
+                            <button type="submit" class="btn btn-outline-success w-100" style="border-radius: 10px;">
+                                <i class="fas fa-play me-1"></i>Activate
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4 col-6">
+                        <form method="post" action="{% url 'org_admin_staff_reset_password' staff.id %}" 
+                              onsubmit="return confirm('Reset password for {{ staff.get_full_name|default:staff.username }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-secondary w-100" style="border-radius: 10px;">
+                                <i class="fas fa-key me-1"></i>Reset PW
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <button type="button" class="btn btn-outline-danger w-100" style="border-radius: 10px;"
+                                onclick="confirmProfileDelete({{ staff.id }}, '{{ staff.get_full_name|default:staff.username|escapejs }}')">
+                            <i class="fas fa-trash-can me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="card info-card animate-in animate-in-d2 mb-4">
+            <div class="card-header">
+                <h6 class="fw-bold mb-0"><i class="fas fa-info-circle text-primary me-2"></i>Account Details</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-label">Account Created</div>
+                        <div class="info-value">{{ staff.created_at|date:'F d, Y h:i A' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Last Updated</div>
+                        <div class="info-value">{{ staff.updated_at|date:'F d, Y h:i A' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Last Login</div>
+                        <div class="info-value">
+                            {% if staff.last_login %}
+                            {{ staff.last_login|date:'F d, Y h:i A' }}
+                            {% else %}
+                            <span class="text-muted">Never logged in</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Staff Since</div>
+                        <div class="info-value">{{ staff.created_at|timesince }} ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card info-card animate-in animate-in-d3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-clock-rotate-left text-primary me-2"></i>Recent Activity</h6>
+            </div>
+            <div class="card-body p-4">
+                {% if recent_activities %}
+                <div class="activity-timeline">
+                    {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 500;">{{ activity.action }}</div>
+                                {% if activity.details %}
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ activity.details }}</div>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted" style="font-size: 0.7rem; white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem;">
+                                {{ activity.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div style="width: 56px; height: 56px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                        <i class="fas fa-clock text-muted"></i>
+                    </div>
+                    <p class="text-muted small mb-0">No recent activity recorded for this staff member.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DELETE CONFIRMATION MODAL ===== -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content text-center p-3">
+            <div class="modal-body">
+                <div style="width: 64px; height: 64px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #dc2626; font-size: 1.5rem;">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Delete Staff Account</h6>
+                <p class="small text-muted mb-3" id="deleteStaffName">Are you sure you want to delete this staff member?</p>
+                <form method="post" action="" id="deleteStaffForm">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger btn-sm" style="border-radius: 8px;">
+                            <i class="fas fa-trash-can me-1"></i>Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmProfileDelete(staffId, staffName) {
+    const modal = document.getElementById('deleteConfirmModal');
+    document.getElementById('deleteStaffName').textContent = `Remove "${staffName}" from staff? This will demote them to a regular user.`;
+    document.getElementById('deleteStaffForm').action = `/org-admin/staff/${staffId}/delete/`;
+    new bootstrap.Modal(modal).show();
+}
+
+// Auto-show modals if there are messages
+{% if messages %}
+document.addEventListener('DOMContentLoaded', function() {
+    {% for message in messages %}
+    {% if message.tags == 'success' or message.tags == 'error' %}
+    // Messages are displayed by dashboard_base via Django messages framework
+    {% endif %}
+    {% endfor %}
+});
+{% endif %}
+</script>
+{% endblock %}

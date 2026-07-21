@@ -766,6 +766,27 @@ def send_notification_email(user, notification_obj=None, **context_overrides):
     )
 
 
+# ==================== STAFF EMAILS ====================
+
+def send_staff_welcome_email(user, organization, temp_password=''):
+    """Send welcome email to newly created staff member."""
+    return send_email_to_user(
+        user=user,
+        subject=f'Welcome to {organization.name} Staff!',
+        html_template='emails/welcome.html',
+        context={
+            'title': f'Welcome to {organization.name}!',
+            'username': user.username,
+            'temp_password': temp_password,
+            'has_temp_password': bool(temp_password),
+            'organization_name': organization.name,
+            'action_url': f'{settings.SITE_URL}/accounts/login/',
+            'action_text': 'Sign In',
+        },
+        email_type='staff_welcome',
+    )
+
+
 # ==================== TEST EMAIL ====================
 
 def send_test_email(user):

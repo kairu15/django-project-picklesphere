@@ -597,7 +597,7 @@ def user_edit_view(request, user_id):
             messages.success(request, f'User {user.username} updated successfully!')
             if request.user.is_super_admin():
                 return redirect('super_admin_user_list')
-            return redirect('org_admin_staff_list')
+            return redirect('org_admin_manage_staff')
     else:
         form = AdminUserUpdateForm(instance=user)
     
@@ -622,7 +622,7 @@ def user_create_view(request):
             messages.success(request, f'User {created_user.username} created successfully!')
             if request.user.is_super_admin():
                 return redirect('super_admin_user_list')
-            return redirect('org_admin_staff_list')
+            return redirect('org_admin_manage_staff')
     else:
         form = AdminUserCreateForm()
     
@@ -637,7 +637,7 @@ def user_delete_view(request, user_id):
         messages.error(request, 'Invalid request method.')
         if request.user.is_super_admin():
             return redirect('super_admin_user_list')
-        return redirect('org_admin_staff_list')
+        return redirect('org_admin_manage_staff')
     
     user_qs = User.objects.all()
     # Org-scoping for org_admin
@@ -648,13 +648,13 @@ def user_delete_view(request, user_id):
         messages.error(request, 'You cannot delete your own account.')
         if request.user.is_super_admin():
             return redirect('super_admin_user_list')
-        return redirect('org_admin_staff_list')
+        return redirect('org_admin_manage_staff')
     
     if not user_to_delete.is_active:
         messages.info(request, f'User {user_to_delete.username} is already inactive.')
         if request.user.is_super_admin():
             return redirect('super_admin_user_list')
-        return redirect('org_admin_staff_list')
+        return redirect('org_admin_manage_staff')
     
     user_to_delete.is_active = False
     user_to_delete.save(update_fields=['is_active'])
@@ -675,7 +675,7 @@ def user_delete_view(request, user_id):
                 )
     if request.user.is_super_admin():
         return redirect('super_admin_user_list')
-    return redirect('org_admin_staff_list')
+    return redirect('org_admin_manage_staff')
 
 
 @login_required

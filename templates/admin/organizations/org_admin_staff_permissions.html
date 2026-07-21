@@ -1,0 +1,322 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Permissions — {{ staff.get_full_name|default:staff.username }}{% endblock %}
+{% block page_title %}Staff Permissions{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeSlideUp 0.35s ease forwards; opacity: 0; }
+.animate-in-d1 { animation-delay: 0.05s; }
+.animate-in-d2 { animation-delay: 0.1s; }
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #e5e7eb;
+    border-radius: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #059669, #10b981); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+.toggle-switch input:disabled + .toggle-slider { opacity: 0.5; cursor: not-allowed; }
+
+/* Permission Card */
+.perm-card {
+    border-radius: 14px;
+    border: 1.5px solid #e9ecef;
+    transition: all 0.25s ease;
+    background: #fff;
+    position: relative;
+}
+.perm-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border-color: #d1d5db;
+}
+.perm-card.perm-enabled {
+    border-color: #a7f3d0;
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+}
+.perm-card .perm-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Staff Header */
+.staff-badge-sm {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.badge-purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+.badge-teal { background: linear-gradient(135deg, #17a2b8, #0d7a8c); }
+.badge-green { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.badge-orange { background: linear-gradient(135deg, #fa709a, #fee140); }
+.badge-blue { background: linear-gradient(135deg, #3B7A8C, #1a3a42); }
+
+/* Select All Row */
+.select-all-bar {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .perm-card .d-flex { flex-direction: column; gap: 0.75rem; }
+    .perm-card .d-flex .ms-auto { margin-left: 0 !important; }
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_manage_staff' %}">Staff</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_staff_detail' staff.id %}">{{ staff.get_full_name|default:staff.username }}</a></li>
+        <li class="breadcrumb-item active">Permissions</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- ===== HEADER ===== -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 animate-in">
+    <div class="d-flex align-items-center gap-3">
+        {% with initial=staff.get_full_name|default:staff.username|first|upper %}
+        <div class="staff-badge-sm 
+            {% cycle 'badge-purple' 'badge-teal' 'badge-green' 'badge-orange' 'badge-blue' as badge_colors %}">
+            <span class="text-white">{{ initial }}</span>
+        </div>
+        {% endwith %}
+        <div>
+            <h5 class="fw-bold mb-0">{{ staff.get_full_name|default:staff.username }}</h5>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small"><i class="fas fa-id-badge me-1"></i>{{ staff.staff_id|default:'No ID' }}</span>
+                <span class="text-muted small">·</span>
+                <span class="text-muted small"><i class="fas fa-building me-1"></i>{{ organization.name }}</span>
+            </div>
+        </div>
+    </div>
+    <a href="{% url 'org_admin_staff_detail' staff.id %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+        <i class="fas fa-arrow-left me-1"></i>Back to Profile
+    </a>
+</div>
+
+<!-- ===== PERMISSIONS FORM ===== -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm animate-in animate-in-d1" style="border-radius: 16px;">
+            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-shield-halved text-primary me-2"></i>Module Permissions</h6>
+                <span class="badge bg-light text-dark" style="border-radius: 20px; font-weight: 500;">
+                    <span id="enabledCount">{{ form.instance.get_enabled_count|default:0 }}</span>/{{ form.fields|length }} enabled
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" id="permissionsForm">
+                    {% csrf_token %}
+
+                    <!-- Select All -->
+                    <div class="select-all-bar d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-sliders-h text-muted"></i>
+                            <span class="fw-semibold small">Quick Actions</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" onclick="toggleAll(true)">
+                                <i class="fas fa-check-double me-1"></i>Enable All
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" onclick="toggleAll(false)">
+                                <i class="fas fa-times me-1"></i>Disable All
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Permission Toggles -->
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-md-6">
+                            <div class="perm-card p-3" id="card_{{ field.name }}">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="perm-icon" style="background: {% cycle '#eef2ff' '#f0fdf4' '#fef2f2' '#fffbeb' '#f5f3ff' '#ecfeff' '#f8fafc' '#fff7ed' '#fdf2f8' as card_bg %}">
+                                        {% cycle '📋' '💰' '↩️' '🔧' '🏆' '🔔' '📊' '🎾' '🌐' as card_icon %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <label for="{{ field.id_for_label }}" class="fw-semibold mb-0" style="font-size: 0.88rem; cursor: pointer;">
+                                            {{ field.label }}
+                                        </label>
+                                        <div class="text-muted" style="font-size: 0.72rem;">
+                                            {% cycle 'Allow managing reservations & bookings' 'Allow processing payments' 'Allow processing refunds' 'Allow managing equipment inventory' 'Allow managing tournaments' 'Allow sending notifications' 'Allow viewing reports & analytics' 'Allow managing courts' 'Allow managing sites & branches' as card_desc %}
+                                        </div>
+                                    </div>
+                                    <label class="toggle-switch ms-3">
+                                        {{ field }}
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'org_admin_staff_detail' staff.id %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" style="border-radius: 10px; font-weight: 600; padding: 0.55rem 1.75rem;">
+                            <i class="fas fa-save me-1"></i>Save Permissions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Staff Summary -->
+        <div class="card border-0 shadow-sm animate-in animate-in-d2" style="border-radius: 16px;">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h6 class="fw-bold mb-0"><i class="fas fa-user-circle text-primary me-2"></i>Staff Summary</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {% with initial=staff.get_full_name|default:staff.username|first|upper %}
+                    <div class="staff-badge-sm 
+                        {% cycle 'badge-purple' 'badge-teal' 'badge-green' 'badge-orange' 'badge-blue' as badge_colors2 %}">
+                        <span class="text-white">{{ initial }}</span>
+                    </div>
+                    {% endwith %}
+                    <div>
+                        <div class="fw-semibold">{{ staff.get_full_name|default:staff.username }}</div>
+                        {% if staff.staff_id %}
+                        <code style="font-size: 0.75rem; background: #f1f3f5; padding: 2px 6px; border-radius: 4px;">{{ staff.staff_id }}</code>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted" style="font-size: 0.78rem;">
+                        <i class="fas fa-envelope me-1"></i>{{ staff.email }}
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted" style="font-size: 0.78rem;">
+                        <i class="fas fa-building me-1"></i>{{ organization.name }}
+                    </span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'org_admin_staff_detail' staff.id %}" class="btn btn-sm btn-outline-primary flex-fill" style="border-radius: 8px;">
+                        <i class="fas fa-eye me-1"></i>Profile
+                    </a>
+                    <a href="{% url 'org_admin_staff_edit' staff.id %}" class="btn btn-sm btn-outline-warning flex-fill" style="border-radius: 8px;">
+                        <i class="fas fa-pen me-1"></i>Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card border-0 shadow-sm mt-4 animate-in animate-in-d2" style="border-radius: 16px; background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2"><i class="fas fa-lightbulb text-warning me-2"></i>About Permissions</h6>
+                <ul class="small text-muted mb-0" style="padding-left: 1.2rem; line-height: 1.9;">
+                    <li>Permissions control what modules a staff member can access.</li>
+                    <li>Staff can only see and use modules they have been granted access to.</li>
+                    <li>Changes take effect immediately after saving.</li>
+                    <li>All permission changes are recorded in the activity log.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== Update enabled count =====
+function updateCount() {
+    const checkboxes = document.querySelectorAll('#permissionsForm input[type="checkbox"]');
+    let count = 0;
+    checkboxes.forEach(cb => {
+        if (cb.checked) count++;
+    });
+    document.getElementById('enabledCount').textContent = count;
+    
+    // Update card styling
+    checkboxes.forEach(cb => {
+        const card = document.getElementById('card_' + cb.name);
+        if (card) {
+            if (cb.checked) {
+                card.classList.add('perm-enabled');
+            } else {
+                card.classList.remove('perm-enabled');
+            }
+        }
+    });
+}
+
+// ===== Toggle all =====
+function toggleAll(enable) {
+    const checkboxes = document.querySelectorAll('#permissionsForm input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = enable;
+    });
+    updateCount();
+}
+
+// ===== Listen for changes =====
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('#permissionsForm input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateCount);
+    });
+    updateCount();
+});
+</script>
+{% endblock %}

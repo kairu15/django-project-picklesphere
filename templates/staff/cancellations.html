@@ -333,6 +333,39 @@
                 <div class="mt-2 pt-2" style="border-top: 1px solid #f0f0f0;">
                     <div class="detail-item">
                         <span class="label mb-1">Reason</span>
+                        {% if cancellation.reason_category %}
+                        <span class="badge bg-light text-dark px-3 py-1 mb-1" style="border-radius: 20px; font-size: 0.7rem; font-weight: 500; border: 1px solid #dee2e6; display: inline-block; width: auto;">
+                            {% if cancellation.reason_category == 'other' %}
+                            <i class="fas fa-pen me-1"></i>Other
+                            {% elif cancellation.reason_category == 'change_of_plans' %}
+                            <i class="fas fa-sync-alt me-1"></i>Change of Plans
+                            {% elif cancellation.reason_category == 'scheduling_conflict' %}
+                            <i class="fas fa-calendar-times me-1"></i>Scheduling Conflict
+                            {% elif cancellation.reason_category == 'personal_emergency' %}
+                            <i class="fas fa-exclamation-circle me-1"></i>Personal Emergency
+                            {% elif cancellation.reason_category == 'health_reasons' %}
+                            <i class="fas fa-heartbeat me-1"></i>Health Reasons
+                            {% elif cancellation.reason_category == 'weather_conditions' %}
+                            <i class="fas fa-cloud-rain me-1"></i>Weather Conditions
+                            {% elif cancellation.reason_category == 'court_no_longer_needed' %}
+                            <i class="fas fa-ban me-1"></i>Court No Longer Needed
+                            {% elif cancellation.reason_category == 'found_another_venue' %}
+                            <i class="fas fa-map-pin me-1"></i>Found Another Venue
+                            {% elif cancellation.reason_category == 'duplicate_reservation' %}
+                            <i class="fas fa-copy me-1"></i>Duplicate Reservation
+                            {% elif cancellation.reason_category == 'payment_issue' %}
+                            <i class="fas fa-credit-card me-1"></i>Payment Issue
+                            {% elif cancellation.reason_category == 'booking_mistake' %}
+                            <i class="fas fa-undo me-1"></i>Booking Mistake
+                            {% elif cancellation.reason_category == 'transportation_problem' %}
+                            <i class="fas fa-car me-1"></i>Transportation Problem
+                            {% elif cancellation.reason_category == 'tournament_cancelled' %}
+                            <i class="fas fa-trophy me-1"></i>Tournament Cancelled
+                            {% else %}
+                            {{ cancellation.reason_category }}
+                            {% endif %}
+                        </span>
+                        {% endif %}
                         <div class="reason-text" onclick="this.classList.toggle('expanded')">{{ cancellation.reason }}</div>
                     </div>
                 </div>

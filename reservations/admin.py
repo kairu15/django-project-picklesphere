@@ -18,15 +18,15 @@ class ReservationAdmin(admin.ModelAdmin):
 
 @admin.register(CancellationRequest)
 class CancellationRequestAdmin(admin.ModelAdmin):
-    list_display = ['reservation', 'requested_by', 'approved', 'deduction_percentage', 'deduction_amount', 'is_within_time_limit', 'requested_at']
-    list_filter = ['approved', 'is_within_time_limit', 'requested_at']
+    list_display = ['reservation', 'requested_by', 'reason_category_display', 'approved', 'deduction_percentage', 'deduction_amount', 'is_within_time_limit', 'requested_at']
+    list_filter = ['approved', 'reason_category', 'is_within_time_limit', 'requested_at']
     readonly_fields = ['deduction_amount', 'deduction_percentage', 'cancellation_note', 'is_within_time_limit']
     fieldsets = (
         ('Reservation Information', {
             'fields': ('reservation', 'requested_by', 'requested_at')
         }),
         ('Cancellation Details', {
-            'fields': ('reason', 'approved', 'approved_by', 'approved_at')
+            'fields': ('reason_category', 'reason', 'approved', 'approved_by', 'approved_at')
         }),
         ('Refund Information', {
             'fields': ('refund_method', 'gcash_number', 'account_name', 'paypal_email', 'refund_processed', 'refund_processed_at')
@@ -36,6 +36,13 @@ class CancellationRequestAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def reason_category_display(self, obj):
+        if obj.reason_category:
+            return dict(CancellationRequest.REASON_CATEGORY_CHOICES).get(obj.reason_category, obj.reason_category)
+        return '-'
+    reason_category_display.short_description = 'Reason'
+    reason_category_display.admin_order_field = 'reason_category'
 
 
 @admin.register(CancellationPolicy)
