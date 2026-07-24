@@ -148,8 +148,9 @@ class TournamentRandomizer:
             match.is_winners_bracket = True
             match.save()
         
-        # TODO: Create losers bracket matches
-        # This is more complex - losers drop to losers bracket
+        # Note: Losers bracket matches not yet implemented.
+        # This is more complex - losers drop to losers bracket.
+        # Future enhancement: create losers bracket after winners bracket matches complete.
         
         return matches
     

@@ -448,7 +448,6 @@ def smtp_test_email_view(request):
             return redirect('super_admin_smtp_settings')
 
         from .email_utils import send_test_email
-        from accounts.models import User
 
         # Use a dummy user object for the test
         class DummyUser:

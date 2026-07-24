@@ -1137,7 +1137,9 @@ document.querySelectorAll('.fav-btn').forEach(function(btn) {
                 self.style.color = '#adb5bd';
             }
         })
-        .catch(function(err) { console.log('Favorite error:', err); });
+        .catch(function(err) {
+            // Favorite toggle failed silently
+        });
     });
 });
 

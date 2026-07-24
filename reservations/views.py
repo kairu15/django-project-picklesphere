@@ -20,6 +20,7 @@ from notifications.email_utils import (
     send_reservation_rejected_email,
     send_reservation_cancelled_email,
     send_reservation_completed_email,
+    send_reservation_modification_email,
     send_refund_confirmed_email,
 )
 from equipment.models import Equipment
@@ -446,7 +447,6 @@ def reservation_edit_view(request, reservation_id):
                 pass
             
             # Notify user
-            from notifications.email_utils import send_reservation_modification_email
             Notification.objects.create(
                 user=request.user,
                 message=f"Your reservation #{reservation.id} has been updated."
@@ -1218,7 +1218,6 @@ def get_monthly_availability_api(request):
     month_days = [d for d in cal.itermonthdates(year, month) if d.month == month]
 
     # Get reservations for this court and month
-    from .models import Reservation
     reservations = Reservation.objects.filter(
         court=court,
         date__year=year,
@@ -1272,7 +1271,6 @@ def verify_slot_api(request):
         return JsonResponse({'available': False, 'message': 'This time slot has already passed.'})
 
     # Check for overlapping reservations
-    from .models import Reservation
     overlapping = Reservation.objects.filter(
         court=court,
         date=date,

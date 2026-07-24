@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.core.cache import cache
+from django.db.models import Q, Count
 from django.urls import reverse
 from django.http import JsonResponse
 from .forms import (
@@ -19,7 +20,10 @@ from .forms import (
 )
 from .models import User, UserActivity
 from .decorators import admin_required, staff_or_admin_required, user_required
-from .otp_utils import create_and_send_otp, verify_otp_code, OTP_EXPIRY_MINUTES
+from .otp_utils import (
+    create_and_send_otp, verify_otp_code, cleanup_expired_otps,
+    OTP_EXPIRY_MINUTES, OTP_RESEND_MAX_PER_IP, OTP_RESEND_WINDOW_MINUTES,
+)
 from notifications.models import Notification
 from notifications.email_utils import (
     send_welcome_email,
@@ -305,7 +309,6 @@ def profile_view(request):
             wins += 1
     
     # Favorite courts
-    from django.db.models import Count
     favorite_courts_qs = Reservation.objects.filter(
         user=request.user
     ).exclude(status='cancelled').values(
@@ -375,7 +378,6 @@ def verify_otp_view(request):
         return redirect('home')
 
     # Clean up any expired OTP records
-    from .otp_utils import cleanup_expired_otps
     cleanup_expired_otps()
 
     email = request.session.get('otp_email')
@@ -474,9 +476,6 @@ def resend_otp_view(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
     
     # IP-based rate limiting to prevent abuse
-    from django.core.cache import cache
-    from .otp_utils import OTP_RESEND_MAX_PER_IP, OTP_RESEND_WINDOW_MINUTES
-    
     ip_address = request.META.get('REMOTE_ADDR', 'unknown')
     cache_key = f'otp_resend_ip_{ip_address}'
     timeout = OTP_RESEND_WINDOW_MINUTES * 60

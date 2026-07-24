@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from .models import Tournament, Registration, Match, Team, Leaderboard, MatchNotification, CourtRotation
 
 
@@ -38,13 +39,11 @@ class RegistrationAdmin(admin.ModelAdmin):
     actions = ['approve_registrations', 'reject_registrations']
     
     def approve_registrations(self, request, queryset):
-        from django.utils import timezone
         queryset.update(status='approved', reviewed_at=timezone.now(), reviewed_by=request.user)
         self.message_user(request, f'{queryset.count()} registrations approved.')
     approve_registrations.short_description = 'Approve selected registrations'
     
     def reject_registrations(self, request, queryset):
-        from django.utils import timezone
         queryset.update(status='rejected', reviewed_at=timezone.now(), reviewed_by=request.user)
         self.message_user(request, f'{queryset.count()} registrations rejected.')
     reject_registrations.short_description = 'Reject selected registrations'

@@ -8,6 +8,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -15,7 +16,7 @@ User = get_user_model()
 class MatchScoreConsumer(AsyncWebsocketConsumer):
     """
     Live match scoring consumer.
-    
+
     Connected clients receive real-time score updates for a specific match.
     Authorized users (players, referees) can submit score updates.
     """
@@ -31,13 +32,13 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
             return
 
         # Verify the match exists and user has access
-        match = await self._get_match()
-        if not match:
+        match_data = await self._get_match()
+        if not match_data:
             await self.close(code=4004)
             return
 
         # Store match info for authorization
-        self.match = match
+        self.match_data = match_data
 
         # Join match group
         await self.channel_layer.group_add(
@@ -47,18 +48,12 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        # Augment match data with authorization info
+        match_data['is_player'] = await self._is_player()
+        match_data['is_staff'] = self.user.is_staff_user()
+
         # Send current match state on connect
-        await self.send(text_data=json.dumps({
-            'type': 'match_state',
-            'match_id': self.match_id,
-            'player1_name': match.get('player1_name', ''),
-            'player2_name': match.get('player2_name', ''),
-            'player1_score': match.get('player1_score', 0),
-            'player2_score': match.get('player2_score', 0),
-            'current_set': match.get('current_set', 1),
-            'status': match.get('status', 'pending'),
-            'is_player': await self._is_player(),
-        }))
+        await self.send(text_data=json.dumps(match_data))
 
     async def disconnect(self, close_code):
         """Leave the match group on disconnect."""
@@ -75,7 +70,6 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
             action = data.get('action')
 
             if action == 'update_score':
-                # Only players and staff can update scores
                 if not await self._can_update_score():
                     await self.send(text_data=json.dumps({
                         'type': 'error',
@@ -83,25 +77,19 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
                     }))
                     return
 
-                player1_score = data.get('player1_score')
-                player2_score = data.get('player2_score')
-                current_set = data.get('current_set', 1)
+                team1_score = data.get('team1_score')
+                team2_score = data.get('team2_score')
                 status = data.get('status')
 
-                # Update the match in the database
-                success = await self._update_match_score(
-                    player1_score, player2_score, current_set, status
-                )
+                success = await self._update_game_score(team1_score, team2_score, status)
 
                 if success:
-                    # Broadcast the update to all connected clients
                     await self.channel_layer.group_send(
                         self.group_name,
                         {
                             'type': 'score_update',
-                            'player1_score': player1_score,
-                            'player2_score': player2_score,
-                            'current_set': current_set,
+                            'team1_score': team1_score,
+                            'team2_score': team2_score,
                             'status': status,
                             'updated_by': self.user.username,
                         }
@@ -113,14 +101,11 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
                     }))
 
             elif action == 'get_state':
-                # Re-send current state
-                match = await self._get_match()
-                if match:
-                    await self.send(text_data=json.dumps({
-                        'type': 'match_state',
-                        'match_id': self.match_id,
-                        **match,
-                    }))
+                match_data = await self._get_match()
+                if match_data:
+                    match_data['is_player'] = await self._is_player()
+                    match_data['is_staff'] = self.user.is_staff_user()
+                    await self.send(text_data=json.dumps(match_data))
 
         except json.JSONDecodeError:
             pass
@@ -129,9 +114,8 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
         """Receive score update broadcast and forward to WebSocket client."""
         await self.send(text_data=json.dumps({
             'type': 'score_update',
-            'player1_score': event.get('player1_score'),
-            'player2_score': event.get('player2_score'),
-            'current_set': event.get('current_set'),
+            'team1_score': event.get('team1_score'),
+            'team2_score': event.get('team2_score'),
             'status': event.get('status'),
             'updated_by': event.get('updated_by'),
         }))
@@ -140,17 +124,40 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
     def _get_match(self):
         """Get match data from database."""
         try:
-            from .models import Match
+            from .models import Match, Game
+            from accounts.models import User
             match = Match.objects.select_related(
-                'player1', 'player2'
-            ).get(id=self.match_id)
+                'team1_player1', 'team1_player2', 'team2_player1', 'team2_player2'
+            ).prefetch_related('games').get(id=self.match_id)
+
+            # Build player name helpers
+            def _name(u):
+                return u.get_full_name() or u.username if u else 'TBD'
+
+            current_game = match.games.filter(ended_at__isnull=True).first()
+
             return {
-                'player1_name': match.player1.get_full_name() or match.player1.username,
-                'player2_name': match.player2.get_full_name() or match.player2.username if match.player2 else 'TBD',
-                'player1_score': match.player1_score,
-                'player2_score': match.player2_score,
-                'current_set': match.current_set,
+                'type': 'match_state',
+                'match_id': self.match_id,
                 'status': match.status,
+                'format': match.format,
+                # Team 1
+                'team1_player1_name': _name(match.team1_player1),
+                'team1_player2_name': _name(match.team1_player2),
+                'team1_wins': match.get_team1_score(),
+                # Team 2
+                'team2_player1_name': _name(match.team2_player1),
+                'team2_player2_name': _name(match.team2_player2),
+                'team2_wins': match.get_team2_score(),
+                # Current game
+                'current_game': {
+                    'game_number': current_game.game_number if current_game else None,
+                    'team1_score': current_game.team1_score if current_game else 0,
+                    'team2_score': current_game.team2_score if current_game else 0,
+                } if current_game else None,
+                # Authorization flags (filled in by caller)
+                'is_player': False,
+                'is_staff': False,
             }
         except Exception:
             return None
@@ -161,7 +168,10 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
         try:
             from .models import Match
             match = Match.objects.get(id=self.match_id)
-            return self.user in [match.player1, match.player2]
+            return self.user in [
+                match.team1_player1, match.team1_player2,
+                match.team2_player1, match.team2_player2
+            ]
         except Exception:
             return False
 
@@ -171,10 +181,11 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
         try:
             from .models import Match
             match = Match.objects.get(id=self.match_id)
-            # Players can update their own match
-            if self.user in [match.player1, match.player2]:
-                return match.status == 'in_progress'
-            # Staff/org admin can update any match
+            if self.user in [
+                match.team1_player1, match.team1_player2,
+                match.team2_player1, match.team2_player2
+            ]:
+                return match.status in ('ongoing', 'scheduled')
             if self.user.is_staff_user():
                 return True
             return False
@@ -182,20 +193,26 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
-    def _update_match_score(self, player1_score, player2_score, current_set, status):
-        """Update match score in the database."""
+    def _update_game_score(self, team1_score, team2_score, status):
+        """Update the current game score in the database."""
         try:
-            from .models import Match
+            from .models import Match, Game
             match = Match.objects.get(id=self.match_id)
-            if player1_score is not None:
-                match.player1_score = player1_score
-            if player2_score is not None:
-                match.player2_score = player2_score
-            if current_set is not None:
-                match.current_set = current_set
+            current_game = match.games.filter(ended_at__isnull=True).first()
+
+            if current_game:
+                if team1_score is not None:
+                    current_game.team1_score = team1_score
+                if team2_score is not None:
+                    current_game.team2_score = team2_score
+                current_game.save(update_fields=['team1_score', 'team2_score'])
+
             if status:
                 match.status = status
-            match.save(update_fields=['player1_score', 'player2_score', 'current_set', 'status'])
+                if status == 'completed':
+                    match.ended_at = timezone.now()
+                match.save(update_fields=['status', 'ended_at'])
+
             return True
         except Exception:
             return False

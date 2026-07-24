@@ -89,7 +89,7 @@ const PickleSphereWS = (function() {
         }
 
         const delay = RECONNECT_DELAY * Math.min(reconnectAttempts[type], 5);
-        console.log(`WS [${type}]: Reconnecting in ${delay}ms (attempt ${reconnectAttempts[type]})`);
+        // WS reconnecting silently
 
         setTimeout(function() {
             connectFn();
@@ -110,7 +110,6 @@ const PickleSphereWS = (function() {
         connections[type] = ws;
 
         ws.onopen = function() {
-            console.log(`WS [${type}]: Connected`);
             reconnectAttempts[type] = 0;
             fireConnectionChange(type, 'connected');
         };
@@ -127,7 +126,6 @@ const PickleSphereWS = (function() {
         };
 
         ws.onclose = function(event) {
-            console.log(`WS [${type}]: Closed (code: ${event.code})`);
             connections[type] = null;
             fireConnectionChange(type, 'disconnected');
 
@@ -264,14 +262,13 @@ const PickleSphereWS = (function() {
         },
 
         /**
-         * Update match score
+         * Update match score (team scores via the current game)
          */
-        updateScore: function(player1Score, player2Score, currentSet, status) {
+        updateScore: function(team1Score, team2Score, status) {
             return send('matchScore', {
                 action: 'update_score',
-                player1_score: player1Score,
-                player2_score: player2Score,
-                current_set: currentSet,
+                team1_score: team1Score,
+                team2_score: team2Score,
                 status: status,
             });
         },

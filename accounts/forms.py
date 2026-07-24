@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.password_validation import validate_password
 from .models import User
 
 
@@ -176,7 +177,6 @@ class PasswordResetRequestForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        from .models import User
         if not User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError('If an active account exists with that email, a reset link will be sent.')
         return email
@@ -205,7 +205,6 @@ class SetPasswordForm(forms.Form):
     def clean_new_password1(self):
         pw = self.cleaned_data.get('new_password1')
         if pw:
-            from django.contrib.auth.password_validation import validate_password
             validate_password(pw)
         return pw
 

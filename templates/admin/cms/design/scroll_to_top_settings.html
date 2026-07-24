@@ -234,13 +234,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Listen for icon picker changes
     document.getElementById('scrollTopIcon').addEventListener('change', function() {
-        const previewIcon = document.getElementById('previewIcon');
-        previewIcon.className = 'fas ' + this.value.replace('fas ', '');
+        const preview = document.getElementById('previewIcon');
+        // Normalize: always store with 'fas ' prefix
+        const cleanIcon = this.value.replace(/^fas\s+/, '');
+        this.value = 'fas ' + cleanIcon;
+        preview.className = 'fas ' + cleanIcon;
         // Also update the preview wrapper
         const wrapper = document.querySelector('[data-icon-preview-for="scrollTopIcon"]');
         if (wrapper) {
             const icon = wrapper.querySelector('i');
-            if (icon) icon.className = 'fas ' + this.value.replace('fas ', '');
+            if (icon) icon.className = 'fas ' + cleanIcon;
         }
     });
     

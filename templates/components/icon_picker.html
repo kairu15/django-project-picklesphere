@@ -587,7 +587,7 @@ let iconPickerInitialized = false;
 // Initialize icon picker
 function initIconPicker(inputId, currentIcon) {
     targetInputId = inputId;
-    selectedIcon = currentIcon || 'fa-check';
+    selectedIcon = (currentIcon || 'fa-check').replace(/^fas\s+/, '');
     
     if (!iconPickerInitialized) {
         renderIcons('all', '');

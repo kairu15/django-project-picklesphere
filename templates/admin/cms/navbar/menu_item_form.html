@@ -112,5 +112,23 @@
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Normalize icon_class to always include 'fas ' prefix
+    document.getElementById('menuItemIcon').addEventListener('change', function() {
+        const cleanIcon = this.value.replace(/^fas\s+/, '');
+        this.value = 'fas ' + cleanIcon;
+        // Update the preview wrapper
+        const wrapper = document.querySelector('[data-icon-preview-for="menuItemIcon"]');
+        if (wrapper) {
+            const icon = wrapper.querySelector('i');
+            if (icon) icon.className = 'fas ' + cleanIcon;
+            const label = wrapper.querySelector('.icon-class-label');
+            if (label) label.textContent = 'fas ' + cleanIcon;
+        }
+    });
+});
+</script>
+
 {% include 'components/icon_picker.html' %}
 {% endblock %}
