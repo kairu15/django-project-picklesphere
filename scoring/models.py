@@ -21,6 +21,7 @@ class Match(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
 
     # Match details
+    match_name = models.CharField(max_length=100, blank=True, null=True)
     team1_player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team1_matches_as_p1', null=True, blank=True)
     team1_player2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team1_matches_as_p2', null=True, blank=True)
     team2_player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team2_matches_as_p1', null=True, blank=True)
@@ -28,10 +29,16 @@ class Match(models.Model):
 
     # Match format
     format = models.CharField(max_length=20, choices=FORMAT_CHOICES, default='singles')
+    game_type = models.CharField(max_length=20, default='friendly')
+    scoring_format = models.CharField(max_length=20, default='11')
     games_to_win = models.IntegerField(default=2)  # best of 3
     points_per_game = models.IntegerField(default=11)  # 11 points win
     win_by_two = models.BooleanField(default=True)
     
+    # Team names (optional display labels)
+    team1_name = models.CharField(max_length=100, blank=True, null=True)
+    team2_name = models.CharField(max_length=100, blank=True, null=True)
+
     # Match result
     winner_team = models.IntegerField(null=True, blank=True)  # 1 or 2
     started_at = models.DateTimeField(null=True, blank=True)
@@ -139,6 +146,34 @@ class PlayerStats(models.Model):
             self.win_rate = (self.wins / self.total_matches) * 100
         else:
             self.win_rate = 0
+
+
+class GuestPlayer(models.Model):
+    """
+    Stores guest player information for matches where the player
+    does not have a registered account.
+    """
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='guest_players')
+    team = models.IntegerField(choices=[(1, 'Team 1'), (2, 'Team 2')])
+    player_number = models.IntegerField(choices=[(1, 'Player 1'), (2, 'Player 2')], default=1)
+    full_name = models.CharField(max_length=100)
+    nickname = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'guest_players'
+        verbose_name = 'Guest Player'
+        verbose_name_plural = 'Guest Players'
+
+    def __str__(self):
+        return f"Guest: {self.full_name} (Match #{self.match_id}, Team {self.team})"
+
+    def get_display_name(self):
+        if self.nickname:
+            return f"{self.full_name} ({self.nickname})"
+        return self.full_name
+
+
 
 
 class MatchSettings(models.Model):

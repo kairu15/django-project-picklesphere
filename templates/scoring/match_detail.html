@@ -19,10 +19,17 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <p class="mb-1"><strong class="text-muted">Court:</strong> {{ match.reservation.court.name }}</p>
+                        <p class="mb-1"><strong class="text-muted">Match Name:</strong> {{ match.match_name|default:"—" }}</p>
                         <p class="mb-1"><strong class="text-muted">Format:</strong> <span class="badge bg-info">{{ match.get_format_display }}</span></p>
+                        <p class="mb-1"><strong class="text-muted">Game Type:</strong> <span class="badge bg-secondary">{{ match.game_type|title }}</span></p>
                         <p class="mb-1"><strong class="text-muted">Date:</strong> {{ match.reservation.date|date:"F d, Y" }}</p>
                     </div>
                     <div class="col-md-6">
+                        <p class="mb-1"><strong class="text-muted">Scoring Format:</strong> 
+                            <span class="badge bg-primary">
+                                {% if match.scoring_format == 'best_of_3' %}Best of 3{% else %}{{ match.scoring_format }} Points{% endif %}
+                            </span>
+                        </p>
                         <p class="mb-1"><strong class="text-muted">Games to Win:</strong> {{ match.games_to_win }}</p>
                         <p class="mb-1"><strong class="text-muted">Points per Game:</strong> {{ match.points_per_game }}</p>
                         <p class="mb-1"><strong class="text-muted">Win by Two:</strong> {% if match.win_by_two %}Yes{% else %}No{% endif %}</p>
@@ -34,14 +41,14 @@
                     <div class="card-body text-center py-4">
                         <div class="row align-items-center">
                             <div class="col-4">
-                                <h6 class="text-muted mb-2">Team 1</h6>
+                                <h6 class="text-muted mb-2">{% if match.team1_name %}{{ match.team1_name }}{% else %}Team 1{% endif %}</h6>
                                 <h2 class="fw-bold text-primary mb-0">{{ match.get_team1_score }}</h2>
                             </div>
                             <div class="col-4">
                                 <h4 class="text-muted fw-bold">VS</h4>
                             </div>
                             <div class="col-4">
-                                <h6 class="text-muted mb-2">Team 2</h6>
+                                <h6 class="text-muted mb-2">{% if match.team2_name %}{{ match.team2_name }}{% else %}Team 2{% endif %}</h6>
                                 <h2 class="fw-bold text-primary mb-0">{{ match.get_team2_score }}</h2>
                             </div>
                         </div>
@@ -51,7 +58,10 @@
                 <!-- Team 1 Players -->
                 <div class="card border-0 mb-3" style="border-radius: 12px; border-left: 4px solid var(--primary-color) !important;">
                     <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="fas fa-users me-2 text-primary"></i>Team 1</h6>
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-users me-2 text-primary"></i>
+                            {% if match.team1_name %}{{ match.team1_name }}{% else %}Team 1{% endif %}
+                        </h6>
                         <div class="row">
                             <div class="{% if match.format == 'singles' %}col-12{% else %}col-md-6{% endif %}">
                                 {% if match.team1_player1 %}
@@ -62,7 +72,18 @@
                                     <span>{{ match.team1_player1.get_full_name|default:match.team1_player1.username }}</span>
                                 </div>
                                 {% else %}
+                                {% for g in match.guest_players.all %}
+                                    {% if g.team == 1 and g.player_number == 1 %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: #ffc107; color: #856404;">
+                                            {{ g.full_name|first|upper }}
+                                        </div>
+                                        <span>{{ g.get_display_name }} <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Guest</span></span>
+                                    </div>
+                                    {% endif %}
+                                {% empty %}
                                 <p class="text-muted small mb-0">Player 1 not assigned</p>
+                                {% endfor %}
                                 {% endif %}
                             </div>
                             {% if match.format != 'singles' %}
@@ -75,7 +96,18 @@
                                     <span>{{ match.team1_player2.get_full_name|default:match.team1_player2.username }}</span>
                                 </div>
                                 {% else %}
-                                <p class="text-muted small mb-0">Player 2 not assigned</p>
+                                    {% for g in match.guest_players.all %}
+                                        {% if g.team == 1 and g.player_number == 2 %}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: #ffc107; color: #856404;">
+                                                {{ g.full_name|first|upper }}
+                                            </div>
+                                            <span>{{ g.get_display_name }} <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Guest</span></span>
+                                        </div>
+                                        {% endif %}
+                                    {% empty %}
+                                    <p class="text-muted small mb-0">Player 2 not assigned</p>
+                                    {% endfor %}
                                 {% endif %}
                             </div>
                             {% endif %}
@@ -86,7 +118,10 @@
                 <!-- Team 2 Players -->
                 <div class="card border-0 mb-3" style="border-radius: 12px; border-left: 4px solid var(--accent-color) !important;">
                     <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="fas fa-users me-2 text-info"></i>Team 2</h6>
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-users me-2 text-info"></i>
+                            {% if match.team2_name %}{{ match.team2_name }}{% else %}Team 2{% endif %}
+                        </h6>
                         <div class="row">
                             <div class="{% if match.format == 'singles' %}col-12{% else %}col-md-6{% endif %}">
                                 {% if match.team2_player1 %}
@@ -97,7 +132,18 @@
                                     <span>{{ match.team2_player1.get_full_name|default:match.team2_player1.username }}</span>
                                 </div>
                                 {% else %}
-                                <p class="text-muted small mb-0">Player 1 not assigned</p>
+                                    {% for g in match.guest_players.all %}
+                                        {% if g.team == 2 and g.player_number == 1 %}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: #ffc107; color: #856404;">
+                                                {{ g.full_name|first|upper }}
+                                            </div>
+                                            <span>{{ g.get_display_name }} <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Guest</span></span>
+                                        </div>
+                                        {% endif %}
+                                    {% empty %}
+                                    <p class="text-muted small mb-0">Player 1 not assigned</p>
+                                    {% endfor %}
                                 {% endif %}
                             </div>
                             {% if match.format != 'singles' %}
@@ -110,7 +156,18 @@
                                     <span>{{ match.team2_player2.get_full_name|default:match.team2_player2.username }}</span>
                                 </div>
                                 {% else %}
-                                <p class="text-muted small mb-0">Player 2 not assigned</p>
+                                    {% for g in match.guest_players.all %}
+                                        {% if g.team == 2 and g.player_number == 2 %}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: #ffc107; color: #856404;">
+                                                {{ g.full_name|first|upper }}
+                                            </div>
+                                            <span>{{ g.get_display_name }} <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Guest</span></span>
+                                        </div>
+                                        {% endif %}
+                                    {% empty %}
+                                    <p class="text-muted small mb-0">Player 2 not assigned</p>
+                                    {% endfor %}
                                 {% endif %}
                             </div>
                             {% endif %}

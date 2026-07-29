@@ -139,15 +139,25 @@ class MatchScoreConsumer(AsyncWebsocketConsumer):
             return {
                 'type': 'match_state',
                 'match_id': self.match_id,
+                'match_name': match.match_name or '',
                 'status': match.status,
                 'format': match.format,
+                'game_type': match.game_type,
+                'scoring_format': match.scoring_format,
+                'games_to_win': match.games_to_win,
+                'points_per_game': match.points_per_game,
+                'win_by_two': match.win_by_two,
                 # Team 1
                 'team1_player1_name': _name(match.team1_player1),
                 'team1_player2_name': _name(match.team1_player2),
+                'team1_player1_id': match.team1_player1_id,
+                'team1_player2_id': match.team1_player2_id,
                 'team1_wins': match.get_team1_score(),
                 # Team 2
                 'team2_player1_name': _name(match.team2_player1),
                 'team2_player2_name': _name(match.team2_player2),
+                'team2_player1_id': match.team2_player1_id,
+                'team2_player2_id': match.team2_player2_id,
                 'team2_wins': match.get_team2_score(),
                 # Current game
                 'current_game': {

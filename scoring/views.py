@@ -5,7 +5,8 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
-from .models import Match, Game, ScorePoint, PlayerStats, MatchSettings
+from accounts.models import User
+from .models import Match, Game, ScorePoint, PlayerStats, MatchSettings, GuestPlayer
 from .forms import MatchSetupForm, ScoreUpdateForm, MatchSettingsForm
 from reservations.models import Reservation
 from notifications.models import Notification
@@ -59,15 +60,82 @@ def start_match_view(request, reservation_id):
     except Match.DoesNotExist:
         pass
     
+    # Check if user can override reservation settings (org staff or admin)
+    can_override = request.user.is_staff_user() or request.user.is_admin()
+
+    # Get eligible users (all active users, scoped to org if applicable)
+    eligible_users = User.objects.filter(is_active=True)
+    if request.user.organization:
+        eligible_users = eligible_users.filter(
+            Q(organization=request.user.organization) | Q(id=reservation.user_id)
+        )
+    eligible_users = eligible_users.order_by('username')
+
     if request.method == 'POST':
         form = MatchSetupForm(request.POST)
+        form.fields['team1_player1'].queryset = eligible_users
+        form.fields['team1_player2'].queryset = eligible_users
+        form.fields['team2_player1'].queryset = eligible_users
+        form.fields['team2_player2'].queryset = eligible_users
+
         if form.is_valid():
             match = form.save(commit=False)
             match.reservation = reservation
-            match.team1_player1 = reservation.user
+            match.match_name = reservation.match_name
             match.status = 'ongoing'
             match.started_at = timezone.now()
+
+            # Assign team 1 players
+            team1_p1 = form.cleaned_data.get('team1_player1')
+            team1_p2 = form.cleaned_data.get('team1_player2')
+            match.team1_player1 = team1_p1 or reservation.user
+            match.team1_player2 = team1_p2 if form.cleaned_data.get('format') in ('doubles', 'mixed_doubles') else None
+
+            # Assign team 2 players
+            match.team2_player1 = form.cleaned_data.get('team2_player1')
+            match.team2_player2 = form.cleaned_data.get('team2_player2') if form.cleaned_data.get('format') in ('doubles', 'mixed_doubles') else None
+
+            # Override lock check
+            if not can_override:
+                match.format = reservation.match_format
+                match.game_type = reservation.game_type
+                match.scoring_format = reservation.scoring_format
+                match.games_to_win = reservation.games_to_win
+                match.points_per_game = reservation.points_per_game
+                match.win_by_two = reservation.win_by_two
+
+            # Save team names
+            match.team1_name = form.cleaned_data.get('team1_name', '')
+            match.team2_name = form.cleaned_data.get('team2_name', '')
+
             match.save()
+
+            # Handle guest players
+            guest_fields = {
+                ('guest_team1_p1', 1, 1),
+                ('guest_team1_p2', 1, 2),
+                ('guest_team2_p1', 2, 1),
+                ('guest_team2_p2', 2, 2),
+            }
+            is_doubles = match.format in ('doubles', 'mixed_doubles')
+            for field_name, team, player_num in guest_fields:
+                guest_name = form.cleaned_data.get(field_name, '')
+                if guest_name:
+                    # Check if this slot should have a guest (not filled by registered user)
+                    if (team == 1 and player_num == 1 and match.team1_player1):
+                        continue
+                    if (team == 1 and player_num == 2 and (match.team1_player2 or not is_doubles)):
+                        continue
+                    if (team == 2 and player_num == 1 and match.team2_player1):
+                        continue
+                    if (team == 2 and player_num == 2 and (match.team2_player2 or not is_doubles)):
+                        continue
+                    GuestPlayer.objects.create(
+                        match=match,
+                        team=team,
+                        player_number=player_num,
+                        full_name=guest_name,
+                    )
 
             # Create first game
             Game.objects.create(
@@ -91,15 +159,24 @@ def start_match_view(request, reservation_id):
     else:
         initial = {
             'format': reservation.match_format,
+            'game_type': reservation.game_type,
+            'scoring_format': reservation.scoring_format,
             'games_to_win': reservation.games_to_win,
             'points_per_game': reservation.points_per_game,
             'win_by_two': reservation.win_by_two,
+            'team1_player1': reservation.user,
         }
         form = MatchSetupForm(initial=initial)
+        form.fields['team1_player1'].queryset = eligible_users
+        form.fields['team1_player2'].queryset = eligible_users
+        form.fields['team2_player1'].queryset = eligible_users
+        form.fields['team2_player2'].queryset = eligible_users
 
     return render(request, 'scoring/start_match.html', {
         'form': form,
         'reservation': reservation,
+        'can_override': can_override,
+        'eligible_users': eligible_users,
     })
 
 
@@ -118,11 +195,38 @@ def match_live_view(request, match_id):
     
     completed_games = match.games.filter(ended_at__isnull=False)
     
-    return render(request, 'scoring/match_live.html', {
+    # Build player display data for template
+    def player_name(registered_player, team, player_number):
+        """Get display name for a player slot."""
+        if registered_player:
+            return registered_player.get_full_name() or registered_player.username
+        guest = match.guest_players.filter(team=team, player_number=player_number).first()
+        if guest:
+            return guest.get_display_name()
+        return 'TBD'
+    
+    def player_initial(registered_player, team, player_number):
+        """Get initial for a player slot."""
+        name = player_name(registered_player, team, player_number)
+        if name and name != 'TBD':
+            return name[0].upper()
+        return '?'
+    
+    context = {
         'match': match,
         'current_game': current_game,
-        'completed_games': completed_games
-    })
+        'completed_games': completed_games,
+        't1_p1_name': player_name(match.team1_player1, 1, 1),
+        't1_p1_initial': player_initial(match.team1_player1, 1, 1),
+        't1_p2_name': player_name(match.team1_player2, 1, 2),
+        't1_p2_initial': player_initial(match.team1_player2, 1, 2),
+        't2_p1_name': player_name(match.team2_player1, 2, 1),
+        't2_p1_initial': player_initial(match.team2_player1, 2, 1),
+        't2_p2_name': player_name(match.team2_player2, 2, 2),
+        't2_p2_initial': player_initial(match.team2_player2, 2, 2),
+    }
+    
+    return render(request, 'scoring/match_live.html', context)
 
 
 @login_required
@@ -293,6 +397,53 @@ def update_player_stats(match):
         stats.calculate_win_rate()
         stats.last_match_at = match.ended_at
         stats.save()
+
+
+@login_required
+def search_users_api(request):
+    """API endpoint for searching users for player assignment."""
+    q = request.GET.get('q', '').strip()
+    exclude_ids = request.GET.get('exclude_ids', '')
+    
+    users = User.objects.filter(is_active=True)
+    if request.user.organization:
+        users = users.filter(organization=request.user.organization)
+    
+    if q:
+        users = users.filter(
+            Q(username__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(email__icontains=q)
+        )
+    
+    if exclude_ids:
+        try:
+            ids = [int(x) for x in exclude_ids.split(',') if x.strip()]
+            users = users.exclude(id__in=ids)
+        except (ValueError, TypeError):
+            pass
+    
+    users = users.order_by('username')[:20]
+    
+    results = []
+    for u in users:
+        profile_pic_url = None
+        if u.profile_picture:
+            try:
+                profile_pic_url = u.profile_picture.url
+            except Exception:
+                pass
+        results.append({
+            'id': u.id,
+            'username': u.username,
+            'full_name': u.get_full_name() or u.username,
+            'email': u.email,
+            'profile_picture': profile_pic_url,
+            'skill_level': u.get_skill_level_display() if u.skill_level else None,
+        })
+    
+    return JsonResponse({'users': results})
 
 
 def match_score_api(request, match_id):

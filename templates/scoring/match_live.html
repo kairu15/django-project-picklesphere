@@ -31,14 +31,100 @@
 <div class="card border-0 shadow-lg mb-4" style="border-radius: 15px; overflow: hidden;">
     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
         <div>
-            <h5 class="fw-bold mb-0"><i class="fas fa-play-circle text-primary me-2"></i>Match #{{ match.id }}</h5>
-            <small class="text-muted">{{ match.reservation.court.name }} • Game {{ current_game.game_number }} of {{ match.games_to_win }}</small>
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-play-circle text-primary me-2"></i>
+                {% if match.match_name %}{{ match.match_name }}{% else %}Match #{{ match.id }}{% endif %}
+            </h5>
+            <small class="text-muted">
+                {{ match.reservation.court.name }} 
+                • {{ match.get_format_display }} 
+                • Game {{ current_game.game_number }} of {{ match.games_to_win }}
+                {% if match.game_type %} • {{ match.game_type|title }}{% endif %}
+            </small>
         </div>
         <span class="badge px-3 py-2 {% if match.status == 'ongoing' %}bg-warning text-dark{% elif match.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %} fs-6">
             {{ match.get_status_display }}
         </span>
     </div>
     <div class="card-body p-4">
+        <!-- Match Settings Info Bar -->
+        <div class="row g-2 mb-4">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="fas fa-users me-1"></i>{{ match.get_format_display }}
+                    </span>
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="fas fa-gamepad me-1"></i>{{ match.game_type|title }}
+                    </span>
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="fas fa-star me-1"></i>
+                        {% if match.scoring_format == 'best_of_3' %}Best of 3{% else %}{{ match.scoring_format }} Points{% endif %}
+                    </span>
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="fas fa-trophy me-1"></i>Best of {{ match.games_to_win }} games
+                    </span>
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="fas fa-hashtag me-1"></i>{{ match.points_per_game }} pts/game{% if match.win_by_two %} (win by 2){% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teams & Players Display -->
+        <div class="row g-3 mb-4">
+            <!-- Team 1 -->
+            <div class="col-md-5">
+                <div class="p-3" style="background: linear-gradient(135deg, #e7f3ff 0%, #f0f9ff 100%); border-radius: 12px; border-left: 4px solid #3B7A8C;">
+                    <h6 class="fw-bold mb-2" style="color: #3B7A8C;"><i class="fas fa-shield-alt me-1"></i>{% if match.team1_name %}{{ match.team1_name }}{% else %}Team 1{% endif %}</h6>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="player-avatar" style="width: 28px; height: 28px; font-size: 0.7rem; background: #3B7A8C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {{ t1_p1_initial }}
+                        </div>
+                        <div>
+                            <small class="fw-bold">{{ t1_p1_name }}</small>
+                        </div>
+                    </div>
+                    {% if match.format == 'doubles' or match.format == 'mixed_doubles' %}
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="player-avatar" style="width: 28px; height: 28px; font-size: 0.7rem; background: #3B7A8C; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {{ t1_p2_initial }}
+                        </div>
+                        <small class="fw-bold">{{ t1_p2_name }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- VS -->
+            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                <div class="fs-3 fw-bold text-muted">VS</div>
+            </div>
+
+            <!-- Team 2 -->
+            <div class="col-md-5">
+                <div class="p-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%); border-radius: 12px; border-left: 4px solid #28a745;">
+                    <h6 class="fw-bold mb-2" style="color: #28a745;"><i class="fas fa-shield-alt me-1"></i>{% if match.team2_name %}{{ match.team2_name }}{% else %}Team 2{% endif %}</h6>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="player-avatar" style="width: 28px; height: 28px; font-size: 0.7rem; background: #28a745; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {{ t2_p1_initial }}
+                        </div>
+                        <div>
+                            <small class="fw-bold">{{ t2_p1_name }}</small>
+                        </div>
+                    </div>
+                    {% if match.format == 'doubles' or match.format == 'mixed_doubles' %}
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="player-avatar" style="width: 28px; height: 28px; font-size: 0.7rem; background: #28a745; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {{ t2_p2_initial }}
+                        </div>
+                        <small class="fw-bold">{{ t2_p2_name }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <!-- Match Score -->
         <div class="row g-4 mb-4">
             <div class="col-12 text-center mb-3">

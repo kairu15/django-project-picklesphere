@@ -11,6 +11,7 @@ urlpatterns = [
     path('stats/', views.player_stats_view, name='player_stats'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
     path('api/score/<int:match_id>/', views.match_score_api, name='match_score_api'),
+    path('api/search-users/', views.search_users_api, name='search_users_api'),
 
     # Match Settings (admin only)
     path('settings/', views.match_settings_list_view, name='match_settings_list'),
