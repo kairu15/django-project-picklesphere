@@ -1,4 +1,5 @@
 import uuid
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,7 +11,7 @@ from datetime import datetime, timedelta, date as date_type
 import calendar
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
-from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm
+from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm, MATCH_FORMAT_CHOICES, GAME_TYPE_CHOICES, SCORING_FORMAT_CHOICES
 from payments.models import Payment, PaymentLog, Refund
 from scoring.models import MatchSettings
 from notifications.models import Notification
@@ -26,6 +27,28 @@ from notifications.email_utils import (
 from equipment.models import Equipment
 from accounts.models import User
 from courts.models import Court
+
+
+def _build_guest_players_data(g1_p2='', g2_p1='', g2_p2=''):
+    """Build guest_players_data JSON from individual guest field values."""
+    guests = []
+    if g1_p2:
+        parts = g1_p2.split('|', 1)
+        guests.append({'team': 1, 'player': 2, 'full_name': parts[0], 'nickname': parts[1] if len(parts) > 1 else ''})
+    if g2_p1:
+        parts = g2_p1.split('|', 1)
+        guests.append({'team': 2, 'player': 1, 'full_name': parts[0], 'nickname': parts[1] if len(parts) > 1 else ''})
+    if g2_p2:
+        parts = g2_p2.split('|', 1)
+        guests.append({'team': 2, 'player': 2, 'full_name': parts[0], 'nickname': parts[1] if len(parts) > 1 else ''})
+    return json.dumps(guests) if guests else None
+
+
+def _get_cancellation_time_limit():
+    """Minutes after reservation creation during which cancellations AND edits
+    are allowed, taken from the active cancellation policy (defaults to 20)."""
+    policy = CancellationPolicy.objects.filter(is_active=True).first()
+    return policy.time_limit_minutes if policy else 20
 
 
 @login_required
@@ -77,6 +100,12 @@ def reservation_list_view(request):
     paginator = Paginator(reservations, 10)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
+    
+    # Mark which reservations can still be edited (same window as cancellation)
+    edit_time_limit = _get_cancellation_time_limit()
+    now = timezone.now()
+    for res in page_obj.object_list:
+        res.can_edit = (now - res.created_at) <= timedelta(minutes=edit_time_limit)
     
     return render(request, 'user/reservations/reservation_list.html', {
         'reservations': page_obj.object_list,
@@ -183,6 +212,23 @@ def reservation_create_view(request):
                 'points_per_game': form.cleaned_data.get('points_per_game') or 11,
                 'games_to_win': form.cleaned_data.get('games_to_win') or 2,
                 'win_by_two': form.cleaned_data.get('win_by_two') if form.cleaned_data.get('win_by_two') is not None else True,
+                # Match participants (convert empty strings to None for FK fields)
+                'team1_player2_id': form.cleaned_data.get('team1_player2_search') or None,
+                'team2_player1_id': form.cleaned_data.get('team2_player1_search') or None,
+                'team2_player2_id': form.cleaned_data.get('team2_player2_search') or None,
+                'guest_team1_p2': form.cleaned_data.get('guest_team1_p2', ''),
+                'guest_team2_p1': form.cleaned_data.get('guest_team2_p1', ''),
+                'guest_team2_p2': form.cleaned_data.get('guest_team2_p2', ''),
+                # Build guest_players_data JSON
+                # Team names (captured directly from POST since they're not form fields)
+                'team1_name': request.POST.get('team1_name', '').strip(),
+                'team2_name': request.POST.get('team2_name', '').strip(),
+                # Build guest_players_data JSON
+                'guest_players_data': _build_guest_players_data(
+                    form.cleaned_data.get('guest_team1_p2', ''),
+                    form.cleaned_data.get('guest_team2_p1', ''),
+                    form.cleaned_data.get('guest_team2_p2', '')
+                ),
             }
             
             messages.success(request, 'Please review your booking and complete payment.')
@@ -238,7 +284,27 @@ def reservation_detail_view(request, reservation_id):
         messages.error(request, 'You do not have permission to view this reservation.')
         return redirect('reservation_list')
     
-    return render(request, 'user/reservations/reservation_detail.html', {'reservation': reservation})
+    # Editing is only allowed within the same time window as cancellation
+    time_limit_minutes = _get_cancellation_time_limit()
+    can_edit = (timezone.now() - reservation.created_at) <= timedelta(minutes=time_limit_minutes)
+
+    # Inform the user when they were redirected here by the expired editing countdown
+    if request.GET.get('expired'):
+        messages.info(
+            request,
+            f'Your editing window has expired. Editing is only allowed within '
+            f'{time_limit_minutes} minutes of reservation creation.'
+        )
+
+    # Reservation match fields are stored as raw codes (no model choices), so map to
+    # human-readable labels using the same choice tuples the forms use.
+    return render(request, 'user/reservations/reservation_detail.html', {
+        'reservation': reservation,
+        'can_edit': can_edit,
+        'match_format_display': dict(MATCH_FORMAT_CHOICES).get(reservation.match_format, reservation.match_format),
+        'game_type_display': dict(GAME_TYPE_CHOICES).get(reservation.game_type, reservation.game_type),
+        'scoring_format_display': dict(SCORING_FORMAT_CHOICES).get(reservation.scoring_format, reservation.scoring_format),
+    })
 
 
 @login_required
@@ -371,6 +437,19 @@ def reservation_edit_view(request, reservation_id):
         messages.error(request, 'Only pending reservations can be edited.')
         return redirect('reservation_detail', reservation_id=reservation.id)
     
+    # Editing is only allowed within the same time window as cancellation
+    time_limit_minutes = _get_cancellation_time_limit()
+    time_since_creation = timezone.now() - reservation.created_at
+    is_within_time_limit = time_since_creation <= timedelta(minutes=time_limit_minutes)
+
+    if not is_within_time_limit:
+        messages.error(
+            request,
+            f'Editing is only allowed within {time_limit_minutes} minutes of reservation creation. '
+            f'Your reservation was created {time_since_creation.total_seconds() / 60:.1f} minutes ago.'
+        )
+        return redirect('reservation_detail', reservation_id=reservation.id)
+    
     # Get available equipment (scoped to the reservation's court organization)
     equipment_list = Equipment.objects.filter(quantity_available__gt=0, is_active=True)
     if reservation.court.organization:
@@ -466,6 +545,9 @@ def reservation_edit_view(request, reservation_id):
         'reservation': reservation,
         'equipment_list': equipment_list,
         'current_equipment_ids': current_equipment_ids,
+        'is_within_time_limit': is_within_time_limit,
+        'time_limit_minutes': time_limit_minutes,
+        'time_remaining': timedelta(minutes=time_limit_minutes) - time_since_creation,
     })
 
 
@@ -1169,9 +1251,15 @@ def admin_reservation_delete_view(request, reservation_id):
 
 @login_required
 def get_time_slots_api(request):
-    """API endpoint to get available time slots for a court and date."""
+    """API endpoint to get time slots (with status) for a court and date.
+
+    Each slot has a status: 'available', 'booked' or 'unavailable'.
+    Pass exclude_reservation=<id> when editing a reservation so the user's
+    own booking does not mark the slot as booked.
+    """
     court_id = request.GET.get('court_id')
     date_str = request.GET.get('date')
+    exclude_str = request.GET.get('exclude_reservation', '')
 
     if not court_id or not date_str:
         return JsonResponse({'error': 'Court ID and date are required'}, status=400)
@@ -1184,19 +1272,17 @@ def get_time_slots_api(request):
     except ValueError:
         return JsonResponse({'error': 'Invalid date format'}, status=400)
 
-    slots = court.get_time_slots(date)
+    exclude_reservation_id = None
+    if exclude_str:
+        try:
+            exclude_reservation_id = int(exclude_str)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid exclude_reservation'}, status=400)
 
-    # Convert time objects to strings for JSON serialization
-    serializable_slots = []
-    for slot in slots:
-        serializable_slots.append({
-            'start': slot['start'],
-            'end': slot['end'],
-            'available': slot['available'],
-            'label': slot['label']
-        })
+    from courts.views import _build_time_slots
+    slots = _build_time_slots(court, date, exclude_reservation_id=exclude_reservation_id)
 
-    return JsonResponse({'slots': serializable_slots})
+    return JsonResponse({'slots': slots})
 
 
 @login_required

@@ -11,79 +11,146 @@
 .wizard-stepper {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
     gap: 0;
-    margin-bottom: 2rem;
+    margin-bottom: 2.25rem;
+    padding: 0.5rem 0.5rem 0.25rem;
     position: relative;
+    --step-size: 48px;
 }
 .wizard-step {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    background: #f8f9fa;
-    position: relative;
     flex: 1;
-    max-width: 220px;
-    justify-content: center;
-    transition: all 0.3s ease;
+    max-width: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-width: 0;
 }
-.wizard-step:first-child {
-    border-radius: 12px 0 0 12px;
-}
-.wizard-step:last-child {
-    border-radius: 0 12px 12px 0;
-}
+
+/* Connecting progress line between circles */
 .wizard-step:not(:last-child)::after {
     content: '';
     position: absolute;
-    right: -12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 24px;
-    background: #f8f9fa;
-    border-radius: 0 4px 0 0;
-    z-index: 1;
-    clip-path: polygon(0 0, 0% 100%, 100% 50%);
+    top: calc(var(--step-size) / 2 - 2px);
+    left: calc(50% + var(--step-size) / 2 + 2px);
+    width: calc(100% - var(--step-size) - 4px);
+    height: 4px;
+    border-radius: 4px;
+    background: #e9ecef;
+    z-index: 0;
+    transition: background 0.4s ease;
 }
-.wizard-step.active {
-    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
-    color: white;
+.wizard-step.completed:not(:last-child)::after {
+    background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
 }
-.wizard-step.active::after {
-    background: #3B7A8C;
+.wizard-step.active:not(:last-child)::after {
+    background: linear-gradient(90deg, rgba(59,122,140,0.55) 0%, rgba(59,122,140,0.2) 100%);
 }
-.wizard-step.completed {
-    background: #e8f5e9;
-    color: #2e7d32;
-}
-.wizard-step.completed::after {
-    background: #e8f5e9;
-}
-.wizard-step-number {
-    width: 30px;
-    height: 30px;
+
+/* Step circle */
+.wizard-step-circle {
+    width: var(--step-size);
+    height: var(--step-size);
     border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid #dee2e6;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.85rem;
-    background: rgba(0,0,0,0.1);
+    font-size: calc(var(--step-size) * 0.38);
+    color: #6c757d;
+    position: relative;
+    z-index: 1;
     flex-shrink: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.wizard-step.active .wizard-step-number {
-    background: rgba(255,255,255,0.25);
-    color: white;
+
+/* Active step */
+.wizard-step.active .wizard-step-circle {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    border-color: #3B7A8C;
+    color: #fff;
+    box-shadow: 0 0 0 5px rgba(59,122,140,0.15), 0 6px 18px rgba(59,122,140,0.35);
+    transform: scale(1.06);
+    animation: stepPulse 2.2s ease-in-out infinite;
+}
+@keyframes stepPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 5px rgba(59,122,140,0.15), 0 6px 18px rgba(59,122,140,0.35);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(59,122,140,0.05), 0 6px 18px rgba(59,122,140,0.35);
+    }
+}
+
+/* Completed step */
+.wizard-step.completed .wizard-step-circle {
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    border-color: #4caf50;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(76,175,80,0.3);
 }
 .wizard-step.completed .wizard-step-number {
-    background: #4caf50;
-    color: white;
+    display: none;
 }
+.wizard-step-check {
+    display: none;
+    font-size: calc(var(--step-size) * 0.42);
+}
+.wizard-step.completed .wizard-step-check {
+    display: block;
+    animation: checkPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes checkPop {
+    from { transform: scale(0.3); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Step label */
 .wizard-step-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     font-weight: 600;
     font-size: 0.85rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 0.7rem;
     white-space: nowrap;
+    transition: color 0.3s ease;
+}
+.wizard-step-label .step-icon {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+.wizard-step.active .wizard-step-label {
+    color: #1a3a42;
+    font-weight: 700;
+}
+.wizard-step.active .wizard-step-label .step-icon {
+    color: #3B7A8C;
+    opacity: 1;
+}
+.wizard-step.completed .wizard-step-label {
+    color: #2e7d32;
+}
+.wizard-step.completed .wizard-step-label .step-icon {
+    color: #4caf50;
+    opacity: 1;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .wizard-step.active .wizard-step-circle {
+        animation: none;
+    }
+    .wizard-step.completed .wizard-step-check {
+        animation: none;
+    }
 }
 
 /* ===== STEP SECTIONS ===== */
@@ -213,11 +280,17 @@
 }
 
 /* ===== TIME SLOTS ===== */
+.time-slot-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
 .time-slots-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.5rem;
-    max-height: 300px;
+    max-height: 460px;
     overflow-y: auto;
     padding-right: 4px;
 }
@@ -229,29 +302,58 @@
     border-radius: 4px;
 }
 .time-slot-card {
+    position: relative;
     border: 2px solid #e8f5e9;
-    border-radius: 10px;
-    padding: 0.75rem;
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
     background: #f1f8e9;
+    user-select: none;
+    -webkit-user-select: none;
 }
-.time-slot-card:hover:not(.occupied) {
+.time-slot-card.status-available {
+    border-color: #a5d6a7;
+    background: #f1f8e9;
+}
+.time-slot-card.status-available:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #4caf50;
+    background: #e8f5e9;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
-.time-slot-card.occupied {
+.time-slot-card.status-available:active {
+    transform: translateY(0) scale(0.97);
+}
+.time-slot-card.status-booked {
     border-color: #ffcdd2;
     background: #ffebee;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.65;
+}
+.time-slot-card.status-unavailable {
+    border-color: #e0e0e0;
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+.time-slot-card.status-booked:hover,
+.time-slot-card.status-unavailable:hover {
+    transform: none;
+    box-shadow: none;
 }
 .time-slot-card.selected {
     border-color: #3B7A8C;
     background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(59,122,140,0.3);
+    box-shadow: 0 4px 15px rgba(59, 122, 140, 0.35);
+    transform: translateY(-2px);
+    animation: slotSelectedPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes slotSelectedPop {
+    from { transform: scale(0.96); }
+    to { transform: translateY(-2px) scale(1); }
 }
 .time-slot-time {
     font-weight: 700;
@@ -259,32 +361,213 @@
 }
 .time-slot-status {
     font-size: 0.7rem;
-    margin-top: 2px;
+    margin-top: 3px;
+}
+.time-slot-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+.time-slot-badge.available {
+    background: rgba(76, 175, 80, 0.12);
+    color: #2e7d32;
+}
+.time-slot-badge.booked {
+    background: rgba(229, 57, 53, 0.12);
+    color: #c62828;
+}
+.time-slot-badge.unavailable {
+    background: rgba(117, 117, 117, 0.12);
+    color: #616161;
+}
+.time-slot-badge.selected {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
 }
 
-/* ===== CONFIRMATION CARD ===== */
-.confirm-row {
+/* ===== TIME SLOT GROUPS (AM / PM) ===== */
+.time-slot-group {
+    margin-bottom: 1.25rem;
+}
+.time-slot-group:last-child {
+    margin-bottom: 0;
+}
+.time-slot-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+.time-slot-group-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(59,122,140,0.35), rgba(59,122,140,0));
+}
+.time-slot-group-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ===== BOOKING SUMMARY & PRICE BREAKDOWN ===== */
+.booking-summary-card,
+.price-breakdown-card {
+    border: 1px solid #eef1f4;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(26, 58, 66, 0.08);
+    overflow: hidden;
+}
+.booking-summary-card .card-header,
+.price-breakdown-card .card-header {
+    background: #f8fafb;
+    border-bottom: 1px solid #eef1f4;
+    padding: 1.1rem 1.5rem;
+}
+.summary-header-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 122, 140, 0.3);
+}
+.price-breakdown-card .summary-header-icon {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Summary list */
+.summary-list {
+    display: flex;
+    flex-direction: column;
+}
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed #eef1f4;
+}
+.summary-item:last-child {
+    border-bottom: none;
+}
+.summary-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    background: rgba(59, 122, 140, 0.1);
+    color: #3B7A8C;
+}
+.summary-item-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #6c757d;
+    flex: 1;
+}
+.summary-item-value {
+    font-weight: 600;
+    color: #1a3a42;
+    text-align: right;
+    min-width: 0;
+    word-break: break-word;
+}
+.summary-item-value.summary-highlight {
+    font-weight: 700;
+    color: #3B7A8C;
+}
+
+/* Price list */
+.price-list {
+    display: flex;
+    flex-direction: column;
+}
+.price-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 0.6rem 0;
+    gap: 1rem;
 }
-.confirm-row:last-child {
-    border-bottom: none;
-}
-.confirm-label {
+.price-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     color: #6c757d;
     font-size: 0.9rem;
 }
-.confirm-value {
+.price-row-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    background: rgba(59, 122, 140, 0.08);
+    color: #3B7A8C;
+}
+.price-value {
     font-weight: 600;
+    color: #1a3a42;
     text-align: right;
 }
-.price-breakdown {
-    background: #f8f9fa;
+.price-divider {
+    border: none;
+    border-top: 1px dashed #dde3e7;
+    margin: 0.6rem 0;
+}
+.price-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(59, 122, 140, 0.08) 0%, rgba(59, 122, 140, 0.03) 100%);
+    border: 1px solid rgba(59, 122, 140, 0.15);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1rem 1.25rem;
+    margin-top: 0.4rem;
+}
+.price-total-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1a3a42;
+    min-width: 0;
+}
+.price-total {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #3B7A8C;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 /* ===== EQUIPMENT SELECTION ===== */
@@ -545,33 +828,6 @@
 .court-tooltip-desc {
     font-size: 0.85rem;
     color: #6c757d;
-    margin-bottom: 0.5rem;
-}
-.court-tooltip-amenities-section {
-    border-top: 1px solid #e9ecef;
-    padding-top: 0.5rem;
-}
-.court-tooltip-amenities-section small {
-    display: block;
-    margin-bottom: 0.35rem;
-}
-.court-tooltip-amenities-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-}
-.court-tooltip-amenities-list .amenity-tag {
-    background: #e8f5e9;
-    color: #2e7d32;
-    padding: 0.2rem 0.55rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-.court-tooltip-amenities-list .empty-amenities {
-    color: #adb5bd;
-    font-size: 0.78rem;
-    font-style: italic;
 }
 
 @media (max-width: 576px) {
@@ -804,21 +1060,19 @@
 
 /* ===== RESPONSIVE: TABLETS & BELOW ===== */
 @media (max-width: 768px) {
-    .wizard-step {
-        padding: 0.5rem 0.75rem;
-        max-width: none;
+    .wizard-stepper {
+        --step-size: 40px;
     }
     .wizard-step-label {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
+        margin-top: 0.6rem;
     }
-    .wizard-step-number {
-        width: 24px;
-        height: 24px;
-        font-size: 0.7rem;
+    .time-slot-columns {
+        grid-template-columns: 1fr;
     }
     .time-slots-grid {
         grid-template-columns: repeat(2, 1fr);
-        max-height: 260px;
+        max-height: 460px;
     }
     .calendar-grid {
         gap: 2px;
@@ -830,22 +1084,17 @@
 
 /* ===== RESPONSIVE: LARGE PHONES (576px & BELOW) ===== */
 @media (max-width: 576px) {
-    .wizard-step {
-        padding: 0.4rem 0.5rem;
-        gap: 0.4rem;
-    }
-    .wizard-step:not(:last-child)::after {
-        right: -8px;
-        width: 16px;
-        height: 16px;
+    .wizard-stepper {
+        --step-size: 36px;
+        margin-bottom: 1.75rem;
     }
     .wizard-step-label {
-        font-size: 0.6rem;
+        font-size: 0.7rem;
+        margin-top: 0.55rem;
+        gap: 0.35rem;
     }
-    .wizard-step-number {
-        width: 20px;
-        height: 20px;
-        font-size: 0.6rem;
+    .wizard-step-label .step-icon {
+        font-size: 0.65rem;
     }
     .calendar-grid {
         gap: 2px;
@@ -869,7 +1118,7 @@
     }
     .time-slots-grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        max-height: 240px;
+        max-height: 460px;
     }
     .time-slot-card {
         padding: 0.5rem;
@@ -895,33 +1144,16 @@
 /* ===== RESPONSIVE: SMALL PHONES (480px & BELOW) ===== */
 @media (max-width: 480px) {
     .wizard-stepper {
-        gap: 0;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-bottom: 4px;
-    }
-    .wizard-stepper::-webkit-scrollbar {
-        display: none;
-    }
-    .wizard-step {
-        flex: 0 0 auto;
-        padding: 0.4rem 0.6rem;
-        gap: 0.3rem;
-        min-width: 0;
-    }
-    .wizard-step:not(:last-child)::after {
-        right: -6px;
-        width: 12px;
-        height: 12px;
+        --step-size: 32px;
+        padding: 0.25rem 0;
     }
     .wizard-step-label {
-        font-size: 0.55rem;
+        font-size: 0.62rem;
+        margin-top: 0.5rem;
+        gap: 0.3rem;
     }
-    .wizard-step-number {
-        width: 18px;
-        height: 18px;
-        font-size: 0.55rem;
+    .wizard-step-label .step-icon {
+        font-size: 0.6rem;
     }
 
     .calendar-grid {
@@ -970,7 +1202,7 @@
     .time-slots-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.35rem;
-        max-height: 220px;
+        max-height: 460px;
     }
     .time-slot-card {
         padding: 0.45rem;
@@ -993,19 +1225,23 @@
         border-radius: 8px;
     }
 
-    .confirm-row {
+    .summary-item {
+        padding: 0.6rem 0;
+    }
+    .summary-item-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
+    }
+    .price-row {
         padding: 0.5rem 0;
-        font-size: 0.85rem;
     }
-    .confirm-label {
-        font-size: 0.8rem;
+    .price-total {
+        font-size: 1.4rem;
     }
-    .confirm-value {
-        font-size: 0.85rem;
-    }
-    .price-breakdown {
-        padding: 0.75rem;
-        border-radius: 10px;
+    .booking-summary-card .card-header,
+    .price-breakdown-card .card-header {
+        padding: 1rem 1.25rem;
     }
 
     .card-body {
@@ -1056,16 +1292,18 @@
 
 /* ===== RESPONSIVE: VERY SMALL PHONES (360px & BELOW) ===== */
 @media (max-width: 360px) {
-    .wizard-step {
-        padding: 0.3rem 0.4rem;
+    .wizard-stepper {
+        --step-size: 28px;
     }
     .wizard-step-label {
-        font-size: 0.5rem;
+        font-size: 0.55rem;
+        margin-top: 0.45rem;
+        white-space: normal;
+        line-height: 1.25;
+        align-items: flex-start;
     }
-    .wizard-step-number {
-        width: 16px;
-        height: 16px;
-        font-size: 0.5rem;
+    .wizard-step-label .step-icon {
+        font-size: 0.55rem;
     }
 
     .calendar-grid {
@@ -1096,7 +1334,7 @@
     .time-slots-grid {
         grid-template-columns: 1fr;
         gap: 0.3rem;
-        max-height: 200px;
+        max-height: 460px;
     }
     .time-slot-card {
         padding: 0.4rem;
@@ -1113,9 +1351,18 @@
         padding: 0.6rem;
     }
 
-    .confirm-row {
-        padding: 0.4rem 0;
-        font-size: 0.8rem;
+    .summary-item {
+        padding: 0.5rem 0;
+        gap: 0.7rem;
+    }
+    .summary-item-value {
+        font-size: 0.88rem;
+    }
+    .price-value {
+        font-size: 0.85rem;
+    }
+    .price-total {
+        font-size: 1.3rem;
     }
 
     .d-flex.justify-content-between.mt-4 .btn {
@@ -1161,18 +1408,36 @@
             <div class="card-body p-4">
 
                 <!-- ===== STEPPER ===== -->
-                <div class="wizard-stepper">
-                    <div class="wizard-step active" id="step-indicator-1">
-                        <span class="wizard-step-number">1</span>
-                        <span class="wizard-step-label">Court &amp; Date</span>
+                <div class="wizard-stepper" role="navigation" aria-label="Booking progress">
+                    <div class="wizard-step active" id="step-indicator-1" aria-current="step">
+                        <div class="wizard-step-circle">
+                            <span class="wizard-step-number">1</span>
+                            <i class="fas fa-check wizard-step-check" aria-hidden="true"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <i class="fas fa-map-marker-alt step-icon" aria-hidden="true"></i>
+                            <span>Court &amp; Date</span>
+                        </div>
                     </div>
                     <div class="wizard-step" id="step-indicator-2">
-                        <span class="wizard-step-number">2</span>
-                        <span class="wizard-step-label">Time &amp; Equipment</span>
+                        <div class="wizard-step-circle">
+                            <span class="wizard-step-number">2</span>
+                            <i class="fas fa-check wizard-step-check" aria-hidden="true"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <i class="fas fa-clock step-icon" aria-hidden="true"></i>
+                            <span>Time &amp; Equipment</span>
+                        </div>
                     </div>
                     <div class="wizard-step" id="step-indicator-3">
-                        <span class="wizard-step-number">3</span>
-                        <span class="wizard-step-label">Review &amp; Confirm</span>
+                        <div class="wizard-step-circle">
+                            <span class="wizard-step-number">3</span>
+                            <i class="fas fa-check wizard-step-check" aria-hidden="true"></i>
+                        </div>
+                        <div class="wizard-step-label">
+                            <i class="fas fa-clipboard-check step-icon" aria-hidden="true"></i>
+                            <span>Review &amp; Confirm</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1206,9 +1471,9 @@
                                 <option value="">—— Select a court ——</option>
                                 {% for court_choice in form.court.field.queryset %}
                                 <option value="{{ court_choice.id }}"
+                                    data-name="{{ court_choice.name|escape }}"
                                     data-rate="{{ court_choice.hourly_rate|floatformat:0 }}"
                                     data-description="{{ court_choice.description|default:''|escape }}"
-                                    data-amenities='{{ court_choice.amenities|safe }}'
                                     data-type="{{ court_choice.court_type }}"
                                     data-site="{{ court_choice.site.name }}"
                                     {% if form.court.value|add:'0' == court_choice.id %} selected{% endif %}>
@@ -1239,10 +1504,6 @@
                                     <span class="court-tooltip-type-badge"></span>
                                 </div>
                                 <div class="court-tooltip-desc"></div>
-                                <div class="court-tooltip-amenities-section">
-                                    <small class="text-muted fw-semibold">Amenities</small>
-                                    <div class="court-tooltip-amenities-list"></div>
-                                </div>
                             </div>
                         </div>
 
@@ -1322,6 +1583,25 @@
                         {{ form.end_time }}
                         {{ form.time_slot }}
 
+                        <div class="d-flex gap-3 mb-3 flex-wrap" aria-label="Time slot legend">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="legend-dot" style="background:#4caf50;"></span>
+                                <small class="text-muted">Available</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="legend-dot" style="background:#3B7A8C;"></span>
+                                <small class="text-muted">Selected</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="legend-dot" style="background:#e53935;"></span>
+                                <small class="text-muted">Booked</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="legend-dot" style="background:#e0e0e0;"></span>
+                                <small class="text-muted">Unavailable</small>
+                            </div>
+                        </div>
+
                         <div id="time-slots-container" class="mb-4">
                             <div class="text-center py-4 text-muted">
                                 <i class="fas fa-spinner fa-spin me-2"></i>Loading available slots...
@@ -1354,6 +1634,190 @@
                         {% if form.time_slot.errors %}
                             <div class="text-danger small mt-1">{{ form.time_slot.errors.0 }}</div>
                         {% endif %}
+
+                        <hr class="my-4">
+
+                        <!-- ===== MATCH PARTICIPANTS ===== -->
+                        <h5 class="fw-bold mb-3"><i class="fas fa-users text-primary me-2"></i>Match Participants <span class="badge bg-secondary ms-1" style="font-weight:400;font-size:0.65rem;">Optional</span></h5>
+                        <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px; background: #f8f9fa;">
+                            <div class="card-body p-4">
+                                <!-- Format Selector -->
+                                <div class="mb-4">
+                                    <label class="fw-semibold small text-uppercase text-muted mb-2 d-block" style="letter-spacing:0.3px;"><i class="fas fa-bolt me-1"></i>Match Format</label>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <div class="format-card text-center px-2 py-3 border rounded-3" data-format="singles" style="cursor:pointer;transition:all 0.2s ease;background:#fff;border-color:#dee2e6;">
+                                                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c757d,#495057);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:0.85rem;"><i class="fas fa-user"></i></div>
+                                                <div class="fw-bold" style="font-size:0.8rem;">Singles</div>
+                                                <small class="text-muted" style="font-size:0.65rem;">1 vs 1</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="format-card text-center px-2 py-3 border rounded-3" data-format="doubles" style="cursor:pointer;transition:all 0.2s ease;background:#fff;border-color:#dee2e6;">
+                                                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c757d,#495057);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:0.85rem;"><i class="fas fa-users"></i></div>
+                                                <div class="fw-bold" style="font-size:0.8rem;">Doubles</div>
+                                                <small class="text-muted" style="font-size:0.65rem;">2 vs 2</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="format-card text-center px-2 py-3 border rounded-3" data-format="mixed_doubles" style="cursor:pointer;transition:all 0.2s ease;background:#fff;border-color:#dee2e6;">
+                                                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c757d,#495057);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:0.85rem;"><i class="fas fa-venus-mars"></i></div>
+                                                <div class="fw-bold" style="font-size:0.8rem;">Mixed</div>
+                                                <small class="text-muted" style="font-size:0.65rem;">2 vs 2</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="match_format" id="reservation-match-format" value="singles">
+                                </div>
+
+                                <hr class="my-3">
+
+                                <!-- Teams Layout -->
+                                <div class="row g-4">
+                                    <!-- Team 1 -->
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center gap-2 mb-3">
+                                            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3B7A8C,#1a3a42);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;"><i class="fas fa-shield-alt"></i></div>
+                                            <strong style="font-size:0.9rem;">Team 1</strong>
+                                            <small class="text-muted">— You</small>
+                                        </div>
+
+                                        <!-- You (P1) -->
+                                        <div class="player-card mb-2" style="background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;">
+                                            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3B7A8C,#1a3a42);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">
+                                                {{ user.username|first|upper }}
+                                            </div>
+                                            <div class="flex-grow-1" style="min-width:0;">
+                                                <div class="fw-semibold" style="font-size:0.85rem;">{{ user.get_full_name|default:user.username }}</div>
+                                                <small class="text-muted" style="font-size:0.7rem;">@{{ user.username }}</small>
+                                            </div>
+                                            <span class="badge bg-primary" style="font-size:0.6rem;border-radius:6px;flex-shrink:0;">P1</span>
+                                        </div>
+
+                                        <!-- Team 1 Player 2 (shown for doubles/mixed) -->
+                                        <div id="reservation-slot-t1p2" class="player-slot-container d-none">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <div style="width:22px;height:22px;border-radius:6px;background:#6c757d;color:white;display:flex;align-items:center;justify-content:center;font-size:0.6rem;flex-shrink:0;">P2</div>
+                                                <small class="text-muted fw-semibold" style="font-size:0.75rem;">Teammate</small>
+                                                <button type="button" class="btn-guest-trigger ms-auto btn btn-sm btn-outline-warning py-0 px-2" style="border-radius:6px;font-size:0.7rem;border-style:dashed;" data-slot="t1p2"><i class="fas fa-user-plus me-1"></i>Guest</button>
+                                            </div>
+                                            <div style="position:relative;">
+                                                <input type="text" class="form-control form-control-sm player-search-input" data-slot="t1p2" data-team="1" data-player="2" placeholder="Search for a teammate..." autocomplete="off" style="border-radius:8px;">
+                                                <div class="player-search-dropdown d-none" data-slot="t1p2" style="position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #dee2e6;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);max-height:200px;overflow-y:auto;margin-top:2px;"></div>
+                                            </div>
+                                            <input type="hidden" name="team1_player2_search" id="hidden-t1p2" value="">
+                                            <input type="hidden" name="guest_team1_p2" id="guest-hidden-t1p2" value="">
+                                            <div class="guest-fields d-none mt-2" data-slot="t1p2">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control guest-name" placeholder="Full Name *" style="border-radius:8px 0 0 8px;">
+                                                    <input type="text" class="form-control guest-nickname" placeholder="Nickname" style="border-radius:0;">
+                                                    <button class="btn btn-sm btn-warning guest-confirm-btn" type="button" style="border-radius:0 8px 8px 0;"><i class="fas fa-check"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="player-selected d-none mt-2" data-slot="t1p2">
+                                                <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background:rgba(59,122,140,0.06);border:1px solid rgba(59,122,140,0.15);">
+                                                    <div class="player-selected-avatar" style="width:30px;height:30px;border-radius:50%;background:#3B7A8C;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;flex-shrink:0;"></div>
+                                                    <div class="flex-grow-1" style="min-width:0;">
+                                                        <div class="player-selected-name fw-semibold" style="font-size:0.8rem;"></div>
+                                                        <div class="player-selected-type" style="font-size:0.65rem;color:#6c757d;"></div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 player-remove-btn" style="border-radius:6px;font-size:0.7rem;flex-shrink:0;"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Team 1 Name -->
+                                        <div class="mt-2">
+                                            <input type="text" class="form-control form-control-sm" name="team1_name" placeholder="Team 1 name (optional)" style="border-radius:8px;font-size:0.8rem;" value="Home Team">
+                                        </div>
+                                    </div>
+
+                                    <!-- Team 2 -->
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center gap-2 mb-3">
+                                            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#e83e8c,#d63384);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;"><i class="fas fa-shield-alt"></i></div>
+                                            <strong style="font-size:0.9rem;">Team 2</strong>
+                                            <small class="text-muted">— Opponent</small>
+                                        </div>
+
+                                        <!-- Team 2 Player 1 (always shown) -->
+                                        <div id="reservation-slot-t2p1" class="player-slot-container">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <div style="width:22px;height:22px;border-radius:6px;background:#e83e8c;color:white;display:flex;align-items:center;justify-content:center;font-size:0.6rem;flex-shrink:0;">P1</div>
+                                                <small class="text-muted fw-semibold" style="font-size:0.75rem;">Opponent</small>
+                                                <button type="button" class="btn-guest-trigger ms-auto btn btn-sm btn-outline-warning py-0 px-2" style="border-radius:6px;font-size:0.7rem;border-style:dashed;" data-slot="t2p1"><i class="fas fa-user-plus me-1"></i>Guest</button>
+                                            </div>
+                                            <div style="position:relative;">
+                                                <input type="text" class="form-control form-control-sm player-search-input" data-slot="t2p1" data-team="2" data-player="1" placeholder="Search for opponent..." autocomplete="off" style="border-radius:8px;">
+                                                <div class="player-search-dropdown d-none" data-slot="t2p1" style="position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #dee2e6;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);max-height:200px;overflow-y:auto;margin-top:2px;"></div>
+                                            </div>
+                                            <input type="hidden" name="team2_player1_search" id="hidden-t2p1" value="">
+                                            <input type="hidden" name="guest_team2_p1" id="guest-hidden-t2p1" value="">
+                                            <div class="guest-fields d-none mt-2" data-slot="t2p1">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control guest-name" placeholder="Full Name *" style="border-radius:8px 0 0 8px;">
+                                                    <input type="text" class="form-control guest-nickname" placeholder="Nickname" style="border-radius:0;">
+                                                    <button class="btn btn-sm btn-warning guest-confirm-btn" type="button" style="border-radius:0 8px 8px 0;"><i class="fas fa-check"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="player-selected d-none mt-2" data-slot="t2p1">
+                                                <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background:rgba(232,62,140,0.06);border:1px solid rgba(232,62,140,0.15);">
+                                                    <div class="player-selected-avatar" style="width:30px;height:30px;border-radius:50%;background:#e83e8c;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;flex-shrink:0;"></div>
+                                                    <div class="flex-grow-1" style="min-width:0;">
+                                                        <div class="player-selected-name fw-semibold" style="font-size:0.8rem;"></div>
+                                                        <div class="player-selected-type" style="font-size:0.65rem;color:#6c757d;"></div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 player-remove-btn" style="border-radius:6px;font-size:0.7rem;flex-shrink:0;"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Team 2 Player 2 (shown for doubles/mixed) -->
+                                        <div id="reservation-slot-t2p2" class="player-slot-container d-none mt-3">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <div style="width:22px;height:22px;border-radius:6px;background:#6c757d;color:white;display:flex;align-items:center;justify-content:center;font-size:0.6rem;flex-shrink:0;">P2</div>
+                                                <small class="text-muted fw-semibold" style="font-size:0.75rem;">Teammate</small>
+                                                <button type="button" class="btn-guest-trigger ms-auto btn btn-sm btn-outline-warning py-0 px-2" style="border-radius:6px;font-size:0.7rem;border-style:dashed;" data-slot="t2p2"><i class="fas fa-user-plus me-1"></i>Guest</button>
+                                            </div>
+                                            <div style="position:relative;">
+                                                <input type="text" class="form-control form-control-sm player-search-input" data-slot="t2p2" data-team="2" data-player="2" placeholder="Search for a player..." autocomplete="off" style="border-radius:8px;">
+                                                <div class="player-search-dropdown d-none" data-slot="t2p2" style="position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #dee2e6;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);max-height:200px;overflow-y:auto;margin-top:2px;"></div>
+                                            </div>
+                                            <input type="hidden" name="team2_player2_search" id="hidden-t2p2" value="">
+                                            <input type="hidden" name="guest_team2_p2" id="guest-hidden-t2p2" value="">
+                                            <div class="guest-fields d-none mt-2" data-slot="t2p2">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control guest-name" placeholder="Full Name *" style="border-radius:8px 0 0 8px;">
+                                                    <input type="text" class="form-control guest-nickname" placeholder="Nickname" style="border-radius:0;">
+                                                    <button class="btn btn-sm btn-warning guest-confirm-btn" type="button" style="border-radius:0 8px 8px 0;"><i class="fas fa-check"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="player-selected d-none mt-2" data-slot="t2p2">
+                                                <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background:rgba(232,62,140,0.06);border:1px solid rgba(232,62,140,0.15);">
+                                                    <div class="player-selected-avatar" style="width:30px;height:30px;border-radius:50%;background:#e83e8c;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;flex-shrink:0;"></div>
+                                                    <div class="flex-grow-1" style="min-width:0;">
+                                                        <div class="player-selected-name fw-semibold" style="font-size:0.8rem;"></div>
+                                                        <div class="player-selected-type" style="font-size:0.65rem;color:#6c757d;"></div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 player-remove-btn" style="border-radius:6px;font-size:0.7rem;flex-shrink:0;"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Team 2 Name -->
+                                        <div class="mt-2">
+                                            <input type="text" class="form-control form-control-sm" name="team2_name" placeholder="Team 2 name (optional)" style="border-radius:8px;font-size:0.8rem;" value="Opponent">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Status info -->
+                                <div id="reservation-selected-player-info" class="mt-3 small text-muted d-flex align-items-center gap-2">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Select opponents/teammates, or leave empty to assign later at the court.</span>
+                                </div>
+                            </div>
+                        </div>
 
                         <hr class="my-4">
 
@@ -1409,57 +1873,108 @@
                             <p class="text-muted mb-0">Please review your booking details below</p>
                         </div>
 
-                        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; background: #f8f9fa;">
-                            <div class="card-body p-4">
-                                <h6 class="fw-bold mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Booking Summary</h6>
-                                <div class="confirm-row">
-                                    <span class="confirm-label"><i class="fas fa-map-marker-alt me-2 text-muted"></i>Court</span>
-                                    <span class="confirm-value" id="confirm-court">—</span>
-                                </div>
-                                <div class="confirm-row">
-                                    <span class="confirm-label"><i class="fas fa-calendar me-2 text-muted"></i>Date</span>
-                                    <span class="confirm-value" id="confirm-date">—</span>
-                                </div>
-                                <div class="confirm-row">
-                                    <span class="confirm-label"><i class="fas fa-clock me-2 text-muted"></i>Time</span>
-                                    <span class="confirm-value" id="confirm-time">—</span>
-                                </div>
-                                <div class="confirm-row">
-                                    <span class="confirm-label"><i class="fas fa-hourglass-half me-2 text-muted"></i>Duration</span>
-                                    <span class="confirm-value" id="confirm-duration">—</span>
-                                </div>
-                                <div class="confirm-row">
-                                    <span class="confirm-label"><i class="fas fa-tools me-2 text-muted"></i>Equipment</span>
-                                    <span class="confirm-value" id="confirm-equipment">None selected</span>
-                                </div>
-                                <div class="confirm-row">
-                                    <span class="confirm-label"><i class="fas fa-sticky-note me-2 text-muted"></i>Notes</span>
-                                    <span class="confirm-value" id="confirm-notes">—</span>
+                        <div class="row g-4 mb-2">
+                            <!-- ===== BOOKING SUMMARY ===== -->
+                            <div class="col-lg-7">
+                                <div class="card booking-summary-card h-100">
+                                    <div class="card-header">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="summary-header-icon"><i class="fas fa-clipboard-check"></i></div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">Booking Summary</h6>
+                                                <small class="text-muted">Review your booking details</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="summary-list">
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-map-marker-alt"></i></div>
+                                                <span class="summary-item-label">Court</span>
+                                                <div class="summary-item-value summary-highlight" id="confirm-court">—</div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-building"></i></div>
+                                                <span class="summary-item-label">Site</span>
+                                                <div class="summary-item-value" id="confirm-site">—</div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-calendar-day"></i></div>
+                                                <span class="summary-item-label">Date</span>
+                                                <div class="summary-item-value summary-highlight" id="confirm-date">—</div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-clock"></i></div>
+                                                <span class="summary-item-label">Time</span>
+                                                <div class="summary-item-value summary-highlight" id="confirm-time">—</div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-hourglass-half"></i></div>
+                                                <span class="summary-item-label">Duration</span>
+                                                <div class="summary-item-value" id="confirm-duration">—</div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-tools"></i></div>
+                                                <span class="summary-item-label">Equipment</span>
+                                                <div class="summary-item-value" id="confirm-equipment">None selected</div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-sticky-note"></i></div>
+                                                <span class="summary-item-label">Notes</span>
+                                                <div class="summary-item-value" id="confirm-notes">—</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="price-breakdown mb-4">
-                            <h6 class="fw-bold mb-3"><i class="fas fa-receipt text-primary me-2"></i>Price Breakdown</h6>
-                            <div class="confirm-row">
-                                <span class="confirm-label">Court Rate</span>
-                                <span class="confirm-value" id="confirm-rate">₱0.00/hr</span>
-                            </div>
-                            <div class="confirm-row">
-                                <span class="confirm-label">Duration</span>
-                                <span class="confirm-value" id="confirm-duration-price">0 hrs</span>
-                            </div>
-                            <div class="confirm-row">
-                                <span class="confirm-label">Subtotal (Court)</span>
-                                <span class="confirm-value" id="confirm-subtotal">₱0.00</span>
-                            </div>
-                            <div class="confirm-row">
-                                <span class="confirm-label">Equipment Fee</span>
-                                <span class="confirm-value" id="confirm-equipment-fee">₱0.00</span>
-                            </div>
-                            <div class="confirm-row border-bottom-0">
-                                <span class="fw-bold">Total</span>
-                                <span class="fw-bold fs-5" id="confirm-total" style="color: #3B7A8C;">₱0.00</span>
+                            <!-- ===== PRICE BREAKDOWN ===== -->
+                            <div class="col-lg-5">
+                                <div class="card price-breakdown-card h-100">
+                                    <div class="card-header">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="summary-header-icon"><i class="fas fa-receipt"></i></div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">Price Breakdown</h6>
+                                                <small class="text-muted">Your payment details</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="price-list">
+                                            <div class="price-row">
+                                                <span class="price-label"><span class="price-row-icon"><i class="fas fa-money-bill-wave"></i></span>Court Rate</span>
+                                                <span class="price-value" id="confirm-rate">₱0.00/hr</span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label"><span class="price-row-icon"><i class="fas fa-hourglass-half"></i></span>Duration</span>
+                                                <span class="price-value" id="confirm-duration-price">0 hrs</span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label"><span class="price-row-icon"><i class="fas fa-calculator"></i></span>Court Subtotal</span>
+                                                <span class="price-value" id="confirm-subtotal">₱0.00</span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label"><span class="price-row-icon"><i class="fas fa-tools"></i></span>Equipment Fee</span>
+                                                <span class="price-value" id="confirm-equipment-fee">₱0.00</span>
+                                            </div>
+                                            <!-- Hidden by default: shown only when tax/discount values are supplied (future-proof placeholders) -->
+                                            <div class="price-row d-none" id="confirm-tax-row">
+                                                <span class="price-label"><span class="price-row-icon"><i class="fas fa-percent"></i></span>Taxes</span>
+                                                <span class="price-value" id="confirm-tax">₱0.00</span>
+                                            </div>
+                                            <div class="price-row d-none" id="confirm-discount-row">
+                                                <span class="price-label"><span class="price-row-icon"><i class="fas fa-tags"></i></span>Discounts</span>
+                                                <span class="price-value" id="confirm-discount">−₱0.00</span>
+                                            </div>
+                                            <hr class="price-divider">
+                                            <div class="price-total-row">
+                                                <span class="price-total-label"><i class="fas fa-check-circle me-2" style="color: #3B7A8C;"></i>Total Amount</span>
+                                                <span class="price-total" id="confirm-total">₱0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1504,6 +2019,8 @@
         selectedCourtName: '',
         selectedCourtRate: 0,
         selectedEquipment: [],
+        selectedTax: 0,
+        selectedDiscount: 0,
         selectedNotes: '',
         calendarMonth: new Date().getMonth() + 1,
         calendarYear: new Date().getFullYear(),
@@ -1523,6 +2040,225 @@
     const slotsContainer = document.getElementById('time-slots-container');
     const selectedSlotDisplay = document.getElementById('selected-slot-display');
     const selectedSlotLabel = document.getElementById('selected-slot-label');
+    const confirmTaxRow = document.getElementById('confirm-tax-row');
+    const confirmDiscountRow = document.getElementById('confirm-discount-row');
+    const confirmTaxEl = document.getElementById('confirm-tax');
+    const confirmDiscountEl = document.getElementById('confirm-discount');
+
+    // ===== MATCH PARTICIPANTS — REDESIGNED =====
+    // Format card selector
+    var formatCards = document.querySelectorAll('.format-card');
+    var matchFormatInput = document.getElementById('reservation-match-format');
+    
+    function activateFormatCard(card) {
+        formatCards.forEach(function(c) {
+            c.style.background = '#fff';
+            c.style.borderColor = '#dee2e6';
+            var icon = c.querySelector('div:first-child');
+            if (icon) icon.style.background = 'linear-gradient(135deg,#6c757d,#495057)';
+        });
+        card.style.background = 'linear-gradient(135deg,#e3f2fd,#f5f9ff)';
+        card.style.borderColor = '#3B7A8C';
+        var icon = card.querySelector('div:first-child');
+        if (icon) icon.style.background = 'linear-gradient(135deg,#3B7A8C,#1a3a42)';
+        var format = card.dataset.format;
+        matchFormatInput.value = format;
+        var isDoubles = format === 'doubles' || format === 'mixed_doubles';
+        document.getElementById('reservation-slot-t1p2').classList.toggle('d-none', !isDoubles);
+        document.getElementById('reservation-slot-t2p2').classList.toggle('d-none', !isDoubles);
+    }
+    
+    formatCards.forEach(function(card) {
+        card.addEventListener('click', function() { activateFormatCard(this); });
+    });
+    // Default: activate Singles
+    activateFormatCard(document.querySelector('.format-card[data-format="singles"]'));
+
+    // Player search with event delegation
+    var resSearchTimeout2 = null;
+    document.addEventListener('input', function(e) {
+        if (!e.target.classList.contains('player-search-input')) return;
+        var input = e.target;
+        var slot = input.dataset.slot;
+        var query = input.value.trim();
+        var dropdown = document.querySelector('.player-search-dropdown[data-slot="' + slot + '"]');
+        if (!dropdown) return;
+        if (resSearchTimeout2) clearTimeout(resSearchTimeout2);
+        if (query.length < 1) {
+            dropdown.classList.add('d-none');
+            dropdown.innerHTML = '';
+            return;
+        }
+        resSearchTimeout2 = setTimeout(function() {
+            // Get already selected user IDs to exclude
+            var selectedIds = [];
+            document.querySelectorAll('input[id^="hidden-"]').forEach(function(inp) {
+                if (inp.value) selectedIds.push(parseInt(inp.value));
+            });
+            var excludeParam = selectedIds.length > 0 ? '&exclude_ids=' + selectedIds.join(',') : '';
+            fetch('/scoring/api/search-users/?q=' + encodeURIComponent(query) + excludeParam)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    dropdown.innerHTML = '';
+                    if (data.users && data.users.length > 0) {
+                        data.users.forEach(function(user) {
+                            var item = document.createElement('div');
+                            item.className = 'search-result-item px-3 py-2 small';
+                            item.style.cursor = 'pointer';
+                            item.style.borderBottom = '1px solid #f0f0f0';
+                            item.style.display = 'flex';
+                            item.style.alignItems = 'center';
+                            item.style.gap = '8px';
+                            item.dataset.slot = slot;
+                            item.dataset.userId = user.id;
+                            item.dataset.userJson = JSON.stringify(user);
+                            var picHtml = user.profile_picture 
+                                ? '<img src="' + user.profile_picture + '" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+                                : '<div style="width:26px;height:26px;border-radius:50%;background:#e8f4f8;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#3B7A8C;flex-shrink:0;">' + (user.full_name || user.username).charAt(0).toUpperCase() + '</div>';
+                            item.innerHTML = picHtml + '<div><div class="fw-semibold" style="font-size:0.8rem;">' + (user.full_name || user.username) + '</div><div style="font-size:0.7rem;color:#6c757d;">@' + user.username + '</div></div>';
+                            dropdown.appendChild(item);
+                        });
+                        dropdown.classList.remove('d-none');
+                    } else {
+                        dropdown.innerHTML = '<div class="px-3 py-2 small text-muted" style="font-size:0.8rem;">No more players found.</div>';
+                        dropdown.classList.remove('d-none');
+                    }
+                })
+                .catch(function() { dropdown.classList.add('d-none'); });
+        }, 300);
+    });
+
+    // Select player via mousedown on search result
+    document.addEventListener('mousedown', function(e) {
+        var item = e.target.closest('.search-result-item');
+        if (!item) return;
+        e.preventDefault();
+        var slot = item.dataset.slot;
+        var user = JSON.parse(item.dataset.userJson);
+        // Duplicate prevention: check if this user is already selected in another slot
+        var alreadySelected = false;
+        document.querySelectorAll('input[id^="hidden-"]').forEach(function(inp) {
+            if (inp.id !== 'hidden-' + slot && parseInt(inp.value) === user.id) alreadySelected = true;
+        });
+        if (alreadySelected) {
+            var dropdown = document.querySelector('.player-search-dropdown[data-slot="' + slot + '"]');
+            if (dropdown) { dropdown.innerHTML = '<div class="px-3 py-2 small text-danger" style="font-size:0.8rem;"><i class="fas fa-exclamation-circle me-1"></i>Player already assigned to another slot.</div>'; }
+            return;
+        }
+        selectReservationPlayer(slot, user);
+    });
+
+    // Hide dropdowns on outside click
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.player-search-input, .search-result-item, .btn-guest-trigger, .guest-fields, .guest-name, .guest-nickname, .guest-confirm-btn')) return;
+        document.querySelectorAll('.player-search-dropdown').forEach(function(d) { d.classList.add('d-none'); });
+    });
+
+    function selectReservationPlayer(slot, user) {
+        var hidden = document.getElementById('hidden-' + slot);
+        if (hidden) hidden.value = user.id;
+        var searchInput = document.querySelector('.player-search-input[data-slot="' + slot + '"]');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.style.display = 'none';
+        }
+        var dropdown = document.querySelector('.player-search-dropdown[data-slot="' + slot + '"]');
+        if (dropdown) dropdown.classList.add('d-none');
+        var selected = document.querySelector('.player-selected[data-slot="' + slot + '"]');
+        if (selected) {
+            selected.classList.remove('d-none');
+            var avatar = selected.querySelector('.player-selected-avatar');
+            var name = selected.querySelector('.player-selected-name');
+            var type = selected.querySelector('.player-selected-type');
+            if (avatar) avatar.textContent = (user.full_name || user.username).charAt(0).toUpperCase();
+            if (name) name.textContent = user.full_name || user.username;
+            if (type) type.innerHTML = '<span class="badge bg-primary" style="font-size:0.6rem;border-radius:4px;">Registered</span> @' + user.username;
+        }
+        var guestFields = document.querySelector('.guest-fields[data-slot="' + slot + '"]');
+        if (guestFields) guestFields.classList.add('d-none');
+        var guestHidden = document.getElementById('guest-hidden-' + slot);
+        if (guestHidden) guestHidden.value = '';
+        var btn = document.querySelector('.btn-guest-trigger[data-slot="' + slot + '"]');
+        if (btn) btn.style.display = 'none';
+        showReminder();
+    }
+
+    // Guest trigger toggle
+    document.addEventListener('click', function(e) {
+        var trigger = e.target.closest('.btn-guest-trigger');
+        if (!trigger) return;
+        var slot = trigger.dataset.slot;
+        var fields = document.querySelector('.guest-fields[data-slot="' + slot + '"]');
+        if (fields) fields.classList.toggle('d-none');
+    });
+
+    // Guest confirm
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.guest-confirm-btn');
+        if (!btn) return;
+        var fields = btn.closest('.guest-fields');
+        if (!fields) return;
+        var slot = fields.dataset.slot;
+        var nameInput = fields.querySelector('.guest-name');
+        var nicknameInput = fields.querySelector('.guest-nickname');
+        var fullName = nameInput ? nameInput.value.trim() : '';
+        if (!fullName) { nameInput.classList.add('is-invalid'); return; }
+        nameInput.classList.remove('is-invalid');
+        var nickname = nicknameInput ? nicknameInput.value.trim() : '';
+        var guestValue = fullName + (nickname ? '|' + nickname : '');
+        var guestHidden = document.getElementById('guest-hidden-' + slot);
+        if (guestHidden) guestHidden.value = guestValue;
+        var searchInput = document.querySelector('.player-search-input[data-slot="' + slot + '"]');
+        if (searchInput) searchInput.style.display = 'none';
+        var dropdown = document.querySelector('.player-search-dropdown[data-slot="' + slot + '"]');
+        if (dropdown) dropdown.classList.add('d-none');
+        fields.classList.add('d-none');
+        var selected = document.querySelector('.player-selected[data-slot="' + slot + '"]');
+        if (selected) {
+            selected.classList.remove('d-none');
+            var avatar = selected.querySelector('.player-selected-avatar');
+            var nameEl = selected.querySelector('.player-selected-name');
+            var typeEl = selected.querySelector('.player-selected-type');
+            if (avatar) { avatar.textContent = fullName.charAt(0).toUpperCase(); avatar.style.background = '#ffc107'; avatar.style.color = '#856404'; }
+            if (nameEl) nameEl.textContent = fullName;
+            if (typeEl) typeEl.innerHTML = '<span class="badge bg-warning text-dark" style="font-size:0.6rem;border-radius:4px;">Guest</span>' + (nickname ? ' <small>"' + nickname + '"</small>' : '');
+        }
+        var btnTrigger = document.querySelector('.btn-guest-trigger[data-slot="' + slot + '"]');
+        if (btnTrigger) btnTrigger.style.display = 'none';
+        showReminder();
+    });
+
+    // Remove player
+    document.addEventListener('click', function(e) {
+        var removeBtn = e.target.closest('.player-remove-btn');
+        if (!removeBtn) return;
+        var selected = removeBtn.closest('.player-selected');
+        if (!selected) return;
+        var slot = selected.dataset.slot;
+        selected.classList.add('d-none');
+        var hidden = document.getElementById('hidden-' + slot);
+        if (hidden) hidden.value = '';
+        var guestHidden = document.getElementById('guest-hidden-' + slot);
+        if (guestHidden) guestHidden.value = '';
+        var searchInput = document.querySelector('.player-search-input[data-slot="' + slot + '"]');
+        if (searchInput) { searchInput.value = ''; searchInput.style.display = 'block'; }
+        var btnTrigger = document.querySelector('.btn-guest-trigger[data-slot="' + slot + '"]');
+        if (btnTrigger) btnTrigger.style.display = '';
+        var avatar = selected.querySelector('.player-selected-avatar');
+        if (avatar) { avatar.style.background = ''; avatar.style.color = ''; }
+        showReminder();
+    });
+
+    function showReminder() {
+        var info = document.getElementById('reservation-selected-player-info');
+        if (!info) return;
+        var hasSel = document.querySelectorAll('.player-selected:not(.d-none)').length > 0;
+        if (hasSel) {
+            info.innerHTML = '<i class="fas fa-check-circle text-success"></i><span>Participants selected. They will be carried over when the match starts.</span>';
+        } else {
+            info.innerHTML = '<i class="fas fa-info-circle"></i><span>Select opponents/teammates, or leave empty to assign later at the court.</span>';
+        }
+    }
 
     // ===== HELPERS =====
     function getDayHeaders() {
@@ -1564,8 +2300,13 @@
         document.querySelectorAll('.wizard-step').forEach((el, i) => {
             const num = i + 1;
             el.classList.remove('active', 'completed');
-            if (num === step) el.classList.add('active');
-            else if (num < step) el.classList.add('completed');
+            el.removeAttribute('aria-current');
+            if (num === step) {
+                el.classList.add('active');
+                el.setAttribute('aria-current', 'step');
+            } else if (num < step) {
+                el.classList.add('completed');
+            }
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1690,6 +2431,9 @@
         state.selectedDate = dateStr;
         dateInput.value = dateStr;
         document.getElementById('calendar-date-store').value = dateStr;
+
+        // The date is changing — clear any previously selected time slot
+        clearSlotSelection();
 
         // Update calendar UI
         document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
@@ -1913,6 +2657,31 @@
         }
     }
 
+    // Status metadata for the time-slot badges
+    const STATUS_META = {
+        available: { icon: 'fas fa-check-circle', label: 'Available' },
+        booked: { icon: 'fas fa-times-circle', label: 'Booked' },
+        unavailable: { icon: 'fas fa-ban', label: 'Unavailable' },
+        selected: { icon: 'fas fa-check', label: 'Selected' },
+    };
+
+    function setCardStatus(card, status) {
+        card.dataset.status = status;
+        card.dataset.available = status === 'available';
+        card.classList.remove('status-available', 'status-booked', 'status-unavailable', 'selected');
+        if (status === 'selected') {
+            card.classList.add('selected');
+        } else {
+            card.classList.add('status-' + status);
+        }
+        const badge = card.querySelector('.time-slot-badge');
+        if (badge) {
+            const meta = STATUS_META[status] || STATUS_META.available;
+            badge.className = `time-slot-badge ${status}`;
+            badge.innerHTML = `<i class="${meta.icon} me-1"></i>${meta.label}`;
+        }
+    }
+
     function renderTimeSlots(slots) {
         if (!slots || slots.length === 0) {
             slotsContainer.innerHTML = `
@@ -1923,46 +2692,93 @@
             return;
         }
 
-        const grid = document.createElement('div');
-        grid.className = 'time-slots-grid';
+        // Group slots into AM (before noon) and PM (noon or later)
+        const amSlots = slots.filter(slot => (parseInt(slot.start, 10) || 0) < 12);
+        const pmSlots = slots.filter(slot => (parseInt(slot.start, 10) || 0) >= 12);
 
-        slots.forEach(slot => {
+        function buildSlotCard(slot) {
+            const status = slot.status || (slot.available ? 'available' : 'booked');
             const card = document.createElement('div');
-            card.className = `time-slot-card ${slot.available ? '' : 'occupied'}`;
+            card.className = `time-slot-card status-${status}`;
             card.dataset.start = slot.start;
             card.dataset.end = slot.end;
             card.dataset.label = slot.label;
-            card.dataset.available = slot.available;
+            card.dataset.status = status;
+            card.dataset.available = status === 'available';
 
-            if (state.selectedSlot && state.selectedSlot.start === slot.start && state.selectedSlot.end === slot.end) {
-                card.classList.add('selected');
+            // Restore a previously selected slot (live selection or post-validation re-render).
+            // Only restore the stored value if the slot is still available — a slot that
+            // was just booked or is otherwise unavailable must never be auto-selected.
+            const storedVal = timeSlotInput.value;
+            const restoreStored = card.dataset.status === 'available' && storedVal === `${slot.start}-${slot.end}`;
+            if ((state.selectedSlot && state.selectedSlot.start === slot.start && state.selectedSlot.end === slot.end) || restoreStored) {
+                setCardStatus(card, 'selected');
+                if (restoreStored) {
+                    state.selectedSlot = { start: slot.start, end: slot.end, label: slot.label };
+                    selectedSlotLabel.textContent = slot.label;
+                    selectedSlotDisplay.classList.remove('d-none');
+                    document.getElementById('step-2-next').disabled = false;
+                }
             }
 
+            const meta = STATUS_META[card.dataset.status] || STATUS_META.available;
             card.innerHTML = `
                 <div class="time-slot-time">${formatTimeDisplay(slot.start)}</div>
                 <div class="time-slot-status">
-                    ${slot.available
-                        ? '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Available</span>'
-                        : '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Occupied</span>'}
+                    <span class="time-slot-badge ${card.dataset.status}">
+                        <i class="${meta.icon} me-1"></i>${meta.label}
+                    </span>
                 </div>
             `;
 
-            if (slot.available) {
+            if (card.dataset.status === 'available' || card.dataset.status === 'selected') {
                 card.addEventListener('click', () => selectTimeSlot(card, slot));
             }
 
-            grid.appendChild(card);
-        });
+            return card;
+        }
+
+        function buildSlotGroup(label, groupSlots) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'time-slot-group';
+
+            const header = document.createElement('div');
+            header.className = 'time-slot-group-header';
+            header.innerHTML = `<span class="time-slot-group-badge" role="heading" aria-level="3">${label}</span>`;
+
+            const grid = document.createElement('div');
+            grid.className = 'time-slots-grid';
+            groupSlots.forEach(slot => grid.appendChild(buildSlotCard(slot)));
+
+            wrapper.appendChild(header);
+            wrapper.appendChild(grid);
+            return wrapper;
+        }
 
         slotsContainer.innerHTML = '';
-        slotsContainer.appendChild(grid);
+        const columns = document.createElement('div');
+        columns.className = 'time-slot-columns';
+        if (amSlots.length > 0) {
+            columns.appendChild(buildSlotGroup('AM', amSlots));
+        }
+        if (pmSlots.length > 0) {
+            columns.appendChild(buildSlotGroup('PM', pmSlots));
+        }
+        slotsContainer.appendChild(columns);
     }
 
     function selectTimeSlot(card, slot) {
-        // Deselect all
-        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
+        // Deselect all other slots (booked/unavailable stay untouched)
+        document.querySelectorAll('.time-slot-card').forEach(c => {
+            if (c === card) return;
+            if (c.dataset.status === 'selected') {
+                setCardStatus(c, 'available');
+            } else {
+                c.classList.remove('selected');
+            }
+        });
 
-        card.classList.add('selected');
+        setCardStatus(card, 'selected');
 
         state.selectedSlot = {
             start: slot.start,
@@ -1983,15 +2799,23 @@
         document.getElementById('step-2-next').disabled = false;
     }
 
-    document.getElementById('clear-slot-btn')?.addEventListener('click', () => {
+    function clearSlotSelection() {
         state.selectedSlot = null;
         timeSlotInput.value = '';
         startTimeInput.value = '';
         endTimeInput.value = '';
         selectedSlotDisplay.classList.add('d-none');
-        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.time-slot-card').forEach(c => {
+            if (c.dataset.status === 'selected') {
+                setCardStatus(c, 'available');
+            } else {
+                c.classList.remove('selected');
+            }
+        });
         document.getElementById('step-2-next').disabled = true;
-    });
+    }
+
+    document.getElementById('clear-slot-btn')?.addEventListener('click', clearSlotSelection);
 
     // ===== EQUIPMENT SELECTION =====
     document.querySelectorAll('.equipment-card').forEach(card => {
@@ -2056,11 +2880,9 @@
                 msgEl.textContent = data.message || 'This time slot is no longer available. Please select a different time.';
                 alertEl.classList.add('show');
 
-                // Mark the selected card as occupied
+                // Mark the selected card as booked
                 document.querySelectorAll('.time-slot-card.selected').forEach(c => {
-                    c.classList.remove('selected');
-                    c.classList.add('occupied');
-                    c.dataset.available = 'false';
+                    setCardStatus(c, 'booked');
                     c.style.cursor = 'not-allowed';
                     // Remove click listeners by replacing with clone
                     const clone = c.cloneNode(true);
@@ -2125,9 +2947,12 @@
 
     // ===== CONFIRMATION SUMMARY =====
     function updateConfirmation() {
-        // Court
-        const courtName = courtSelect.options[courtSelect.selectedIndex]?.text || '—';
+        // Court & Site
+        const courtOption = courtSelect.options[courtSelect.selectedIndex];
+        const courtName = courtOption ? (courtOption.getAttribute('data-name') || courtOption.text.split(' — ')[0].trim()) : '—';
+        const courtSite = courtOption ? (courtOption.getAttribute('data-site') || '') : '';
         document.getElementById('confirm-court').textContent = courtName;
+        document.getElementById('confirm-site').textContent = courtSite || '—';
 
         // Date
         document.getElementById('confirm-date').textContent = formatDateDisplay(state.selectedDate);
@@ -2159,8 +2984,24 @@
             document.getElementById('confirm-equipment').textContent = equipNames.length > 0 ? equipNames.join(', ') : 'None selected';
             document.getElementById('confirm-equipment-fee').textContent = `₱${equipFee.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
+            // Taxes & discounts (shown only when applicable)
+            const tax = state.selectedTax || 0;
+            const discount = state.selectedDiscount || 0;
+            if (tax > 0) {
+                confirmTaxRow.classList.remove('d-none');
+                confirmTaxEl.textContent = `₱${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            } else {
+                confirmTaxRow.classList.add('d-none');
+            }
+            if (discount > 0) {
+                confirmDiscountRow.classList.remove('d-none');
+                confirmDiscountEl.textContent = `−₱${discount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            } else {
+                confirmDiscountRow.classList.add('d-none');
+            }
+
             // Total
-            const total = subtotal + equipFee;
+            const total = Math.max(0, subtotal + equipFee + tax - discount);
             document.getElementById('confirm-total').textContent = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
@@ -2255,15 +3096,6 @@
         const name = option.text.split(' — ')[0];
         const type = option.getAttribute('data-type') || 'standard';
         const description = option.getAttribute('data-description') || '';
-        const amenitiesAttr = option.getAttribute('data-amenities') || '[]';
-
-        let amenities = [];
-        try {
-            amenities = JSON.parse(amenitiesAttr);
-            if (!Array.isArray(amenities)) amenities = [];
-        } catch (e) {
-            amenities = [];
-        }
 
         document.querySelector('.court-tooltip-name').textContent = name;
         document.querySelector('.court-tooltip-type-badge').textContent = type.replace(/_/g, ' ');
@@ -2274,15 +3106,6 @@
             descEl.style.display = 'block';
         } else {
             descEl.style.display = 'none';
-        }
-
-        const amenitiesList = document.querySelector('.court-tooltip-amenities-list');
-        if (amenities.length > 0) {
-            amenitiesList.innerHTML = amenities.map(a =>
-                `<span class="amenity-tag"><i class="fas fa-check-circle me-1" style="font-size:0.6rem;"></i>${a}</span>`
-            ).join('');
-        } else {
-            amenitiesList.innerHTML = '<span class="empty-amenities">No amenities listed</span>';
         }
 
         courtTooltip.classList.add('show');
@@ -2342,13 +3165,14 @@
     courtSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (selectedOption && selectedOption.value) {
-            // Store court info - get rate from data-rate attribute
-            state.selectedCourtName = selectedOption.text;
+            // Store court info - get name from data-name and rate from data-rate attribute
+            state.selectedCourtName = selectedOption.getAttribute('data-name') || (selectedOption.text.split(' — ')[0].trim() || '');
             state.selectedCourtRate = parseFloat(selectedOption.getAttribute('data-rate')) || 500;
             state.selectedDate = null;
             dateInput.value = '';
             document.getElementById('calendar-date-store').value = '';
             document.getElementById('step-1-next').disabled = true;
+            clearSlotSelection();
             updateCourtDisplay();
             loadCalendar();
         } else {
@@ -2387,7 +3211,7 @@
             state.selectedCourtId = courtSelect.value;
             const selectedOption = courtSelect.options[courtSelect.selectedIndex];
             state.selectedCourtRate = parseFloat(selectedOption.getAttribute('data-rate')) || 500;
-            state.selectedCourtName = selectedOption?.text || '';
+            state.selectedCourtName = selectedOption?.getAttribute('data-name') || (selectedOption?.text.split(' — ')[0].trim() || '');
             updateCourtDisplay();
             
             // Load calendar for the selected court
@@ -2409,7 +3233,7 @@
                                 const matchingCard = document.querySelector(
                                     `.time-slot-card[data-start="${startVal}"][data-end="${endVal}"]`
                                 );
-                                if (matchingCard && matchingCard.dataset.available === 'true') {
+                                if (matchingCard && (matchingCard.dataset.status === 'available' || matchingCard.dataset.status === 'selected')) {
                                     const slot = {
                                         start: startVal,
                                         end: endVal,
@@ -2440,9 +3264,11 @@
         if (hasNonFieldErrors || hasTimeSlotError) {
             // Non-field errors (like overlapping reservation) or time slot errors → show step 2
             if (hasTimeSlot) {
-                // If we already have a time slot selected, go to step 2
+                // If we already have a time slot selected, go to step 2.
+                // Keep the Next button disabled until the stored slot is confirmed
+                // still available (selectTimeSlot re-enables it during restore).
                 goToStep(2);
-                document.getElementById('step-2-next').disabled = false;
+                document.getElementById('step-2-next').disabled = true;
             }
         } else if (hasCourtError || hasDateError) {
             goToStep(1);

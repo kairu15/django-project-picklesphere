@@ -35,6 +35,14 @@
     <div style="text-align: center;">
         <a href="{{ action_url }}" class="cta-button">{{ action_text }}</a>
     </div>
+
+    {% if directions_url %}
+    <div style="text-align: center; margin: 0 0 20px;">
+        <a href="{{ directions_url }}" style="display: inline-block; padding: 12px 26px; background: #e8f0ee; color: #3B7A8C !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">
+            📍 Get Directions to {{ court_name }}
+        </a>
+    </div>
+    {% endif %}
     
     <p style="font-size: 14px; color: #888; margin-top: 20px;">
         <strong>💡 Tip:</strong> Arrive 15 minutes early to warm up and check in at the front desk.

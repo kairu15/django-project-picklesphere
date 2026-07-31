@@ -283,6 +283,10 @@ def send_reservation_submitted_email(user, reservation):
 
 def send_reservation_confirmed_email(user, reservation):
     """Send reservation confirmation email."""
+    # Link to the in-app directions page when the court has coordinates set
+    court = reservation.court
+    has_coordinates = bool(court.organization and court.organization.latitude and court.organization.longitude)
+    directions_url = f'{settings.SITE_URL}/courts/{court.id}/directions/' if has_coordinates else ''
     return send_email_to_user(
         user=user,
         subject='Reservation Confirmed!',
@@ -290,7 +294,7 @@ def send_reservation_confirmed_email(user, reservation):
         context={
             'title': 'Reservation Confirmed!',
             'reservation': reservation,
-            'court_name': reservation.court.name,
+            'court_name': court.name,
             'date': reservation.date.strftime('%A, %B %d, %Y'),
             'start_time': reservation.start_time.strftime('%I:%M %p'),
             'end_time': reservation.end_time.strftime('%I:%M %p'),
@@ -298,6 +302,7 @@ def send_reservation_confirmed_email(user, reservation):
             'amount': getattr(reservation, 'total_amount', 'N/A'),
             'action_url': f'{settings.SITE_URL}/user/reservations/{reservation.id}/',
             'action_text': 'View Reservation',
+            'directions_url': directions_url,
         },
         email_type='reservation_confirmed',
         related_object_id=str(reservation.id),

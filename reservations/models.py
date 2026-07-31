@@ -39,6 +39,16 @@ class Reservation(models.Model):
     games_to_win = models.IntegerField(default=2)
     win_by_two = models.BooleanField(default=True)
 
+    # Match participants (selected by the user during reservation)
+    team1_player2 = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reservation_team1_p2')
+    team2_player1 = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reservation_team2_p1')
+    team2_player2 = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reservation_team2_p2')
+    team1_name = models.CharField(max_length=100, blank=True, null=True)
+    team2_name = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Guest player names (stored as JSON: {team: 1, player: 2, full_name: "...", nickname: "..."})
+    guest_players_data = models.JSONField(null=True, blank=True, help_text='JSON array of guest player objects')
+    
     # Staff approval
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_reservations')
     approved_at = models.DateTimeField(null=True, blank=True)

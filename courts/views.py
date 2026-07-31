@@ -110,6 +110,70 @@ def court_list_view(request):
     })
 
 
+def _build_time_slots(court, slot_date, exclude_reservation_id=None):
+    """Build 1-hour time slots (8 AM to 11 PM) for a court on a given date.
+    Returns dicts with a 12-hour start time, AM/PM period, and a status of
+    'available', 'booked' or 'unavailable'.
+
+    Status priority: unavailable > booked > available.
+    - unavailable: past slots on today, past dates, court under maintenance,
+      court closed that weekday, or outside the court's operating schedule.
+    - booked: overlaps a confirmed/pending reservation. Pass
+      exclude_reservation_id when editing so the user's own booking is not
+      counted as booked.
+    - available: everything else.
+    """
+    reservations = list(Reservation.objects.filter(
+        court=court,
+        date=slot_date,
+        status__in=['confirmed', 'pending']
+    ).exclude(id=exclude_reservation_id))
+
+    # Court operating schedule for that weekday (falls back to 8 AM - 11 PM)
+    availability = court.availability.filter(day_of_week=slot_date.weekday()).first()
+    court_closed = bool(availability and availability.is_closed)
+    opening = availability.opening_time if availability else None
+    closing = availability.closing_time if availability else None
+    under_maintenance = court.status == 'maintenance'
+
+    today = datetime.now().date()
+    now_time = datetime.now().time()
+    slots = []
+    for hour in range(8, 24):
+        end_hour = 23 if hour == 23 else hour + 1  # last slot ends at 11:59 PM
+        end_minute = 59 if hour == 23 else 0
+        slot_start, slot_end = time(hour, 0), time(end_hour, end_minute)
+        is_booked = any(r.start_time < slot_end and r.end_time > slot_start for r in reservations)
+        # 12-hour start time (e.g. '8:00 AM', '12:00 PM', '11:00 PM')
+        period = 'AM' if hour < 12 else 'PM'
+        hour12 = hour % 12 or 12
+        # Past slots (today) and all slots on past dates can no longer be booked
+        is_past = slot_date < today or (slot_date == today and time(hour, 0) <= now_time)
+        # Closed day, maintenance, or outside the operating schedule
+        is_outside_schedule = court_closed or under_maintenance or (
+            opening and closing and (slot_start < opening or slot_end > closing)
+        )
+        if is_past or is_outside_schedule:
+            status = 'unavailable'
+        elif is_booked:
+            status = 'booked'
+        else:
+            status = 'available'
+        start_12h = f'{hour12}:00 {period}'
+        end_12h_hour = end_hour % 12 or 12
+        end_12h = f'{end_12h_hour}:{end_minute:02d} {"PM" if end_hour >= 12 else "AM"}'
+        slots.append({
+            'start': f'{hour:02d}:00',
+            'end': f'{end_hour:02d}:{end_minute:02d}',
+            'start_12h': start_12h,
+            'period': period,
+            'status': status,
+            'available': status == 'available',
+            'label': f'{start_12h} – {end_12h}',
+        })
+    return slots
+
+
 def court_detail_view(request, court_id):
     court = get_object_or_404(Court.objects.select_related('site', 'organization'), id=court_id, is_active=True)
     
@@ -136,24 +200,16 @@ def court_detail_view(request, court_id):
         id=court.id
     ).select_related('site', 'organization').distinct()[:3]
     
-    # Time slots for today
-    today_reservations = Reservation.objects.filter(
-        court=court,
-        date=today,
-        status__in=['confirmed', 'pending']
-    )
-    time_slots = []
-    for hour in range(8, 22):
-        is_booked = today_reservations.filter(
-            start_time__lt=time(hour + 1, 0),
-            end_time__gt=time(hour, 0)
-        ).exists()
-        time_slots.append({
-            'start': f'{hour:02d}:00',
-            'end': f'{hour+1:02d}:00',
-            'label': f'{hour:02d}:00 – {hour+1:02d}:00',
-            'is_available': not is_booked,
-        })
+    # Time slots for the selected date (defaults to today). Supports ?date=YYYY-MM-DD.
+    date_param = request.GET.get('date', '')
+    if date_param:
+        try:
+            selected_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = today
+    else:
+        selected_date = today
+    time_slots = _build_time_slots(court, selected_date)
     
     return render(request, 'public/courts/court_detail.html', {
         'court': court,
@@ -162,6 +218,56 @@ def court_detail_view(request, court_id):
         'upcoming_reservations': upcoming_reservations,
         'related_courts': related_courts,
         'time_slots': time_slots,
+        'selected_date': selected_date,
+        'today': today,
+    })
+
+
+def court_directions_view(request, court_id):
+    """Dedicated Get Directions page for a court.
+
+    Embeds an interactive Leaflet map with keyless OSRM routing
+    (driving / walking / cycling profiles), turn-by-turn steps,
+    browser geolocation, and Google Maps / Waze fallback links."""
+    court = get_object_or_404(
+        Court.objects.select_related('site', 'organization'),
+        id=court_id, is_active=True
+    )
+
+    org = court.organization
+    has_coordinates = bool(org and org.latitude and org.longitude)
+    latitude = float(org.latitude) if has_coordinates else None
+    longitude = float(org.longitude) if has_coordinates else None
+
+    # Operating hours for the court (by weekday)
+    operating_hours = court.availability.all().order_by('day_of_week')
+
+    # Primary image file: primary gallery image, else first gallery image, else court image
+    gallery = court.images.all()
+    primary = gallery.filter(is_primary=True).first() or gallery.first()
+    court_image = primary.image if primary else court.image
+
+    # Full address: prefer the geocoded location address, else build from parts
+    if org:
+        if org.location_address:
+            full_address = org.location_address
+        else:
+            full_address = ' '.join(filter(None, [org.address, org.city, org.province])) or org.name
+    else:
+        full_address = court.site.name
+
+    dest = f"{longitude},{latitude}" if has_coordinates else ''
+    return render(request, 'public/courts/court_directions.html', {
+        'court': court,
+        'org': org,
+        'court_image': court_image,
+        'operating_hours': operating_hours,
+        'full_address': full_address,
+        'has_coordinates': has_coordinates,
+        'latitude': latitude,
+        'longitude': longitude,
+        'google_maps_url': f'https://www.google.com/maps/dir/?api=1&destination={dest}' if has_coordinates else '',
+        'waze_url': f'https://www.waze.com/ul?ll={latitude},{longitude}&navigate=yes' if has_coordinates else '',
     })
 
 
@@ -209,6 +315,23 @@ def court_availability_view(request, court_id):
         'court': court,
         'selected_date': selected_date,
         'time_slots': time_slots
+    })
+
+
+def court_slots_api(request, court_id):
+    """Public API: 1-hour time slots for a court on a given date (or today).
+    Used by the Court Details page date picker to refresh availability without
+    a page reload. Returns slots in 12-hour format with AM/PM period and status."""
+    court = get_object_or_404(Court, id=court_id, is_active=True)
+    date_str = request.GET.get('date', '')
+    try:
+        slot_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+    return JsonResponse({
+        'date': slot_date.isoformat(),
+        'date_label': f"{slot_date.strftime('%A, %B')} {slot_date.day}, {slot_date.year}",
+        'slots': _build_time_slots(court, slot_date),
     })
 
 

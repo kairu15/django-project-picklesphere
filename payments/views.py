@@ -1,4 +1,5 @@
 import uuid
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,6 +16,7 @@ from datetime import datetime, timedelta
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
 from .models import Payment, Refund, PaymentLog
 from .forms import PaymentMethodForm, GCashPaymentForm, CashPaymentForm, PaymentApprovalForm, RefundRequestForm
+from reservations.models import ReservationInvitation
 from .stripe_integration import create_checkout_session, create_payment_intent, get_publishable_key
 from courts.models import Court
 from reservations.models import Reservation, CancellationRequest
@@ -29,6 +31,49 @@ from notifications.email_utils import (
     send_refund_confirmed_email,
 )
 from accounts.models import User
+
+
+# Human-readable match format labels (e.g. 'mixed_doubles' -> 'Mixed Doubles')
+MATCH_FORMAT_LABELS = {
+    'singles': 'Singles',
+    'doubles': 'Doubles',
+    'mixed_doubles': 'Mixed Doubles',
+}
+
+
+def _send_match_invitations(reservation, checkout_data, invited_by):
+    """Send match invitations to registered users selected as opponents/teammates."""
+    player_ids = []
+    for key in ('team2_player1_id', 'team1_player2_id', 'team2_player2_id'):
+        val = checkout_data.get(key)
+        if val:
+            try:
+                player_ids.append(int(val))
+            except (ValueError, TypeError):
+                pass
+    
+    for uid in player_ids:
+        if uid and uid != invited_by.id:
+            try:
+                invited_user = User.objects.get(id=uid, is_active=True)
+                # Create invitation
+                ReservationInvitation.objects.get_or_create(
+                    reservation=reservation,
+                    invited_user=invited_user,
+                    defaults={
+                        'invited_by': invited_by,
+                        'status': 'pending',
+                        'message': f"You've been invited to join a match at {reservation.court.name} on {reservation.date}."
+                    }
+                )
+                # Send notification
+                Notification.objects.create(
+                    user=invited_user,
+                    message=f"You've been invited to a match! Reservation #{reservation.id} at {reservation.court.name}."
+                )
+            except User.DoesNotExist:
+                pass
+
 
 
 @login_required
@@ -59,6 +104,8 @@ def checkout_page_view(request, checkout_token):
     def _render_checkout(extra_ctx=None):
         """Helper to render the checkout page with common context."""
         total_amount = float(checkout_data['subtotal']) + total_equipment_fee
+        raw_format = checkout_data.get('match_format', '') or ''
+        match_format_display = MATCH_FORMAT_LABELS.get(raw_format, raw_format.replace('_', ' ').title())
         ctx = {
             'checkout_data': checkout_data,
             'court': court,
@@ -72,6 +119,13 @@ def checkout_page_view(request, checkout_token):
             'total_amount': total_amount,
             'stripe_publishable_key': stripe_publishable_key,
             'stripe_enabled': bool(stripe_publishable_key),
+            'gcash_number': getattr(settings, 'GCASH_NUMBER', '09123456789'),
+            'gcash_account_name': getattr(settings, 'GCASH_ACCOUNT_NAME', ''),
+            'gcash_qr_code_url': getattr(settings, 'GCASH_QR_CODE_URL', ''),
+            'match_format_display': match_format_display,
+            # Taxes & discounts are placeholders; set to non-zero to display rows
+            'tax_amount': 0,
+            'discount_amount': 0,
         }
         if extra_ctx:
             ctx.update(extra_ctx)
@@ -143,6 +197,13 @@ def checkout_page_view(request, checkout_token):
                             points_per_game=checkout_data.get('points_per_game') or 11,
                             games_to_win=checkout_data.get('games_to_win') or 2,
                             win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
+                            # Match participants from user selection during reservation
+                            team1_player2_id=checkout_data.get('team1_player2_id'),
+                            team2_player1_id=checkout_data.get('team2_player1_id'),
+                            team2_player2_id=checkout_data.get('team2_player2_id'),
+                            team1_name=checkout_data.get('team1_name', ''),
+                            team2_name=checkout_data.get('team2_name', ''),
+                            guest_players_data=checkout_data.get('guest_players_data'),
                         )
                         # The Reservation.save() method recalculates totals
                         
@@ -168,6 +229,9 @@ def checkout_page_view(request, checkout_token):
                         reservation.equipment_fee = equipment_fee
                         reservation.total_amount = reservation.calculate_total()
                         reservation.save()
+                        
+                        # Send invitations to selected registered users
+                        _send_match_invitations(reservation, checkout_data, request.user)
                         
                         # Create payment record
                         payment = Payment.objects.create(
@@ -245,6 +309,13 @@ def checkout_page_view(request, checkout_token):
                             points_per_game=checkout_data.get('points_per_game') or 11,
                             games_to_win=checkout_data.get('games_to_win') or 2,
                             win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
+                            # Match participants from user selection during reservation
+                            team1_player2_id=checkout_data.get('team1_player2_id'),
+                            team2_player1_id=checkout_data.get('team2_player1_id'),
+                            team2_player2_id=checkout_data.get('team2_player2_id'),
+                            team1_name=checkout_data.get('team1_name', ''),
+                            team2_name=checkout_data.get('team2_name', ''),
+                            guest_players_data=checkout_data.get('guest_players_data'),
                         )
                         
                         # Attach equipment
@@ -268,6 +339,9 @@ def checkout_page_view(request, checkout_token):
                         reservation.equipment_fee = equipment_fee
                         reservation.total_amount = reservation.calculate_total()
                         reservation.save()
+                        
+                        # Send invitations to selected registered users
+                        _send_match_invitations(reservation, checkout_data, request.user)
                         
                         # Create payment record
                         payment = Payment.objects.create(
@@ -335,6 +409,13 @@ def checkout_page_view(request, checkout_token):
                         points_per_game=checkout_data.get('points_per_game') or 11,
                         games_to_win=checkout_data.get('games_to_win') or 2,
                         win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
+                        # Match participants from user selection during reservation
+                        team1_player2_id=checkout_data.get('team1_player2_id'),
+                        team2_player1_id=checkout_data.get('team2_player1_id'),
+                        team2_player2_id=checkout_data.get('team2_player2_id'),
+                        team1_name=checkout_data.get('team1_name', ''),
+                        team2_name=checkout_data.get('team2_name', ''),
+                        guest_players_data=checkout_data.get('guest_players_data'),
                     )
                     
                     equipment_fee = 0
@@ -357,6 +438,9 @@ def checkout_page_view(request, checkout_token):
                     reservation.equipment_fee = equipment_fee
                     reservation.total_amount = reservation.calculate_total()
                     reservation.save()
+                    
+                    # Send invitations to selected registered users
+                    _send_match_invitations(reservation, checkout_data, request.user)
                     
                     payment = Payment.objects.create(
                         reservation=reservation,
@@ -424,6 +508,13 @@ def checkout_page_view(request, checkout_token):
                         points_per_game=checkout_data.get('points_per_game') or 11,
                         games_to_win=checkout_data.get('games_to_win') or 2,
                         win_by_two=checkout_data.get('win_by_two') if checkout_data.get('win_by_two') is not None else True,
+                        # Match participants from user selection during reservation
+                        team1_player2_id=checkout_data.get('team1_player2_id'),
+                        team2_player1_id=checkout_data.get('team2_player1_id'),
+                        team2_player2_id=checkout_data.get('team2_player2_id'),
+                        team1_name=checkout_data.get('team1_name', ''),
+                        team2_name=checkout_data.get('team2_name', ''),
+                        guest_players_data=checkout_data.get('guest_players_data'),
                     )
                     
                     equipment_fee = 0
@@ -446,6 +537,9 @@ def checkout_page_view(request, checkout_token):
                     reservation.equipment_fee = equipment_fee
                     reservation.total_amount = reservation.calculate_total()
                     reservation.save()
+                    
+                    # Send invitations to selected registered users
+                    _send_match_invitations(reservation, checkout_data, request.user)
                     
                     transaction_id = str(uuid.uuid4())[:8].upper()
                     payment = Payment.objects.create(
@@ -592,11 +686,20 @@ def payment_checkout_view(request, reservation_id):
         gcash_form = GCashPaymentForm(instance=payment) if payment else GCashPaymentForm()
         cash_form = CashPaymentForm(instance=payment) if payment else CashPaymentForm()
     
+    raw_format = (reservation.match_format or '').lower()
+    match_format_display = MATCH_FORMAT_LABELS.get(raw_format, raw_format.replace('_', ' ').title())
+
     return render(request, 'user/payments/checkout.html', {
         'reservation': reservation,
         'payment': payment,
         'gcash_form': gcash_form,
-        'cash_form': cash_form
+        'cash_form': cash_form,
+        'gcash_number': getattr(settings, 'GCASH_NUMBER', '09123456789'),
+        'gcash_account_name': getattr(settings, 'GCASH_ACCOUNT_NAME', ''),
+        'gcash_qr_code_url': getattr(settings, 'GCASH_QR_CODE_URL', ''),
+        'match_format_display': match_format_display,
+        'tax_amount': 0,
+        'discount_amount': 0,
     })
 
 
@@ -608,6 +711,7 @@ def payment_status_view(request, payment_id):
             'reservation__court',
             'reservation__court__site',
             'reservation__user',
+            'reservation__match',
             'cash_received_by',
         ).prefetch_related(
             'reservation__rented_equipment',
@@ -635,6 +739,11 @@ def payment_status_view(request, payment_id):
         'logs': logs,
         'latest_refund': latest_refund,
         'refunds': refunds,
+        'gcash_number': getattr(settings, 'GCASH_NUMBER', '09123456789'),
+        'gcash_account_name': getattr(settings, 'GCASH_ACCOUNT_NAME', ''),
+        # Taxes & discounts are placeholders; set to non-zero to display rows
+        'tax_amount': 0,
+        'discount_amount': 0,
     })
 
 

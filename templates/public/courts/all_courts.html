@@ -207,7 +207,7 @@
                             </div>
                             <div class="d-flex gap-1">
                                 {% if court.organization and court.organization.latitude and court.organization.longitude %}
-                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ court.organization.latitude }},{{ court.organization.longitude }}" target="_blank" rel="noopener" class="btn btn-sm btn-success" style="border-radius: var(--border-radius-sm);" title="Get Directions">
+                                <a href="{% url 'court_directions' court.id %}" class="btn btn-sm btn-success" style="border-radius: var(--border-radius-sm);" title="Get Directions">
                                     <i class="fas fa-directions"></i>
                                 </a>
                                 {% endif %}

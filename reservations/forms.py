@@ -37,6 +37,16 @@ class ReservationForm(forms.ModelForm):
         widget=forms.HiddenInput()
     )
 
+    # Player selection fields (not saved directly to model - used via session)
+    team2_player1_search = forms.CharField(required=False, widget=forms.HiddenInput())
+    team1_player2_search = forms.CharField(required=False, widget=forms.HiddenInput())
+    team2_player2_search = forms.CharField(required=False, widget=forms.HiddenInput())
+    
+    # Guest player name fields
+    guest_team1_p2 = forms.CharField(required=False, widget=forms.HiddenInput())
+    guest_team2_p1 = forms.CharField(required=False, widget=forms.HiddenInput())
+    guest_team2_p2 = forms.CharField(required=False, widget=forms.HiddenInput())
+
     class Meta:
         model = Reservation
         fields = [
@@ -49,7 +59,11 @@ class ReservationForm(forms.ModelForm):
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'start_time': forms.HiddenInput(),
             'end_time': forms.HiddenInput(),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Add any notes or special requests (e.g. bring your own paddle, celebration setup, or arrival instructions)...'
+            }),
             'match_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Friendly Match'}),
             'match_format': forms.Select(attrs={'class': 'form-select'}, choices=MATCH_FORMAT_CHOICES),
             'game_type': forms.Select(attrs={'class': 'form-select'}, choices=GAME_TYPE_CHOICES),
@@ -276,7 +290,11 @@ class AdminReservationForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'hourly_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'equipment_fee': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Add any notes or special requests (e.g. bring your own paddle, celebration setup, or arrival instructions)...'
+            }),
         }
 
     def __init__(self, *args, **kwargs):

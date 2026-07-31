@@ -220,6 +220,12 @@ STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
 
+# GCash merchant details shown on the checkout page (override in .env)
+GCASH_NUMBER = config('GCASH_NUMBER', default='09123456789')
+GCASH_ACCOUNT_NAME = config('GCASH_ACCOUNT_NAME', default='')
+# Optional URL to a GCash QR code image; leave empty to hide the QR block
+GCASH_QR_CODE_URL = config('GCASH_QR_CODE_URL', default='')
+
 # Email settings (configure in .env for production)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')

@@ -215,10 +215,12 @@
                         <div id="orgMap" style="height: 200px; width: 100%;"></div>
                     </div>
                     <div class="card-footer bg-transparent p-3 text-center border-0">
-                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ organization.latitude }},{{ organization.longitude }}" target="_blank" rel="noopener" class="btn btn-success w-100" style="border-radius: 10px; font-weight: 600;">
+                        {% if courts %}
+                        <a href="{% url 'court_directions' courts.0.id %}" class="btn btn-success w-100" style="border-radius: 10px; font-weight: 600;">
                             <i class="fas fa-directions me-2"></i>Get Directions
                         </a>
-                        <small class="text-muted d-block mt-2">Opens in Google Maps</small>
+                        <small class="text-muted d-block mt-2">Opens in PickleSphere Directions</small>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}

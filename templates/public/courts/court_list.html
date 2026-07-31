@@ -145,6 +145,11 @@
                         <a href="{% url 'court_detail' court.id %}" class="btn btn-sm btn-outline-primary court-action-btn" title="View Details">
                             <i class="fas fa-eye"></i>
                         </a>
+                        {% if court.organization and court.organization.latitude and court.organization.longitude %}
+                        <a href="{% url 'court_directions' court.id %}" class="btn btn-sm btn-outline-success court-action-btn" title="Get Directions">
+                            <i class="fas fa-directions"></i>
+                        </a>
+                        {% endif %}
                         {% if court.status == 'available' %}
                         <a href="{% url 'reservation_create' %}?court={{ court.id }}" class="btn btn-sm btn-primary court-action-btn" title="Book Now">
                             <i class="fas fa-calendar-plus"></i>

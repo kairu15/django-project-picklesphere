@@ -151,7 +151,7 @@
             </div>
             <div id="courtDetailMap" style="height: 250px; width: 100%;"></div>
             <div class="p-3 text-center border-top">
-                <a href="https://www.google.com/maps/dir/?api=1&destination={{ court.organization.latitude }},{{ court.organization.longitude }}" target="_blank" rel="noopener" class="btn btn-success btn-sm" style="border-radius: 8px;">
+                <a href="{% url 'court_directions' court.id %}" class="btn btn-success btn-sm" style="border-radius: 8px;">
                     <i class="fas fa-directions me-2"></i>Get Directions
                 </a>
                 {% if court.organization.location_address %}
@@ -255,24 +255,47 @@
             </div>
         </div>
 
-        <!-- Available Time Slots -->
+        <!-- Today's Time Slots -->
         {% if time_slots %}
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
             <div class="card-body p-4">
-                <h6 class="fw-bold mb-3"><i class="fas fa-clock me-2 text-primary"></i>Today's Time Slots</h6>
-                <div class="d-flex flex-wrap gap-1">
-                    {% for slot in time_slots %}
-                    <span class="badge px-2 py-1 {% if slot.is_available %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 0.7rem;">
-                        {% if slot.is_available %}
-                        <i class="fas fa-check me-1"></i>
-                        {% else %}
-                        <i class="fas fa-times me-1"></i>
-                        {% endif %}
-                        {{ slot.start }}–{{ slot.end }}
-                    </span>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-calendar-day me-2 text-primary"></i>Today's Time Slots</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="courtSlotDate" class="small text-muted mb-0"><i class="fas fa-calendar-alt me-1"></i>Date:</label>
+                            <input type="date" id="courtSlotDate" class="form-control form-control-sm" style="max-width: 160px; border-radius: 8px; border-color: #ced4da;" value="{{ selected_date|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="fas fa-calendar-check text-primary"></i>
+                    <span class="fw-semibold" style="font-size: 0.9rem; color: #243b47;" id="courtSlotDateLabel">{{ selected_date|date:"l, F j, Y" }}</span>
+                </div>
+                <div id="courtTimeSlots" class="time-slots-columns">
+                    {% regroup time_slots by period as slot_groups %}
+                    {% for group in slot_groups %}
+                    <div class="time-slot-column">
+                        <div class="time-slot-group-header">
+                            <span class="time-slot-group-badge" role="heading" aria-level="3">{{ group.grouper }}</span>
+                        </div>
+                        <div class="time-slot-list">
+                            {% for slot in group.list %}
+                            <div class="time-slot-row {{ slot.status }}" data-start="{{ slot.start }}" data-end="{{ slot.end }}"{% if slot.status != 'available' %} aria-disabled="true" title="{% if slot.status == 'booked' %}This time slot is already booked{% else %}This time slot has passed{% endif %}"{% else %} role="button" tabindex="0"{% endif %}>
+                                <span class="time-slot-range">{{ slot.start_12h }}</span>
+                                {% if slot.status == 'available' %}
+                                <span class="slot-badge slot-badge-available"><i class="fas fa-check-circle me-1"></i>Available</span>
+                                {% elif slot.status == 'booked' %}
+                                <span class="slot-badge slot-badge-booked"><i class="fas fa-times-circle me-1"></i>Booked</span>
+                                {% else %}
+                                <span class="slot-badge slot-badge-unavailable"><i class="fas fa-minus-circle me-1"></i>Unavailable</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% endfor %}
                 </div>
-                <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Green = Available · Red = Booked</small>
             </div>
         </div>
         {% endif %}
@@ -436,4 +459,227 @@
 })();
 </script>
 {% endif %}
+
+<style>
+/* ===== Today's Time Slots (matches reservation workflow) ===== */
+.time-slot-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+.time-slot-group-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(59,122,140,0.35), rgba(59,122,140,0));
+}
+.time-slot-group-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+.time-slots-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+.time-slot-column {
+    background: #fff;
+    border: 1px solid #eef0f2;
+    border-radius: 12px;
+    padding: 0.6rem 0.6rem 0.3rem;
+}
+.time-slot-list {
+    display: flex;
+    flex-direction: column;
+}
+.time-slot-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.4rem;
+    border-bottom: 1px solid #f1f3f5;
+    transition: background 0.2s ease;
+    user-select: none;
+}
+.time-slot-row:last-child {
+    border-bottom: none;
+}
+.time-slot-row.available {
+    cursor: pointer;
+}
+.time-slot-row.available:hover,
+.time-slot-row.available:focus-visible {
+    background: #f1f8e9;
+    outline: none;
+}
+.time-slot-row.booked,
+.time-slot-row.unavailable {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+.time-slot-row.selected {
+    background: rgba(59, 122, 140, 0.08);
+    box-shadow: inset 3px 0 0 #3B7A8C;
+    border-radius: 8px;
+}
+.time-slot-range {
+    font-weight: 600;
+    font-size: 0.78rem;
+    color: #243b47;
+}
+.slot-badge {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0.15rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+}
+.slot-badge-available {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.slot-badge-booked {
+    background: #ffebee;
+    color: #c62828;
+}
+.slot-badge-unavailable {
+    background: #eef2f5;
+    color: #6c757d;
+}
+/* Tablet: keep side-by-side columns but tighten the gap */
+@media (max-width: 991.98px) {
+    .time-slots-columns {
+        gap: 0.75rem;
+    }
+}
+/* Mobile: stack AM above PM */
+@media (max-width: 575.98px) {
+    .time-slots-columns {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+(function() {
+    const container = document.getElementById('courtTimeSlots');
+    const dateInput = document.getElementById('courtSlotDate');
+    const dateLabel = document.getElementById('courtSlotDateLabel');
+    if (!container || !dateInput) return;
+
+    function statusBadge(status) {
+        if (status === 'available') {
+            return '<span class="slot-badge slot-badge-available"><i class="fas fa-check-circle me-1"></i>Available</span>';
+        } else if (status === 'booked') {
+            return '<span class="slot-badge slot-badge-booked"><i class="fas fa-times-circle me-1"></i>Booked</span>';
+        }
+        return '<span class="slot-badge slot-badge-unavailable"><i class="fas fa-minus-circle me-1"></i>Unavailable</span>';
+    }
+
+    function buildSlotRow(slot) {
+        const row = document.createElement('div');
+        row.className = 'time-slot-row ' + slot.status;
+        row.dataset.start = slot.start;
+        row.dataset.end = slot.end;
+        if (slot.status === 'available') {
+            row.setAttribute('role', 'button');
+            row.setAttribute('tabindex', '0');
+        } else {
+            row.setAttribute('aria-disabled', 'true');
+            row.title = slot.status === 'booked' ? 'This time slot is already booked' : 'This time slot has passed';
+        }
+        row.innerHTML =
+            '<span class="time-slot-range">' + slot.start_12h + '</span>' +
+            statusBadge(slot.status);
+        return row;
+    }
+
+    function buildColumn(label, slots) {
+        const column = document.createElement('div');
+        column.className = 'time-slot-column';
+
+        const header = document.createElement('div');
+        header.className = 'time-slot-group-header';
+        header.innerHTML = '<span class="time-slot-group-badge" role="heading" aria-level="3">' + label + '</span>';
+
+        const list = document.createElement('div');
+        list.className = 'time-slot-list';
+        slots.forEach(slot => list.appendChild(buildSlotRow(slot)));
+
+        column.appendChild(header);
+        column.appendChild(list);
+        return column;
+    }
+
+    function renderSlots(slots) {
+        container.innerHTML = '';
+        const amSlots = slots.filter(s => s.period === 'AM');
+        const pmSlots = slots.filter(s => s.period === 'PM');
+        if (amSlots.length > 0) container.appendChild(buildColumn('AM', amSlots));
+        if (pmSlots.length > 0) container.appendChild(buildColumn('PM', pmSlots));
+    }
+
+    function selectCard(card) {
+        container.querySelectorAll('.time-slot-row.selected').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        if (dateInput) {
+            // Persist the picked date/slot in the URL query so refreshes keep the selection
+            const params = new URLSearchParams(window.location.search);
+            params.set('date', dateInput.value);
+            const url = window.location.pathname + '?' + params.toString();
+            window.history.replaceState({}, '', url);
+        }
+    }
+
+    // Delegate click + keyboard selection for available slots
+    container.addEventListener('click', function(e) {
+        const card = e.target.closest('.time-slot-row.available');
+        if (card) selectCard(card);
+    });
+    container.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            const card = e.target.closest('.time-slot-row.available');
+            if (card) {
+                e.preventDefault();
+                selectCard(card);
+            }
+        }
+    });
+
+    // Reload slots when the selected date changes
+    dateInput.addEventListener('change', function() {
+        const dateVal = dateInput.value;
+        if (!dateVal) return;
+        container.innerHTML = '<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading availability...</div>';
+        fetch('{% url 'court_slots_api' court.id %}?date=' + encodeURIComponent(dateVal))
+            .then(r => r.json())
+            .then(data => {
+                if (dateLabel && data.date_label) {
+                    dateLabel.textContent = data.date_label;
+                }
+                renderSlots(data.slots || []);
+            })
+            .catch(() => {
+                container.innerHTML = '<div class="text-center py-3 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Failed to load time slots.</div>';
+            });
+    });
+})();
+</script>
 {% endblock %}

@@ -1,7 +1,9 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Value
+from django.db.models.functions import Concat
 from django.utils import timezone
 from django.http import JsonResponse
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
@@ -63,11 +65,13 @@ def start_match_view(request, reservation_id):
     # Check if user can override reservation settings (org staff or admin)
     can_override = request.user.is_staff_user() or request.user.is_admin()
 
-    # Get eligible users (all active users, scoped to org if applicable)
-    eligible_users = User.objects.filter(is_active=True)
+    # Get eligible users (active users with 'user' role, scoped to org if applicable)
+    eligible_users = User.objects.filter(is_active=True, employment_status='active', role='user')
     if request.user.organization:
+        # Include users in the same organization OR users with no organization
+        # (most registered user accounts have no organization assigned)
         eligible_users = eligible_users.filter(
-            Q(organization=request.user.organization) | Q(id=reservation.user_id)
+            Q(organization=request.user.organization) | Q(organization__isnull=True) | Q(id=reservation.user_id)
         )
     eligible_users = eligible_users.order_by('username')
 
@@ -157,6 +161,7 @@ def start_match_view(request, reservation_id):
             messages.success(request, 'Match started successfully!')
             return redirect('match_live', match_id=match.id)
     else:
+        # Auto-populate from reservation's player fields if available
         initial = {
             'format': reservation.match_format,
             'game_type': reservation.game_type,
@@ -166,17 +171,41 @@ def start_match_view(request, reservation_id):
             'win_by_two': reservation.win_by_two,
             'team1_player1': reservation.user,
         }
+        # Set team 1 player 2 (doubles teammate)
+        if reservation.team1_player2:
+            initial['team1_player2'] = reservation.team1_player2
+        # Set team 2 player 1 (opponent) from reservation
+        if reservation.team2_player1:
+            initial['team2_player1'] = reservation.team2_player1
+        # Set team 2 player 2 (doubles teammate)
+        if reservation.team2_player2:
+            initial['team2_player2'] = reservation.team2_player2
+        # Set team names
+        initial['team1_name'] = reservation.team1_name or 'Home Team'
+        initial['team2_name'] = reservation.team2_name or 'Opponent'
+        
         form = MatchSetupForm(initial=initial)
         form.fields['team1_player1'].queryset = eligible_users
         form.fields['team1_player2'].queryset = eligible_users
         form.fields['team2_player1'].queryset = eligible_users
         form.fields['team2_player2'].queryset = eligible_users
 
+    # Parse guest players data from reservation for pre-population
+    guest_data_list = []
+    if reservation.guest_players_data:
+        try:
+            parsed = json.loads(reservation.guest_players_data)
+            if isinstance(parsed, list):
+                guest_data_list = parsed
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     return render(request, 'scoring/start_match.html', {
         'form': form,
         'reservation': reservation,
         'can_override': can_override,
         'eligible_users': eligible_users,
+        'guest_data_list': guest_data_list,
     })
 
 
@@ -401,21 +430,61 @@ def update_player_stats(match):
 
 @login_required
 def search_users_api(request):
-    """API endpoint for searching users for player assignment."""
+    """API endpoint for searching users for player assignment.
+    Supports searching by: username, first_name, middle_name, last_name,
+    full name (*), email, staff_id, and player ID (numeric pk).
+
+    (*) Full name matching uses CONCAT(first_name, ' ', last_name)
+        so queries like "John Smith" match the combined full name.
+    """
     q = request.GET.get('q', '').strip()
     exclude_ids = request.GET.get('exclude_ids', '')
+    reservation_id = request.GET.get('reservation_id', '')
     
-    users = User.objects.filter(is_active=True)
+    # Only show active users with the 'user' role (exclude staff/admins)
+    users = User.objects.filter(is_active=True, employment_status='active', role='user')
+    
+    # Scope to same organization when the searcher belongs to one.
+    # If a reservation_id is provided, always include the reservation
+    # holder even if they belong to a different organization.
     if request.user.organization:
-        users = users.filter(organization=request.user.organization)
+        # Include users in the same organization OR users with no organization
+        # (most registered user accounts have no organization assigned)
+        org_filter = Q(organization=request.user.organization) | Q(organization__isnull=True)
+        if reservation_id:
+            try:
+                rid = int(reservation_id)
+                reservation = Reservation.objects.get(id=rid)
+                org_filter |= Q(id=reservation.user_id)
+            except (Reservation.DoesNotExist, ValueError, TypeError):
+                pass
+        users = users.filter(org_filter)
     
     if q:
-        users = users.filter(
-            Q(username__icontains=q) |
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q) |
-            Q(email__icontains=q)
+        # Annotate concatenated full name for searching by "Full Name"
+        users = users.annotate(
+            _full_name=Concat('first_name', Value(' '), 'last_name')
         )
+        
+        # Build search filter covering all requested fields
+        name_filter = (
+            Q(username__icontains=q) |
+            Q(_full_name__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(middle_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(email__icontains=q) |
+            Q(staff_id__icontains=q)
+        )
+        
+        # Also search by numeric player ID if query is a number
+        try:
+            q_int = int(q)
+            name_filter |= Q(id=q_int)
+        except ValueError:
+            pass
+        
+        users = users.filter(name_filter)
     
     if exclude_ids:
         try:
