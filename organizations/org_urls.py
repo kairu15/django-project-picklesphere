@@ -6,6 +6,7 @@ urlpatterns = [
     # Org Admin - Dashboard & Settings
     path('dashboard/', views.org_admin_dashboard, name='org_admin_dashboard'),
     path('profile/', views.org_admin_profile, name='org_admin_profile'),
+    path('payment-settings/', views.org_admin_payment_settings, name='org_admin_payment_settings'),
     path('my-profile/', accounts_views.profile_view, name='org_admin_personal_profile'),
     path('staff/', views.org_admin_manage_staff, name='org_admin_manage_staff'),
     path('staff/export/csv/', views.org_admin_staff_export_csv, name='org_admin_staff_export_csv'),

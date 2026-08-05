@@ -1,0 +1,467 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Payment Settings{% endblock %}
+{% block page_title %}Payment Settings{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'org_admin_dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Payment Settings</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.ps-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+.ps-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+.ps-card-header {
+    background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);
+    color: #fff;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+.ps-card-header .ps-header-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+.ps-section {
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 1.2rem;
+    background: #fff;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.ps-section:hover {
+    border-color: rgba(59,122,140,0.35);
+    box-shadow: 0 3px 12px rgba(59,122,140,0.06);
+}
+.ps-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-weight: 700;
+    color: #1a3a42;
+    font-size: 0.98rem;
+    margin-bottom: 0.25rem;
+}
+.ps-section-sub {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 1.1rem;
+}
+.ps-method-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.ps-gcash { background: rgba(0,125,254,0.1); color: #007dfe; }
+.ps-maya { background: rgba(114,46,209,0.1); color: #722ed1; }
+.ps-bank { background: rgba(40,167,69,0.1); color: #28a745; }
+.ps-qr { background: rgba(255,152,0,0.12); color: #ff9800; }
+.ps-form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.35rem;
+}
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1.5px solid #dee2e6;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #3B7A8C;
+    box-shadow: 0 0 0 3px rgba(59,122,140,0.12);
+}
+.qr-preview {
+    border: 2px dashed #d3dee1;
+    border-radius: 12px;
+    padding: 0.8rem;
+    background: #f8fafb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.qr-preview img {
+    width: 84px; height: 84px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+}
+.qr-preview-empty {
+    border: 2px dashed #d3dee1;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    color: #8a9aa4;
+    background: #f8fafb;
+}
+.method-check-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.6rem;
+}
+.method-check-card {
+    border: 1.5px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    background: #fff;
+}
+.method-check-card:hover { border-color: #3B7A8C; }
+.method-check-card.checked {
+    border-color: #3B7A8C;
+    background: rgba(59,122,140,0.06);
+    color: #1a3a42;
+}
+.method-check-card i { width: 18px; text-align: center; color: #3B7A8C; }
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.32rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.status-pill.ok { background: #d4edda; color: #155724; }
+.status-pill.warn { background: #fff3cd; color: #856404; }
+.status-pill.off { background: #f8d7da; color: #721c24; }
+.save-bar {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    padding: 1rem 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+}
+@media (max-width: 575.98px) {
+    .ps-section { padding: 1.1rem 1rem; }
+    .method-check-group { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+
+        <!-- Intro card -->
+        <div class="ps-card mb-4">
+            <div class="ps-card-header">
+                <div class="ps-header-icon"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <h5 class="mb-0 fw-bold">Payment Settings</h5>
+                    <small class="opacity-75">Configure the payment information shown to players when they book your courts</small>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-info-circle me-1 text-primary"></i>
+                    These details are displayed on the checkout page whenever a player reserves one of
+                    <strong>{{ organization.name }}</strong>'s courts. Each organization manages its own payment
+                    information — the platform will always show the details of the organization that owns the court
+                    being booked.
+                </p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="payment-settings-form" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2" style="border-radius: 10px; font-size: 0.85rem;">
+                {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- GCash -->
+            <div class="ps-section">
+                <div class="ps-section-title">
+                    <div class="ps-method-icon ps-gcash"><i class="fas fa-mobile-alt"></i></div>
+                    GCash
+                </div>
+                <p class="ps-section-sub">Players will be shown this number and account name to send their GCash payment.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="ps-form-label">GCash Number</label>
+                        {{ form.gcash_number }}
+                        {% if form.gcash_number.errors %}<div class="text-danger small mt-1">{{ form.gcash_number.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="ps-form-label">GCash Account Name</label>
+                        {{ form.gcash_account_name }}
+                        {% if form.gcash_account_name.errors %}<div class="text-danger small mt-1">{{ form.gcash_account_name.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maya -->
+            <div class="ps-section">
+                <div class="ps-section-title">
+                    <div class="ps-method-icon ps-maya"><i class="fas fa-wallet"></i></div>
+                    Maya <span class="badge bg-light text-muted ms-1">Optional</span>
+                </div>
+                <p class="ps-section-sub">Optional — only shown to players if the number and account name are provided.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="ps-form-label">Maya Number</label>
+                        {{ form.maya_number }}
+                        {% if form.maya_number.errors %}<div class="text-danger small mt-1">{{ form.maya_number.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="ps-form-label">Maya Account Name</label>
+                        {{ form.maya_account_name }}
+                        {% if form.maya_account_name.errors %}<div class="text-danger small mt-1">{{ form.maya_account_name.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Transfer -->
+            <div class="ps-section">
+                <div class="ps-section-title">
+                    <div class="ps-method-icon ps-bank"><i class="fas fa-university"></i></div>
+                    Bank Transfer <span class="badge bg-light text-muted ms-1">Optional</span>
+                </div>
+                <p class="ps-section-sub">Optional — only shown to players if all three bank fields are provided.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="ps-form-label">Bank Name</label>
+                        {{ form.bank_name }}
+                        {% if form.bank_name.errors %}<div class="text-danger small mt-1">{{ form.bank_name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="ps-form-label">Bank Account Name</label>
+                        {{ form.bank_account_name }}
+                        {% if form.bank_account_name.errors %}<div class="text-danger small mt-1">{{ form.bank_account_name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="ps-form-label">Bank Account Number</label>
+                        {{ form.bank_account_number }}
+                        {% if form.bank_account_number.errors %}<div class="text-danger small mt-1">{{ form.bank_account_number.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code -->
+            <div class="ps-section">
+                <div class="ps-section-title">
+                    <div class="ps-method-icon ps-qr"><i class="fas fa-qrcode"></i></div>
+                    QR Code Image <span class="badge bg-light text-muted ms-1">Optional</span>
+                </div>
+                <p class="ps-section-sub">Upload a QR code (e.g. your GCash/Maya QR) so players can scan and pay instantly.</p>
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        {% if settings.qr_code %}
+                        <div class="qr-preview mb-3">
+                            <img src="{{ settings.qr_code.url }}" alt="Current QR code">
+                            <div>
+                                <small class="text-muted d-block">Current QR code</small>
+                                <span class="small fw-semibold">{{ settings.qr_code.name|cut:"organizations/payment_qr/" }}</span>
+                                <div class="mt-1">
+                                    <label class="btn btn-sm btn-outline-primary" for="id_qr_code" style="border-radius: 8px; font-size: 0.75rem;">
+                                        <i class="fas fa-upload me-1"></i>Replace
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {{ form.qr_code }}
+                        {% if form.qr_code.errors %}<div class="text-danger small mt-1">{{ form.qr_code.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="qr-preview-empty h-100">
+                            <i class="fas fa-qrcode fa-2x mb-2 d-block"></i>
+                            <small>PNG, JPG or WEBP. The QR will appear on the checkout page next to your payment details.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Instructions -->
+            <div class="ps-section">
+                <div class="ps-section-title">
+                    <div class="ps-method-icon ps-bank" style="background: rgba(23,162,184,0.1); color: #17a2b8;"><i class="fas fa-list-ol"></i></div>
+                    Payment Instructions
+                </div>
+                <p class="ps-section-sub">Step-by-step guidance players will see after choosing an online payment method.</p>
+                {{ form.payment_instructions }}
+                {% if form.payment_instructions.errors %}<div class="text-danger small mt-1">{{ form.payment_instructions.errors.0 }}</div>{% endif %}
+            </div>
+
+            <!-- Accepted Methods -->
+            <div class="ps-section">
+                <div class="ps-section-title">
+                    <div class="ps-method-icon ps-gcash" style="background: rgba(102,51,153,0.1); color: #663399;"><i class="fas fa-check-double"></i></div>
+                    Accepted Payment Methods
+                </div>
+                <p class="ps-section-sub">Select which payment methods players can use. GCash, Maya and Bank Transfer only appear at checkout when their account details above are complete.</p>
+                {% if form.accepted_payment_methods.errors %}<div class="alert alert-danger py-2" style="border-radius: 10px; font-size: 0.85rem;">{{ form.accepted_payment_methods.errors.0 }}</div>{% endif %}
+                <div class="method-check-group" id="method-check-group">
+                    {% for checkbox in form.accepted_payment_methods %}
+                    <label class="method-check-card" data-method="{{ checkbox.data.value }}">
+                        {{ checkbox.tag }}
+                        <i class="fas fa-{% if checkbox.data.value == 'gcash' %}mobile-alt{% elif checkbox.data.value == 'maya' %}wallet{% elif checkbox.data.value == 'bank_transfer' %}university{% elif checkbox.data.value == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
+                        {{ checkbox.choice_label }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Online payments toggle -->
+            <div class="ps-section d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="ps-section-title mb-0">
+                        <div class="ps-method-icon ps-bank" style="background: rgba(220,53,69,0.1); color: #dc3545;"><i class="fas fa-toggle-on"></i></div>
+                        Enable Online Payments
+                    </div>
+                    <p class="text-muted small mb-0 mt-1 ms-0">Turn off to temporarily stop players from submitting online payments for this organization.</p>
+                </div>
+                <div class="form-check form-switch ps-0 m-0" style="min-width: 52px;">
+                    {{ form.is_active }}
+                    <label class="form-check-label" for="id_is_active"></label>
+                </div>
+            </div>
+            {% if form.is_active.errors %}<div class="text-danger small">{{ form.is_active.errors.0 }}</div>{% endif %}
+
+            <div class="save-bar">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-shield-alt text-primary"></i>
+                    <small class="text-muted">Players always see this organization's own payment details at checkout.</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'org_admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Payment Settings
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-lg-4">
+        <!-- Configuration status -->
+        <div class="ps-card mb-4">
+            <div class="card-header" style="background: #fff; border-bottom: 1px solid #eef1f4;">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-clipboard-check me-2 text-primary"></i>Configuration Status</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-muted">Online payments</span>
+                        {% if settings.is_active %}
+                        <span class="status-pill ok"><i class="fas fa-check-circle"></i>Enabled</span>
+                        {% else %}
+                        <span class="status-pill off"><i class="fas fa-times-circle"></i>Disabled</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-muted">GCash</span>
+                        {% if settings.has_gcash %}<span class="status-pill ok"><i class="fas fa-check-circle"></i>Configured</span>
+                        {% else %}<span class="status-pill warn"><i class="fas fa-exclamation-circle"></i>Not set</span>{% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-muted">Maya</span>
+                        {% if settings.has_maya %}<span class="status-pill ok"><i class="fas fa-check-circle"></i>Configured</span>
+                        {% else %}<span class="status-pill warn"><i class="fas fa-exclamation-circle"></i>Not set</span>{% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-muted">Bank Transfer</span>
+                        {% if settings.has_bank %}<span class="status-pill ok"><i class="fas fa-check-circle"></i>Configured</span>
+                        {% else %}<span class="status-pill warn"><i class="fas fa-exclamation-circle"></i>Not set</span>{% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-muted">QR Code</span>
+                        {% if settings.qr_code %}<span class="status-pill ok"><i class="fas fa-check-circle"></i>Uploaded</span>
+                        {% else %}<span class="status-pill warn"><i class="fas fa-exclamation-circle"></i>Not uploaded</span>{% endif %}
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    {% if settings.is_configured and settings.is_active %}
+                    <span class="status-pill ok"><i class="fas fa-thumbs-up"></i>Ready — players can pay online</span>
+                    {% else %}
+                    <span class="status-pill warn"><i class="fas fa-exclamation-triangle"></i>Online payment is currently unavailable</span>
+                    {% endif %}
+                    <p class="text-muted small mt-2 mb-0">
+                        {% if not settings.is_configured %}
+                        Add at least one complete payment account to let players pay online.
+                        {% else %}
+                        Until then, players can still pay at the counter or by card.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="ps-card">
+            <div class="card-header" style="background: #fff; border-bottom: 1px solid #eef1f4;">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-info"></i>How It Works</h6>
+            </div>
+            <div class="card-body p-4">
+                <ol class="small text-muted mb-0" style="padding-left: 1.1rem; line-height: 1.9;">
+                    <li>A player books one of your courts and reaches checkout.</li>
+                    <li>They instantly see <strong class="text-dark">{{ organization.name }}'s</strong> payment details — your number, account name, QR code and instructions.</li>
+                    <li>They send the payment and upload proof (reference number + screenshot).</li>
+                    <li>Your staff verifies the payment and confirms the reservation.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    // Highlight selected method cards
+    const group = document.getElementById('method-check-group');
+    if (group) {
+        function refresh() {
+            group.querySelectorAll('.method-check-card').forEach(card => {
+                const input = card.querySelector('input[type="checkbox"]');
+                if (input && input.checked) card.classList.add('checked');
+                else card.classList.remove('checked');
+            });
+        }
+        group.addEventListener('change', refresh);
+        refresh();
+    }
+})();
+</script>
+{% endblock %}

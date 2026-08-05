@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, time
 from accounts.decorators import admin_required
 from .models import Site, Court, FavoriteCourt
 from .forms import CourtForm, SiteForm
+from dashboard.cache_utils import pages_cache_get_or_set
 from dashboard.models import CourtPageSettings, FeaturedCourt, Rating
 from organizations.models import Organization
 from reservations.models import Reservation
@@ -28,9 +29,11 @@ def court_list_view(request):
     sites = Site.objects.filter(is_active=True)
     organizations = Organization.objects.filter(is_active=True)
     
-    # Get CMS settings for the courts page
-    cms_settings = CourtPageSettings.objects.filter(pk=1, is_active=True).first()
-    featured_courts = FeaturedCourt.objects.select_related('court__site', 'court__organization').filter(is_active=True).order_by('display_order')
+    # Get CMS settings for the courts page (cached; invalidated via dashboard.cache_signals)
+    cms_settings = pages_cache_get_or_set('court_list_cms', lambda: CourtPageSettings.objects.filter(pk=1, is_active=True).first())
+    featured_courts = pages_cache_get_or_set('court_list_featured', lambda: list(
+        FeaturedCourt.objects.select_related('court__site', 'court__organization').filter(is_active=True).order_by('display_order')
+    ))
     
     # ---- Filters ----
     site_id = request.GET.get('site', '')

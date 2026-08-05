@@ -317,10 +317,36 @@
                     </div>
                     {% endif %}
 
+                    {% if not payment_configured %}
+                    <div class="alert alert-warning py-3" style="border-radius: 12px; font-size: 0.85rem; border: 1px dashed #d39e00;">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="payment-icon-wrapper" style="width: 42px; height: 42px; margin: 0; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); flex-shrink: 0;">
+                                <i class="fas fa-exclamation-circle text-white"></i>
+                            </div>
+                            <div>
+                                {% if payment_settings and not payment_settings.is_active %}
+                                <h6 class="fw-bold mb-1" style="color: #856404;">Online payments are currently disabled</h6>
+                                <p class="mb-0 text-muted">
+                                    {{ org_name|default:"This organization" }} has temporarily turned off online payments.
+                                    You can still pay at the counter or by card. For other options, please contact the organization directly.
+                                </p>
+                                {% else %}
+                                <h6 class="fw-bold mb-1" style="color: #856404;">Payment details not yet available</h6>
+                                <p class="mb-0 text-muted">
+                                    {{ org_name|default:"This organization" }} has not configured online payment details yet.
+                                    You can still pay at the counter or by card. For other options, please contact the organization directly.
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- ===== Payment Method Cards ===== -->
                     <div class="row g-3 mb-4">
                         <!-- GCash -->
-                        <div class="col-md-4">
+                        {% if 'gcash' in enabled_payment_methods %}
+                        <div class="col-6 col-md-4">
                             <div class="payment-option" data-method="gcash">
                                 <input type="radio" name="method" value="gcash" id="method-gcash" class="payment-radio" required>
                                 <label class="payment-label" for="method-gcash">
@@ -333,11 +359,46 @@
                                 </label>
                             </div>
                         </div>
+                        {% endif %}
+
+                        <!-- Maya -->
+                        {% if 'maya' in enabled_payment_methods %}
+                        <div class="col-6 col-md-4">
+                            <div class="payment-option" data-method="maya">
+                                <input type="radio" name="method" value="maya" id="method-maya" class="payment-radio" required>
+                                <label class="payment-label" for="method-maya">
+                                    <div class="payment-icon-wrapper maya-bg">
+                                        <i class="fas fa-wallet text-white fa-lg"></i>
+                                    </div>
+                                    <h6 class="mb-1 fw-bold">Maya</h6>
+                                    <small class="text-muted">Mobile Wallet</small>
+                                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Bank Transfer -->
+                        {% if 'bank_transfer' in enabled_payment_methods %}
+                        <div class="col-6 col-md-4">
+                            <div class="payment-option" data-method="bank_transfer">
+                                <input type="radio" name="method" value="bank_transfer" id="method-bank" class="payment-radio" required>
+                                <label class="payment-label" for="method-bank">
+                                    <div class="payment-icon-wrapper bank-bg">
+                                        <i class="fas fa-university text-white fa-lg"></i>
+                                    </div>
+                                    <h6 class="mb-1 fw-bold">Bank Transfer</h6>
+                                    <small class="text-muted">Direct to Bank</small>
+                                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <!-- Cash -->
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="payment-option" data-method="cash">
-                                <input type="radio" name="method" value="cash" id="method-cash" class="payment-radio">
+                                <input type="radio" name="method" value="cash" id="method-cash" class="payment-radio" required>
                                 <label class="payment-label" for="method-cash">
                                     <div class="payment-icon-wrapper cash-bg">
                                         <i class="fas fa-money-bill-wave text-white fa-lg"></i>
@@ -350,9 +411,9 @@
                         </div>
 
                         <!-- Card -->
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="payment-option" data-method="card">
-                                <input type="radio" name="method" value="card" id="method-card" class="payment-radio">
+                                <input type="radio" name="method" value="card" id="method-card" class="payment-radio" required>
                                 <label class="payment-label" for="method-card">
                                     <div class="payment-icon-wrapper card-bg">
                                         <i class="fas fa-credit-card text-white fa-lg"></i>
@@ -398,6 +459,13 @@
                                         </div>
                                         {% endif %}
 
+                                        {% if payment_instructions %}
+                                        <div class="mt-3 payment-instructions">
+                                            <small class="text-muted d-block mb-1"><i class="fas fa-list-ol me-1"></i>Payment Instructions</small>
+                                            <div class="small">{{ payment_instructions|linebreaksbr }}</div>
+                                        </div>
+                                        {% endif %}
+
                                         <div class="mt-3 d-flex align-items-center gap-2">
                                             <i class="fas fa-shield-alt" style="color: #3B7A8C; font-size: 0.85rem;"></i>
                                             <small class="text-muted">Your payment will be verified by our staff before the reservation is confirmed.</small>
@@ -433,6 +501,161 @@
                                                         </button>
                                                     </div>
                                                     <div class="invalid-feedback gcash-error-msg" id="gcash-proof-error">Please upload proof of payment</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Maya Details ===== -->
+                    <div id="maya-details" class="payment-details d-none">
+                        <div class="detail-panel" style="background: linear-gradient(135deg, #f3e9ff 0%, #f9f0ff 100%);">
+                            <div class="detail-panel-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <div class="gcash-pay-to">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="gcash-number-chip" style="background: linear-gradient(135deg, #722ed1 0%, #4a148c 100%); box-shadow: 0 4px 12px rgba(114,46,209,0.25);">
+                                                    <i class="fas fa-wallet text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block">Send payment to</small>
+                                                    <span class="fw-bold gcash-number">{{ maya_number }}</span>
+                                                    {% if maya_account_name %}
+                                                    <small class="text-muted d-block mt-1"><i class="fas fa-user me-1"></i>{{ maya_account_name }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% if gcash_qr_code_url %}
+                                        <div class="gcash-qr-block">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="{{ gcash_qr_code_url }}" alt="Payment QR Code" class="gcash-qr-img">
+                                                <div>
+                                                    <small class="text-muted d-block">Or scan the QR code</small>
+                                                    <span class="fw-bold small">Scan to pay</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if payment_instructions %}
+                                        <div class="mt-3 payment-instructions">
+                                            <small class="text-muted d-block mb-1"><i class="fas fa-list-ol me-1"></i>Payment Instructions</small>
+                                            <div class="small">{{ payment_instructions|linebreaksbr }}</div>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="mt-3 d-flex align-items-center gap-2">
+                                            <i class="fas fa-shield-alt" style="color: #3B7A8C; font-size: 0.85rem;"></i>
+                                            <small class="text-muted">Your payment will be verified by our staff before the reservation is confirmed.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold" for="{{ gcash_form.gcash_reference.id_for_label }}"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
+                                                {{ gcash_form.gcash_reference }}
+                                                <div class="invalid-feedback gcash-error-msg" id="maya-ref-error">Please enter your payment reference number</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold"><i class="fas fa-image me-2 text-primary"></i>Upload Proof of Payment <span class="text-danger">*</span></label>
+
+                                                <!-- ===== Drag & Drop Upload Component ===== -->
+                                                <div class="upload-zone" id="maya-upload-zone">
+                                                    <input type="file" name="gcash_proof_image" id="maya-proof-input" accept="image/*" class="upload-input" hidden>
+                                                    <div class="upload-dropzone" id="maya-dropzone" role="button" tabindex="0" aria-label="Upload proof of payment">
+                                                        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                                        <p class="upload-title mb-1">Drag &amp; drop your proof here</p>
+                                                        <p class="upload-sub mb-2">or <span class="upload-browse">browse files</span></p>
+                                                        <small class="upload-hint">PNG, JPG, GIF or WEBP · Max 5MB</small>
+                                                    </div>
+                                                    <div class="upload-preview d-none" id="maya-upload-preview">
+                                                        <img src="" alt="Proof preview" class="upload-preview-img" id="maya-preview-image">
+                                                        <div class="upload-preview-info">
+                                                            <span class="upload-file-name" id="maya-file-name"></span>
+                                                            <span class="upload-file-size" id="maya-file-size"></span>
+                                                        </div>
+                                                        <button type="button" class="upload-remove" id="maya-remove-file" title="Remove file" aria-label="Remove file">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="invalid-feedback gcash-error-msg" id="maya-proof-error">Please upload proof of payment</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Bank Transfer Details ===== -->
+                    <div id="bank-details" class="payment-details d-none">
+                        <div class="detail-panel" style="background: linear-gradient(135deg, #eafaf1 0%, #f0fbf5 100%);">
+                            <div class="detail-panel-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <div class="gcash-pay-to">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="gcash-number-chip" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); box-shadow: 0 4px 12px rgba(40,167,69,0.25);">
+                                                    <i class="fas fa-university text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block">Bank Transfer to</small>
+                                                    <span class="fw-bold gcash-number">{{ bank_name|default:"Bank Account" }}</span>
+                                                    <small class="text-muted d-block mt-1"><i class="fas fa-user me-1"></i>{{ bank_account_name|default:"—" }}</small>
+                                                    <small class="text-muted d-block mt-1"><i class="fas fa-hashtag me-1"></i>Account No: <span class="fw-bold text-dark">{{ bank_account_number|default:"—" }}</span></small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% if payment_instructions %}
+                                        <div class="mt-3 payment-instructions">
+                                            <small class="text-muted d-block mb-1"><i class="fas fa-list-ol me-1"></i>Payment Instructions</small>
+                                            <div class="small">{{ payment_instructions|linebreaksbr }}</div>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="mt-3 d-flex align-items-center gap-2">
+                                            <i class="fas fa-shield-alt" style="color: #3B7A8C; font-size: 0.85rem;"></i>
+                                            <small class="text-muted">Your payment will be verified by our staff before the reservation is confirmed.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold" for="{{ gcash_form.gcash_reference.id_for_label }}"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
+                                                {{ gcash_form.gcash_reference }}
+                                                <div class="invalid-feedback gcash-error-msg" id="bank-ref-error">Please enter your payment reference number</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold"><i class="fas fa-image me-2 text-primary"></i>Upload Proof of Payment <span class="text-danger">*</span></label>
+
+                                                <!-- ===== Drag & Drop Upload Component ===== -->
+                                                <div class="upload-zone" id="bank-upload-zone">
+                                                    <input type="file" name="gcash_proof_image" id="bank-proof-input" accept="image/*" class="upload-input" hidden>
+                                                    <div class="upload-dropzone" id="bank-dropzone" role="button" tabindex="0" aria-label="Upload proof of payment">
+                                                        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                                        <p class="upload-title mb-1">Drag &amp; drop your proof here</p>
+                                                        <p class="upload-sub mb-2">or <span class="upload-browse">browse files</span></p>
+                                                        <small class="upload-hint">PNG, JPG, GIF or WEBP · Max 5MB</small>
+                                                    </div>
+                                                    <div class="upload-preview d-none" id="bank-upload-preview">
+                                                        <img src="" alt="Proof preview" class="upload-preview-img" id="bank-preview-image">
+                                                        <div class="upload-preview-info">
+                                                            <span class="upload-file-name" id="bank-file-name"></span>
+                                                            <span class="upload-file-size" id="bank-file-size"></span>
+                                                        </div>
+                                                        <button type="button" class="upload-remove" id="bank-remove-file" title="Remove file" aria-label="Remove file">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="invalid-feedback gcash-error-msg" id="bank-proof-error">Please upload proof of payment</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -793,11 +1016,24 @@
 .gcash-bg {
     background: linear-gradient(135deg, #007dfe 0%, #004d8f 100%);
 }
+.maya-bg {
+    background: linear-gradient(135deg, #722ed1 0%, #4a148c 100%);
+}
+.bank-bg {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
 .cash-bg {
     background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
 }
 .card-bg {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    background: linear-gradient(135deg, #20c997 0%, #0f9b7a 100%);
+}
+.payment-instructions {
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(59,122,140,0.15);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    color: #5c6f7a;
 }
 
 .payment-check {
@@ -1181,19 +1417,22 @@
     'use strict';
 
     const paymentRadios = document.querySelectorAll('.payment-radio');
-    const gcashDetails = document.getElementById('gcash-details');
-    const cashDetails = document.getElementById('cash-details');
-    const cardDetails = document.getElementById('card-details');
+    const detailsPanels = {
+        gcash: document.getElementById('gcash-details'),
+        maya: document.getElementById('maya-details'),
+        bank_transfer: document.getElementById('bank-details'),
+        cash: document.getElementById('cash-details'),
+        card: document.getElementById('card-details'),
+    };
     const paymentForm = document.getElementById('payment-form');
     const submitBtn = document.getElementById('submit-btn');
     const overlay = document.getElementById('submit-overlay');
 
     // ===== Payment Method Selection =====
     function showPaymentDetails(method) {
-        [gcashDetails, cashDetails, cardDetails].forEach(el => el.classList.add('d-none'));
-        if (method === 'gcash') gcashDetails.classList.remove('d-none');
-        else if (method === 'cash') cashDetails.classList.remove('d-none');
-        else if (method === 'card') cardDetails.classList.remove('d-none');
+        Object.values(detailsPanels).forEach(el => { if (el) el.classList.add('d-none'); });
+        const panel = detailsPanels[method];
+        if (panel) panel.classList.remove('d-none');
     }
 
     paymentRadios.forEach(radio => {
@@ -1213,17 +1452,7 @@
         });
     });
 
-    // ===== Drag & Drop Upload Component =====
-    const uploadZone = document.getElementById('gcash-upload-zone');
-    const dropzone = document.getElementById('gcash-dropzone');
-    const fileInput = document.getElementById('gcash-proof-input');
-    const uploadPreview = document.getElementById('gcash-upload-preview');
-    const previewImg = document.getElementById('gcash-preview-image');
-    const fileNameEl = document.getElementById('gcash-file-name');
-    const fileSizeEl = document.getElementById('gcash-file-size');
-    const removeBtn = document.getElementById('gcash-remove-file');
-    const proofError = document.getElementById('gcash-proof-error');
-
+    // ===== Drag & Drop Upload Component (shared by GCash / Maya / Bank) =====
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
@@ -1233,110 +1462,130 @@
         return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
-    function showUploadError(msg) {
-        proofError.textContent = msg;
-        proofError.style.display = 'block';
-        dropzone.classList.add('is-invalid');
-    }
+    // Each upload zone is keyed by its panel prefix (gcash, maya, bank)
+    const uploadZones = {};
 
-    function hideUploadError() {
-        proofError.style.display = 'none';
-        dropzone.classList.remove('is-invalid');
-    }
-
-    function isValidFile(file) {
-        if (!ALLOWED_TYPES.includes(file.type)) {
-            showUploadError('Please upload an image file (PNG, JPG, or WEBP).');
-            return false;
-        }
-        if (file.size > MAX_FILE_SIZE) {
-            showUploadError('File is too large. Maximum size is 5MB.');
-            return false;
-        }
-        hideUploadError();
-        return true;
-    }
-
-    function showFile(file) {
-        if (!isValidFile(file)) {
-            fileInput.value = '';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
+    function setupUploadZone(prefix) {
+        const uploadZone = document.getElementById(prefix + '-upload-zone');
+        if (!uploadZone) return null;
+        const zone = {
+            dropzone: document.getElementById(prefix + '-dropzone'),
+            fileInput: document.getElementById(prefix + '-proof-input'),
+            uploadPreview: document.getElementById(prefix + '-upload-preview'),
+            previewImg: document.getElementById(prefix + '-preview-image'),
+            fileNameEl: document.getElementById(prefix + '-file-name'),
+            fileSizeEl: document.getElementById(prefix + '-file-size'),
+            removeBtn: document.getElementById(prefix + '-remove-file'),
+            proofError: document.getElementById(prefix + '-proof-error'),
         };
-        reader.readAsDataURL(file);
-        fileNameEl.textContent = file.name;
-        fileSizeEl.textContent = formatSize(file.size);
-        dropzone.classList.add('d-none');
-        uploadPreview.classList.remove('d-none');
-    }
 
-    function resetUpload() {
-        fileInput.value = '';
-        previewImg.removeAttribute('src');
-        uploadPreview.classList.add('d-none');
-        dropzone.classList.remove('d-none');
-        hideUploadError();
-    }
+        function showUploadError(msg) {
+            zone.proofError.textContent = msg;
+            zone.proofError.style.display = 'block';
+            zone.dropzone.classList.add('is-invalid');
+        }
 
-    // Click / keyboard to open file picker
-    if (dropzone) {
-        dropzone.addEventListener('click', function() { fileInput.click(); });
-        dropzone.addEventListener('keydown', function(e) {
+        function hideUploadError() {
+            zone.proofError.style.display = 'none';
+            zone.dropzone.classList.remove('is-invalid');
+        }
+
+        function isValidFile(file) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                showUploadError('Please upload an image file (PNG, JPG, or WEBP).');
+                return false;
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                showUploadError('File is too large. Maximum size is 5MB.');
+                return false;
+            }
+            hideUploadError();
+            return true;
+        }
+
+        function showFile(file) {
+            if (!isValidFile(file)) {
+                zone.fileInput.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                zone.previewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            zone.fileNameEl.textContent = file.name;
+            zone.fileSizeEl.textContent = formatSize(file.size);
+            zone.dropzone.classList.add('d-none');
+            zone.uploadPreview.classList.remove('d-none');
+        }
+
+        function resetUpload() {
+            zone.fileInput.value = '';
+            zone.previewImg.removeAttribute('src');
+            zone.uploadPreview.classList.add('d-none');
+            zone.dropzone.classList.remove('d-none');
+            hideUploadError();
+        }
+
+        // Click / keyboard to open file picker
+        zone.dropzone.addEventListener('click', function() { zone.fileInput.click(); });
+        zone.dropzone.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                fileInput.click();
+                zone.fileInput.click();
             }
         });
-    }
 
-    // Drag & drop
-    ['dragover', 'dragenter'].forEach(evt => {
-        dropzone.addEventListener(evt, function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.add('dragover');
+        // Drag & drop
+        ['dragover', 'dragenter'].forEach(evt => {
+            zone.dropzone.addEventListener(evt, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('dragover');
+            });
         });
-    });
-    ['dragleave', 'dragend'].forEach(evt => {
-        dropzone.addEventListener(evt, function(e) {
+        ['dragleave', 'dragend'].forEach(evt => {
+            zone.dropzone.addEventListener(evt, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.remove('dragover');
+            });
+        });
+        zone.dropzone.addEventListener('drop', function(e) {
             e.preventDefault();
             e.stopPropagation();
             this.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                const file = e.dataTransfer.files[0];
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                zone.fileInput.files = dt.files;
+                showFile(file);
+            }
         });
-    });
-    dropzone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const file = e.dataTransfer.files[0];
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            fileInput.files = dt.files;
-            showFile(file);
-        }
-    });
 
-    // Native file picker
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            showFile(this.files[0]);
-        } else {
-            resetUpload();
-        }
-    });
+        // Native file picker
+        zone.fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                showFile(this.files[0]);
+            } else {
+                resetUpload();
+            }
+        });
 
-    // Remove / replace
-    if (removeBtn) {
-        removeBtn.addEventListener('click', function(e) {
+        // Remove / replace
+        zone.removeBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             resetUpload();
         });
+
+        return Object.assign(zone, { isValidFile: isValidFile });
     }
+
+    uploadZones.gcash = setupUploadZone('gcash');
+    uploadZones.maya = setupUploadZone('maya');
+    uploadZones.bank = setupUploadZone('bank');
 
     // ===== Card Input Formatting =====
     const cardNumber = document.getElementById('card-number');
@@ -1395,7 +1644,13 @@
             return;
         }
 
-        if (selectedMethod.value === 'gcash') {
+        if (['gcash', 'maya', 'bank_transfer'].includes(selectedMethod.value)) {
+            const zone = selectedMethod.value === 'maya' ? uploadZones.maya
+                        : selectedMethod.value === 'bank_transfer' ? uploadZones.bank
+                        : uploadZones.gcash;
+            const refErrorId = selectedMethod.value === 'maya' ? 'maya-ref-error'
+                             : selectedMethod.value === 'bank_transfer' ? 'bank-ref-error'
+                             : 'gcash-ref-error';
             let valid = true;
             document.querySelectorAll('.gcash-error-msg').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
@@ -1406,13 +1661,18 @@
                 valid = false;
                 if (refInput) {
                     refInput.classList.add('is-invalid');
-                    document.getElementById('gcash-ref-error').style.display = 'block';
+                    const refErr = document.getElementById(refErrorId);
+                    if (refErr) refErr.style.display = 'block';
                 }
             }
 
-            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            if (!zone || !zone.fileInput || !zone.fileInput.files || zone.fileInput.files.length === 0) {
                 valid = false;
-                showUploadError('Please upload proof of payment');
+                if (zone && zone.isValidFile) {
+                    zone.proofError.textContent = 'Please upload proof of payment';
+                    zone.proofError.style.display = 'block';
+                    zone.dropzone.classList.add('is-invalid');
+                }
             }
 
             if (!valid) {

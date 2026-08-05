@@ -5,8 +5,8 @@ is cleared so the context processor fetches fresh data on the next request.
 """
 
 from django.db.models.signals import post_save, post_delete
-from django.core.cache import caches
 from django.dispatch import receiver
+from .cache_utils import invalidate_all_caches
 
 # List of all CMS model classes that should trigger cache invalidation
 CMS_MODELS = []
@@ -36,12 +36,10 @@ def _collect_cms_models():
 
 
 def clear_cms_cache(sender, **kwargs):
-    """Clear the 'cms' cache namespace. Used as post_save/post_delete handler."""
-    try:
-        cache = caches['cms']
-        cache.clear()
-    except Exception:
-        pass  # Swallow cache errors gracefully
+    """Clear CMS, page and fragment caches. Used as post_save/post_delete handler.
+    Delegates to cache_utils.invalidate_all_caches so every namespace tied to
+    public content is refreshed together."""
+    invalidate_all_caches(sender, **kwargs)
 
 
 def connect_signals():

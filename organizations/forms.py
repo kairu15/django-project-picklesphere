@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Q
-from .models import Organization
+from .models import Organization, OrganizationPaymentSettings
 from accounts.models import User, StaffPermission
 import re
 
@@ -51,6 +51,83 @@ class OrganizationProfileForm(forms.ModelForm):
             'contact_phone': forms.TextInput(attrs={'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
         }
+
+
+class OrganizationPaymentSettingsForm(forms.ModelForm):
+    """Form for Organization Admins to manage their own payment information."""
+
+    class Meta:
+        model = OrganizationPaymentSettings
+        fields = [
+            'gcash_number', 'gcash_account_name',
+            'maya_number', 'maya_account_name',
+            'bank_name', 'bank_account_name', 'bank_account_number',
+            'qr_code', 'payment_instructions', 'accepted_payment_methods', 'is_active',
+        ]
+        widgets = {
+            'gcash_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0917 123 4567'}),
+            'gcash_account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name on GCash account'}),
+            'maya_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0917 123 4567'}),
+            'maya_account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name on Maya account'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. BDO, BPI, UnionBank'}),
+            'bank_account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name on bank account'}),
+            'bank_account_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank account number'}),
+            'qr_code': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'payment_instructions': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 4,
+                'placeholder': 'e.g. 1) Send payment to the number above. 2) Take a screenshot of your reference number. 3) Upload it below to complete your booking.'
+            }),
+            'accepted_payment_methods': forms.CheckboxSelectMultiple(
+                choices=OrganizationPaymentSettings.PAYMENT_METHOD_CHOICES,
+                attrs={'class': 'form-check-input'}
+            ),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['gcash_number'].required = False
+        self.fields['gcash_account_name'].required = False
+        self.fields['maya_number'].required = False
+        self.fields['maya_account_name'].required = False
+        self.fields['bank_name'].required = False
+        self.fields['bank_account_name'].required = False
+        self.fields['bank_account_number'].required = False
+        self.fields['payment_instructions'].required = False
+        self.fields['accepted_payment_methods'].required = False
+
+    def clean_accepted_payment_methods(self):
+        """Keep only valid method keys."""
+        methods = self.cleaned_data.get('accepted_payment_methods') or []
+        valid = dict(OrganizationPaymentSettings.PAYMENT_METHOD_CHOICES)
+        return [m for m in methods if m in valid]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        methods = cleaned_data.get('accepted_payment_methods') or []
+        errors = {}
+
+        if 'gcash' in methods:
+            if not cleaned_data.get('gcash_number'):
+                errors['gcash_number'] = 'Provide a GCash number if GCash is an accepted method.'
+            if not cleaned_data.get('gcash_account_name'):
+                errors['gcash_account_name'] = 'Provide the GCash account name if GCash is an accepted method.'
+
+        if 'maya' in methods:
+            if not cleaned_data.get('maya_number'):
+                errors['maya_number'] = 'Provide a Maya number if Maya is an accepted method.'
+            if not cleaned_data.get('maya_account_name'):
+                errors['maya_account_name'] = 'Provide the Maya account name if Maya is an accepted method.'
+
+        if 'bank_transfer' in methods:
+            for field in ('bank_name', 'bank_account_name', 'bank_account_number'):
+                if not cleaned_data.get(field):
+                    errors[field] = 'Complete the bank details if Bank Transfer is an accepted method.'
+
+        for field, message in errors.items():
+            self.add_error(field, message)
+
+        return cleaned_data
 
 
 class OrgStaffAssignmentForm(forms.Form):

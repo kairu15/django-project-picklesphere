@@ -154,13 +154,15 @@
                         <div class="info-item">
                             <div class="info-icon" style="background: linear-gradient(135deg, #3B7A8C 0%, #1a3a42 100%);">
                                 {% if payment.method == 'gcash' %}<i class="fas fa-mobile-alt text-white" style="font-size: 0.8rem;"></i>
+                                {% elif payment.method == 'maya' %}<i class="fas fa-wallet text-white" style="font-size: 0.8rem;"></i>
+                                {% elif payment.method == 'bank_transfer' %}<i class="fas fa-university text-white" style="font-size: 0.8rem;"></i>
                                 {% elif payment.method == 'cash' %}<i class="fas fa-money-bill-wave text-white" style="font-size: 0.8rem;"></i>
                                 {% else %}<i class="fas fa-credit-card text-white" style="font-size: 0.8rem;"></i>{% endif %}
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Payment Method</div>
                                 <div class="info-value">
-                                    <span class="badge {% if payment.method == 'gcash' %}bg-primary{% elif payment.method == 'cash' %}bg-success{% elif payment.method == 'card' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    <span class="badge {% if payment.method == 'gcash' or payment.method == 'maya' or payment.method == 'bank_transfer' %}bg-primary{% elif payment.method == 'cash' %}bg-success{% elif payment.method == 'card' %}bg-info{% else %}bg-secondary{% endif %}">
                                         {{ payment.get_method_display|default:"N/A" }}
                                     </span>
                                 </div>
@@ -205,7 +207,7 @@
                                 <i class="fas fa-hashtag text-white" style="font-size: 0.8rem;"></i>
                             </div>
                             <div class="info-content">
-                                <div class="info-label">GCash Reference</div>
+                                <div class="info-label">Payment Reference</div>
                                 <div class="info-value font-monospace">{{ payment.gcash_reference }}</div>
                             </div>
                         </div>
@@ -219,14 +221,14 @@
         <!-- GCash Proof Card -->
         <div class="staff-card mb-4 animate-fadeInUp" style="animation-delay: 0.1s;">
             <div class="staff-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5 class="staff-card-title mb-0"><i class="fas fa-image text-primary me-2"></i>GCash Payment Proof</h5>
+                <h5 class="staff-card-title mb-0"><i class="fas fa-image text-primary me-2"></i>Payment Proof</h5>
                 <a href="{% url 'view_payment_proof' payment.id %}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-expand me-2"></i>View Full Size
                 </a>
             </div>
             <div class="staff-card-body text-center">
                 <a href="{% url 'view_payment_proof' payment.id %}" class="d-inline-block">
-                    <img src="{{ payment.gcash_proof_image.url }}" alt="GCash Proof" class="img-fluid rounded border" style="max-height: 300px; cursor: pointer; border-radius: 12px;">
+                    <img src="{{ payment.gcash_proof_image.url }}" alt="Payment Proof" class="img-fluid rounded border" style="max-height: 300px; cursor: pointer; border-radius: 12px;">
                 </a>
                 <p class="text-muted small mt-3 mb-0"><i class="fas fa-info-circle me-1"></i>Click image to view full size and verify details</p>
             </div>

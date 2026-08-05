@@ -59,6 +59,8 @@
                 <select name="method" class="form-select admin-form-control">
                     <option value="">All Methods</option>
                     <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                    <option value="maya" {% if method_filter == 'maya' %}selected{% endif %}>Maya</option>
+                    <option value="bank_transfer" {% if method_filter == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
                     <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
                     <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card/Stripe</option>
                 </select>
@@ -303,7 +305,7 @@
                             <tr>
                                 <td data-label="Method">
                                     <span class="badge bg-light text-dark border px-3 py-2">
-                                        <i class="fas fa-{% if item.method == 'gcash' %}mobile-alt{% elif item.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %} me-1"></i>
+                                        <i class="fas fa-{% if item.method == 'gcash' %}mobile-alt{% elif item.method == 'maya' %}wallet{% elif item.method == 'bank_transfer' %}university{% elif item.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %} me-1"></i>
                                         {{ item.method|title|default:"N/A" }}
                                     </span>
                                 </td>

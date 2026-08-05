@@ -14,6 +14,8 @@ from django.core.cache import cache
 from django.conf import settings
 from django.urls import resolve, Resolver404
 
+from .cache_utils import record_slow_query
+
 logger = logging.getLogger('picklesphere.auth_audit')
 
 
@@ -101,6 +103,35 @@ class MaintenanceModeMiddleware:
             'maintenance': data,
             'page_title': 'System Under Maintenance',
         })
+
+
+class SlowQueryMiddleware:
+    """Records slow database queries for the Cache Monitor page.
+
+    Only active when DEBUG is on or CACHE_MONITOR_ENABLED is set. Uses the
+    Django connection's query log (which is only populated when the debug
+    cursor is forced on, so production must opt in via CACHE_MONITOR_ENABLED).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.threshold_ms = getattr(settings, 'SLOW_QUERY_THRESHOLD_MS', 150)
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if not getattr(settings, 'CACHE_MONITOR_ENABLED', False):
+            return response
+        try:
+            from django.db import connection
+            if not connection.queries:
+                return response
+            for q in connection.queries:
+                duration_ms = float(q.get('time', 0)) * 1000
+                if duration_ms >= self.threshold_ms:
+                    record_slow_query(duration_ms, q.get('sql', ''))
+        except Exception:
+            pass
+        return response
 
 
 class AuthAuditMiddleware:

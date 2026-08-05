@@ -24,6 +24,7 @@ from payments.models import Payment
 from scoring.models import Match, PlayerStats
 from equipment.models import Equipment, EquipmentRental
 from notifications.models import Notification
+from .cache_utils import cache_anon_page, pages_cache_get_or_set, PAGES_CACHE_TIMEOUT
 from .models import (
     AboutContent, AboutGalleryImage, Amenity, BusinessHour,
     ContactMessage, ContactInfo as CI, ContactContent, ContactFAQ,
@@ -53,8 +54,11 @@ def _get_contact_info():
     return None
 
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='home')
 def home_view(request):
-    """Public home page with personalized recommendations"""
+    """Public home page with personalized recommendations.
+    Full-page cached for anonymous visitors; authenticated users always get a
+    live, no-store render so their personalized recommendations stay accurate."""
 
     # Annotate average rating on courts
     rating_subquery = Rating.objects.filter(
@@ -333,7 +337,7 @@ def user_dashboard_view(request):
         user=request.user,
         date__gte=today,
         status__in=['confirmed', 'pending']
-    ).order_by('date', 'start_time')[:5]
+    ).select_related('court', 'court__organization', 'court__site').order_by('date', 'start_time')[:5]
     
     # Recent matches
     recent_matches = Match.objects.filter(
@@ -395,7 +399,7 @@ def staff_dashboard_view(request):
     today_reservations_qs = Reservation.objects.filter(
         date=today,
         status__in=['confirmed', 'pending']
-    )
+    ).select_related('user', 'court', 'court__site', 'court__organization')
     staff_reservations_qs = Reservation.objects.filter(
         status='pending'
     )
@@ -550,8 +554,12 @@ def admin_dashboard_view(request):
     }
     
     # Recent data
-    recent_reservations = Reservation.objects.all().order_by('-created_at')[:10]
-    recent_payments = Payment.objects.all().order_by('-created_at')[:10]
+    recent_reservations = Reservation.objects.select_related(
+        'user', 'court', 'court__site', 'court__organization'
+    ).order_by('-created_at')[:10]
+    recent_payments = Payment.objects.select_related(
+        'reservation', 'reservation__court', 'reservation__court__site', 'reservation__user'
+    ).order_by('-created_at')[:10]
     recent_users = User.objects.all().order_by('-created_at')[:10]
     
     # Court usage statistics
@@ -718,8 +726,30 @@ def admin_dashboard_view(request):
     })
 
 
+@login_required
+@super_admin_required
+def cache_monitor_view(request):
+    """Super Admin Cache Monitor page: backend stats, invalidation events and
+    slow DB queries captured by SlowQueryMiddleware."""
+    from .cache_utils import get_cache_stats, get_invalidation_events, get_slow_queries
+
+    context = {
+        'cache_stats': get_cache_stats(),
+        'invalidation_events': get_invalidation_events()[:50],
+        'slow_queries': get_slow_queries()[:50],
+        'cache_backend': getattr(settings, 'CACHE_BACKEND_SETTING', 'locmem'),
+        'pages_timeout': PAGES_CACHE_TIMEOUT,
+        'cms_timeout': getattr(settings, 'CMS_CACHE_TIMEOUT', 300),
+        'monitor_enabled': getattr(settings, 'CACHE_MONITOR_ENABLED', False),
+        'slow_query_threshold': getattr(settings, 'SLOW_QUERY_THRESHOLD_MS', 150),
+        'page_title': 'Cache Monitor',
+    }
+    return render(request, 'admin/cache_monitor.html', context)
+
+
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='pricing')
 def pricing_view(request):
-    """Pricing page - accessible to all users"""
+    """Pricing page - accessible to all users (cached for anonymous visitors)"""
 
     courts = Court.objects.filter(is_active=True)
 
@@ -828,8 +858,9 @@ def pricing_view(request):
     })
 
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='about')
 def about_view(request):
-    """About page - accessible to all users"""
+    """About page - accessible to all users (cached for anonymous visitors)"""
 
     # Get content from database with fallback defaults
     def get_content(section, default):
@@ -918,8 +949,10 @@ def about_view(request):
     })
 
 
-def contact_view(request):
-    """Contact page - accessible to all users"""
+def _get_contact_page_data():
+    """Build the full contact page payload from the database.
+    Cached under 'contact_page_data' and invalidated whenever any contact CMS
+    model changes (see dashboard/cache_signals.py)."""
 
     # Get content from database with fallback defaults
     def get_content(section, default):
@@ -951,33 +984,6 @@ def contact_view(request):
         'cta_title': get_content('cta_title', 'Ready to Start Playing?'),
         'cta_subtitle': get_content('cta_subtitle', 'Join thousands of players enjoying pickleball through our platform. Find courts, join tournaments, and connect with organizations near you!'),
     }
-
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        subject = request.POST.get('subject')
-        message = request.POST.get('message')
-
-        if name and email and subject and message:
-            # Save to database
-            ContactMessage.objects.create(
-                name=name,
-                email=email,
-                subject=subject,
-                message=message
-            )
-            
-            # Send email using centralized email service
-            send_contact_form_email({
-                "name": name,
-                "email": email,
-                "subject": subject,
-                "message": message,
-            })
-            messages.success(request, "Thank you for your message! We will get back to you soon.")
-            return redirect("contact")
-        else:
-            messages.error(request, 'Please fill in all fields.')
 
     # Get contact info from database or create default
     contact_info_obj = CI.objects.first()
@@ -1033,12 +1039,55 @@ def contact_view(request):
         # Fallback default social links (empty - no social links shown)
         social_links = []
 
-    return render(request, 'public/contact.html', {
+    return {
         'content': content,
         'contact_info': contact_info,
         'business_hours': business_hours,
         'faqs': faqs,
         'social_links': social_links,
+    }
+
+
+def contact_view(request):
+    """Contact page - accessible to all users.
+    NOT full-page cached because it contains a CSRF-protected POST form;
+    its expensive content queries are cached at the data level instead and
+    invalidated automatically when any contact CMS model changes."""
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        if name and email and subject and message:
+            # Save to database
+            ContactMessage.objects.create(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message
+            )
+
+            # Send email using centralized email service
+            send_contact_form_email({
+                "name": name,
+                "email": email,
+                "subject": subject,
+                "message": message,
+            })
+            messages.success(request, "Thank you for your message! We will get back to you soon.")
+            return redirect("contact")
+        else:
+            messages.error(request, 'Please fill in all fields.')
+
+    data = pages_cache_get_or_set('contact_page_data', _get_contact_page_data)
+    return render(request, 'public/contact.html', data or {
+        'content': {},
+        'contact_info': {},
+        'business_hours': [],
+        'faqs': [],
+        'social_links': [],
     })
 
 
@@ -1335,8 +1384,9 @@ def homepage_delete_gallery(request, gallery_id):
     return redirect('super_admin_homepage')
 
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='privacy')
 def privacy_policy_view(request):
-    """Privacy Policy page - accessible to all users"""
+    """Privacy Policy page - accessible to all users (cached for anonymous visitors)"""
     
     def get_content(section, default):
         content = PrivacyContent.objects.filter(section=section, is_active=True).first()
@@ -1357,8 +1407,9 @@ def privacy_policy_view(request):
     return render(request, 'public/privacy_policy.html', context)
 
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='terms')
 def terms_of_service_view(request):
-    """Terms of Service page - accessible to all users"""
+    """Terms of Service page - accessible to all users (cached for anonymous visitors)"""
     
     def get_content(section, default):
         content = TermsContent.objects.filter(section=section, is_active=True).first()
@@ -1379,8 +1430,9 @@ def terms_of_service_view(request):
     return render(request, 'public/terms_of_service.html', context)
 
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='faq')
 def faq_view(request):
-    """FAQ page - accessible to all users"""
+    """FAQ page - accessible to all users (cached for anonymous visitors)"""
     
     # Get CMS content sections with fallback defaults
     def get_content(section, default):

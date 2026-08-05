@@ -125,6 +125,10 @@
                             <span class="badge bg-light text-dark border px-3 py-2" style="font-size: 0.8rem;">
                                 {% if payment.method == 'gcash' %}
                                     <i class="fas fa-mobile-alt me-1 text-primary"></i>
+                                {% elif payment.method == 'maya' %}
+                                    <i class="fas fa-wallet me-1 text-primary"></i>
+                                {% elif payment.method == 'bank_transfer' %}
+                                    <i class="fas fa-university me-1 text-success"></i>
                                 {% elif payment.method == 'cash' %}
                                     <i class="fas fa-money-bill-wave me-1 text-success"></i>
                                 {% elif payment.method == 'card' %}

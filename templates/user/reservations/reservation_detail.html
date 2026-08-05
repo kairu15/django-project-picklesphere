@@ -751,11 +751,13 @@
                         <span class="label">Amount</span>
                         <span class="value">₱{{ reservation.payment.amount|floatformat:2 }}</span>
                     </div>
-                    {% if reservation.payment.method == 'gcash' and reservation.payment.gcash_reference %}
+                    {% if reservation.payment.method == 'gcash' or reservation.payment.method == 'maya' or reservation.payment.method == 'bank_transfer' %}
+                    {% if reservation.payment.gcash_reference %}
                     <div class="pay-status-item">
-                        <span class="label">GCash Reference</span>
+                        <span class="label">Payment Reference</span>
                         <span class="value" style="font-family: monospace; font-size: 0.82rem;">{{ reservation.payment.gcash_reference }}</span>
                     </div>
+                    {% endif %}
                     {% endif %}
                     {% if reservation.payment.transaction_id %}
                     <div class="pay-status-item">

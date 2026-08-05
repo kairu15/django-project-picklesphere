@@ -13,6 +13,7 @@ from notifications.email_utils import (
 )
 from .models import Equipment, EquipmentRental, EquipmentMaintenance
 from .forms import EquipmentForm
+from dashboard.cache_utils import pages_cache_get_or_set
 from dashboard.models import EquipmentPageSettings, FeaturedEquipment, EquipmentCategory
 from reservations.models import Reservation
 
@@ -32,10 +33,14 @@ def equipment_list_view(request):
     if available_only:
         equipment = equipment.filter(quantity_available__gt=0)
     
-    # CMS Data
-    cms_settings = EquipmentPageSettings.objects.first()
-    featured_equipment = FeaturedEquipment.objects.filter(is_active=True).select_related('equipment').order_by('display_order')[:6]
-    categories = EquipmentCategory.objects.filter(is_active=True).order_by('display_order')
+    # CMS Data (cached; invalidated via dashboard.cache_signals)
+    cms_settings = pages_cache_get_or_set('equipment_list_cms', lambda: EquipmentPageSettings.objects.first())
+    featured_equipment = pages_cache_get_or_set('equipment_list_featured', lambda: list(
+        FeaturedEquipment.objects.filter(is_active=True).select_related('equipment').order_by('display_order')[:6]
+    ))
+    categories = pages_cache_get_or_set('equipment_list_categories', lambda: list(
+        EquipmentCategory.objects.filter(is_active=True).order_by('display_order')
+    ))
 
     return render(request, 'user/equipment/equipment_list.html', {
         'equipment': equipment,

@@ -5,8 +5,10 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.db.models import Count, Q, Sum, F
+from django.db.models import Count, Q, Sum, F, Prefetch
 from django.views.decorators.http import require_POST
+
+from dashboard.cache_utils import cache_anon_page, pages_cache_get_or_set, PAGES_CACHE_TIMEOUT
 from datetime import datetime, timedelta
 
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
@@ -31,13 +33,21 @@ from .utils import TournamentRandomizer, LeaderboardManager
 
 # ==================== PUBLIC / PLAYER VIEWS ====================
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='tournament_list')
 def tournament_list(request):
-    """List all active tournaments"""
+    """List all active tournaments.
+    Full-page cached for anonymous visitors; invalidated whenever a tournament,
+    registration or tournament-CMS record changes. The registration_count is
+    annotated to avoid N+1 COUNT queries per tournament card."""
 
     status_filter = request.GET.get('status', 'all')
     category_filter = request.GET.get('category', 'all')
-    
-    tournaments = Tournament.objects.all()
+
+    # Annotate registration_count so the template's per-card count is a single
+    # SQL aggregate instead of a property COUNT query per tournament.
+    tournaments = Tournament.objects.annotate(
+        registration_count=Count('registrations', filter=Q(registrations__status='approved'))
+    )
     
     if status_filter != 'all':
         tournaments = tournaments.filter(status=status_filter)
@@ -50,11 +60,24 @@ def tournament_list(request):
     active_tournaments = tournaments.filter(status='in_progress')
     completed_tournaments = tournaments.filter(status='completed')
     
-    # CMS Data
-    cms_settings = TournamentPageSettings.objects.first()
-    featured_tournaments = FeaturedTournament.objects.filter(is_active=True).select_related('tournament').order_by('display_order')[:6]
-    announcements = TournamentAnnouncement.objects.filter(is_active=True).order_by('display_order')
-    categories = TournamentCategory.objects.filter(is_active=True).order_by('display_order')
+    # CMS Data (cached; invalidated via dashboard.cache_signals)
+    cms_settings = pages_cache_get_or_set('tournament_list_cms', lambda: TournamentPageSettings.objects.first())
+    featured_tournaments = pages_cache_get_or_set('tournament_list_featured', lambda: list(
+        FeaturedTournament.objects.filter(is_active=True)
+        .prefetch_related(Prefetch(
+            'tournament',
+            queryset=Tournament.objects.annotate(
+                registration_count=Count('registrations', filter=Q(registrations__status='approved'))
+            ),
+        ))
+        .order_by('display_order')[:6]
+    ))
+    announcements = pages_cache_get_or_set('tournament_list_announcements', lambda: list(
+        TournamentAnnouncement.objects.filter(is_active=True).order_by('display_order')
+    ))
+    categories = pages_cache_get_or_set('tournament_list_categories', lambda: list(
+        TournamentCategory.objects.filter(is_active=True).order_by('display_order')
+    ))
     
     context = {
         'open_tournaments': open_tournaments,

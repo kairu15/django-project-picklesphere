@@ -13,6 +13,9 @@ urlpatterns = [
     path('analytics/export/', views.dashboard_export_view, name='super_admin_analytics_export'),
     path('ratings/', views.rating_list_view, name='super_admin_rating_list'),
 
+    # Cache Monitor
+    path('cache-monitor/', views.cache_monitor_view, name='super_admin_cache_monitor'),
+
     # Homepage Content Management
     path('homepage/', views.homepage_management, name='super_admin_homepage'),
     path('homepage/content/<int:content_id>/edit/', views.homepage_edit_content, name='super_admin_homepage_content_edit'),

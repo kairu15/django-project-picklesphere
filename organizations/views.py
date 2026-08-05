@@ -12,16 +12,18 @@ from datetime import timedelta
 from accounts.decorators import super_admin_required, org_admin_required, org_staff_or_admin_required, org_required
 from accounts.models import User, StaffPermission, UserActivity
 from courts.models import Court
+from dashboard.cache_utils import cache_anon_page, pages_cache_get_or_set, PAGES_CACHE_TIMEOUT
 from dashboard.models import OrganizationPageSettings, FeaturedOrganization, OrganizationCategory
 from reservations.models import Reservation
 from tournaments.models import Tournament
 from payments.models import Payment, Refund
-from .models import Organization, OrganizationAuditLog
+from .models import Organization, OrganizationAuditLog, OrganizationPaymentSettings
 from .forms import (
     OrganizationRegistrationForm, OrganizationProfileForm,
     OrganizationApprovalForm, SuperAdminOrganizationForm,
     OrganizationVerificationForm,
-    StaffAccountCreateForm, StaffEditForm, StaffPermissionForm
+    StaffAccountCreateForm, StaffEditForm, StaffPermissionForm,
+    OrganizationPaymentSettingsForm,
 )
 from notifications.utils import (
     notify_org_admin_org_status_change,
@@ -46,8 +48,11 @@ from django.utils.encoding import force_bytes
 
 # ==================== PUBLIC VIEWS ====================
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='org_directory')
 def organization_directory(request):
-    """Public directory of all approved organizations"""
+    """Public directory of all approved organizations.
+    Full-page cached for anonymous visitors; invalidated whenever an
+    organization or organization-CMS record changes."""
     
     organizations = Organization.objects.filter(status='approved', is_active=True)
     
@@ -64,10 +69,14 @@ def organization_directory(request):
     if city:
         organizations = organizations.filter(city__icontains=city)
     
-    # CMS Data
-    cms_settings = OrganizationPageSettings.objects.first()
-    featured_organizations = FeaturedOrganization.objects.filter(is_active=True).select_related('organization').order_by('display_order')[:6]
-    categories = OrganizationCategory.objects.filter(is_active=True).order_by('display_order')
+    # CMS Data (cached; invalidated via dashboard.cache_signals)
+    cms_settings = pages_cache_get_or_set('org_directory_cms', lambda: OrganizationPageSettings.objects.first())
+    featured_organizations = pages_cache_get_or_set('org_directory_featured', lambda: list(
+        FeaturedOrganization.objects.filter(is_active=True).select_related('organization').order_by('display_order')[:6]
+    ))
+    categories = pages_cache_get_or_set('org_directory_categories', lambda: list(
+        OrganizationCategory.objects.filter(is_active=True).order_by('display_order')
+    ))
     
     return render(request, 'public/organizations/organization_directory.html', {
         'organizations': organizations,
@@ -79,8 +88,11 @@ def organization_directory(request):
     })
 
 
+@cache_anon_page(PAGES_CACHE_TIMEOUT, key_prefix='org_detail')
 def organization_public_detail(request, slug):
-    """Public detail page for an organization"""
+    """Public detail page for an organization.
+    Cached for anonymous visitors; invalidated when the organization, its
+    courts, or its tournaments change."""
     organization = get_object_or_404(Organization, slug=slug, status='approved', is_active=True)
     courts = organization.courts.filter(is_active=True)
     tournaments = organization.tournaments.filter(status__in=['registration_open', 'in_progress', 'draft'])
@@ -189,10 +201,21 @@ def super_admin_organization_list(request):
     for org in org_list:
         admin = User.objects.filter(organization=org, role='org_admin').first()
         org_admins[org.id] = admin
-    
+
+    # Payment settings status per organization (view-only for super admin)
+    org_ids = [org.id for org in org_list]
+    payment_status = {}
+    if org_ids:
+        for row in OrganizationPaymentSettings.objects.filter(organization_id__in=org_ids):
+            payment_status[row.organization_id] = {
+                'configured': row.is_configured,
+                'enabled': row.is_active,
+            }
+
     return render(request, 'admin/organizations/organization_list.html', {
         'organizations': org_list,
         'org_admins': org_admins,
+        'payment_status': payment_status,
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
         'stats': stats,
@@ -214,6 +237,9 @@ def super_admin_organization_detail(request, pk):
     staff_members = organization.members.filter(role__in=['org_admin', 'org_staff'])
     users = organization.members.filter(role='user')
     org_admin_user = organization.members.filter(role='org_admin').first()
+
+    # Payment settings (view-only summary for super admin)
+    payment_settings = getattr(organization, 'payment_settings', None)
     
     # Stats
     court_ids = organization.courts.values_list('id', flat=True)
@@ -235,6 +261,7 @@ def super_admin_organization_detail(request, pk):
         'revenue': revenue,
         'active_tournaments': active_tournaments,
         'total_tournaments': tournaments.count(),
+        'payment_settings': payment_settings,
     })
 
 
@@ -1348,6 +1375,35 @@ def org_admin_profile(request):
     return render(request, 'admin/organizations/org_admin_profile.html', {
         'form': form,
         'organization': org,
+    })
+
+
+@login_required
+@org_admin_required
+@org_required
+def org_admin_payment_settings(request):
+    """Organization Admin manages their organization's own payment information."""
+    org = request.user.organization
+    settings_obj, _created = OrganizationPaymentSettings.objects.get_or_create(organization=org)
+
+    if request.method == 'POST':
+        form = OrganizationPaymentSettingsForm(request.POST, request.FILES, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            _create_org_audit_log(
+                org, 'settings_changed', request.user,
+                f'Payment settings updated by {request.user.get_full_name() or request.user.username}',
+                request=request
+            )
+            messages.success(request, 'Payment settings saved successfully!')
+            return redirect('org_admin_payment_settings')
+    else:
+        form = OrganizationPaymentSettingsForm(instance=settings_obj)
+
+    return render(request, 'admin/organizations/org_admin_payment_settings.html', {
+        'form': form,
+        'organization': org,
+        'settings': settings_obj,
     })
 
 

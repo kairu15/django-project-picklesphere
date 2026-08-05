@@ -1,5 +1,4 @@
 import uuid
-from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -39,6 +38,52 @@ MATCH_FORMAT_LABELS = {
     'doubles': 'Doubles',
     'mixed_doubles': 'Mixed Doubles',
 }
+
+# Payment methods that transfer money directly to an organization's own accounts
+ONLINE_PAYMENT_METHODS = ('gcash', 'maya', 'bank_transfer')
+
+
+def _org_payment_context(organization):
+    """
+    Build the checkout/payment context from an organization's payment settings.
+    Payment information is always organization-specific: the court's owner decides
+    what is shown and what methods can be used. Falls back to empty values when the
+    organization has not configured its payment settings yet.
+    """
+    ps = getattr(organization, 'payment_settings', None) if organization else None
+    if ps is None:
+        return {
+            'payment_settings': None,
+            'payment_configured': False,
+            'org_name': organization.name if organization else '',
+            'gcash_number': '',
+            'gcash_account_name': '',
+            'gcash_qr_code_url': '',
+            'maya_number': '',
+            'maya_account_name': '',
+            'bank_name': '',
+            'bank_account_name': '',
+            'bank_account_number': '',
+            'payment_instructions': '',
+            'accepted_payment_methods': [],
+            'enabled_payment_methods': [],
+        }
+    return {
+        'payment_settings': ps,
+        'payment_configured': ps.is_configured and ps.is_active,
+        'org_name': organization.name if organization else '',
+        'gcash_number': ps.gcash_number or '',
+        'gcash_account_name': ps.gcash_account_name or '',
+        'gcash_qr_code_url': ps.qr_code.url if ps.qr_code else '',
+        'maya_number': ps.maya_number or '',
+        'maya_account_name': ps.maya_account_name or '',
+        'bank_name': ps.bank_name or '',
+        'bank_account_name': ps.bank_account_name or '',
+        'bank_account_number': ps.bank_account_number or '',
+        'payment_instructions': ps.payment_instructions or '',
+        'accepted_payment_methods': ps.accepted_payment_methods or [],
+        'enabled_payment_methods': ps.enabled_methods,
+    }
 
 
 def _send_match_invitations(reservation, checkout_data, invited_by):
@@ -119,10 +164,8 @@ def checkout_page_view(request, checkout_token):
             'total_amount': total_amount,
             'stripe_publishable_key': stripe_publishable_key,
             'stripe_enabled': bool(stripe_publishable_key),
-            'gcash_number': getattr(settings, 'GCASH_NUMBER', '09123456789'),
-            'gcash_account_name': getattr(settings, 'GCASH_ACCOUNT_NAME', ''),
-            'gcash_qr_code_url': getattr(settings, 'GCASH_QR_CODE_URL', ''),
             'match_format_display': match_format_display,
+            **_org_payment_context(court.organization),
             # Taxes & discounts are placeholders; set to non-zero to display rows
             'tax_amount': 0,
             'discount_amount': 0,
@@ -137,6 +180,17 @@ def checkout_page_view(request, checkout_token):
         if not method:
             messages.error(request, 'Please select a payment method.')
             return _render_checkout()
+
+        # Guard: online payment methods require the organization's payment info
+        if method in ONLINE_PAYMENT_METHODS:
+            org_settings = getattr(court.organization, 'payment_settings', None) if court.organization else None
+            if org_settings is None or not org_settings.is_active or method not in org_settings.enabled_methods:
+                messages.error(
+                    request,
+                    'Online payment is not available for this organization yet. '
+                    'Please pay at the counter, use card payment, or contact the organization directly.'
+                )
+                return _render_checkout()
         
         # Re-verify slot availability before creating reservation
         date = datetime.strptime(checkout_data['date'], '%Y-%m-%d').date()
@@ -167,7 +221,8 @@ def checkout_page_view(request, checkout_token):
             request.session.pop('checkout_data', None)
             return redirect('reservation_create')
         
-        if method == 'gcash':
+        if method in ONLINE_PAYMENT_METHODS:
+            method_label = dict(Payment.METHOD_CHOICES).get(method, method.replace('_', ' ').title())
             gcash_form = GCashPaymentForm(request.POST, request.FILES)
             if gcash_form.is_valid():
                 try:
@@ -240,8 +295,8 @@ def checkout_page_view(request, checkout_token):
                             status='pending'
                         )
                         
-                        # Update payment with GCash details
-                        payment.method = 'gcash'
+                        # Update payment with online payment details
+                        payment.method = method
                         payment.gcash_reference = gcash_form.cleaned_data['gcash_reference']
                         if 'gcash_proof_image' in request.FILES:
                             payment.gcash_proof_image = request.FILES['gcash_proof_image']
@@ -250,8 +305,8 @@ def checkout_page_view(request, checkout_token):
                         # Log the payment
                         PaymentLog.objects.create(
                             payment=payment,
-                            action='GCash Payment Submitted',
-                            details=f'GCash reference: {payment.gcash_reference}',
+                            action=f'{method_label} Payment Submitted',
+                            details=f'{method_label} reference: {payment.gcash_reference}',
                             performed_by=request.user
                         )
                         
@@ -260,7 +315,7 @@ def checkout_page_view(request, checkout_token):
                         for staff in staff_users:
                             Notification.objects.create(
                                 user=staff,
-                                message=f"New GCash payment for reservation #{reservation.id} requires verification."
+                                message=f"New {method_label} payment for reservation #{reservation.id} requires verification."
                             )
                         
                         # Send payment verification email to user
@@ -269,7 +324,7 @@ def checkout_page_view(request, checkout_token):
                         # Clear session data
                         request.session.pop('checkout_data', None)
                     
-                    messages.success(request, 'GCash payment details submitted. Please wait for verification.')
+                    messages.success(request, f'{method_label} payment details submitted. Please wait for verification.')
                     return redirect('payment_status', payment_id=payment.id)
                     
                 except Exception as e:
@@ -598,7 +653,18 @@ def payment_checkout_view(request, reservation_id):
     
     if request.method == 'POST':
         method = request.POST.get('method')
-        
+
+        # Guard: online payment methods require the organization's payment info
+        if method in ONLINE_PAYMENT_METHODS:
+            org_settings = getattr(reservation.court.organization, 'payment_settings', None) if reservation.court.organization else None
+            if org_settings is None or not org_settings.is_active or method not in org_settings.enabled_methods:
+                messages.error(
+                    request,
+                    'Online payment is not available for this organization yet. '
+                    'Please pay at the counter, use card payment, or contact the organization directly.'
+                )
+                return redirect('payment_checkout', reservation_id=reservation.id)
+
         if not payment:
             payment = Payment.objects.create(
                 reservation=reservation,
@@ -608,7 +674,8 @@ def payment_checkout_view(request, reservation_id):
         
         payment.method = method
         
-        if method == 'gcash':
+        if method in ONLINE_PAYMENT_METHODS:
+            method_label = dict(Payment.METHOD_CHOICES).get(method, method.replace('_', ' ').title())
             form = GCashPaymentForm(request.POST, request.FILES, instance=payment)
             if form.is_valid():
                 payment = form.save()
@@ -618,8 +685,8 @@ def payment_checkout_view(request, reservation_id):
                 # Log the payment
                 PaymentLog.objects.create(
                     payment=payment,
-                    action='GCash Payment Submitted',
-                    details=f'GCash reference: {payment.gcash_reference}',
+                    action=f'{method_label} Payment Submitted',
+                    details=f'{method_label} reference: {payment.gcash_reference}',
                     performed_by=request.user
                 )
                 
@@ -628,13 +695,13 @@ def payment_checkout_view(request, reservation_id):
                 for staff in staff_users:
                     Notification.objects.create(
                         user=staff,
-                        message=f"New GCash payment for reservation #{reservation.id} requires verification."
+                        message=f"New {method_label} payment for reservation #{reservation.id} requires verification."
                     )
                 
                 # Send payment verification email
                 send_payment_verification_email(request.user, payment)
                 
-                messages.success(request, 'GCash payment details submitted. Please wait for verification.')
+                messages.success(request, f'{method_label} payment details submitted. Please wait for verification.')
                 return redirect('payment_status', payment_id=payment.id)
                 
         elif method == 'cash':
@@ -694,12 +761,10 @@ def payment_checkout_view(request, reservation_id):
         'payment': payment,
         'gcash_form': gcash_form,
         'cash_form': cash_form,
-        'gcash_number': getattr(settings, 'GCASH_NUMBER', '09123456789'),
-        'gcash_account_name': getattr(settings, 'GCASH_ACCOUNT_NAME', ''),
-        'gcash_qr_code_url': getattr(settings, 'GCASH_QR_CODE_URL', ''),
         'match_format_display': match_format_display,
         'tax_amount': 0,
         'discount_amount': 0,
+        **_org_payment_context(reservation.court.organization),
     })
 
 
@@ -739,11 +804,10 @@ def payment_status_view(request, payment_id):
         'logs': logs,
         'latest_refund': latest_refund,
         'refunds': refunds,
-        'gcash_number': getattr(settings, 'GCASH_NUMBER', '09123456789'),
-        'gcash_account_name': getattr(settings, 'GCASH_ACCOUNT_NAME', ''),
         # Taxes & discounts are placeholders; set to non-zero to display rows
         'tax_amount': 0,
         'discount_amount': 0,
+        **_org_payment_context(payment.reservation.court.organization),
     })
 
 
@@ -1207,8 +1271,8 @@ def admin_payments_view(request):
         count=Count('id')
     )
 
-    # Pending verifications (GCash pending)
-    pending_gcash = Payment.objects.filter(status='pending', method='gcash').count()
+    # Pending verifications (online payments pending)
+    pending_gcash = Payment.objects.filter(status='pending', method__in=['gcash', 'maya', 'bank_transfer']).count()
     pending_cash = Payment.objects.filter(status='pending', method='cash').count()
 
     # Sorting

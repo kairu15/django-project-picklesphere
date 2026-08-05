@@ -228,6 +228,8 @@
                 <select name="method" class="filter-select">
                     <option value="">All Methods</option>
                     <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                    <option value="maya" {% if method_filter == 'maya' %}selected{% endif %}>Maya</option>
+                    <option value="bank_transfer" {% if method_filter == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
                     <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
                     <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
                 </select>
@@ -297,18 +299,20 @@
                     <td class="fw-semibold" style="color: #198754;">₱{{ payment.amount|floatformat:2 }}</td>
                     <td>
                         <span class="method-chip {{ payment.method }}">
-                            <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
+                            <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'maya' %}wallet{% elif payment.method == 'bank_transfer' %}university{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
                             {{ payment.get_method_display|default:"N/A" }}
                         </span>
                     </td>
                     <td class="text-center">
-                        {% if payment.method == 'gcash' and payment.gcash_proof_image %}
-                        <div class="proof-thumb-wrapper" title="Click to preview">
-                            <img src="{{ payment.gcash_proof_image.url }}" alt="Proof" class="proof-thumb" loading="lazy"
-                                 onclick="openProofLightbox(this.src)">
-                        </div>
-                        {% elif payment.method == 'gcash' and not payment.gcash_proof_image %}
-                        <span class="text-muted small"><i class="fas fa-times"></i></span>
+                        {% if payment.method == 'gcash' or payment.method == 'maya' or payment.method == 'bank_transfer' %}
+                            {% if payment.gcash_proof_image %}
+                            <div class="proof-thumb-wrapper" title="Click to preview">
+                                <img src="{{ payment.gcash_proof_image.url }}" alt="Proof" class="proof-thumb" loading="lazy"
+                                     onclick="openProofLightbox(this.src)">
+                            </div>
+                            {% else %}
+                            <span class="text-muted small"><i class="fas fa-times"></i></span>
+                            {% endif %}
                         {% else %}
                         <span class="text-muted small">&mdash;</span>
                         {% endif %}
@@ -326,7 +330,7 @@
                                 <i class="fas fa-eye"></i>
                             </a>
                             {% if payment.status == 'pending' %}
-                                {% if payment.method == 'gcash' %}
+                                {% if payment.method == 'gcash' or payment.method == 'maya' or payment.method == 'bank_transfer' %}
                                 <button type="button" class="btn-action-pay btn-approve-pay" title="Approve"
                                         onclick="openActionModal('approve', {{ payment.id }}, '{{ payment.reservation.user.username|escapejs }}', {{ payment.amount|floatformat:2 }})">
                                     <i class="fas fa-check"></i>

@@ -1168,6 +1168,10 @@ body.sidebar-open {
                         <span class="menu-badge warning">{{ badge_pending_payments }}</span>
                     {% endif %}
                 </a>
+                <a href="{% url 'org_admin_payment_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_payment_settings' %}active{% endif %}">
+                    <i class="fas fa-wallet"></i>
+                    <span>Payment Settings</span>
+                </a>
                 <a href="{% url 'org_admin_refund_processing' %}" class="nav-link {% if request.resolver_match.url_name == 'org_admin_refund_processing' %}active{% endif %}">
                     <i class="fas fa-undo-alt"></i>
                     <span>Process Refunds</span>

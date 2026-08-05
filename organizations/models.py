@@ -122,6 +122,126 @@ class Organization(models.Model):
     def can_add_staff(self):
         return self.staff_count < self.max_staff_accounts
 
+    @property
+    def payment_settings_info(self):
+        """Return the org's payment settings or None if not configured yet."""
+        return getattr(self, 'payment_settings', None)
+
+
+class OrganizationPaymentSettings(models.Model):
+    """
+    Organization-specific payment information shown to users on the checkout page.
+    Managed exclusively by the Organization Admin (super admins only view status).
+    """
+
+    PAYMENT_METHOD_CHOICES = [
+        ('gcash', 'GCash'),
+        ('maya', 'Maya'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('cash', 'Cash'),
+        ('card', 'Credit/Debit Card'),
+    ]
+
+    organization = models.OneToOneField(
+        Organization, on_delete=models.CASCADE,
+        related_name='payment_settings'
+    )
+
+    # GCash
+    gcash_number = models.CharField(
+        max_length=20, blank=True, null=True,
+        help_text='GCash mobile number shown to users when paying'
+    )
+    gcash_account_name = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text='Name registered on the GCash account'
+    )
+
+    # Maya
+    maya_number = models.CharField(
+        max_length=20, blank=True, null=True,
+        help_text='Maya mobile number shown to users when paying'
+    )
+    maya_account_name = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text='Name registered on the Maya account'
+    )
+
+    # Bank Transfer
+    bank_name = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text='e.g. BDO, BPI, UnionBank'
+    )
+    bank_account_name = models.CharField(max_length=100, blank=True, null=True)
+    bank_account_number = models.CharField(max_length=50, blank=True, null=True)
+
+    # QR Code
+    qr_code = models.ImageField(
+        upload_to='organizations/payment_qr/', blank=True, null=True,
+        help_text='QR code image for payments (shown on the checkout page)'
+    )
+
+    # Instructions & Accepted Methods
+    payment_instructions = models.TextField(
+        blank=True, null=True,
+        help_text='Step-by-step instructions shown to users when paying'
+    )
+    accepted_payment_methods = models.JSONField(
+        default=list, blank=True,
+        help_text='Payment methods this organization accepts'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Enable online payment submissions for this organization'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'organization_payment_settings'
+        verbose_name = 'Organization Payment Settings'
+        verbose_name_plural = 'Organization Payment Settings'
+
+    def __str__(self):
+        return f'Payment Settings - {self.organization.name}'
+
+    @property
+    def has_gcash(self):
+        return bool(self.gcash_number and self.gcash_account_name)
+
+    @property
+    def has_maya(self):
+        return bool(self.maya_number and self.maya_account_name)
+
+    @property
+    def has_bank(self):
+        return bool(self.bank_name and self.bank_account_name and self.bank_account_number)
+
+    @property
+    def is_configured(self):
+        """True when at least one complete payment account has been configured."""
+        return any([self.has_gcash, self.has_maya, self.has_bank])
+
+    def accepts(self, method):
+        return method in (self.accepted_payment_methods or [])
+
+    @property
+    def enabled_methods(self):
+        """Accepted methods that are fully configured and can be offered at checkout.
+        Returns an empty list when online payments are disabled for the organization."""
+        if not self.is_active:
+            return []
+        methods = self.accepted_payment_methods or []
+        result = []
+        if 'gcash' in methods and self.has_gcash:
+            result.append('gcash')
+        if 'maya' in methods and self.has_maya:
+            result.append('maya')
+        if 'bank_transfer' in methods and self.has_bank:
+            result.append('bank_transfer')
+        return result
+
 
 class OrganizationAuditLog(models.Model):
     """Audit log for tracking all organization-related actions by admins."""

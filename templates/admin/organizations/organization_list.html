@@ -201,6 +201,7 @@
                         <th class="text-center">Courts</th>
                         <th class="text-center">Tournaments</th>
                         <th class="text-center">Reservations</th>
+                        <th class="text-center">Payment<br>Settings</th>
                         <th>Status</th>
                         <th>Created</th>
                         <th class="text-center" style="min-width: 200px;">Actions</th>
@@ -247,6 +248,23 @@
                         </td>
                         <td data-label="Reservations" class="text-center">
                             <span class="badge bg-secondary rounded-pill">{{ org.reservation_count_prop|default:"0" }}</span>
+                        </td>
+                        <td data-label="Payment Settings" class="text-center">
+                            {% with ps=payment_status|get_item:org.id %}
+                                {% if ps and ps.configured %}
+                                <span class="badge bg-success" title="Payment settings configured">
+                                    <i class="fas fa-check-circle me-1"></i>Configured
+                                </span>
+                                {% elif ps and not ps.enabled %}
+                                <span class="badge bg-dark" title="Online payments disabled by the organization">
+                                    <i class="fas fa-toggle-off me-1"></i>Disabled
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark" title="Payment settings not configured yet">
+                                    <i class="fas fa-exclamation-circle me-1"></i>Not configured
+                                </span>
+                                {% endif %}
+                            {% endwith %}
                         </td>
                         <td data-label="Status">
                             {% if org.status == 'approved' %}

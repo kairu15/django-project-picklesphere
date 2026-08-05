@@ -12,6 +12,8 @@ class Payment(models.Model):
     
     METHOD_CHOICES = (
         ('gcash', 'GCash'),
+        ('maya', 'Maya'),
+        ('bank_transfer', 'Bank Transfer'),
         ('cash', 'Cash'),
         ('card', 'Credit/Debit Card'),
     )

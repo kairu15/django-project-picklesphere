@@ -188,6 +188,86 @@
             </div>
         </div>
 
+        <!-- Payment Settings Status (view-only for Super Admin) -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-wallet me-2 text-success"></i>Payment Settings
+                    {% if payment_settings and payment_settings.is_configured %}
+                    <span class="badge bg-success ms-1"><i class="fas fa-check-circle me-1"></i>Configured</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-circle me-1"></i>Not configured</span>
+                    {% endif %}
+                    {% if payment_settings and not payment_settings.is_active %}
+                    <span class="badge bg-dark ms-1"><i class="fas fa-toggle-off me-1"></i>Online payments disabled</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if payment_settings %}
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Payment account details are managed by the organization admin and are view-only here.
+                </p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small"><i class="fas fa-mobile-alt me-1" style="color:#007bff;"></i>GCash</span>
+                            {% if payment_settings.has_gcash %}
+                            <span class="badge bg-success">Configured</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small"><i class="fas fa-wallet me-1" style="color:#722ed1;"></i>Maya</span>
+                            {% if payment_settings.has_maya %}
+                            <span class="badge bg-success">Configured</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small"><i class="fas fa-university me-1" style="color:#28a745;"></i>Bank Transfer</span>
+                            {% if payment_settings.has_bank %}
+                            <span class="badge bg-success">Configured</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small"><i class="fas fa-qrcode me-1" style="color:#ff9800;"></i>QR Code</span>
+                            {% if payment_settings.qr_code %}
+                            <span class="badge bg-success">Uploaded</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% if payment_settings.accepted_payment_methods %}
+                <hr>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="text-muted small"><i class="fas fa-check-double me-1"></i>Accepted methods:</span>
+                    {% for m in payment_settings.accepted_payment_methods %}
+                    <span class="badge bg-light text-dark border">{{ m|title }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-wallet fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">This organization has not configured its payment settings yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Org Admin Info -->
         {% if org_admin_user %}
         <div class="card mb-4 border-primary">

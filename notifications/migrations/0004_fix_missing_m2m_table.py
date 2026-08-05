@@ -1,6 +1,11 @@
 """
 Migration: Fix missing broadcast_messages_target_users M2M through table.
-The table was defined in 0001_initial.py but was never physically created in the database.
+
+The table was defined in 0001_initial.py but was never physically created at the
+time this fix was written. The current 0001_initial.py fully creates the through
+table, so on fresh databases this migration must only register the model in
+migration state (it is removed again by 0006) and must NOT recreate the physical
+table.
 """
 from django.conf import settings
 from django.db import migrations, models
@@ -15,16 +20,21 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='BroadcastMessage_target_users',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('broadcastmessage', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='notifications.broadcastmessage')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.CreateModel(
+                    name='BroadcastMessage_target_users',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('broadcastmessage', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='notifications.broadcastmessage')),
+                        ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                    ],
+                    options={
+                        'db_table': 'broadcast_messages_target_users',
+                        'unique_together': {('broadcastmessage', 'user')},
+                    },
+                ),
             ],
-            options={
-                'db_table': 'broadcast_messages_target_users',
-                'unique_together': {('broadcastmessage', 'user')},
-            },
+            database_operations=[],
         ),
     ]

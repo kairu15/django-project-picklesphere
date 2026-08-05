@@ -266,8 +266,10 @@
                             <div class="admin-info-content">
                                 <div class="admin-info-label">Payment Method</div>
                                 <div class="admin-info-value">
-                                    <span class="badge {% if payment.method == 'gcash' %}bg-primary{% elif payment.method == 'cash' %}bg-success{% elif payment.method == 'card' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    <span class="badge {% if payment.method == 'gcash' or payment.method == 'maya' or payment.method == 'bank_transfer' %}bg-primary{% elif payment.method == 'cash' %}bg-success{% elif payment.method == 'card' %}bg-info{% else %}bg-secondary{% endif %}">
                                         {% if payment.method == 'gcash' %}<i class="fas fa-mobile-alt me-1"></i>
+                                        {% elif payment.method == 'maya' %}<i class="fas fa-wallet me-1"></i>
+                                        {% elif payment.method == 'bank_transfer' %}<i class="fas fa-university me-1"></i>
                                         {% elif payment.method == 'cash' %}<i class="fas fa-money-bill-wave me-1"></i>
                                         {% elif payment.method == 'card' %}<i class="fas fa-credit-card me-1"></i>
                                         {% endif %}

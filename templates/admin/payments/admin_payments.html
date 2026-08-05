@@ -115,8 +115,8 @@
                 <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
                         <span class="method-chip {{ method.method }}">
-                            <i class="fas fa-{% if method.method == 'gcash' %}mobile-alt{% elif method.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
-                            {{ method.method|title }}
+                            <i class="fas fa-{% if method.method == 'gcash' %}mobile-alt{% elif method.method == 'maya' %}wallet{% elif method.method == 'bank_transfer' %}university{% elif method.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
+                            {% if method.method == 'bank_transfer' %}Bank Transfer{% elif method.method == 'maya' %}Maya{% elif method.method == 'gcash' %}GCash{% else %}{{ method.method|title }}{% endif %}
                         </span>
                     </div>
                     <div class="text-end">
@@ -180,7 +180,7 @@
                     <span class="text-danger fw-semibold">₱{{ total_refunded|floatformat:0 }}</span>
                 </div>
                 <div class="d-flex justify-content-between mt-1">
-                    <span class="text-muted">Pending GCash:</span>
+                    <span class="text-muted">Pending Online Payments:</span>
                     <span class="fw-semibold">{{ pending_gcash }}</span>
                 </div>
                 <div class="d-flex justify-content-between mt-1">
@@ -232,6 +232,8 @@
             <select name="method" class="filter-select">
                 <option value="">All Methods</option>
                 <option value="gcash" {% if method_filter == 'gcash' %}selected{% endif %}>GCash</option>
+                <option value="maya" {% if method_filter == 'maya' %}selected{% endif %}>Maya</option>
+                <option value="bank_transfer" {% if method_filter == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
                 <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
                 <option value="card" {% if method_filter == 'card' %}selected{% endif %}>Card</option>
             </select>
@@ -316,7 +318,7 @@
                         <td data-label="Amount" class="fw-semibold" style="color: #198754;">₱{{ payment.amount|floatformat:2 }}</td>
                         <td data-label="Method">
                             <span class="method-chip {{ payment.method }}">
-                                <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
+                                <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'maya' %}wallet{% elif payment.method == 'bank_transfer' %}university{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
                                 {{ payment.get_method_display|default:"N/A" }}
                             </span>
                         </td>

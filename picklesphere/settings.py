@@ -74,6 +74,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise serves static files with long-lived cache headers (prod)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # django-axes must come after SessionMiddleware
     'axes.middleware.AxesMiddleware',
@@ -88,6 +90,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Maintenance Mode - blocks non-admin users when maintenance is active
     'dashboard.middleware.MaintenanceModeMiddleware',
+    # Slow DB query monitoring (Cache Monitor page) - low overhead
+    'dashboard.middleware.SlowQueryMiddleware',
 ]
 
 ROOT_URLCONF = 'picklesphere.urls'
@@ -163,9 +167,36 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Hashed (fingerprinted) static filenames + long-lived immutable cache headers
+# in production. Requires `python manage.py collectstatic` before serving.
+if not DEBUG:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+        },
+    }
+
+# WhiteNoise: gzip/brotli compression and far-future cache headers for hashed assets
+WHITENOISE_MAX_AGE = 60 * 60 * 24 * 365  # 1 year
+WHITENOISE_COMPRESS = True
+WHITENOISE_USE_FINDERS = True
+# Only treat files as immutable when they carry a content hash (manifest storage)
+if not DEBUG:
+    WHITENOISE_IMMUTABLE_FILE_TEST = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ========== CACHE MONITORING ==========
+# When enabled (default in DEBUG), slow DB queries are captured for the
+# super-admin Cache Monitor page.
+CACHE_MONITOR_ENABLED = config('CACHE_MONITOR_ENABLED', default=DEBUG, cast=bool)
+SLOW_QUERY_THRESHOLD_MS = config('SLOW_QUERY_THRESHOLD_MS', default=150, cast=int)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -196,8 +227,8 @@ SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool
 SESSION_COOKIE_SAMESITE = 'Lax'
 # Save session on every request to track activity
 SESSION_SAVE_EVERY_REQUEST = True
-# Use database-backed sessions for reliability
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# Session engine is configured in the CACHE CONFIGURATION section below
+# (database-backed for dev, Redis-backed cached_db when CACHE_BACKEND=redis)
 
 # ========== django-axes (Brute Force Protection) ==========
 # Number of failed login attempts before lockout
@@ -219,12 +250,6 @@ CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript POST
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
-
-# GCash merchant details shown on the checkout page (override in .env)
-GCASH_NUMBER = config('GCASH_NUMBER', default='09123456789')
-GCASH_ACCOUNT_NAME = config('GCASH_ACCOUNT_NAME', default='')
-# Optional URL to a GCash QR code image; leave empty to hide the QR block
-GCASH_QR_CODE_URL = config('GCASH_QR_CODE_URL', default='')
 
 # Email settings (configure in .env for production)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -267,26 +292,63 @@ CHANNEL_LAYERS = {
 
 
 # ========== CACHE CONFIGURATION ==========
-# Uses local memory cache by default (no Redis needed for dev)
-# Cache timeout for CMS content (5 minutes = 300 seconds)
+# Development uses LocMemCache (no Redis needed).
+# Set CACHE_BACKEND=redis to use Redis for production; falls back to
+# LocMemCache automatically if django-redis is not installed.
 CMS_CACHE_TIMEOUT = config('CMS_CACHE_TIMEOUT', default=300, cast=int)
+# Timeout for cached public pages and page-level data (5 minutes = 300 seconds)
+PAGES_CACHE_TIMEOUT = config('PAGES_CACHE_TIMEOUT', default=300, cast=int)
+
+CACHE_BACKEND_SETTING = config('CACHE_BACKEND', default='locmem').strip().lower()
+USE_REDIS_CACHE = CACHE_BACKEND_SETTING == 'redis'
+if USE_REDIS_CACHE:
+    try:
+        import django_redis  # noqa: F401  (installed via django-redis package)
+    except ImportError:
+        # Graceful fallback to local memory cache when Redis is unavailable
+        USE_REDIS_CACHE = False
+        CACHE_BACKEND_SETTING = 'locmem'
+
+
+def _cache_config(alias, timeout, max_entries, db):
+    """Build the config dict for one cache alias based on the selected backend.
+    Redis uses a dedicated DB number per namespace so that clearing one cache
+    never flushes another (or the sessions)."""
+    if USE_REDIS_CACHE:
+        redis_url = config('REDIS_URL', default='redis://127.0.0.1:6379').rstrip('/')
+        return {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': f'{redis_url}/{db}',
+            'KEY_PREFIX': f'picklesphere:{alias}',
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+        }
+    return {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': f'picklesphere-{alias}',
+        'TIMEOUT': timeout,
+        'OPTIONS': {
+            'MAX_ENTRIES': max_entries,
+        },
+    }
+
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'picklesphere-cms',
-        'TIMEOUT': CMS_CACHE_TIMEOUT,
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-        },
-    },
-    # Separate cache namespace for CMS to allow targeted flushing
-    'cms': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'picklesphere-cms-content',
-        'TIMEOUT': CMS_CACHE_TIMEOUT,
-        'OPTIONS': {
-            'MAX_ENTRIES': 200,
-        },
-    },
+    # Default cache: template fragments and general-purpose keys
+    'default': _cache_config('default', PAGES_CACHE_TIMEOUT, 1000, 0),
+    # CMS content namespace (context processor data) - targeted flushing
+    'cms': _cache_config('cms', CMS_CACHE_TIMEOUT, 200, 1),
+    # Public page + page-data namespace (full pages, query results, per-user badges)
+    'pages': _cache_config('pages', PAGES_CACHE_TIMEOUT, 1000, 2),
+    # Sessions namespace (used with cached_db session engine when Redis is active)
+    'sessions': _cache_config('sessions', 3600, 5000, 3),
 }
+
+
+# ========== SESSION CACHING ==========
+# Sessions are stored in the database by default (dev). With Redis enabled we
+# use cached_db so sessions are served from Redis for fast reads while still
+# being persisted to the DB for durability.
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db' if USE_REDIS_CACHE else 'django.contrib.sessions.backends.db'
+SESSION_CACHE_ALIAS = 'sessions' if USE_REDIS_CACHE else ''

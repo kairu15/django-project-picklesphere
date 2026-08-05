@@ -18,7 +18,7 @@ class GCashPaymentForm(forms.ModelForm):
         widgets = {
             'gcash_reference': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter GCash Reference Number'
+                'placeholder': 'Enter Reference Number'
             }),
             'gcash_proof_image': forms.FileInput(attrs={
                 'class': 'form-control',

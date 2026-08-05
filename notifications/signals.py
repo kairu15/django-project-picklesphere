@@ -1,7 +1,8 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.contrib.auth import user_logged_in, user_login_failed
 from django.utils import timezone
+from django.core.cache import caches
 
 from .models import Notification
 from .utils import (
@@ -31,6 +32,19 @@ from .utils import (
     notify_super_admin_security_alert,
 )
 from accounts.models import User
+
+
+# ==================== NOTIFICATION CACHE INVALIDATION ====================
+
+@receiver(post_save, sender=Notification)
+@receiver(post_delete, sender=Notification)
+def notification_cache_invalidate(sender, instance, **kwargs):
+    """Invalidate the per-user notification badge cache when a notification is
+    created, marked read, or deleted so the navbar bell stays accurate."""
+    try:
+        caches['pages'].delete(f'user_notifs_{instance.user_id}')
+    except Exception:
+        pass
 
 
 # ==================== RESERVATION SIGNALS ====================
@@ -97,7 +111,7 @@ def payment_saved_handler(sender, instance, created, **kwargs):
             return
         if hasattr(instance, '_old_status'):
             new_status = instance.status
-            if new_status == 'pending' and instance.method == 'gcash':
+            if new_status == 'pending' and instance.method in ('gcash', 'maya', 'bank_transfer'):
                 staff_users = User.objects.filter(
                     organization=instance.reservation.court.organization,
                     role__in=['org_admin', 'org_staff']

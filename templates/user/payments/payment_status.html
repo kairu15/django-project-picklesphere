@@ -444,7 +444,7 @@
                 <div class="amount-label">Amount Paid</div>
                 <div class="amount-value">₱{{ payment.amount|floatformat:2 }}</div>
                 <div class="amount-method">
-                    <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %} me-1"></i>
+                    <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'maya' %}wallet{% elif payment.method == 'bank_transfer' %}university{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %} me-1"></i>
                     {{ payment.get_method_display|default:"N/A" }}
                 </div>
             </div>
@@ -574,7 +574,7 @@
                 <div class="card-body pay-section-body">
                     <div class="method-card mb-4">
                         <div class="method-icon">
-                            <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
+                            <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'maya' %}wallet{% elif payment.method == 'bank_transfer' %}university{% elif payment.method == 'cash' %}money-bill-wave{% else %}credit-card{% endif %}"></i>
                         </div>
                         <div>
                             <div class="info-label">Payment Method</div>
@@ -640,18 +640,22 @@
                         {% endif %}
                     </div>
 
-                    {% if payment.method == 'gcash' %}
+                    {% if payment.method == 'gcash' or payment.method == 'maya' or payment.method == 'bank_transfer' %}
                     <hr class="my-4">
                     <h6 class="fw-bold mb-3" style="font-size:0.82rem; text-transform:uppercase; letter-spacing:0.6px; color:#8a9aa4;">
-                        <i class="fas fa-mobile-alt me-1" style="color:#007bff;"></i> GCash Details
+                        <i class="fas fa-{% if payment.method == 'gcash' %}mobile-alt{% elif payment.method == 'maya' %}wallet{% else %}university{% endif %} me-1" style="color:#007bff;"></i>
+                        {% if payment.method == 'maya' %}Maya Details
+                        {% elif payment.method == 'bank_transfer' %}Bank Transfer Details
+                        {% else %}GCash Details{% endif %}
                     </h6>
                     <div class="row g-3">
+                        {% if payment.method == 'gcash' %}
                         <div class="col-sm-6">
                             <div class="info-row">
                                 <div class="info-chip" style="color:#007bff; background:rgba(0,123,255,0.08);"><i class="fas fa-phone-alt"></i></div>
                                 <div>
                                     <div class="info-label">GCash Number</div>
-                                    <div class="info-value">{{ gcash_number }}</div>
+                                    <div class="info-value">{{ gcash_number|default:"—" }}</div>
                                 </div>
                             </div>
                         </div>
@@ -666,15 +670,76 @@
                             </div>
                         </div>
                         {% endif %}
+                        {% elif payment.method == 'maya' %}
                         <div class="col-sm-6">
                             <div class="info-row">
-                                <div class="info-chip" style="color:#007bff; background:rgba(0,123,255,0.08);"><i class="fas fa-hashtag"></i></div>
+                                <div class="info-chip" style="color:#722ed1; background:rgba(114,46,209,0.08);"><i class="fas fa-wallet"></i></div>
+                                <div>
+                                    <div class="info-label">Maya Number</div>
+                                    <div class="info-value">{{ maya_number|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if maya_account_name %}
+                        <div class="col-sm-6">
+                            <div class="info-row">
+                                <div class="info-chip" style="color:#722ed1; background:rgba(114,46,209,0.08);"><i class="fas fa-user"></i></div>
+                                <div>
+                                    <div class="info-label">Account Name</div>
+                                    <div class="info-value">{{ maya_account_name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% elif payment.method == 'bank_transfer' %}
+                        <div class="col-sm-6">
+                            <div class="info-row">
+                                <div class="info-chip" style="color:#28a745; background:rgba(40,167,69,0.08);"><i class="fas fa-university"></i></div>
+                                <div>
+                                    <div class="info-label">Bank</div>
+                                    <div class="info-value">{{ bank_name|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="info-row">
+                                <div class="info-chip" style="color:#28a745; background:rgba(40,167,69,0.08);"><i class="fas fa-user"></i></div>
+                                <div>
+                                    <div class="info-label">Account Name</div>
+                                    <div class="info-value">{{ bank_account_name|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="info-row">
+                                <div class="info-chip" style="color:#28a745; background:rgba(40,167,69,0.08);"><i class="fas fa-hashtag"></i></div>
+                                <div>
+                                    <div class="info-label">Account Number</div>
+                                    <div class="info-value" style="font-family: monospace;">{{ bank_account_number|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="col-sm-6">
+                            <div class="info-row">
+                                <div class="info-chip"><i class="fas fa-hashtag"></i></div>
                                 <div>
                                     <div class="info-label">Reference Number</div>
                                     <div class="info-value" style="font-family: monospace;">{{ payment.gcash_reference|default:"—" }}</div>
                                 </div>
                             </div>
                         </div>
+                        {% if payment_instructions %}
+                        <div class="col-12">
+                            <div class="info-row">
+                                <div class="info-chip"><i class="fas fa-list-ol"></i></div>
+                                <div>
+                                    <div class="info-label">Payment Instructions</div>
+                                    <div class="info-value" style="font-weight:500; white-space:pre-line;">{{ payment_instructions }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
 
