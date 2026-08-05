@@ -1085,6 +1085,10 @@ body.sidebar-open {
                     <i class="fas fa-shield-alt"></i>
                     <span>Maintenance</span>
                 </a>
+                <a href="{% url 'super_admin_cache_monitor' %}" class="nav-link {% if 'super_admin_cache_monitor' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Cache Monitor</span>
+                </a>
                 <a href="{% url 'super_admin_site_settings' %}" class="nav-link {% if 'super_admin_site_settings' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-globe"></i>
                     <span>Site Settings</span>

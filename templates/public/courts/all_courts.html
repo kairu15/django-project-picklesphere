@@ -138,7 +138,7 @@
                 <div class="card h-100 border-0 hover-card" style="border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--card-shadow); background: var(--bg-white); transition: all var(--transition-slow);">
                     <div class="position-relative">
                         {% if court.image %}
-                            <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 200px; object-fit: cover;">
+                            <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 200px; object-fit: cover;" loading="lazy">
                         {% elif court.organization and court.organization.latitude and court.organization.longitude %}
                             <div class="card-img-top" style="height: 200px; overflow: hidden; background: var(--bg-light);">
                                 <img src="{% url 'static_map' %}?lat={{ court.organization.latitude }}&lng={{ court.organization.longitude }}&width=400&height=200&zoom=14" alt="Map of {{ court.organization.name }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">

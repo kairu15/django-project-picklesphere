@@ -46,7 +46,7 @@ def tournament_list(request):
     # Annotate registration_count so the template's per-card count is a single
     # SQL aggregate instead of a property COUNT query per tournament.
     tournaments = Tournament.objects.annotate(
-        registration_count=Count('registrations', filter=Q(registrations__status='approved'))
+        approved_registrations_count=Count('registrations', filter=Q(registrations__status='approved'))
     )
     
     if status_filter != 'all':
@@ -67,7 +67,7 @@ def tournament_list(request):
         .prefetch_related(Prefetch(
             'tournament',
             queryset=Tournament.objects.annotate(
-                registration_count=Count('registrations', filter=Q(registrations__status='approved'))
+                approved_registrations_count=Count('registrations', filter=Q(registrations__status='approved'))
             ),
         ))
         .order_by('display_order')[:6]

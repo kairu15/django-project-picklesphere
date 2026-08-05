@@ -1,5 +1,5 @@
 {% extends 'base/base.html' %}
-{% load static %}
+{% load static cache %}
 
 {% block title %}PickleSphere - The Ultimate Pickleball Platform{% endblock %}
 
@@ -427,6 +427,7 @@ img {
 {% block body %}
 {% include 'components/header.html' %}
 
+{% cache 300 home_top %}
 <!-- ===== HERO SECTION ===== -->
 {% with hero=hero_settings %}
 <section class="hero-section py-5" style="{% if hero %}{{ hero.get_background_style }}{% else %}background: linear-gradient(135deg, #1a3a42 0%, #0f172a 100%);{% endif %} min-height: {{ hero.min_height|default:'90vh' }};">
@@ -643,6 +644,7 @@ img {
         </div>
     </div>
 </section>
+{% endcache %}
 
 <!-- ===== FEATURED COURTS SECTION ===== -->
 <section class="py-5" style="background: var(--bg-light, #f8f9fa);">
@@ -658,7 +660,7 @@ img {
                 <div class="court-card">
                     <div class="position-relative">
                         {% if court.image %}
-                            <img src="{{ court.image.url }}" class="court-card-img" alt="{{ court.name }}">
+                            <img src="{{ court.image.url }}" class="court-card-img" alt="{{ court.name }}" loading="lazy">
                         {% else %}
                             <div class="court-card-img-placeholder">
                                 <i class="fas fa-table-tennis fa-4x"></i>
@@ -749,7 +751,7 @@ img {
                 <div class="court-card">
                     <div class="position-relative">
                         {% if court.image %}
-                            <img src="{{ court.image.url }}" class="court-card-img" alt="{{ court.name }}">
+                            <img src="{{ court.image.url }}" class="court-card-img" alt="{{ court.name }}" loading="lazy">
                         {% else %}
                             <div class="court-card-img-placeholder">
                                 <i class="fas fa-table-tennis fa-4x"></i>
@@ -824,7 +826,7 @@ img {
                 <div class="court-card">
                     <div class="position-relative">
                         {% if court.image %}
-                            <img src="{{ court.image.url }}" class="court-card-img-sm" alt="{{ court.name }}">
+                            <img src="{{ court.image.url }}" class="court-card-img-sm" alt="{{ court.name }}" loading="lazy">
                         {% else %}
                             <div class="court-card-img-placeholder-sm">
                                 <i class="fas fa-table-tennis fa-3x"></i>
@@ -864,6 +866,7 @@ img {
 </section>
 {% endif %}
 
+{% cache 300 home_bottom %}
 <!-- ===== TOURNAMENTS SECTION ===== -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--bg-light, #f8f9fa) 0%, var(--border-color, #e9ecef) 100%);">
     <div class="container py-4">
@@ -1056,7 +1059,7 @@ img {
             {% for image in gallery_images|slice:":6" %}
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="gallery-item">
-                    <img src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" 
+                    <img loading="lazy" src="{% if image.image %}{{ image.image.url }}{% else %}{{ image.url }}{% endif %}" 
                          alt="{% if image.alt_text %}{{ image.alt_text }}{% else %}{{ image.alt }}{% endif %}"
                          onerror="this.onerror=null; this.src='{% static 'PickleSphereLogo.png' %}';">
                     <div class="gallery-overlay">
@@ -1099,6 +1102,7 @@ img {
         </div>
     </div>
 </section>
+{% endcache %}
 
 <!-- Gallery Modal -->
 <div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">

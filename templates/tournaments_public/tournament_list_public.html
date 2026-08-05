@@ -171,9 +171,9 @@
                             <span class="badge bg-light text-dark border"><i class="fas fa-signal me-1 text-success"></i>{{ featured.tournament.get_skill_level_display }}</span>
                         </div>
                         <div class="progress mb-2" style="height: 8px;">
-                            <div class="progress-bar" role="progressbar" data-progress="{{ featured.tournament.registration_count }}" data-max="{{ featured.tournament.max_participants }}" style="background: #6f42c1;"></div>
+                            <div class="progress-bar" role="progressbar" data-progress="{{ featured.tournament.approved_registrations_count }}" data-max="{{ featured.tournament.max_participants }}" style="background: #6f42c1;"></div>
                         </div>
-                        <p class="text-muted small mb-3"><i class="fas fa-users me-1 text-primary"></i>{{ featured.tournament.registration_count }}/{{ featured.tournament.max_participants }} players registered</p>
+                        <p class="text-muted small mb-3"><i class="fas fa-users me-1 text-primary"></i>{{ featured.tournament.approved_registrations_count }}/{{ featured.tournament.max_participants }} players registered</p>
                     </div>
                     <div class="card-footer bg-transparent border-0 p-4 pt-0">
                         <a href="{% url 'tournament_detail' featured.tournament.pk %}" class="btn btn-primary w-100" style="background: linear-gradient(135deg, #6f42c1 0%, #4a2c80 100%); border: none;">
@@ -232,9 +232,9 @@
                         </div>
                         
                         <div class="progress mb-2" style="height: 8px;">
-                            <div class="progress-bar bg-success" role="progressbar" data-progress="{{ tournament.registration_count }}" data-max="{{ tournament.max_participants }}"></div>
+                            <div class="progress-bar bg-success" role="progressbar" data-progress="{{ tournament.approved_registrations_count }}" data-max="{{ tournament.max_participants }}"></div>
                         </div>
-                        <p class="text-muted small mb-3"><i class="fas fa-users me-1 text-primary"></i>{{ tournament.registration_count }}/{{ tournament.max_participants }} players registered</p>
+                        <p class="text-muted small mb-3"><i class="fas fa-users me-1 text-primary"></i>{{ tournament.approved_registrations_count }}/{{ tournament.max_participants }} players registered</p>
                         
                         <ul class="list-unstyled small text-muted mb-0">
                             <li class="mb-1"><i class="fas fa-calendar text-primary me-2"></i><strong>Starts:</strong> {{ tournament.tournament_start|date:"M d, Y" }}</li>

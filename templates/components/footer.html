@@ -1,5 +1,6 @@
-{% load static %}
+{% load static cache %}
 
+{% cache 300 footer_component %}
 <style>
 /* Footer Styles */
 .site-footer {
@@ -519,3 +520,4 @@
     })();
     {% endif %}
 </script>
+{% endcache %}
