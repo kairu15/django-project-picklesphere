@@ -13,3 +13,7 @@ django-axes>=6.0,<7.0
 django-redis>=5.4,<6.0
 # Static file serving with hashed filenames, compression, and cache headers
 whitenoise>=6.6,<7.0
+# Transactional email via Anymail (Elastic Email backend)
+django-anymail>=10.1
+# Stripe payment gateway
+stripe>=15.0
