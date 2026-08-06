@@ -6,6 +6,9 @@
 #   ./run_server.sh --ngrok       - Start Django on :8000 + ngrok tunnel
 #   ./run_server.sh --port=8080   - Start Django on :8080
 #   ./run_server.sh --ngrok --port=8080 - Start Django on :8080 + ngrok tunnel
+#
+# SECURITY: Email credentials are read from your .env file (never hardcoded here).
+# Copy .env.example to .env and fill in EMAIL_HOST_USER / EMAIL_HOST_PASSWORD.
 
 PORT=8000
 USE_NGROK=false
@@ -22,18 +25,29 @@ for arg in "$@"; do
     esac
 done
 
-export EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
-export EMAIL_HOST_USER="picklesphere2026@gmail.com"
-export EMAIL_HOST_PASSWORD="qcrw sacj hcvb upuv"
-export DEFAULT_FROM_EMAIL="picklesphere2026@gmail.com"
-export DEFAULT_FROM_NAME="PickleSphere"
-export EMAIL_HOST="smtp.gmail.com"
-export EMAIL_PORT="587"
-export EMAIL_USE_TLS="True"
+# Load credentials from .env if it exists (safe - .env is git-ignored).
+# Values already set in the environment take priority over .env.
+if [ -f ".env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source ".env"
+    set +a
+fi
+
+export EMAIL_BACKEND="${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
+export EMAIL_HOST="${EMAIL_HOST:-smtp.gmail.com}"
+export EMAIL_PORT="${EMAIL_PORT:-587}"
+export EMAIL_USE_TLS="${EMAIL_USE_TLS:-True}"
+
+if [ -z "$EMAIL_HOST_USER" ] || [ -z "$EMAIL_HOST_PASSWORD" ]; then
+    echo "⚠️  EMAIL_HOST_USER / EMAIL_HOST_PASSWORD not set."
+    echo "   Copy .env.example to .env and fill in your email credentials."
+    echo ""
+fi
 
 echo "🚀 Starting PickleSphere with SMTP email support..."
-echo "   Email: picklesphere2026@gmail.com"
-echo "   SMTP:  smtp.gmail.com:587 (TLS)"
+echo "   Email: ${EMAIL_HOST_USER:-<not set>}"
+echo "   SMTP:  ${EMAIL_HOST:-smtp.gmail.com}:${EMAIL_PORT} (TLS)"
 echo "   Port:  $PORT"
 echo ""
 
