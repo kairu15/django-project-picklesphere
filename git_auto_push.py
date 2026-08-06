@@ -93,6 +93,9 @@ class GitError(RuntimeError):
 
 def run(cmd: list[str], check: bool = True, capture: bool = True) -> subprocess.CompletedProcess:
     """Run a git command. Returns CompletedProcess with stdout decoded."""
+    # Fail fast on missing credentials instead of hanging on a terminal prompt.
+    # Git credential managers (Windows GCM, ssh-agent) still work normally.
+    os.environ.setdefault("GIT_TERMINAL_PROMPT", "0")
     proc = subprocess.run(
         cmd,
         cwd=str(ROOT),
@@ -191,10 +194,6 @@ def get_changes() -> list[tuple[str, str]]:
         else:
             changes.append((status, path.strip()))
     return changes
-
-
-def has_changes(changes: list) -> bool:
-    return bool(changes)
 
 
 def describe_change(status: str) -> str:
@@ -350,11 +349,6 @@ def current_branch() -> str:
         return ""
 
 
-def branch_exists(branch: str) -> bool:
-    out = git("branch", "--list", branch, check=False)
-    return bool(out.strip())
-
-
 def ensure_staged(message: str) -> bool:
     """Stage everything and commit. Returns True if a commit was created."""
     git("add", "-A")
@@ -419,12 +413,12 @@ def latest_tag() -> str:
 
 
 def next_tag(part: str = "patch") -> str:
-    """Compute the next version tag (v1.2.3 -> v1.2.4 for patch)."""
+    """Compute the next version tag (v1.2.3 -> v1.2.4 for patch).
+    With no existing tags, starts at v0.1.0."""
     latest = latest_tag()
-    if latest:
-        nums = [int(n) for n in latest[len(AUTO_TAG_PREFIX):].split(".")]
-    else:
-        nums = [0, 1, 0]
+    if not latest:
+        return f"{AUTO_TAG_PREFIX}0.1.0"
+    nums = [int(n) for n in latest[len(AUTO_TAG_PREFIX):].split(".")]
     idx = TAG_INCREMENT_MAP.get(part, 2)
     nums[idx] += 1
     for i in range(idx + 1, 3):
@@ -432,13 +426,13 @@ def next_tag(part: str = "patch") -> str:
     return f"{AUTO_TAG_PREFIX}{'.'.join(str(n) for n in nums)}"
 
 
-def create_tag(tag: str) -> None:
+def create_tag(tag: str, remote: str = "origin") -> None:
     existing = git("tag", "--list", tag, check=False)
     if existing.strip():
         print(f"   ⚠️  Tag '{tag}' already exists - skipping tag creation.")
         return
     git("tag", "-a", tag, "-m", f"Release {tag}")
-    git("push", "origin", tag)
+    git("push", remote, tag)
     print(f"   🏷️  Tagged and pushed {tag}")
 
 
@@ -480,11 +474,12 @@ def show_status(cfg: dict) -> int:
 
     # Ahead/behind vs upstream
     try:
-        git("rev-parse", f"@{cfg['branch']}@{'{u}'}", check=False)  # probe upstream
         ahead_behind = git("rev-list", "--left-right", "--count", f"{branch}...{cfg['remote']}/{cfg['branch']}", check=False)
         if ahead_behind:
             ahead, behind = ahead_behind.split()
             print(f"   Sync       : {ahead} ahead, {behind} behind of {cfg['remote']}/{cfg['branch']}")
+        else:
+            print(f"   Sync       : (no upstream tracking set)")
     except GitError:
         print(f"   Sync       : (no upstream tracking set)")
 
@@ -537,11 +532,10 @@ def do_push(cfg: dict, args: argparse.Namespace) -> int:
     # 2. Detect changes
     changes = get_changes()
     if not changes:
-        print("\n   ✅ Working tree is clean - nothing to commit or push.")
+        print("\n   ✅ Working tree is clean - no uncommitted changes.")
         try:
-            git("rev-parse", "--abbrev-ref", f"{branch}@{{u}}", check=False)
             git("push", remote, branch)
-            print(f"   ✅ Pushed (no new commit needed).")
+            print(f"   ✅ Already up to date with {remote}/{branch}.")
         except GitError:
             print("   (Nothing to push.)")
         return 0
@@ -560,22 +554,28 @@ def do_push(cfg: dict, args: argparse.Namespace) -> int:
     # 4. Commit message
     message = generate_commit_message(changes, cfg["commit_format"], args.message or os.environ.get("GIT_COMMIT_MESSAGE", ""))
 
-    # 5. Dry-run
+    # 5. Determine tag (from --tag flag, or auto_tag config)
+    tag_spec = None
+    if args.tag:
+        tag_spec = args.tag if args.tag not in ("patch", "minor", "major") else next_tag(args.tag)
+    elif cfg["auto_tag"]:
+        tag_spec = next_tag("patch")
+
+    # 6. Dry-run
     if args.dry_run:
         print(f"\n   [DRY RUN] Would commit & push:  \"{message}\"")
-        if args.tag:
-            tag = args.tag if isinstance(args.tag, str) and args.tag not in ("patch", "minor", "major") else next_tag(args.tag if isinstance(args.tag, str) else "patch")
-            print(f"   [DRY RUN] Would tag & push:    {tag}")
+        if tag_spec:
+            print(f"   [DRY RUN] Would tag & push:    {tag_spec}")
         print("\n   (dry run - no changes were made)")
         return 0
 
-    # 6. Confirmation (unless --yes or auto_push config)
+    # 7. Confirmation (unless --yes or auto_push config)
     decision = confirm(message, yes=args.yes or cfg["auto_push"])
     if decision == "cancel":
         print("\n   ✖️  Cancelled - no changes were made.")
         return 1
 
-    # 7. Stage & commit
+    # 8. Stage & commit
     print("\n   Staging and committing...")
     try:
         if not ensure_staged(message):
@@ -585,16 +585,15 @@ def do_push(cfg: dict, args: argparse.Namespace) -> int:
         return 1
     print(f"   ✅ Committed: \"{message}\"")
 
-    # 8. Optional version tag
-    if args.tag:
-        tag = args.tag if isinstance(args.tag, str) and args.tag not in ("patch", "minor", "major") else next_tag(args.tag if isinstance(args.tag, str) else "patch")
-        print(f"\n   Creating release tag {tag}...")
+    # 9. Optional version tag
+    if tag_spec:
+        print(f"\n   Creating release tag {tag_spec}...")
         try:
-            create_tag(tag)
+            create_tag(tag_spec, remote)
         except GitError as exc:
             print(f"\n   ⚠️  Tag failed (commit was kept): {exc}")
 
-    # 9. Push
+    # 10. Push
     print(f"\n   Pushing to {remote}/{branch}...")
     try:
         push(remote, branch)
