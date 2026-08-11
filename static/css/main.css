@@ -1800,13 +1800,6 @@ h6 { font-size: 0.875rem; }
         height: 180px !important;
     }
 
-    #sessionIndicator {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-        margin: 0 !important;
-    }
-
     .back-to-top {
         bottom: 16px !important;
         right: 16px !important;
@@ -2130,8 +2123,7 @@ h6 { font-size: 0.875rem; }
     .filter-bar,
     .quick-actions,
     .back-to-top,
-    .floating-toast-container,
-    #sessionIndicator {
+    .floating-toast-container {
         display: none !important;
     }
     .main-content {
@@ -2565,12 +2557,6 @@ h6 { font-size: 0.875rem; }
 .session-primary-btn {
     background: var(--primary-color);
     border: none;
-}
-
-.session-indicator {
-    background: white;
-    z-index: 1040;
-    display: none;
 }
 
 /* Table Responsive Card (see .table-card in Tables section for mobile card layout) */

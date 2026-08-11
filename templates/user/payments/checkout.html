@@ -84,13 +84,18 @@
                                         if (lbl) {
                                             function fmt(t) { var p = t.split(':'); var h = parseInt(p[0]), m = p[1]; var ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + m + ' ' + ampm; }
                                             var parts = lbl.textContent.split(' — ');
-                                            if (parts.length === 2) lbl.textContent = fmt(parts[0].trim()) + ' — ' + fmt(parts[1].trim());
+                                            if (parts.length === 2) {
+                                                var endTxt = parts[1].trim();
+                                                // Last slot of the day ends at 23:59 → display as midnight
+                                                if (endTxt === '23:59') { lbl.textContent = fmt(parts[0].trim()) + ' — 12:00 AM'; }
+                                                else { lbl.textContent = fmt(parts[0].trim()) + ' — ' + fmt(endTxt); }
+                                            }
                                         }
                                     })();
                                     </script>
                                     <small class="summary-item-sub">{{ checkout_data.duration_hours|floatformat:0 }} hour{{ checkout_data.duration_hours|floatformat:0|pluralize }}</small>
                                     {% else %}
-                                    <div class="summary-value summary-highlight">{{ reservation.start_time|time:"g:i A" }} — {{ reservation.end_time|time:"g:i A" }}</div>
+                                    <div class="summary-value summary-highlight">{{ reservation.display_time_range }}</div>
                                     <small class="summary-item-sub">{{ reservation.duration_hours|floatformat:0 }} hour{{ reservation.duration_hours|floatformat:0|pluralize }}</small>
                                     {% endif %}
                                 </div>
@@ -558,8 +563,8 @@
                                     <div class="col-lg-6">
                                         <div class="row g-3">
                                             <div class="col-12">
-                                                <label class="form-label fw-bold" for="{{ gcash_form.gcash_reference.id_for_label }}"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
-                                                {{ gcash_form.gcash_reference }}
+                                                <label class="form-label fw-bold" for="maya-reference-input"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="maya-reference-input" placeholder="Enter Reference Number" autocomplete="off">
                                                 <div class="invalid-feedback gcash-error-msg" id="maya-ref-error">Please enter your payment reference number</div>
                                             </div>
                                             <div class="col-12">
@@ -629,8 +634,8 @@
                                     <div class="col-lg-6">
                                         <div class="row g-3">
                                             <div class="col-12">
-                                                <label class="form-label fw-bold" for="{{ gcash_form.gcash_reference.id_for_label }}"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
-                                                {{ gcash_form.gcash_reference }}
+                                                <label class="form-label fw-bold" for="bank-reference-input"><i class="fas fa-hashtag me-2 text-primary"></i>Reference Number <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="bank-reference-input" placeholder="Enter Reference Number" autocomplete="off">
                                                 <div class="invalid-feedback gcash-error-msg" id="bank-ref-error">Please enter your payment reference number</div>
                                             </div>
                                             <div class="col-12">
@@ -1655,7 +1660,29 @@
             document.querySelectorAll('.gcash-error-msg').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-            const refInput = document.querySelector('input[name="gcash_reference"]');
+            let refInput = document.querySelector('input[name="gcash_reference"]');
+            if (selectedMethod.value === 'maya') {
+                refInput = document.getElementById('maya-reference-input');
+            } else if (selectedMethod.value === 'bank_transfer') {
+                refInput = document.getElementById('bank-reference-input');
+            }
+
+            // Ensure the submitted (named) input carries the active panel's value
+            const namedRefInput = document.querySelector('input[name="gcash_reference"]');
+            if (refInput && namedRefInput && refInput !== namedRefInput) {
+                namedRefInput.value = refInput.value;
+            }
+
+            // Ensure the submitted (named) file input carries the active panel's file
+            const namedFileInput = document.querySelector('input[name="gcash_proof_image"]');
+            if (zone && zone.fileInput && namedFileInput && zone.fileInput !== namedFileInput
+                    && zone.fileInput.files && zone.fileInput.files.length > 0) {
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(zone.fileInput.files[0]);
+                    namedFileInput.files = dt.files;
+                } catch (err) { /* older browsers: server-side validation will request a re-upload */ }
+            }
 
             if (!refInput || !refInput.value.trim()) {
                 valid = false;

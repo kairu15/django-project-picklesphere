@@ -654,6 +654,11 @@ def payment_checkout_view(request, reservation_id):
     if request.method == 'POST':
         method = request.POST.get('method')
 
+        # Guard: reject unknown/missing payment methods before touching the DB
+        if method not in dict(Payment.METHOD_CHOICES):
+            messages.error(request, 'Please select a valid payment method.')
+            return redirect('payment_checkout', reservation_id=reservation.id)
+
         # Guard: online payment methods require the organization's payment info
         if method in ONLINE_PAYMENT_METHODS:
             org_settings = getattr(reservation.court.organization, 'payment_settings', None) if reservation.court.organization else None
@@ -672,13 +677,16 @@ def payment_checkout_view(request, reservation_id):
                 status='pending'
             )
         
+        # Persist the selected method so the payment status page reflects the choice
+        # even when the submitted proof details are invalid and need retrying.
         payment.method = method
-        
+        payment.save()
+
         if method in ONLINE_PAYMENT_METHODS:
             method_label = dict(Payment.METHOD_CHOICES).get(method, method.replace('_', ' ').title())
-            form = GCashPaymentForm(request.POST, request.FILES, instance=payment)
-            if form.is_valid():
-                payment = form.save()
+            gcash_form = GCashPaymentForm(request.POST, request.FILES, instance=payment)
+            if gcash_form.is_valid():
+                payment = gcash_form.save()
                 payment.status = 'pending'
                 payment.save()
                 
@@ -703,11 +711,15 @@ def payment_checkout_view(request, reservation_id):
                 
                 messages.success(request, f'{method_label} payment details submitted. Please wait for verification.')
                 return redirect('payment_status', payment_id=payment.id)
-                
+
+            # Invalid online-payment form: re-render checkout with the bound form
+            # so the user sees the validation errors instead of a 500 error.
+            cash_form = CashPaymentForm(instance=payment) if payment else CashPaymentForm()
+
         elif method == 'cash':
-            form = CashPaymentForm(request.POST, request.FILES, instance=payment)
-            if form.is_valid():
-                payment = form.save()
+            cash_form = CashPaymentForm(request.POST, request.FILES, instance=payment)
+            if cash_form.is_valid():
+                payment = cash_form.save()
                 payment.status = 'pending'
                 payment.save()
 
@@ -720,7 +732,10 @@ def payment_checkout_view(request, reservation_id):
 
                 messages.success(request, 'Please proceed to the counter to complete your cash payment.')
                 return redirect('payment_status', payment_id=payment.id)
-            
+
+            # Invalid cash form: re-render checkout with the bound form.
+            gcash_form = GCashPaymentForm(instance=payment) if payment else GCashPaymentForm()
+
         elif method == 'card':
             # Generate transaction ID for card payment
             payment.transaction_id = str(uuid.uuid4())[:8].upper()

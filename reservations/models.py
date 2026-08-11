@@ -5,6 +5,46 @@ from courts.models import Court
 from equipment.models import Equipment
 
 
+def expand_time_range_to_slots(start_time, end_time):
+    """Expand a start/end time range into the 1-hour slot segments used by the
+    booking grid (e.g. 21:00 -> 23:59 becomes ['21:00-22:00', '22:00-23:00',
+    '23:00-23:59']).
+
+    This lets a multi-slot reservation (multiple consecutive hours) round-trip
+    back into the same comma-separated segments that the booking form submits,
+    so editing an existing booking restores every selected slot.
+
+    Falls back to a single segment when the range does not align to the hourly
+    grid (e.g. admin-created reservations with arbitrary start/end times).
+    """
+    start_min = start_time.hour * 60 + start_time.minute
+    end_min = end_time.hour * 60 + end_time.minute
+    # Ranges that cross midnight (e.g. 23:00 -> 00:30) don't fit the hourly
+    # booking grid, so keep them as a single segment rather than producing an
+    # invalid "24:00" boundary.
+    if end_min <= start_min:
+        return [f"{start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')}"]
+
+    aligned = start_time.minute == 0 and (
+        end_time.minute == 0 or (end_time.hour == 23 and end_time.minute == 59)
+    )
+    if not aligned or end_min - start_min <= 0:
+        return [f"{start_time.strftime('%H:%M')}-{end_time.strftime('%H:%M')}"]
+
+    segments = []
+    cursor = start_min
+    while cursor < end_min:
+        next_min = min(cursor + 60, end_min)
+        start_str = f"{cursor // 60:02d}:{cursor % 60:02d}"
+        if next_min == 23 * 60 + 59:
+            end_str = "23:59"
+        else:
+            end_str = f"{next_min // 60:02d}:{next_min % 60:02d}"
+        segments.append(f"{start_str}-{end_str}")
+        cursor = next_min
+    return segments
+
+
 class Reservation(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
@@ -71,6 +111,25 @@ class Reservation(models.Model):
     
     def __str__(self):
         return f"Reservation #{self.id} - {self.user.username} - {self.court.name}"
+
+    @property
+    def display_time_range(self):
+        """Human-readable booking time range, e.g. '9:00 PM – 12:00 AM'.
+
+        The last hourly slot of the day ends at 23:59; it is displayed as
+        '12:00 AM' so a 3-hour booking reads as '9:00 PM – 12:00 AM'.
+        """
+        def _fmt(t):
+            if t is None:
+                return '—'
+            hour12 = t.hour % 12 or 12
+            return f'{hour12}:{t.minute:02d} {"AM" if t.hour < 12 else "PM"}'
+
+        if self.end_time and self.end_time.hour == 23 and self.end_time.minute == 59:
+            end_display = '12:00 AM'
+        else:
+            end_display = _fmt(self.end_time)
+        return f'{_fmt(self.start_time)} – {end_display}'
     
     def calculate_total(self):
         hourly_rate = float(self.hourly_rate) if self.hourly_rate else 0.0

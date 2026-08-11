@@ -10,7 +10,10 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta, date as date_type
 import calendar
 from accounts.decorators import admin_required, staff_or_admin_required, user_required
-from .models import Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy
+from .models import (
+    Reservation, ReservationEquipment, CancellationRequest, CancellationPolicy,
+    expand_time_range_to_slots,
+)
 from .forms import ReservationForm, ReservationApprovalForm, CancellationRequestForm, AdminReservationForm, MATCH_FORMAT_CHOICES, GAME_TYPE_CHOICES, SCORING_FORMAT_CHOICES
 from payments.models import Payment, PaymentLog, Refund
 from scoring.models import MatchSettings
@@ -537,7 +540,10 @@ def reservation_edit_view(request, reservation_id):
     else:
         initial_data = {}
         if reservation.start_time and reservation.end_time:
-            initial_data['time_slot'] = f"{reservation.start_time.strftime('%H:%M')}-{reservation.end_time.strftime('%H:%M')}"
+            # Expand the full range back into individual 1-hour segments so the
+            # edit UI can restore every selected slot.
+            segments = expand_time_range_to_slots(reservation.start_time, reservation.end_time)
+            initial_data['time_slot'] = ','.join(segments)
         form = ReservationForm(instance=reservation, user=request.user, initial=initial_data)
     
     return render(request, 'user/reservations/reservation_edit.html', {

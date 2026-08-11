@@ -168,7 +168,7 @@
                         </td>
                         <td data-label="Date/Time" class="py-3 px-4">
                             <span class="fw-medium">{{ reservation.date|date:"M d, Y" }}</span>
-                            <small class="text-muted d-block">{{ reservation.start_time|time:"g:i A" }} - {{ reservation.end_time|time:"g:i A" }}</small>
+                            <small class="text-muted d-block">{{ reservation.display_time_range }}</small>
                         </td>
                         <td data-label="Duration" class="py-3 px-4">
                             <span class="badge bg-light text-dark border" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 8px;">

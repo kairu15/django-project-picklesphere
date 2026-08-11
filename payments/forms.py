@@ -12,19 +12,31 @@ class PaymentMethodForm(forms.ModelForm):
 
 
 class GCashPaymentForm(forms.ModelForm):
+    # Reference & proof are required for online payments (matching the checkout UI).
+    # Without this, an empty submission can create a pending payment with no way to
+    # display a reference number on the payment status page.
+    gcash_reference = forms.CharField(
+        required=True,
+        max_length=100,
+        strip=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter Reference Number'
+        }),
+        error_messages={'required': 'Please enter your payment reference number.'},
+    )
+    gcash_proof_image = forms.ImageField(
+        required=True,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        error_messages={'required': 'Please upload your proof of payment.'},
+    )
+
     class Meta:
         model = Payment
         fields = ['gcash_reference', 'gcash_proof_image']
-        widgets = {
-            'gcash_reference': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter Reference Number'
-            }),
-            'gcash_proof_image': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
-        }
 
 
 class CashPaymentForm(forms.ModelForm):

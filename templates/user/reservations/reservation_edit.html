@@ -125,7 +125,8 @@
                             </div>
                             <div>
                                 <label class="form-label fw-bold mb-0" for="{{ form.time_slot.id_for_label }}">Time Slot</label>
-                                <small class="text-muted d-block">Current: {{ reservation.start_time|time:"g:i A" }} – {{ reservation.end_time|time:"g:i A" }}</small>
+                                <small class="text-muted d-block">Current: {{ reservation.display_time_range }} ({{ reservation.duration_hours|floatformat:"-1" }} hr{{ reservation.duration_hours|floatformat:"-1"|pluralize }})</small>
+                                <small class="text-muted d-block">Click multiple consecutive slots to book more hours.</small>
                             </div>
                         </div>
 
@@ -154,14 +155,27 @@
                             </div>
                         </div>
 
+                        <!-- Contiguity warning: shown when a non-adjacent slot is clicked -->
+                        <div class="alert alert-warning d-none align-items-start gap-2 py-2 small" id="edit-slot-contiguity-alert" role="alert" style="border-radius: 10px;">
+                            <i class="fas fa-link mt-1"></i>
+                            <div class="flex-grow-1">
+                                <strong class="d-block">Slots must be consecutive</strong>
+                                <span id="edit-slot-contiguity-message"></span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-warning" id="edit-dismiss-contiguity-btn" style="border-radius: 6px;">Got it</button>
+                        </div>
+
                         <!-- Selected slot display -->
                         <div id="edit-selected-slot-display" class="d-none mb-2">
-                            <div class="alert alert-success py-2 d-flex align-items-center justify-content-between" style="border-radius: 10px;">
-                                <span><i class="fas fa-check-circle me-2"></i>Selected: <strong id="edit-selected-slot-label"></strong></span>
+                            <div class="alert alert-success py-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="border-radius: 10px;">
+                                <span><i class="fas fa-check-circle me-2"></i>Selected: <strong id="edit-selected-slot-label"></strong>
+                                    <span class="badge bg-success ms-2" id="edit-selected-duration-badge" style="font-weight: 600;"></span>
+                                </span>
                                 <button type="button" class="btn btn-sm btn-outline-success" id="edit-clear-slot-btn" style="border-radius: 8px;">
                                     <i class="fas fa-times me-1"></i>Clear
                                 </button>
                             </div>
+                            <div class="d-flex flex-wrap gap-1" id="edit-selected-slots-chips" aria-label="Selected time slots"></div>
                         </div>
 
                         {{ form.start_time }}
@@ -511,6 +525,44 @@ textarea#{{ form.notes.id_for_label }} {
     color: #fff;
 }
 
+/* ===== MULTI-SLOT SELECTION ===== */
+.selected-slot-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(59, 122, 140, 0.09);
+    border: 1px solid rgba(59, 122, 140, 0.22);
+    color: #1a3a42;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.selected-slot-chip .chip-index {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3B7A8C;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.time-slot-card.shake {
+    animation: slotShake 0.4s ease;
+    border-color: #ff9800 !important;
+}
+@keyframes slotShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+
 /* ===== AVAILABILITY LEGEND ===== */
 .legend-dot {
     width: 12px;
@@ -704,6 +756,11 @@ textarea#{{ form.notes.id_for_label }} {
     const currentEnd = '{{ reservation.end_time|time:"H:i" }}';
     const currentDate = '{{ reservation.date|date:"Y-m-d" }}';
 
+    // Multi-slot selection: array of { start, end, label }. Stored in the
+    // hidden field as comma-separated segments ("21:00-22:00,22:00-23:00").
+    let selectedSlots = [];
+    let contiguityTimer = null;
+
     // Status metadata for the time-slot badges
     const STATUS_META = {
         available: { icon: 'fas fa-check-circle', label: 'Available' },
@@ -735,6 +792,169 @@ textarea#{{ form.notes.id_for_label }} {
         const ampm = h >= 12 ? 'PM' : 'AM';
         const hour12 = h % 12 || 12;
         return `${hour12}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+
+    function getDurationHours(start, end) {
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        return ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+    }
+
+    function slotKey(slot) {
+        return `${slot.start}-${slot.end}`;
+    }
+
+    function formatRangeEnd(end) {
+        // The last slot of the day ends at 23:59; display it as midnight.
+        return end === '23:59' ? '12:00 AM' : formatTimeDisplay(end);
+    }
+
+    function slotLabel(slot) {
+        return `${formatTimeDisplay(slot.start)} – ${formatRangeEnd(slot.end)}`;
+    }
+
+    function selectedSlotsSorted() {
+        return selectedSlots.slice().sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+    }
+
+    function roundHalfEven(value, decimals) {
+        // Mirrors Python's round() (banker's rounding) so the live duration
+        // matches the value the server persists (e.g. 2.25 -> 2.2, not 2.3).
+        const factor = Math.pow(10, decimals);
+        const scaled = value * factor;
+        const floored = Math.floor(scaled);
+        const frac = scaled - floored;
+        let result = Math.round(scaled);
+        if (frac === 0.5) {
+            result = floored % 2 === 0 ? floored : floored + 1;
+        }
+        return result / factor;
+    }
+
+    function getSelectedDuration() {
+        const slots = selectedSlotsSorted();
+        if (!slots.length) return 0;
+        return roundHalfEven(getDurationHours(slots[0].start, slots[slots.length - 1].end), 1);
+    }
+
+    function syncEditSelectionUI() {
+        // Enforce the invariant that the selection is always a contiguous block.
+        // Removing a middle slot orphans everything after the gap — clear those
+        // automatically so the submitted time range is always valid.
+        const sorted = selectedSlotsSorted();
+        const contiguous = [];
+        for (const s of sorted) {
+            if (contiguous.length === 0 || s.start === contiguous[contiguous.length - 1].end) {
+                contiguous.push(s);
+            } else {
+                break;
+            }
+        }
+        if (contiguous.length < sorted.length) {
+            showEditPruneNotice();
+        }
+        selectedSlots = contiguous;
+        const slots = contiguous;
+        const selectedDisplay = document.getElementById('edit-selected-slot-display');
+
+        if (!slots.length) {
+            timeSlotInput.value = '';
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+            selectedDisplay.classList.add('d-none');
+            return;
+        }
+
+        const first = slots[0];
+        const last = slots[slots.length - 1];
+
+        // Hidden fields: comma-separated segments, plus the overall range.
+        timeSlotInput.value = slots.map(slotKey).join(',');
+        startTimeInput.value = first.start;
+        endTimeInput.value = last.end;
+
+        // Range + duration display
+        document.getElementById('edit-selected-slot-label').textContent =
+            `${formatTimeDisplay(first.start)} – ${formatRangeEnd(last.end)}`;
+        const dur = getSelectedDuration();
+        document.getElementById('edit-selected-duration-badge').textContent =
+            `${dur} hour${dur !== 1 ? 's' : ''}`;
+
+        // Per-slot chips
+        document.getElementById('edit-selected-slots-chips').innerHTML = slots
+            .map((s, i) => `<span class="selected-slot-chip"><span class="chip-index">${i + 1}</span>${slotLabel(s)}</span>`)
+            .join('');
+
+        selectedDisplay.classList.remove('d-none');
+    }
+
+    function hideEditContiguityAlert() {
+        const alertEl = document.getElementById('edit-slot-contiguity-alert');
+        if (alertEl) alertEl.classList.add('d-none');
+        if (contiguityTimer) {
+            clearTimeout(contiguityTimer);
+            contiguityTimer = null;
+        }
+    }
+
+    function showEditPruneNotice() {
+        document.getElementById('edit-slot-contiguity-message').textContent =
+            'Selections must be consecutive, so the slots that were no longer adjacent were cleared automatically.';
+        document.getElementById('edit-slot-contiguity-alert').classList.remove('d-none');
+        if (contiguityTimer) clearTimeout(contiguityTimer);
+        contiguityTimer = setTimeout(hideEditContiguityAlert, 5000);
+    }
+
+    function showEditContiguityError(slot) {
+        document.getElementById('edit-slot-contiguity-message').textContent =
+            `“${slotLabel(slot)}” is not adjacent to your current selection. `
+            + `Please choose a slot that starts right after your last selected slot `
+            + `or ends right before your first one (e.g. 10:00 PM after 9:00 PM).`;
+        document.getElementById('edit-slot-contiguity-alert').classList.remove('d-none');
+
+        if (contiguityTimer) clearTimeout(contiguityTimer);
+        contiguityTimer = setTimeout(hideEditContiguityAlert, 7000);
+
+        const attempted = document.querySelector(
+            `#edit-time-slots-container .time-slot-card[data-start="${slot.start}"][data-end="${slot.end}"]`
+        );
+        if (attempted) {
+            attempted.classList.remove('shake');
+            void attempted.offsetWidth;
+            attempted.classList.add('shake');
+            setTimeout(() => attempted.classList.remove('shake'), 450);
+        }
+    }
+
+    function toggleEditSlot(card, slot) {
+        // Already selected → remove it
+        if (card.dataset.status === 'selected' || selectedSlots.some(s => slotKey(s) === slotKey(slot))) {
+            selectedSlots = selectedSlots.filter(s => slotKey(s) !== slotKey(slot));
+            setCardStatus(card, 'available');
+            syncEditSelectionUI();
+            return;
+        }
+
+        // Only available slots can be added
+        if (card.dataset.status !== 'available') return;
+
+        // Consecutiveness check against the current block
+        const slots = selectedSlotsSorted();
+        if (slots.length > 0) {
+            const first = slots[0];
+            const last = slots[slots.length - 1];
+            const adjacentBefore = slot.end === first.start;
+            const adjacentAfter = slot.start === last.end;
+            if (!adjacentBefore && !adjacentAfter) {
+                showEditContiguityError(slot);
+                return;
+            }
+        }
+
+        hideEditContiguityAlert();
+        selectedSlots.push({ start: slot.start, end: slot.end, label: slot.label });
+        setCardStatus(card, 'selected');
+        syncEditSelectionUI();
     }
 
     function loadTimeSlots() {
@@ -774,18 +994,21 @@ textarea#{{ form.notes.id_for_label }} {
                     card.dataset.available = status === 'available';
 
                     // Keep the user's current reservation selected — even if it would be booked
+                    // (single-slot bookings, e.g. created before multi-slot support).
                     const isCurrentSlot = slot.start === currentStart && slot.end === currentEnd && date === currentDate;
                     if (isCurrentSlot) {
                         setCardStatus(card, 'selected');
+                        selectedSlots.push({ start: slot.start, end: slot.end, label: slot.label });
                     }
 
-                    // Restore previously selected slot from hidden fields (only if still available —
-                    // never auto-select a slot that is now booked or otherwise unavailable)
-                    const storedVal = timeSlotInput.value;
-                    if (!card.classList.contains('selected') && card.dataset.status === 'available' && storedVal === `${slot.start}-${slot.end}`) {
+                    // Restore previously selected slots from the hidden field (only if still
+                    // available — never auto-select a slot that is now booked/unavailable).
+                    const storedSegments = timeSlotInput.value.split(',').map(s => s.trim()).filter(Boolean);
+                    if (card.dataset.status === 'available'
+                            && storedSegments.indexOf(`${slot.start}-${slot.end}`) !== -1
+                            && !selectedSlots.some(s => slotKey(s) === `${slot.start}-${slot.end}`)) {
                         setCardStatus(card, 'selected');
-                        document.getElementById('edit-selected-slot-label').textContent = slot.label;
-                        selectedDisplay.classList.remove('d-none');
+                        selectedSlots.push({ start: slot.start, end: slot.end, label: slot.label });
                     }
 
                     const meta = STATUS_META[card.dataset.status] || STATUS_META.available;
@@ -800,27 +1023,7 @@ textarea#{{ form.notes.id_for_label }} {
 
                     if (card.dataset.status === 'available' || card.dataset.status === 'selected') {
                         card.addEventListener('click', function() {
-                            // Deselect all other slots
-                            document.querySelectorAll('#edit-time-slots-container .time-slot-card').forEach(c => {
-                                if (c === card) return;
-                                if (c.dataset.status === 'selected') {
-                                    setCardStatus(c, 'available');
-                                } else {
-                                    c.classList.remove('selected');
-                                }
-                            });
-
-                            // Select this card
-                            setCardStatus(card, 'selected');
-
-                            // Update hidden fields
-                            timeSlotInput.value = `${slot.start}-${slot.end}`;
-                            startTimeInput.value = slot.start;
-                            endTimeInput.value = slot.end;
-
-                            // Update display
-                            document.getElementById('edit-selected-slot-label').textContent = slot.label;
-                            selectedDisplay.classList.remove('d-none');
+                            toggleEditSlot(card, slot);
                         });
                     }
 
@@ -854,6 +1057,9 @@ textarea#{{ form.notes.id_for_label }} {
                     columns.appendChild(buildSlotGroup('PM', pmSlots));
                 }
                 container.appendChild(columns);
+
+                // Refresh the selection summary (restores hidden fields + chips)
+                syncEditSelectionUI();
             })
             .catch(() => {
                 container.innerHTML = '<div class="text-center py-3 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Failed to load time slots.</div>';
@@ -876,10 +1082,14 @@ textarea#{{ form.notes.id_for_label }} {
     });
 
     function clearSlotSelection() {
+        selectedSlots = [];
         timeSlotInput.value = '';
         startTimeInput.value = '';
         endTimeInput.value = '';
         document.getElementById('edit-selected-slot-display')?.classList.add('d-none');
+        const chips = document.getElementById('edit-selected-slots-chips');
+        if (chips) chips.innerHTML = '';
+        hideEditContiguityAlert();
         document.querySelectorAll('#edit-time-slots-container .time-slot-card').forEach(c => {
             if (c.dataset.status === 'selected') {
                 setCardStatus(c, 'available');
@@ -891,6 +1101,7 @@ textarea#{{ form.notes.id_for_label }} {
 
     // Clear slot button (reuses clearSlotSelection)
     document.getElementById('edit-clear-slot-btn')?.addEventListener('click', clearSlotSelection);
+    document.getElementById('edit-dismiss-contiguity-btn')?.addEventListener('click', hideEditContiguityAlert);
 
     // Pre-load slots if court and date are already selected
     if (courtSelect.value && dateInput.value) {

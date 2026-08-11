@@ -391,6 +391,64 @@
     color: #fff;
 }
 
+/* ===== MULTI-SLOT SELECTION ===== */
+.selected-slot-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(59, 122, 140, 0.09);
+    border: 1px solid rgba(59, 122, 140, 0.22);
+    color: #1a3a42;
+    font-size: 0.75rem;
+    font-weight: 600;
+    animation: fadeSlideIn 0.25s ease forwards;
+}
+.selected-slot-chip .chip-index {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3B7A8C;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.time-slot-card.shake {
+    animation: slotShake 0.4s ease;
+    border-color: #ff9800 !important;
+}
+@keyframes slotShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+.slot-contiguity-alert {
+    display: none;
+    animation: fadeSlideIn 0.3s ease forwards;
+}
+.slot-contiguity-alert.show {
+    display: flex;
+}
+.multi-slot-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(59, 122, 140, 0.08);
+    border: 1px dashed rgba(59, 122, 140, 0.35);
+    color: #3B7A8C;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.45rem 0.9rem;
+}
+
 /* ===== TIME SLOT GROUPS (AM / PM) ===== */
 .time-slot-group {
     margin-bottom: 1.25rem;
@@ -1569,7 +1627,10 @@
 
                     <!-- ===================== STEP 2: TIME & EQUIPMENT ===================== -->
                     <div class="step-section" id="step-2">
-                        <h5 class="fw-bold mb-3"><i class="fas fa-clock text-primary me-2"></i>Select Time Slot</h5>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h5 class="fw-bold mb-0"><i class="fas fa-clock text-primary me-2"></i>Select Time Slot</h5>
+                            <span class="multi-slot-hint"><i class="fas fa-link"></i>Click multiple consecutive slots to book more hours</span>
+                        </div>
 
                         <!-- Selected date display -->
                         <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between" id="selected-date-display">
@@ -1608,13 +1669,26 @@
                             </div>
                         </div>
 
+                        <!-- Contiguity warning: shown when a non-adjacent slot is clicked -->
+                        <div class="alert alert-warning slot-contiguity-alert align-items-start gap-2" id="slot-contiguity-alert" role="alert">
+                            <i class="fas fa-link mt-1"></i>
+                            <div class="flex-grow-1">
+                                <strong class="d-block">Slots must be consecutive</strong>
+                                <span id="slot-contiguity-message"></span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-warning" id="dismiss-contiguity-btn" style="border-radius: 6px;">Got it</button>
+                        </div>
+
                         <div id="selected-slot-display" class="d-none mb-4">
-                            <div class="alert alert-success py-2 d-flex align-items-center justify-content-between">
-                                <span><i class="fas fa-check-circle me-2"></i>Selected: <strong id="selected-slot-label"></strong></span>
+                            <div class="alert alert-success py-2 mb-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <span><i class="fas fa-check-circle me-2"></i>Selected: <strong id="selected-slot-label"></strong>
+                                    <span class="badge bg-success ms-2" id="selected-duration-badge" style="font-weight: 600;"></span>
+                                </span>
                                 <button type="button" class="btn btn-sm btn-outline-success" id="clear-slot-btn" style="border-radius: 8px;">
                                     <i class="fas fa-times me-1"></i>Clear
                                 </button>
                             </div>
+                            <div class="d-flex flex-wrap gap-1" id="selected-slots-chips" aria-label="Selected time slots"></div>
                         </div>
 
                         <!-- Inline verification alert (shown when slot was just taken) -->
@@ -1909,6 +1983,11 @@
                                                 <div class="summary-item-value summary-highlight" id="confirm-time">—</div>
                                             </div>
                                             <div class="summary-item">
+                                                <div class="summary-item-icon"><i class="fas fa-list-ol"></i></div>
+                                                <span class="summary-item-label">Time Slots</span>
+                                                <div class="summary-item-value" id="confirm-slots">—</div>
+                                            </div>
+                                            <div class="summary-item">
                                                 <div class="summary-item-icon"><i class="fas fa-hourglass-half"></i></div>
                                                 <span class="summary-item-label">Duration</span>
                                                 <div class="summary-item-value" id="confirm-duration">—</div>
@@ -2015,7 +2094,9 @@
         currentStep: 1,
         selectedCourtId: null,
         selectedDate: null,
-        selectedSlot: null,
+        // Multi-slot selection: array of { start, end, label } — slots must be
+        // consecutive; the reservation spans from the first start to last end.
+        selectedSlots: [],
         selectedCourtName: '',
         selectedCourtRate: 0,
         selectedEquipment: [],
@@ -2689,8 +2770,12 @@
                     <i class="fas fa-exclamation-triangle me-2"></i>No time slots available for this date.
                 </div>
             `;
+            syncSelectionUI();
             return;
         }
+
+        // Fresh render — rebuild the selection from the hidden fields below
+        state.selectedSlots = [];
 
         // Group slots into AM (before noon) and PM (noon or later)
         const amSlots = slots.filter(slot => (parseInt(slot.start, 10) || 0) < 12);
@@ -2706,19 +2791,17 @@
             card.dataset.status = status;
             card.dataset.available = status === 'available';
 
-            // Restore a previously selected slot (live selection or post-validation re-render).
-            // Only restore the stored value if the slot is still available — a slot that
-            // was just booked or is otherwise unavailable must never be auto-selected.
+            // Restore previously selected slots (live selection or post-validation
+            // re-render). The stored hidden value is comma-separated segments, e.g.
+            // "21:00-22:00,22:00-23:00,23:00-23:59". Only restore slots that are
+            // still available — a slot that was just booked or is otherwise
+            // unavailable must never be auto-selected.
             const storedVal = timeSlotInput.value;
-            const restoreStored = card.dataset.status === 'available' && storedVal === `${slot.start}-${slot.end}`;
-            if ((state.selectedSlot && state.selectedSlot.start === slot.start && state.selectedSlot.end === slot.end) || restoreStored) {
+            const restoreStored = card.dataset.status === 'available'
+                && storedVal.split(',').indexOf(`${slot.start}-${slot.end}`) !== -1;
+            if (restoreStored) {
                 setCardStatus(card, 'selected');
-                if (restoreStored) {
-                    state.selectedSlot = { start: slot.start, end: slot.end, label: slot.label };
-                    selectedSlotLabel.textContent = slot.label;
-                    selectedSlotDisplay.classList.remove('d-none');
-                    document.getElementById('step-2-next').disabled = false;
-                }
+                state.selectedSlots.push({ start: slot.start, end: slot.end, label: slot.label });
             }
 
             const meta = STATUS_META[card.dataset.status] || STATUS_META.available;
@@ -2732,7 +2815,7 @@
             `;
 
             if (card.dataset.status === 'available' || card.dataset.status === 'selected') {
-                card.addEventListener('click', () => selectTimeSlot(card, slot));
+                card.addEventListener('click', () => toggleTimeSlot(card, slot));
             }
 
             return card;
@@ -2765,46 +2848,187 @@
             columns.appendChild(buildSlotGroup('PM', pmSlots));
         }
         slotsContainer.appendChild(columns);
+
+        // Refresh the selection summary (restores hidden fields + button state)
+        syncSelectionUI();
     }
 
-    function selectTimeSlot(card, slot) {
-        // Deselect all other slots (booked/unavailable stay untouched)
-        document.querySelectorAll('.time-slot-card').forEach(c => {
-            if (c === card) return;
-            if (c.dataset.status === 'selected') {
-                setCardStatus(c, 'available');
+    // ===== MULTI-SLOT SELECTION HELPERS =====
+    function slotKey(slot) {
+        return `${slot.start}-${slot.end}`;
+    }
+
+    function formatRangeEnd(end) {
+        // The last slot of the day ends at 23:59; display it as midnight.
+        return end === '23:59' ? '12:00 AM' : formatTimeDisplay(end);
+    }
+
+    function slotLabel(slot) {
+        return `${formatTimeDisplay(slot.start)} – ${formatRangeEnd(slot.end)}`;
+    }
+
+    function selectedSlotsSorted() {
+        return state.selectedSlots.slice().sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+    }
+
+    function roundHalfEven(value, decimals) {
+        // Mirrors Python's round() (banker's rounding) so the live JS total
+        // matches the value the server persists (e.g. 2.25 -> 2.2, not 2.3).
+        const factor = Math.pow(10, decimals);
+        const scaled = value * factor;
+        const floored = Math.floor(scaled);
+        const frac = scaled - floored;
+        let result = Math.round(scaled);
+        if (frac === 0.5) {
+            result = floored % 2 === 0 ? floored : floored + 1;
+        }
+        return result / factor;
+    }
+
+    function getSelectedDuration() {
+        // Duration is derived from the first->last range, which matches the
+        // server-side calculation (each 1-hour slot adds an hour).
+        const slots = selectedSlotsSorted();
+        if (!slots.length) return 0;
+        return roundHalfEven(getDurationHours(slots[0].start, slots[slots.length - 1].end), 1);
+    }
+
+    // Push the selection state into the hidden form fields, the selected-slot
+    // display, and the step 2 -> 3 button.
+    function syncSelectionUI() {
+        // Enforce the invariant that the selection is always a contiguous block.
+        // Removing a middle slot orphans everything after the gap — clear those
+        // automatically so the price and submission always reflect the slots
+        // that can actually be booked.
+        const sorted = selectedSlotsSorted();
+        const contiguous = [];
+        for (const s of sorted) {
+            if (contiguous.length === 0 || s.start === contiguous[contiguous.length - 1].end) {
+                contiguous.push(s);
             } else {
-                c.classList.remove('selected');
+                break;
             }
-        });
+        }
+        if (contiguous.length < sorted.length) {
+            showPruneNotice();
+        }
+        state.selectedSlots = contiguous;
+        const slots = contiguous;
 
-        setCardStatus(card, 'selected');
+        if (!slots.length) {
+            timeSlotInput.value = '';
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+            selectedSlotDisplay.classList.add('d-none');
+            document.getElementById('step-2-next').disabled = true;
+            updateConfirmation();
+            return;
+        }
 
-        state.selectedSlot = {
-            start: slot.start,
-            end: slot.end,
-            label: slot.label,
-        };
+        const first = slots[0];
+        const last = slots[slots.length - 1];
 
-        // Update hidden fields
-        timeSlotInput.value = `${slot.start}-${slot.end}`;
-        startTimeInput.value = slot.start;
-        endTimeInput.value = slot.end;
+        // Hidden fields: comma-separated segments, plus the overall range.
+        timeSlotInput.value = slots.map(slotKey).join(',');
+        startTimeInput.value = first.start;
+        endTimeInput.value = last.end;
 
-        // Show selected display
-        selectedSlotLabel.textContent = slot.label;
+        // Range + duration display
+        selectedSlotLabel.textContent = `${formatTimeDisplay(first.start)} – ${formatRangeEnd(last.end)}`;
+        const dur = getSelectedDuration();
+        document.getElementById('selected-duration-badge').textContent =
+            `${dur} hour${dur !== 1 ? 's' : ''}`;
+
+        // Per-slot chips (e.g. "9:00 PM – 10:00 PM")
+        document.getElementById('selected-slots-chips').innerHTML = slots
+            .map((s, i) => `<span class="selected-slot-chip"><span class="chip-index">${i + 1}</span>${slotLabel(s)}</span>`)
+            .join('');
+
         selectedSlotDisplay.classList.remove('d-none');
-
-        // Enable step 2 -> 3
         document.getElementById('step-2-next').disabled = false;
+
+        // Keep the step-3 booking summary in sync whenever the selection changes
+        updateConfirmation();
+    }
+
+    function hideContiguityAlert() {
+        document.getElementById('slot-contiguity-alert').classList.remove('show');
+        if (hideContiguityAlert._timer) {
+            clearTimeout(hideContiguityAlert._timer);
+            hideContiguityAlert._timer = null;
+        }
+    }
+
+    function showPruneNotice() {
+        document.getElementById('slot-contiguity-message').textContent =
+            'Selections must be consecutive, so the slots that were no longer adjacent were cleared automatically.';
+        document.getElementById('slot-contiguity-alert').classList.add('show');
+        if (hideContiguityAlert._timer) clearTimeout(hideContiguityAlert._timer);
+        hideContiguityAlert._timer = setTimeout(hideContiguityAlert, 5000);
+    }
+
+    function showContiguityError(slot) {
+        document.getElementById('slot-contiguity-message').textContent =
+            `“${slotLabel(slot)}” is not adjacent to your current selection. `
+            + `Please choose a slot that starts right after your last selected slot `
+            + `or ends right before your first one (e.g. 10:00 PM after 9:00 PM).`;
+        document.getElementById('slot-contiguity-alert').classList.add('show');
+
+        if (hideContiguityAlert._timer) clearTimeout(hideContiguityAlert._timer);
+        hideContiguityAlert._timer = setTimeout(hideContiguityAlert, 7000);
+
+        // Brief shake on the attempted card
+        const attempted = document.querySelector(
+            `.time-slot-card[data-start="${slot.start}"][data-end="${slot.end}"]`
+        );
+        if (attempted) {
+            attempted.classList.remove('shake');
+            void attempted.offsetWidth; // restart the animation
+            attempted.classList.add('shake');
+            setTimeout(() => attempted.classList.remove('shake'), 450);
+        }
+    }
+
+    // Click handler: add / remove a single slot. Only consecutive slots may be
+    // added — the new slot must touch the current block at either end.
+    function toggleTimeSlot(card, slot) {
+        // Already selected → remove it
+        if (card.dataset.status === 'selected' || state.selectedSlots.some(s => slotKey(s) === slotKey(slot))) {
+            state.selectedSlots = state.selectedSlots.filter(s => slotKey(s) !== slotKey(slot));
+            setCardStatus(card, 'available');
+            syncSelectionUI();
+            return;
+        }
+
+        // Only available slots can be added
+        if (card.dataset.status !== 'available') return;
+
+        // Consecutiveness check against the current block
+        const slots = selectedSlotsSorted();
+        if (slots.length > 0) {
+            const first = slots[0];
+            const last = slots[slots.length - 1];
+            const adjacentBefore = slot.end === first.start; // e.g. add 8:00 before 9:00
+            const adjacentAfter = slot.start === last.end;   // e.g. add 10:00 after 9:00
+            if (!adjacentBefore && !adjacentAfter) {
+                showContiguityError(slot);
+                return;
+            }
+        }
+
+        hideContiguityAlert();
+        state.selectedSlots.push({ start: slot.start, end: slot.end, label: slot.label });
+        setCardStatus(card, 'selected');
+        syncSelectionUI();
     }
 
     function clearSlotSelection() {
-        state.selectedSlot = null;
+        state.selectedSlots = [];
         timeSlotInput.value = '';
         startTimeInput.value = '';
         endTimeInput.value = '';
         selectedSlotDisplay.classList.add('d-none');
+        document.getElementById('step-2-next').disabled = true;
         document.querySelectorAll('.time-slot-card').forEach(c => {
             if (c.dataset.status === 'selected') {
                 setCardStatus(c, 'available');
@@ -2812,10 +3036,10 @@
                 c.classList.remove('selected');
             }
         });
-        document.getElementById('step-2-next').disabled = true;
     }
 
     document.getElementById('clear-slot-btn')?.addEventListener('click', clearSlotSelection);
+    document.getElementById('dismiss-contiguity-btn')?.addEventListener('click', hideContiguityAlert);
 
     // ===== EQUIPMENT SELECTION =====
     document.querySelectorAll('.equipment-card').forEach(card => {
@@ -2844,7 +3068,8 @@
 
     // ===== VERIFY SLOT AVAILABILITY =====
     async function verifySlot() {
-        if (!state.selectedSlot) return false;
+        const slots = selectedSlotsSorted();
+        if (!slots.length) return false;
 
         const btn = document.getElementById('step-2-next');
         const alertEl = document.getElementById('slot-verification-alert');
@@ -2861,8 +3086,8 @@
         try {
             const courtId = courtSelect.value;
             const date = state.selectedDate;
-            const start = state.selectedSlot.start;
-            const end = state.selectedSlot.end;
+            const start = slots[0].start;
+            const end = slots[slots.length - 1].end;
 
             const resp = await fetch(`/reservations/api/verify-slot/?court_id=${courtId}&date=${date}&start=${start}&end=${end}`);
             const data = await resp.json();
@@ -2876,11 +3101,10 @@
                 return true;
             } else {
                 // Slot was just taken — show inline error
-                verificationFailed = true;
                 msgEl.textContent = data.message || 'This time slot is no longer available. Please select a different time.';
                 alertEl.classList.add('show');
 
-                // Mark the selected card as booked
+                // Mark the selected cards as booked
                 document.querySelectorAll('.time-slot-card.selected').forEach(c => {
                     setCardStatus(c, 'booked');
                     c.style.cursor = 'not-allowed';
@@ -2890,7 +3114,7 @@
                 });
 
                 // Clear the selection state
-                state.selectedSlot = null;
+                state.selectedSlots = [];
                 timeSlotInput.value = '';
                 startTimeInput.value = '';
                 endTimeInput.value = '';
@@ -2915,7 +3139,7 @@
 
     // ===== STEP 2 -> 3 =====
     document.getElementById('step-2-next').addEventListener('click', () => {
-        if (state.selectedSlot) {
+        if (state.selectedSlots.length) {
             verifySlot();
         }
     });
@@ -2958,17 +3182,24 @@
         document.getElementById('confirm-date').textContent = formatDateDisplay(state.selectedDate);
 
         // Time
-        if (state.selectedSlot) {
-            const startFmt = formatTimeDisplay(state.selectedSlot.start);
-            const endFmt = formatTimeDisplay(state.selectedSlot.end);
+        const slots = selectedSlotsSorted();
+        if (slots.length > 0) {
+            const first = slots[0];
+            const last = slots[slots.length - 1];
+            const startFmt = formatTimeDisplay(first.start);
+            const endFmt = formatRangeEnd(last.end);
             document.getElementById('confirm-time').textContent = `${startFmt} — ${endFmt}`;
 
-            // Duration
-            const dur = Math.round(getDurationHours(state.selectedSlot.start, state.selectedSlot.end) * 10) / 10;
+            // Individual slots (e.g. "9:00 PM – 10:00 PM, 10:00 PM – 11:00 PM")
+            document.getElementById('confirm-slots').textContent =
+                slots.map(s => slotLabel(s)).join(', ');
+
+            // Duration — one hour per selected slot
+            const dur = getSelectedDuration();
             document.getElementById('confirm-duration').textContent = `${dur} hour${dur !== 1 ? 's' : ''}`;
             document.getElementById('confirm-duration-price').textContent = `${dur} hr${dur !== 1 ? 's' : ''}`;
 
-            // Court rate & subtotal
+            // Court rate & subtotal (rate × total hours)
             const rate = state.selectedCourtRate || 500;
             const subtotal = rate * dur;
             document.getElementById('confirm-rate').textContent = `₱${rate.toLocaleString()}/hr`;
@@ -3003,6 +3234,15 @@
             // Total
             const total = Math.max(0, subtotal + equipFee + tax - discount);
             document.getElementById('confirm-total').textContent = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        } else {
+            // No selection — reset summary placeholders
+            document.getElementById('confirm-time').textContent = '—';
+            document.getElementById('confirm-slots').textContent = '—';
+            document.getElementById('confirm-duration').textContent = '—';
+            document.getElementById('confirm-duration-price').textContent = '0 hrs';
+            document.getElementById('confirm-subtotal').textContent = '₱0.00';
+            document.getElementById('confirm-equipment-fee').textContent = '₱0.00';
+            document.getElementById('confirm-total').textContent = '₱0.00';
         }
 
         // Notes
@@ -3222,27 +3462,11 @@
                     document.getElementById('display-date-label').textContent = formatDateDisplay(dateInput.value);
                     document.getElementById('step-1-next').disabled = false;
                     
-                    // Load time slots for the selected date
+                    // Load time slots for the selected date. renderTimeSlots()
+                    // restores every stored segment that is still available into
+                    // state.selectedSlots, so we only need to refresh the summary.
                     loadTimeSlots().then(() => {
-                        if (hasTimeSlot) {
-                            // Find and select the matching time slot card
-                            const parts = timeSlotInput.value.split('-');
-                            if (parts.length === 2) {
-                                const startVal = parts[0];
-                                const endVal = parts[1];
-                                const matchingCard = document.querySelector(
-                                    `.time-slot-card[data-start="${startVal}"][data-end="${endVal}"]`
-                                );
-                                if (matchingCard && (matchingCard.dataset.status === 'available' || matchingCard.dataset.status === 'selected')) {
-                                    const slot = {
-                                        start: startVal,
-                                        end: endVal,
-                                        label: matchingCard.dataset.label
-                                    };
-                                    selectTimeSlot(matchingCard, slot);
-                                }
-                            }
-                        }
+                        syncSelectionUI();
                     });
                 }
             });
@@ -3265,8 +3489,8 @@
             // Non-field errors (like overlapping reservation) or time slot errors → show step 2
             if (hasTimeSlot) {
                 // If we already have a time slot selected, go to step 2.
-                // Keep the Next button disabled until the stored slot is confirmed
-                // still available (selectTimeSlot re-enables it during restore).
+                // Keep the Next button disabled until the stored slots are confirmed
+                // still available (syncSelectionUI re-enables it during restore).
                 goToStep(2);
                 document.getElementById('step-2-next').disabled = true;
             }
@@ -3299,7 +3523,7 @@
 
     skipBtn.addEventListener('click', function() {
         // Verify the slot is still available before skipping
-        if (state.selectedSlot) {
+        if (state.selectedSlots.length) {
             verifySlot();
         } else {
             updateConfirmation();

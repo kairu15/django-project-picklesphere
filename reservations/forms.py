@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from datetime import datetime, time
-from .models import Reservation, CancellationRequest
+from .models import Reservation, CancellationRequest, expand_time_range_to_slots
 from courts.models import Court
 from equipment.models import Equipment
 
@@ -114,8 +114,11 @@ class ReservationForm(forms.ModelForm):
         self.fields['scoring_format'].initial = '11'
         
         # If editing an existing reservation, pre-populate time_slot from instance
+        # (expanded back into the individual 1-hour segments so every selected
+        # slot is restored in the UI).
         if self.instance and self.instance.pk and self.instance.start_time and self.instance.end_time:
-            self.fields['time_slot'].initial = f"{self.instance.start_time.strftime('%H:%M')}-{self.instance.end_time.strftime('%H:%M')}"
+            segments = expand_time_range_to_slots(self.instance.start_time, self.instance.end_time)
+            self.fields['time_slot'].initial = ','.join(segments)
     
     def clean(self):
         cleaned_data = super().clean()
@@ -123,19 +126,41 @@ class ReservationForm(forms.ModelForm):
         court = cleaned_data.get('court')
         time_slot = cleaned_data.get('time_slot')
 
-        # Parse time_slot and set start_time and end_time
+        # Parse time_slot. Users may select multiple consecutive 1-hour slots;
+        # these are submitted comma-separated, e.g.
+        #   "21:00-22:00,22:00-23:00,23:00-23:59"
+        # A single slot is simply one segment ("21:00-22:00").
         if time_slot:
             try:
-                from datetime import datetime, time as dt_time
-                start_str, end_str = time_slot.split('-')
-                start_hour, start_min = map(int, start_str.split(':'))
-                end_hour, end_min = map(int, end_str.split(':'))
-                start_time = dt_time(start_hour, start_min)
-                end_time = dt_time(end_hour, end_min)
-                cleaned_data['start_time'] = start_time
-                cleaned_data['end_time'] = end_time
+                from datetime import time as dt_time
+                segments = []
+                for part in time_slot.split(','):
+                    part = part.strip()
+                    if not part:
+                        continue
+                    start_str, end_str = part.split('-')
+                    start_hour, start_min = map(int, start_str.split(':'))
+                    end_hour, end_min = map(int, end_str.split(':'))
+                    segments.append((dt_time(start_hour, start_min), dt_time(end_hour, end_min), part))
             except (ValueError, AttributeError):
                 raise ValidationError("Invalid time slot selected.")
+
+            if not segments:
+                raise ValidationError("Please select at least one time slot.")
+
+            # Enforce that multi-slot selections are consecutive: each segment
+            # must begin exactly where the previous one ends.
+            for i in range(1, len(segments)):
+                if segments[i][0] != segments[i - 1][1]:
+                    raise ValidationError(
+                        "Please select consecutive time slots only. Each selected slot must "
+                        "be right before or right after your current selection (e.g. 9:00 PM "
+                        "and 10:00 PM)."
+                    )
+
+            # The reservation spans from the first segment start to the last segment end
+            cleaned_data['start_time'] = segments[0][0]
+            cleaned_data['end_time'] = segments[-1][1]
 
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')

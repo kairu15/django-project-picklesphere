@@ -500,7 +500,7 @@
                                 <div class="info-chip"><i class="fas fa-clock"></i></div>
                                 <div>
                                     <div class="info-label">Reservation Time</div>
-                                    <div class="info-value highlight">{{ payment.reservation.start_time|time:"g:i A" }} – {{ payment.reservation.end_time|time:"g:i A" }}</div>
+                                    <div class="info-value highlight">{{ payment.reservation.display_time_range }}</div>
                                 </div>
                             </div>
                         </div>
@@ -1051,7 +1051,7 @@
                         <div class="info-chip"><i class="fas fa-clock"></i></div>
                         <div>
                             <div class="info-label">Reservation Time</div>
-                            <div class="info-value">{{ payment.reservation.start_time|time:"g:i A" }} – {{ payment.reservation.end_time|time:"g:i A" }}</div>
+                            <div class="info-value">{{ payment.reservation.display_time_range }}</div>
                         </div>
                     </div>
                     {% if payment.reservation.match %}
