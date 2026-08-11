@@ -19,7 +19,7 @@ class Command(BaseCommand):
         self.stdout.write("Updating HomePageContent records...")
 
         homepage_defaults = {
-            'hero_title': 'Welcome to PickleSphere',
+            'hero_title': 'Welcome to Pickle Ball Reservation',
             'hero_subtitle': (
                 'The all-in-one platform connecting pickleball players with courts, '
                 'tournaments, and organizations nationwide. Find, book, and play '
@@ -27,7 +27,7 @@ class Command(BaseCommand):
             ),
             'about_title': 'Your Pickleball Journey Starts Here',
             'about_text': (
-                'PickleSphere is a comprehensive platform that connects pickleball '
+                'Pickle Ball Reservation is a comprehensive platform that connects pickleball '
                 'enthusiasts with courts, organizations, and tournaments across the '
                 'country. Whether you are a beginner looking to learn or a seasoned '
                 'pro seeking competition, we make it easy to find, book, and play.'
@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
         about_defaults = {
             'hero_badge': 'About the Platform',
-            'hero_title': 'About PickleSphere',
+            'hero_title': 'About Pickle Ball Reservation',
             'hero_subtitle': (
                 "The Philippines' premier pickleball platform, connecting players "
                 "with courts, organizations, and tournaments nationwide."
@@ -102,16 +102,16 @@ class Command(BaseCommand):
             'orgs_badge': 'FOR ORGANIZATIONS',
             'orgs_title': 'Benefits for Organizations',
             'orgs_subtitle': 'Powerful tools to manage and grow your pickleball business',
-            'why_badge': 'WHY PICKLESPHERE',
+            'why_badge': 'WHY PICKLE BALL RESERVATION',
             'why_title': 'Why Choose Our Platform?',
             'why_subtitle': 'We provide the best pickleball platform experience',
             'gallery_badge': 'GALLERY',
             'gallery_title': 'Pickleball in Action',
             'gallery_subtitle': 'See what is happening across our partner organizations',
-            'cta_title': 'Join the PickleSphere Community',
+            'cta_title': 'Join the Pickle Ball Reservation Community',
             'cta_subtitle': (
                 'Whether you are a player looking for courts or an organization '
-                'wanting to grow, PickleSphere is the platform for you.'
+                'wanting to grow, Pickle Ball Reservation is the platform for you.'
             ),
         }
 
@@ -190,7 +190,7 @@ class Command(BaseCommand):
             defaults={
                 'phone': '09455470173',
                 'email': 'picklesphere@gmail.com',
-                'address': 'PickleSphere Headquarters',
+                'address': 'Pickle Ball Reservation Headquarters',
                 'city_country': 'Philippines',
                 'is_active': True,
             },

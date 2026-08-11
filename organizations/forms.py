@@ -25,10 +25,10 @@ class OrganizationRegistrationForm(forms.ModelForm):
             'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contact@organization.com'}),
             'contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact phone number'}),
             'website': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://yourwebsite.com'}),
-            'registration_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Why do you want to join PickleSphere? Any additional information?'}),
+            'registration_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Why do you want to join Pickle Ball Reservation? Any additional information?'}),
         }
         labels = {
-            'registration_notes': 'Why Join PickleSphere?',
+            'registration_notes': 'Why Join Pickle Ball Reservation?',
         }
 
 

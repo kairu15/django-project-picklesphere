@@ -1,7 +1,7 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}{% if tournament %}Edit {{ tournament.name }}{% else %}Create Tournament{% endif %} - PickleSphere{% endblock %}
+{% block title %}{% if tournament %}Edit {{ tournament.name }}{% else %}Create Tournament{% endif %}{% endblock %}
 
 {% block page_title %}{% if tournament %}Edit {{ tournament.name }}{% else %}Create Tournament{% endif %}{% endblock %}
 

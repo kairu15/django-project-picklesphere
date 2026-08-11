@@ -74,7 +74,7 @@ def create_and_send_otp(email, purpose, user=None, ip_address=None, request=None
     )
     
     # Prepare email context
-    site_name = getattr(settings, 'SITE_NAME', 'PickleSphere')
+    site_name = getattr(settings, 'SITE_NAME', 'Pickle Ball Reservation')
     greeting = f"Hi {user.first_name}!" if user and user.first_name else "Hello!"
     
     if purpose == 'registration':

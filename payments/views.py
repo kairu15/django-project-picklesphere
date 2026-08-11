@@ -1771,7 +1771,7 @@ def revenue_report_export_view(request):
 
             # Title row
             ws.merge_cells('A1:M1')
-            ws['A1'] = f'PickleSphere Revenue Report ({date_from} to {date_to})'
+            ws['A1'] = f'Pickle Ball Reservation Revenue Report ({date_from} to {date_to})'
             ws['A1'].font = header_font
             ws['A1'].fill = header_fill
             ws['A1'].alignment = Alignment(horizontal='center', vertical='center')

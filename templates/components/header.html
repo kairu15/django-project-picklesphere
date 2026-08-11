@@ -343,11 +343,11 @@
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
             {% if site_branding and site_branding.header_logo %}
-                <img src="{{ site_branding.header_logo.url }}?_v={{ site_branding.cache_buster }}" alt="{{ site_branding.brand_name|default:'PickleSphere' }}" class="brand-logo">
+                <img src="{{ site_branding.header_logo.url }}?_v={{ site_branding.cache_buster }}" alt="{{ site_branding.brand_name|default:'Pickle Ball Reservation' }}" class="brand-logo">
             {% else %}
-                <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="brand-logo">
+                <img src="{% static 'PickleSphereLogo.png' %}" alt="Pickle Ball Reservation" class="brand-logo">
             {% endif %}
-            <span>{% if site_branding %}{{ site_branding.brand_name }}{% else %}PickleSphere{% endif %}</span>
+            <span>{% if site_branding %}{{ site_branding.brand_name }}{% else %}Pickle Ball Reservation{% endif %}</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

@@ -118,7 +118,7 @@
         <!-- Header -->
         <div class="receipt-header">
             <h2><i class="fas fa-receipt me-2"></i>Official Receipt</h2>
-            <p class="text-muted mb-2">PickleSphere Court Reservation System</p>
+            <p class="text-muted mb-2">Pickle Ball Reservation — Court Reservation System</p>
             {% if payment.status == 'paid' %}
             <span class="receipt-badge bg-success text-white">
                 <i class="fas fa-check-circle me-1"></i> PAID
@@ -249,7 +249,7 @@
 
         <!-- Footer -->
         <div class="receipt-footer">
-            <p><strong>PickleSphere</strong> — Citywide Pickleball Court Reservation System</p>
+            <p><strong>Pickle Ball Reservation</strong> — Citywide Pickleball Court Reservation System</p>
             <p>This is a computer-generated receipt. No signature required.</p>
             <p class="mt-1">Receipt #{{ payment.id|stringformat:"06d" }} | {{ payment.created_at|date:"Y-m-d H:i:s" }}</p>
         </div>

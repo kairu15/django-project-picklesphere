@@ -1350,7 +1350,7 @@ def hero_section_settings(request):
         except ValueError:
             settings.overlay_opacity = 0.6
         settings.badge_text = request.POST.get('badge_text', '')
-        settings.title = request.POST.get('title', 'Welcome to PickleSphere')
+        settings.title = request.POST.get('title', 'Welcome to Pickle Ball Reservation')
         settings.subtitle = request.POST.get('subtitle', '')
         settings.show_search_widget = request.POST.get('show_search_widget') == 'on'
         settings.min_height = request.POST.get('min_height', '90vh')
@@ -1395,7 +1395,7 @@ def site_branding_settings(request):
     branding, _ = SiteBranding.objects.get_or_create(pk=1)
 
     if request.method == 'POST':
-        branding.brand_name = request.POST.get('brand_name', 'PickleSphere')
+        branding.brand_name = request.POST.get('brand_name', 'Pickle Ball Reservation')
         branding.is_active = request.POST.get('is_active') == 'on'
         logo_fields = ['website_logo', 'header_logo', 'footer_logo', 'favicon', 'login_logo', 'loading_logo', 'email_logo']
         for field in logo_fields:
@@ -1438,7 +1438,7 @@ def site_branding_restore_defaults(request):
         branding.login_logo = None
         branding.loading_logo = None
         branding.email_logo = None
-        branding.brand_name = 'PickleSphere'
+        branding.brand_name = 'Pickle Ball Reservation'
         branding.save()
         messages.success(request, 'All branding defaults restored.')
         return redirect('super_admin_branding_cms')
@@ -1499,7 +1499,7 @@ def navbar_settings(request):
     if request.method == 'POST':
         settings.is_sticky = request.POST.get('is_sticky') == 'on'
         settings.show_brand = request.POST.get('show_brand') == 'on'
-        settings.brand_text = request.POST.get('brand_text', 'PickleSphere')
+        settings.brand_text = request.POST.get('brand_text', 'Pickle Ball Reservation')
         settings.background_color = request.POST.get('background_color', '#0f172a')
         settings.text_color = request.POST.get('text_color', 'rgba(255,255,255,0.8)')
         settings.text_color_hover = request.POST.get('text_color_hover', '#ffffff')
@@ -1598,7 +1598,7 @@ def footer_settings(request):
 
     if request.method == 'POST':
         settings.is_visible = request.POST.get('is_visible') == 'on'
-        settings.organization_name = request.POST.get('organization_name', 'PickleSphere')
+        settings.organization_name = request.POST.get('organization_name', 'Pickle Ball Reservation')
         settings.short_description = request.POST.get('short_description', '')
         settings.copyright_text = request.POST.get('copyright_text', '')
         settings.show_newsletter = request.POST.get('show_newsletter') == 'on'

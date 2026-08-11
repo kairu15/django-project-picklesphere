@@ -1,7 +1,7 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}SMTP Settings - PickleSphere Admin{% endblock %}
+{% block title %}SMTP Settings{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -80,7 +80,7 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-medium">Sender Name</label>
                                 <input type="text" name="sender_name" class="form-control" 
-                                       value="{{ config.sender_name|default:'PickleSphere' }}"
+                                       value="{{ config.sender_name|default:'Pickle Ball Reservation' }}"
                                        placeholder="Your System Name">
                             </div>
                             <div class="col-md-4">

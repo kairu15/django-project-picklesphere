@@ -366,11 +366,11 @@
             <div class="col-lg-3 col-md-6">
                 <div class="footer-brand">
                     {% if site_branding and site_branding.footer_logo %}
-                        <img src="{{ site_branding.footer_logo.url }}?_v={{ site_branding.cache_buster }}" alt="{{ footer_settings.organization_name|default:'PickleSphere' }}" class="footer-logo">
+                        <img src="{{ site_branding.footer_logo.url }}?_v={{ site_branding.cache_buster }}" alt="{{ footer_settings.organization_name|default:'Pickle Ball Reservation' }}" class="footer-logo">
                     {% else %}
-                        <img src="{% static 'PickleSphereLogo.png' %}" alt="PickleSphere" class="footer-logo">
+                        <img src="{% static 'PickleSphereLogo.png' %}" alt="Pickle Ball Reservation" class="footer-logo">
                     {% endif %}
-                    <h5 class="footer-brand-title">{{ footer_settings.organization_name|default:'PickleSphere' }}</h5>
+                    <h5 class="footer-brand-title">{{ footer_settings.organization_name|default:'Pickle Ball Reservation' }}</h5>
                 </div>
                 <p class="footer-description">
                     {{ footer_settings.short_description|default:'The ultimate platform connecting pickleball players with courts, organizations, and tournaments nationwide. Find, book, and play — all in one place.' }}
@@ -461,7 +461,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <p class="footer-copyright">
-                        {{ footer_settings.copyright_text|default:'© PickleSphere. All rights reserved.' }}
+                        {{ footer_settings.copyright_text|default:'© Pickle Ball Reservation. All rights reserved.' }}
                     </p>
                 </div>
                 <div class="col-md-6">

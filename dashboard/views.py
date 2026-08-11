@@ -80,10 +80,10 @@ def home_view(request):
         return content.content if content else default
 
     homepage_text = {
-        'hero_title': get_homepage_content('hero_title', 'Welcome to PickleSphere'),
+        'hero_title': get_homepage_content('hero_title', 'Welcome to Pickle Ball Reservation'),
         'hero_subtitle': get_homepage_content('hero_subtitle', 'The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide. Find, book, and play — all in one place.'),
         'about_title': get_homepage_content('about_title', 'Your Pickleball Journey Starts Here'),
-        'about_text': get_homepage_content('about_text', 'PickleSphere is a comprehensive platform that connects pickleball enthusiasts with courts, organizations, and tournaments across the country. Whether you are a beginner looking to learn or a seasoned pro seeking competition, we make it easy to find, book, and play.'),
+        'about_text': get_homepage_content('about_text', 'Pickle Ball Reservation is a comprehensive platform that connects pickleball enthusiasts with courts, organizations, and tournaments across the country. Whether you are a beginner looking to learn or a seasoned pro seeking competition, we make it easy to find, book, and play.'),
         'cta_title': get_homepage_content('cta_title', 'Ready to Play?'),
         'cta_text': get_homepage_content('cta_text', 'Join thousands of pickleball players. Find courts, join tournaments, and connect with organizations near you!'),
     }
@@ -125,7 +125,7 @@ def home_view(request):
             {
                 'name': 'John Martinez',
                 'rating': 5,
-                'comment': 'PickleSphere has completely transformed my pickleball experience. The courts are top-notch and the booking system is so convenient!',
+                'comment': 'Pickle Ball Reservation has completely transformed my pickleball experience. The courts are top-notch and the booking system is so convenient!',
                 'avatar': None
             },
             {
@@ -879,7 +879,7 @@ def about_view(request):
 
     content = {
         'hero_badge': get_content('hero_badge', 'Our Story'),
-        'hero_title': get_content('hero_title', 'Welcome to PickleSphere'),
+        'hero_title': get_content('hero_title', 'Welcome to Pickle Ball Reservation'),
         'hero_subtitle': get_content('hero_subtitle', 'The Philippines\' premier pickleball platform, connecting players with courts, organizations, and tournaments nationwide.'),
         'mission_title': get_content('mission_title', 'Our Mission'),
         'mission_text': get_content('mission_text', 'To grow the sport of pickleball by providing a centralized platform that connects players with organizations, simplifies court reservations, streamlines tournament management, and fosters a vibrant, inclusive pickleball community across the Philippines.'),
@@ -903,14 +903,14 @@ def about_view(request):
         'orgs_badge': get_content('orgs_badge', 'FOR ORGANIZATIONS'),
         'orgs_title': get_content('orgs_title', 'Benefits for Organizations'),
         'orgs_subtitle': get_content('orgs_subtitle', 'Powerful tools to manage and grow your pickleball business'),
-        'why_badge': get_content('why_badge', 'WHY PICKLESPHERE'),
+        'why_badge': get_content('why_badge', 'WHY PICKLE BALL RESERVATION'),
         'why_title': get_content('why_title', 'Why Choose Our Platform?'),
         'why_subtitle': get_content('why_subtitle', 'We provide the best pickleball platform experience'),
         'gallery_badge': get_content('gallery_badge', 'GALLERY'),
         'gallery_title': get_content('gallery_title', 'Pickleball in Action'),
         'gallery_subtitle': get_content('gallery_subtitle', 'See what is happening across our partner organizations'),
-        'cta_title': get_content('cta_title', 'Join the PickleSphere Community'),
-        'cta_subtitle': get_content('cta_subtitle', 'Whether you are a player looking for courts or an organization wanting to grow, PickleSphere is the platform for you.'),
+        'cta_title': get_content('cta_title', 'Join the Pickle Ball Reservation Community'),
+        'cta_subtitle': get_content('cta_subtitle', 'Whether you are a player looking for courts or an organization wanting to grow, Pickle Ball Reservation is the platform for you.'),
     }
 
     # Get dynamic stats
@@ -1159,10 +1159,10 @@ def populate_homepage_content(request):
 
 
     default_content = {
-        'hero_title': 'Welcome to PickleSphere',
+        'hero_title': 'Welcome to Pickle Ball Reservation',
         'hero_subtitle': 'The all-in-one platform connecting pickleball players with courts, tournaments, and organizations nationwide. Find, book, and play — all in one place.',
         'about_title': 'Your Pickleball Journey Starts Here',
-        'about_text': 'PickleSphere is a comprehensive platform that connects pickleball enthusiasts with courts, organizations, and tournaments across the country. Whether you are a beginner looking to learn or a seasoned pro seeking competition, we make it easy to find, book, and play.',
+        'about_text': 'Pickle Ball Reservation is a comprehensive platform that connects pickleball enthusiasts with courts, organizations, and tournaments across the country. Whether you are a beginner looking to learn or a seasoned pro seeking competition, we make it easy to find, book, and play.',
         'cta_title': 'Ready to Play?',
         'cta_text': 'Join thousands of pickleball players. Find courts, join tournaments, and connect with organizations near you!',
     }
@@ -1442,7 +1442,7 @@ def faq_view(request):
     cms_contents = {
         'hero_badge': get_content('hero_badge', 'Need Help?'),
         'hero_title': get_content('hero_title', 'Frequently Asked Questions'),
-        'hero_subtitle': get_content('hero_subtitle', 'Find answers to common questions about PickleSphere, our platform, and services'),
+        'hero_subtitle': get_content('hero_subtitle', 'Find answers to common questions about Pickle Ball Reservation, our platform, and services'),
         'search_placeholder': get_content('search_placeholder', 'Search for answers...'),
         'contact_title': get_content('contact_title', 'Still Need Help?'),
         'contact_text': get_content('contact_text', "Can't find what you're looking for? Our support team is here to help!"),
@@ -2483,8 +2483,8 @@ def contact_message_detail_view(request, message_id):
             # Send email to the sender
             try:
                 send_mail(
-                    f'Re: {message.get_subject_display()} - PickleSphere',
-                    f'Hi {message.name},\n\nThank you for contacting us. Here is our reply:\n\n{reply_text}\n\nBest regards,\nPickleSphere Team',
+                    f'Re: {message.get_subject_display()} - Pickle Ball Reservation',
+                    f'Hi {message.name},\n\nThank you for contacting us. Here is our reply:\n\n{reply_text}\n\nBest regards,\nPickle Ball Reservation Team',
                     settings.DEFAULT_FROM_EMAIL,
                     [message.email],
                     fail_silently=True
@@ -2555,7 +2555,7 @@ def dashboard_export_view(request):
     writer = csv.writer(response)
 
     # Header
-    writer.writerow(['PickleSphere Dashboard Report'])
+    writer.writerow(['Pickle Ball Reservation Dashboard Report'])
     writer.writerow([f'Generated: {timezone.now().strftime("%Y-%m-%d %H:%M")}'])
     writer.writerow([])
 

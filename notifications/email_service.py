@@ -72,7 +72,7 @@ def get_smtp_config():
         'password': settings.EMAIL_HOST_PASSWORD,
         'use_tls': getattr(settings, 'EMAIL_USE_TLS', True),
         'use_ssl': getattr(settings, 'EMAIL_USE_SSL', False),
-        'sender_name': getattr(settings, 'DEFAULT_FROM_NAME', 'PickleSphere'),
+        'sender_name': getattr(settings, 'DEFAULT_FROM_NAME', 'Pickle Ball Reservation'),
         'sender_email': settings.DEFAULT_FROM_EMAIL,
     }
 
@@ -126,7 +126,7 @@ def send_email(
         context = {}
 
     # Add common context
-    context.setdefault('site_name', getattr(settings, 'SITE_NAME', 'PickleSphere'))
+    context.setdefault('site_name', getattr(settings, 'SITE_NAME', 'Pickle Ball Reservation'))
     context.setdefault('site_url', getattr(settings, 'SITE_URL', 'http://localhost:8000'))
     context.setdefault('current_year', timezone.now().year)
 
@@ -147,7 +147,7 @@ def send_email(
     smtp_config = get_smtp_config()
 
     sender = from_email or smtp_config.get('sender_email', settings.DEFAULT_FROM_EMAIL)
-    sender_name = smtp_config.get('sender_name', getattr(settings, 'DEFAULT_FROM_NAME', 'PickleSphere'))
+    sender_name = smtp_config.get('sender_name', getattr(settings, 'DEFAULT_FROM_NAME', 'Pickle Ball Reservation'))
     from_address = f'{sender_name} <{sender}>'
 
     # Build email content

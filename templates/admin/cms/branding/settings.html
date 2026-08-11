@@ -45,7 +45,7 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Brand Name</label>
-                            <input type="text" name="brand_name" class="form-control form-control-lg" value="{{ branding.brand_name }}" placeholder="PickleSphere" id="brandName">
+                            <input type="text" name="brand_name" class="form-control form-control-lg" value="{{ branding.brand_name }}" placeholder="Pickle Ball Reservation" id="brandName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Website Logo <small class="text-muted">(200x200, square)</small></label>
@@ -133,7 +133,7 @@
                     <div class="brand-preview-logo" id="brandPreviewLogo" style="background:#3B7A8C;color:#fff;">
                         <i class="fas fa-table-tennis"></i>
                     </div>
-                    <h5 id="brandPreviewName" style="color:#1a3a42;font-weight:700;">{{ branding.brand_name|default:'PickleSphere' }}</h5>
+                    <h5 id="brandPreviewName" style="color:#1a3a42;font-weight:700;">{{ branding.brand_name|default:'Pickle Ball Reservation' }}</h5>
                     <p style="color:#6c757d;font-size:0.85rem;margin-bottom:0;">Brand identity preview</p>
                 </div>
                 <hr>
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var brandPreview = document.getElementById('brandPreviewName');
     if (brandNameInput && brandPreview) {
         brandNameInput.addEventListener('input', function() {
-            brandPreview.textContent = this.value || 'PickleSphere';
+            brandPreview.textContent = this.value || 'Pickle Ball Reservation';
         });
     }
 });

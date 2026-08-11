@@ -15,10 +15,10 @@ def send_welcome_email(user):
     """Send welcome email to new users after successful registration."""
     return send_email_to_user(
         user=user,
-        subject='Welcome to PickleSphere!',
+        subject='Welcome to Pickle Ball Reservation!',
         html_template='emails/welcome.html',
         context={
-            'title': 'Welcome to PickleSphere!',
+            'title': 'Welcome to Pickle Ball Reservation!',
             'username': user.username,
             'action_url': f'{settings.SITE_URL}/',
             'action_text': 'Get Started',
@@ -86,7 +86,7 @@ def send_login_security_alert_email(user, ip_address, user_agent=''):
         context={
             'title': 'New Sign-In Alert',
             'alert_type': 'login',
-            'message': f'We noticed a new sign-in to your PickleSphere account.',
+            'message': f'We noticed a new sign-in to your Pickle Ball Reservation account.',
             'ip_address': ip_address,
             'user_agent': user_agent,
             'action_url': f'{settings.SITE_URL}/accounts/profile/',
@@ -123,7 +123,7 @@ def send_account_suspension_email(user, reason=''):
         context={
             'title': 'Account Suspended',
             'reason': reason,
-            'message': 'Your PickleSphere account has been suspended.' + (f' Reason: {reason}' if reason else ''),
+            'message': 'Your Pickle Ball Reservation account has been suspended.' + (f' Reason: {reason}' if reason else ''),
             'action_url': f'{settings.SITE_URL}/contact/',
             'action_text': 'Contact Support',
         },
@@ -139,7 +139,7 @@ def send_account_reactivation_email(user):
         html_template='emails/account_reactivation.html',
         context={
             'title': 'Account Reactivated',
-            'message': 'Your PickleSphere account has been reactivated. You can now sign in and use all features.',
+            'message': 'Your Pickle Ball Reservation account has been reactivated. You can now sign in and use all features.',
             'action_url': f'{settings.SITE_URL}/accounts/login/',
             'action_text': 'Sign In',
         },
@@ -155,9 +155,9 @@ def send_account_deletion_email(user):
         html_template='emails/account_deletion.html',
         context={
             'title': 'Account Deleted',
-            'message': 'Your PickleSphere account has been permanently deleted. We\'re sorry to see you go.',
+            'message': 'Your Pickle Ball Reservation account has been permanently deleted. We\'re sorry to see you go.',
             'action_url': f'{settings.SITE_URL}/',
-            'action_text': 'Visit PickleSphere',
+            'action_text': 'Visit Pickle Ball Reservation',
         },
         email_type='account_deletion',
     )
@@ -706,7 +706,7 @@ def send_contact_form_email(contact_data):
         contact_data: dict with keys: name, email, subject, message
     """
     admin_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'admin@picklesphere.com')
-    site_name = getattr(settings, 'SITE_NAME', 'PickleSphere')
+    site_name = getattr(settings, 'SITE_NAME', 'Pickle Ball Reservation')
     
     # Send to admin
     send_email(
@@ -764,7 +764,7 @@ def send_notification_email(user, notification_obj=None, **context_overrides):
     
     return send_email_to_user(
         user=user,
-        subject=title or 'PickleSphere Notification',
+        subject=title or 'Pickle Ball Reservation Notification',
         html_template='emails/notification.html',
         context=context,
         email_type=f'notification_{category}',
@@ -798,7 +798,7 @@ def send_test_email(user):
     """Send a test email to verify configuration."""
     return send_email_to_user(
         user=user,
-        subject='Test Email from PickleSphere',
+        subject='Test Email from Pickle Ball Reservation',
         html_template='emails/test_email.html',
         context={
             'title': 'Test Email',

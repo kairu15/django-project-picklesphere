@@ -122,7 +122,7 @@ def create_payment_intent(payment):
                 'payment_id': str(payment.id),
                 'reservation_id': str(payment.reservation.id),
             },
-            description=f'PickleSphere Reservation #{payment.reservation.id}',
+            description=f'Pickle Ball Reservation #{payment.reservation.id}',
         )
         return intent
         

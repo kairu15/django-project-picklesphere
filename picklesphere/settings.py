@@ -277,7 +277,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@picklesphere.com')
-DEFAULT_FROM_NAME = config('DEFAULT_FROM_NAME', default='PickleSphere')
+DEFAULT_FROM_NAME = config('DEFAULT_FROM_NAME', default='Pickle Ball Reservation')
 
 # Anymail (Elastic Email) - Transactional email backend
 ANYMAIL = {
@@ -289,7 +289,7 @@ if config('ELASTICEMAIL_API_KEY', default=''):
 
 # Site URL for email templates
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
-SITE_NAME = 'PickleSphere'
+SITE_NAME = 'Pickle Ball Reservation'
 
 # ========== REAL-TIME (Django Channels) ==========
 # Channel layer configuration using Redis (or in-memory for dev)

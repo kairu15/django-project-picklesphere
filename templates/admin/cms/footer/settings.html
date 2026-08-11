@@ -62,11 +62,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Organization Name</label>
-                            <input type="text" name="organization_name" class="form-control" value="{{ settings.organization_name }}" placeholder="PickleSphere" id="orgName">
+                            <input type="text" name="organization_name" class="form-control" value="{{ settings.organization_name }}" placeholder="Pickle Ball Reservation" id="orgName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Copyright Text</label>
-                            <input type="text" name="copyright_text" class="form-control" value="{{ settings.copyright_text }}" placeholder="© PickleSphere. All rights reserved." id="copyrightText">
+                            <input type="text" name="copyright_text" class="form-control" value="{{ settings.copyright_text }}" placeholder="© Pickle Ball Reservation. All rights reserved." id="copyrightText">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Short Description</label>
@@ -184,14 +184,14 @@
             <div class="card-body p-0">
                 <div class="footer-preview" id="footerPreview">
                     <div class="text-center">
-                        <h6 id="previewOrgName" style="font-weight:700;margin-bottom:0.5rem;">{{ settings.organization_name|default:'PickleSphere' }}</h6>
+                        <h6 id="previewOrgName" style="font-weight:700;margin-bottom:0.5rem;">{{ settings.organization_name|default:'Pickle Ball Reservation' }}</h6>
                         <p id="previewDesc" style="font-size:0.85rem;margin-bottom:1rem;opacity:0.8;">{{ settings.short_description|truncatewords:15 }}</p>
                         <div style="display:flex;gap:1rem;justify-content:center;font-size:0.85rem;opacity:0.8;">
                             <span><i class="fas fa-phone me-1"></i>+63 945 547 0173</span>
                             <span><i class="fas fa-envelope me-1"></i>hello@picklesphere.com</span>
                         </div>
                         <hr style="opacity:0.15;margin:1rem 0;">
-                        <small id="previewCopyright" style="opacity:0.6;">{{ settings.copyright_text|default:'© PickleSphere. All rights reserved.' }}</small>
+                        <small id="previewCopyright" style="opacity:0.6;">{{ settings.copyright_text|default:'© Pickle Ball Reservation. All rights reserved.' }}</small>
                     </div>
                 </div>
                 <div class="p-3">
@@ -213,9 +213,9 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.background = `linear-gradient(135deg, ${gradStart}, ${gradEnd})`;
         preview.style.color = textColor;
         
-        document.getElementById('previewOrgName').textContent = document.querySelector('[name="organization_name"]').value || 'PickleSphere';
+        document.getElementById('previewOrgName').textContent = document.querySelector('[name="organization_name"]').value || 'Pickle Ball Reservation';
         document.getElementById('previewDesc').textContent = document.querySelector('[name="short_description"]').value || '';
-        document.getElementById('previewCopyright').textContent = document.querySelector('[name="copyright_text"]').value || '© PickleSphere. All rights reserved.';
+        document.getElementById('previewCopyright').textContent = document.querySelector('[name="copyright_text"]').value || '© Pickle Ball Reservation. All rights reserved.';
     }
     
     // Sync color pickers with text inputs

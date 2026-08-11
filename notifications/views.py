@@ -381,7 +381,7 @@ def smtp_settings_view(request):
         smtp_username = request.POST.get('smtp_username', '').strip()
         smtp_password = request.POST.get('smtp_password', '').strip()
         encryption = request.POST.get('encryption', 'tls')
-        sender_name = request.POST.get('sender_name', 'PickleSphere').strip()
+        sender_name = request.POST.get('sender_name', 'Pickle Ball Reservation').strip()
         sender_email = request.POST.get('sender_email', 'noreply@picklesphere.com').strip()
         smtp_status = request.POST.get('status', 'enabled')
 
@@ -466,7 +466,7 @@ def smtp_test_email_view(request):
                 from .email_service import send_email
                 success = send_email(
                     recipient_email=test_email,
-                    subject='Test Email from PickleSphere',
+                    subject='Test Email from Pickle Ball Reservation',
                     html_template='emails/test_email.html',
                     context={
                         'title': 'Test Email',

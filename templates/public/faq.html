@@ -1,12 +1,12 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}FAQ - PickleSphere{% endblock %}
+{% block title %}FAQ{% endblock %}
 
 {% block body %}
 {% include 'components/header.html' %}
 
-{% with hero_badge=cms_contents.hero_badge|default:"Need Help?" hero_title=cms_contents.hero_title|default:"Frequently Asked Questions" hero_subtitle=cms_contents.hero_subtitle|default:"Find answers to common questions about PickleSphere, our platform, and services" search_placeholder=cms_contents.search_placeholder|default:"Search for answers..." contact_title=cms_contents.contact_title|default:"Still Need Help?" contact_text=cms_contents.contact_text|default:"Can't find what you're looking for? Our support team is here to help!" cta_button_text=cms_contents.cta_button_text|default:"Contact Us" %}
+{% with hero_badge=cms_contents.hero_badge|default:"Need Help?" hero_title=cms_contents.hero_title|default:"Frequently Asked Questions" hero_subtitle=cms_contents.hero_subtitle|default:"Find answers to common questions about Pickle Ball Reservation, our platform, and services" search_placeholder=cms_contents.search_placeholder|default:"Search for answers..." contact_title=cms_contents.contact_title|default:"Still Need Help?" contact_text=cms_contents.contact_text|default:"Can't find what you're looking for? Our support team is here to help!" cta_button_text=cms_contents.cta_button_text|default:"Contact Us" %}
 
 <!-- Hero Section -->
 <section class="hero-section" style="background: linear-gradient(rgba(26, 58, 66, 0.85), rgba(59, 122, 140, 0.9)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920') center/cover; padding: 100px 0 80px; position: relative;">

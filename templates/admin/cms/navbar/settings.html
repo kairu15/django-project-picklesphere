@@ -51,7 +51,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Brand Text</label>
-                            <input type="text" name="brand_text" class="form-control" value="{{ settings.brand_text }}" placeholder="PickleSphere" id="brandText">
+                            <input type="text" name="brand_text" class="form-control" value="{{ settings.brand_text }}" placeholder="Pickle Ball Reservation" id="brandText">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Container Style</label>
@@ -153,7 +153,7 @@
             <div class="card-body p-0">
                 <div class="navbar-preview" id="navbarPreview">
                     <div class="d-flex align-items-center gap-3">
-                        <span id="previewBrand" style="font-weight:700;">{{ settings.brand_text|default:'PickleSphere' }}</span>
+                        <span id="previewBrand" style="font-weight:700;">{{ settings.brand_text|default:'Pickle Ball Reservation' }}</span>
                         <a href="#" id="previewLink1" style="font-size:0.9rem;">Home</a>
                         <a href="#" id="previewLink2" style="font-size:0.9rem;">Courts</a>
                         <a href="#" id="previewLink3" style="font-size:0.9rem;">Tournaments</a>
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.background = bgColor;
         preview.style.color = textColor;
         
-        document.getElementById('previewBrand').textContent = document.querySelector('[name="brand_text"]').value || 'PickleSphere';
+        document.getElementById('previewBrand').textContent = document.querySelector('[name="brand_text"]').value || 'Pickle Ball Reservation';
         document.getElementById('previewBrand').style.color = textColor;
         
         document.querySelectorAll('#navbarPreview a').forEach(a => {

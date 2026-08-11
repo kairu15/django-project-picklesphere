@@ -420,7 +420,7 @@ def verify_otp_view(request):
                     # Create welcome notification
                     Notification.objects.create(
                         user=user,
-                        message=f"Welcome to PickleSphere, {user.first_name}! Your account has been verified."
+                        message=f"Welcome to Pickle Ball Reservation, {user.first_name}! Your account has been verified."
                     )
                     # Send welcome email
                     send_welcome_email(user)
